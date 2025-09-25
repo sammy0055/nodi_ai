@@ -1,0 +1,4 @@
+- add credit to organization table
+- add onboarding tracker
+- add customer table
+- photo library
