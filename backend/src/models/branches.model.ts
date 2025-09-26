@@ -65,8 +65,8 @@ BranchesModel.init(
     location: { type: DataTypes.STRING, allowNull: false },
     deliveryTime: { type: DataTypes.DATE, allowNull: true },
     takeAwayTime: { type: DataTypes.DATE, allowNull: true },
-    supportsDelivery: { type: DataTypes.DATE, allowNull: false },
-    supportsTakeAway: { type: DataTypes.DATE, allowNull: false },
+    supportsDelivery: { type: DataTypes.BOOLEAN, allowNull: false },
+    supportsTakeAway: { type: DataTypes.BOOLEAN, allowNull: false },
   },
   {
     sequelize,
@@ -75,6 +75,21 @@ BranchesModel.init(
     indexes: [
       {
         fields: ['organizationId'],
+      },
+      {
+        // 👇 Expression index for full-text search
+        name: 'branches_search_idx',
+        using: 'GIN',
+        fields: [
+          sequelize.literal(`
+            (
+              setweight(to_tsvector('english', coalesce("name", '')), 'A') ||
+              setweight(to_tsvector('english', coalesce("location", '')), 'B') ||
+              setweight(to_tsvector('simple', coalesce("email", '')), 'C') ||
+              setweight(to_tsvector('simple', coalesce("phone", '')), 'D')
+            )
+          `),
+        ],
       },
     ],
   }

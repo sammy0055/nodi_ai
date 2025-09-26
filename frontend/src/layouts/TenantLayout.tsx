@@ -36,6 +36,7 @@ export const TenantLayout = ({ children }: TenantLayoutProps) => {
     { path: `/app/${PageRoutes.APP_DASHBOARD}`, label: 'Dashboard', icon: <FiHome className="text-lg" /> },
     { path: `/app/${PageRoutes.ORDERS}`, label: 'Orders', icon: <FiShoppingCart className="text-lg" /> },
     { path: `/app/${PageRoutes.PRODUCTS}`, label: 'Products', icon: <FiPackage className="text-lg" /> },
+    { path: `/app/${PageRoutes.BRANCHS}`, label: 'Branches', icon: <FiTrendingUp className="text-lg" /> },
     { path: `/app/${PageRoutes.INVENTORY}`, label: 'Branch Inventory', icon: <FiTrendingUp className="text-lg" /> },
     { path: `/app/${PageRoutes.CUSTOMERS}`, label: 'Customers', icon: <FiUsers className="text-lg" /> },
     { path: `/app/${PageRoutes.BILLING}`, label: 'Billing', icon: <FiDollarSign className="text-lg" /> },

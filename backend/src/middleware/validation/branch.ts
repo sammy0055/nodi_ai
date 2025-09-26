@@ -8,8 +8,8 @@ const branchSchema = z.object({
   email: z.string().trim(),
   isActive: z.boolean().optional(),
   location: z.string().trim(),
-  deliveryTime: z.date().optional(),
-  takeAwayTime: z.date().optional(),
+  deliveryTime: z.coerce.date().optional(),
+  takeAwayTime: z.coerce.date().optional(),
   supportsDelivery: z.boolean(),
   supportsTakeAway: z.boolean(),
 });

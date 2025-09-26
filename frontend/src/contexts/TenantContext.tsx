@@ -7,6 +7,7 @@ import {
   useWhatsappSetRecoilState,
   useProductsSetRecoilState,
   useProductOptionSetRecoilState,
+  useBranchSetRecoilState,
 } from '../store/authAtoms';
 import { useNavigate } from 'react-router';
 import { PageRoutes } from '../routes';
@@ -14,25 +15,36 @@ import type { User } from '../types/users';
 import type { OrganizationPayload } from '../types/organization';
 import { ProductService } from '../services/productService';
 import type { Product, ProductOption } from '../types/product';
+import { BranchService } from '../services/branchService';
+import type { IBranch } from '../types/branch';
 
 export async function contextLoader() {
   try {
     const { getOrganization } = new OrganizationService();
     const { fetchCurrentUser } = new UserService();
     const { getProducts, getProductOptions } = new ProductService();
-    const [userResult, orgResult, productsResult, pOptionResults] = await Promise.allSettled([
+    const { getBranches } = new BranchService();
+    const [userResult, orgResult, productsResult, pOptionResults, branchResults] = await Promise.allSettled([
       fetchCurrentUser(),
       getOrganization(),
       getProducts(),
       getProductOptions(),
+      getBranches(),
     ]);
 
     const user = userResult.status === 'fulfilled' ? userResult.value : null;
     const org = orgResult.status === 'fulfilled' ? orgResult.value : null;
     const products = productsResult.status === 'fulfilled' ? productsResult.value : null;
     const productOptons = pOptionResults.status === 'fulfilled' ? pOptionResults.value : null;
+    const branches = branchResults.status === 'fulfilled' ? branchResults.value : null;
 
-    return { user: user?.data, org: org?.data, products: products?.data.data, productOptions: productOptons?.data };
+    return {
+      user: user?.data,
+      org: org?.data,
+      products: products?.data.data,
+      productOptions: productOptons?.data,
+      branches: branches?.data.data,
+    };
   } catch (error: any) {
     console.error('error in Tenant contextLoader:', error.message);
   }
@@ -42,7 +54,13 @@ export const RootLoaderWrapper = ({
   data,
   children,
 }: {
-  data: { user: User; org: OrganizationPayload; products: Product[]; productOptions: ProductOption[] };
+  data: {
+    user: User;
+    org: OrganizationPayload;
+    products: Product[];
+    productOptions: ProductOption[];
+    branches: IBranch[];
+  };
   children: React.ReactNode;
 }) => {
   const setUser = useUserSetRecoilState();
@@ -50,6 +68,7 @@ export const RootLoaderWrapper = ({
   const setWhatsapp = useWhatsappSetRecoilState();
   const setProducts = useProductsSetRecoilState();
   const setProductOptions = useProductOptionSetRecoilState();
+  const setBranches = useBranchSetRecoilState();
   const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -70,6 +89,9 @@ export const RootLoaderWrapper = ({
     }
     if (data.productOptions) {
       setProductOptions(data.productOptions);
+    }
+    if (data.branches) {
+      setBranches(data.branches);
     }
     // 🔑 Handle redirects once, based on missing data
     if (!data.user) {

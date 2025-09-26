@@ -5,6 +5,7 @@ import type { User } from '../types/users';
 import type { IOrganization } from '../types/organization';
 import type { IWhatSappSettings } from '../types/whatsapp';
 import type { Product, ProductOption } from '../types/product';
+import type { IBranch } from '../types/branch';
 
 export const userAtom = atom<User | null>({
   key: uuid(),
@@ -37,12 +38,18 @@ export const productOptionAtom = atom<ProductOption[] | []>({
   default: [],
 });
 
+export const branchAtom = atom<IBranch[] | []>({
+  key: uuid(),
+  default: [],
+});
+
 // Read values
 export const useUserValue = (): User | null => useRecoilValue(userAtom);
 export const useOrgValue = (): IOrganization => useRecoilValue(orgAtom);
 export const useWhatsappValue = (): IWhatSappSettings | null => useRecoilValue(whatsappAtom);
 export const useProductsValue = (): Product[] | [] => useRecoilValue(productsAtom);
 export const useProductOptionValue = (): ProductOption[] | [] => useRecoilValue(productOptionAtom);
+export const useBranchValue = (): IBranch[] | [] => useRecoilValue(branchAtom);
 
 // Set values
 export const useUserSetRecoilState = () => useSetRecoilState(userAtom);
@@ -50,3 +57,4 @@ export const useOrgSetRecoilState = () => useSetRecoilState(orgAtom);
 export const useWhatsappSetRecoilState = () => useSetRecoilState(whatsappAtom);
 export const useProductsSetRecoilState = () => useSetRecoilState(productsAtom);
 export const useProductOptionSetRecoilState = () => useSetRecoilState(productOptionAtom);
+export const useBranchSetRecoilState = () => useSetRecoilState(branchAtom);

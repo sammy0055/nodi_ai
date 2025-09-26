@@ -26,7 +26,7 @@ branchRoute.post('/create-branch', validateBranchSchema(), authMiddleware, async
   }
 });
 
-branchRoute.put('/branches/:id', validateUpdateBranchSchema(), authMiddleware, async (req, res) => {
+branchRoute.put('/branches/:id', authMiddleware, async (req, res) => {
   try {
     const id = req.params.id;
     const data = await BranchController.updateBranch({ ...req.body, id }, req.user!);
@@ -90,10 +90,11 @@ branchRoute.get('/branches', authMiddleware, async (req, res) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
+    const search = req.query.search as string;
 
     // calculate offset
     const offset = (page - 1) * limit;
-    const data = await BranchController.getBranches(req.user!, { page, limit, offset });
+    const data = await BranchController.getBranches(req.user!, { page, limit, offset }, search);
     const response: APIResponseFormat<any> = {
       message: 'branch retrieved successfully',
       data,

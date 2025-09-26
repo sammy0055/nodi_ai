@@ -23,6 +23,10 @@ export const API_ROUTES = {
   APP_PRODUCT_OPTION_CHOICE: `${API_BASE_URL}/organization/product-option-choice/create`,
   UPDATE_PRODUCT_CHOICE: `${API_BASE_URL}/organization/product-option-choice/update`,
   DELETE_PRODUCT_CHOICE: `${API_BASE_URL}/organization/product-option-choice/delete`,
+  CREATE_BRANCH: `${API_BASE_URL}/organization/branch/create-branch`,
+  GET_BRANCHES: `${API_BASE_URL}/organization/branch/branches`,
+  UPDATE_BRANCH: `${API_BASE_URL}/organization/branch/branches`,
+  DELETE_BRANCH: `${API_BASE_URL}/organization/branch/branches`,
 } as const;
 
 export type ApiRouteName = keyof typeof API_ROUTES;

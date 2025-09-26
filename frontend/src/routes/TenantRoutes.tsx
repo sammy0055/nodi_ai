@@ -4,6 +4,8 @@ import { PageRoutes } from '.';
 import { RootLoaderWrapper } from '../contexts/TenantContext';
 import SettingsPage from '../pages/tenant/Settings';
 import ProductsPage from '../pages/tenant/ProductsPage';
+import BranchPage from '../pages/tenant/BranchPage';
+import BranchInventoryPage from '../pages/tenant/BranchInventoryPage';
 
 export default function TenantRoutes() {
   const data = useLoaderData();
@@ -15,9 +17,10 @@ export default function TenantRoutes() {
           <Route path={PageRoutes.APP_DASHBOARD} element={<div>dashboard page here</div>} />
           <Route path={PageRoutes.ORDERS} element={<div>ORDERS page here</div>} />
           <Route path={PageRoutes.PRODUCTS} element={<ProductsPage />} />
-          <Route path={PageRoutes.INVENTORY} element={<div>INVENTORY page here</div>} />
+          <Route path={PageRoutes.INVENTORY} element={<BranchInventoryPage />} />
           <Route path={PageRoutes.CUSTOMERS} element={<div>CUSTOMERS page here</div>} />
           <Route path={PageRoutes.BILLING} element={<div>BILLING page here</div>} />
+          <Route path={PageRoutes.BRANCHS} element={<BranchPage />} />
           <Route path={PageRoutes.SETTINGS} element={<SettingsPage />} />
         </Routes>
       </TenantLayout>

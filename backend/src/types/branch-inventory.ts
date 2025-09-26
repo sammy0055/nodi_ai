@@ -1,6 +1,6 @@
 export interface IBranchInventory {
   id: string;
-  organizationId: string;
+  organizationId?: string;
   branchId: string;
   productId: string;
   quantityOnHand?: number;
