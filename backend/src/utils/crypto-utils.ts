@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { appConfig } from '../config';
+import { appConfig } from '../../config';
 
 const ENCRYPTION_KEY = crypto.createHash('sha256').update(String(appConfig.encryptionSecret)).digest(); // must be 32 bytes for AES-256
 const IV_LENGTH = 16;

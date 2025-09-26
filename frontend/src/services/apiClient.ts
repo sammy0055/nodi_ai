@@ -27,6 +27,10 @@ export const API_ROUTES = {
   GET_BRANCHES: `${API_BASE_URL}/organization/branch/branches`,
   UPDATE_BRANCH: `${API_BASE_URL}/organization/branch/branches`,
   DELETE_BRANCH: `${API_BASE_URL}/organization/branch/branches`,
+  CREATE_BRANCH_INVENTORY: `${API_BASE_URL}/organization/branch-inventory/create`,
+  UPDATE_BRANCH_INVENTORY: `${API_BASE_URL}/organization/branch-inventory/update`,
+  GET_BRANCH_INVENTORIES: `${API_BASE_URL}/organization/branch-inventory/get-inventories`,
+  DELETE_BRANCH_INVENTOTRY: `${API_BASE_URL}/organization/branch-inventory/inventory`,
 } as const;
 
 export type ApiRouteName = keyof typeof API_ROUTES;

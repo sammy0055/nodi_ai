@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { getEnv } from '../utils/getEnv';
+import { getEnv } from '../src/utils/getEnv';
 
 export enum EnvList {
   LOCAL_DATABASE_URL = 'LOCAL_DATABASE_URL',

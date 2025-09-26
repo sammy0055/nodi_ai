@@ -319,8 +319,8 @@ const ProductsPage: React.FC = () => {
   const handleAddProduct = () => {
     setSelectedProduct(null);
     setEditingProduct({
-      id: `prod-${Date.now()}`,
-      organizationId: '',
+      // id: "",
+      // organizationId: '',
       sku: '',
       status: 'active',
       name: '',

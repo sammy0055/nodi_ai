@@ -8,6 +8,7 @@ import {
   useProductsSetRecoilState,
   useProductOptionSetRecoilState,
   useBranchSetRecoilState,
+  useBranchInventorySetRecoilState,
 } from '../store/authAtoms';
 import { useNavigate } from 'react-router';
 import { PageRoutes } from '../routes';
@@ -16,7 +17,8 @@ import type { OrganizationPayload } from '../types/organization';
 import { ProductService } from '../services/productService';
 import type { Product, ProductOption } from '../types/product';
 import { BranchService } from '../services/branchService';
-import type { IBranch } from '../types/branch';
+import type { IBranch, IBranchInventory } from '../types/branch';
+import { BranchInventoryService } from '../services/branchInventory';
 
 export async function contextLoader() {
   try {
@@ -24,19 +26,23 @@ export async function contextLoader() {
     const { fetchCurrentUser } = new UserService();
     const { getProducts, getProductOptions } = new ProductService();
     const { getBranches } = new BranchService();
-    const [userResult, orgResult, productsResult, pOptionResults, branchResults] = await Promise.allSettled([
-      fetchCurrentUser(),
-      getOrganization(),
-      getProducts(),
-      getProductOptions(),
-      getBranches(),
-    ]);
+    const { getInventories } = new BranchInventoryService();
+    const [userResult, orgResult, productsResult, pOptionResults, branchResults, inventoryResults] =
+      await Promise.allSettled([
+        fetchCurrentUser(),
+        getOrganization(),
+        getProducts(),
+        getProductOptions(),
+        getBranches(),
+        getInventories(),
+      ]);
 
     const user = userResult.status === 'fulfilled' ? userResult.value : null;
     const org = orgResult.status === 'fulfilled' ? orgResult.value : null;
     const products = productsResult.status === 'fulfilled' ? productsResult.value : null;
     const productOptons = pOptionResults.status === 'fulfilled' ? pOptionResults.value : null;
     const branches = branchResults.status === 'fulfilled' ? branchResults.value : null;
+    const branchInventories = inventoryResults.status === 'fulfilled' ? inventoryResults.value : null;
 
     return {
       user: user?.data,
@@ -44,6 +50,7 @@ export async function contextLoader() {
       products: products?.data.data,
       productOptions: productOptons?.data,
       branches: branches?.data.data,
+      branchInventories: branchInventories?.data.data,
     };
   } catch (error: any) {
     console.error('error in Tenant contextLoader:', error.message);
@@ -60,6 +67,7 @@ export const RootLoaderWrapper = ({
     products: Product[];
     productOptions: ProductOption[];
     branches: IBranch[];
+    branchInventories: IBranchInventory[];
   };
   children: React.ReactNode;
 }) => {
@@ -69,6 +77,7 @@ export const RootLoaderWrapper = ({
   const setProducts = useProductsSetRecoilState();
   const setProductOptions = useProductOptionSetRecoilState();
   const setBranches = useBranchSetRecoilState();
+  const setBranchInventory = useBranchInventorySetRecoilState();
   const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -93,13 +102,16 @@ export const RootLoaderWrapper = ({
     if (data.branches) {
       setBranches(data.branches);
     }
+    if (data.branchInventories) {
+      setBranchInventory(data.branchInventories);
+    }
     // 🔑 Handle redirects once, based on missing data
     if (!data.user) {
       navigate(`/app/auth/${PageRoutes.LOGIN}`, { replace: true });
     } else if (!data.org) {
       navigate(`/app/auth/${PageRoutes.CREATE_ORGANIZATION}`, { replace: true });
     }
-  }, [data, setUser, setOrg]);
+  }, [data, setUser, setOrg, setProductOptions, setWhatsapp, setProducts, setBranches, setBranchInventory]);
 
   return <>{children}</>;
 };

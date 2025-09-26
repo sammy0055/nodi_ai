@@ -1,4 +1,4 @@
-import { appConfig } from '../config';
+import { appConfig } from '../../config';
 import { stripe } from '../helpers/stripe';
 import { SubscriptionPlanModel } from '../models/subscription-plan.model';
 import { User } from '../types/users';

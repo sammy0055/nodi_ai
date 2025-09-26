@@ -1,6 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from 'uuid';
-import { appConfig } from '../config';
+import { appConfig } from '../../config';
 export class ImageUploadHelper {
   superbase: SupabaseClient;
   private bucketName = appConfig.superbase.storage.bucketName;
@@ -60,7 +60,7 @@ export class ImageUploadHelper {
       throw error;
     }
 
-    const imgUrl =  `${this.getPublicUrl(data.path)}?t=${Date.now()}`;
+    const imgUrl = `${this.getPublicUrl(data.path)}?t=${Date.now()}`;
 
     return { ...data, imgUrl };
   };

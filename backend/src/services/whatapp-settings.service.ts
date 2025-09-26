@@ -1,4 +1,4 @@
-import { appConfig } from '../config';
+import { appConfig } from '../../config';
 import { WhatSappConnectionStatus } from '../data/data-types';
 import { WhatSappSettingsModel } from '../models/whatsapp-settings.model';
 import { User } from '../types/users';

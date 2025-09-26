@@ -1,5 +1,4 @@
-// src/components/pages/BranchInventoryPage/BranchInventoryPage.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   FiPlus,
   FiSearch,
@@ -16,83 +15,17 @@ import {
 } from 'react-icons/fi';
 import Button from '../../components/atoms/Button/Button';
 import Input from '../../components/atoms/Input/Input';
-
-// Define types based on your interface
-export interface IBranchInventory {
-  id?: string;
-  organizationId?: string;
-  branchId: string;
-  productId: string;
-  quantityOnHand?: number;
-  quantityReserved?: number;
-  costPrice?: number;
-  sellingPrice: number;
-  isActive: boolean;
-}
-
-// Mock data for branches and products
-const mockBranches = [
-  { id: 'branch-001', name: 'Downtown Main Branch', code: 'DT-001' },
-  { id: 'branch-002', name: 'Westside Branch', code: 'WS-002' },
-  { id: 'branch-003', name: 'North Point Branch', code: 'NP-003' },
-  { id: 'branch-004', name: 'East End Branch', code: 'EE-004' },
-];
-
-const mockProducts = [
-  { id: 'prod-001', name: 'Wireless Headphones', sku: 'SKU-001', price: 79.99 },
-  { id: 'prod-002', name: 'Smart Watch', sku: 'SKU-002', price: 199.99 },
-  { id: 'prod-003', name: 'Laptop Backpack', sku: 'SKU-003', price: 49.99 },
-  { id: 'prod-004', name: 'Bluetooth Speaker', sku: 'SKU-004', price: 89.99 },
-  { id: 'prod-005', name: 'Phone Case', sku: 'SKU-005', price: 19.99 },
-];
-
-// Mock inventory data
-const mockInventory: IBranchInventory[] = [
-  {
-    id: 'inv-001',
-    organizationId: 'org-001',
-    branchId: 'branch-001',
-    productId: 'prod-001',
-    quantityOnHand: 50,
-    quantityReserved: 5,
-    costPrice: 60.0,
-    sellingPrice: 79.99,
-    isActive: true,
-  },
-  {
-    id: 'inv-002',
-    organizationId: 'org-001',
-    branchId: 'branch-001',
-    productId: 'prod-002',
-    quantityOnHand: 25,
-    quantityReserved: 3,
-    costPrice: 150.0,
-    sellingPrice: 199.99,
-    isActive: true,
-  },
-  {
-    id: 'inv-003',
-    organizationId: 'org-001',
-    branchId: 'branch-002',
-    productId: 'prod-001',
-    quantityOnHand: 30,
-    quantityReserved: 2,
-    costPrice: 60.0,
-    sellingPrice: 79.99,
-    isActive: true,
-  },
-  {
-    id: 'inv-004',
-    organizationId: 'org-001',
-    branchId: 'branch-002',
-    productId: 'prod-003',
-    quantityOnHand: 40,
-    quantityReserved: 0,
-    costPrice: 35.0,
-    sellingPrice: 49.99,
-    isActive: false,
-  },
-];
+import { useDebounce } from 'use-debounce';
+import { ProductService } from '../../services/productService';
+import {
+  useBranchInventorySetRecoilState,
+  useBranchInventoryValue,
+  useBranchValue,
+  useProductsValue,
+} from '../../store/authAtoms';
+import { BranchService } from '../../services/branchService';
+import type { IBranchInventory } from '../../types/branch';
+import { BranchInventoryService } from '../../services/branchInventory';
 
 // Validation interface
 interface ValidationErrors {
@@ -105,7 +38,12 @@ interface ValidationErrors {
 }
 
 const BranchInventoryPage: React.FC = () => {
-  const [inventory, setInventory] = useState<IBranchInventory[]>(mockInventory);
+  const products = useProductsValue();
+  const branches = useBranchValue();
+  const inventory = useBranchInventoryValue();
+
+  const setInventory = useBranchInventorySetRecoilState();
+  //   const [inventory, setInventory] = useState<IBranchInventory[]>(mockInventory);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
@@ -126,14 +64,16 @@ const BranchInventoryPage: React.FC = () => {
   const [showBranchDropdown, setShowBranchDropdown] = useState(false);
   const [showProductDropdown, setShowProductDropdown] = useState(false);
 
+  const { createInventory, updateInventory, deleteInventory, searchInvotory } = new BranchInventoryService();
+
   // Filter inventory based on search term
   const filteredInventory = inventory.filter((item) => {
-    const branch = mockBranches.find((b) => b.id === item.branchId);
-    const product = mockProducts.find((p) => p.id === item.productId);
+    const branch = branches.find((b) => b.id === item.branchId);
+    const product = products.find((p) => p.id === item.productId);
 
     return (
       branch?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      branch?.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      branch?.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product?.sku.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -142,19 +82,58 @@ const BranchInventoryPage: React.FC = () => {
   // Pagination
   const totalPages = Math.ceil(filteredInventory.length / itemsPerPage);
   const currentInventory = filteredInventory.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
+  const [filteredBranches, setFilteredBranches] = useState<any[]>([]);
   // Filter branches and products for dropdowns
-  const filteredBranches = mockBranches.filter(
-    (branch) =>
-      branch.name.toLowerCase().includes(branchSearch.toLowerCase()) ||
-      branch.code.toLowerCase().includes(branchSearch.toLowerCase())
-  );
+  const { searchBranch } = new BranchService();
+  const [branchDebouncedTerm] = useDebounce(branchSearch, 500); // 500ms delay
+  useEffect(() => {
+    const fetchBranches = async () => {
+      if (!branchDebouncedTerm) {
+        setFilteredBranches([]); // clear results when search is empty
+        return;
+      }
+      const { data } = await searchBranch(branchSearch);
+      setFilteredBranches(data.data); // now filteredProducts is an array
+    };
 
-  const filteredProducts = mockProducts.filter(
-    (product) =>
-      product.name.toLowerCase().includes(productSearch.toLowerCase()) ||
-      product.sku.toLowerCase().includes(productSearch.toLowerCase())
-  );
+    fetchBranches();
+  }, [branchDebouncedTerm]);
+
+  const [productDebouncedTerm] = useDebounce(productSearch, 500); // 500ms delay
+  const { searchProducts } = new ProductService();
+
+  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
+  useEffect(() => {
+    setFilteredBranches(branches);
+    setFilteredProducts(products);
+  }, [products, branches]);
+  useEffect(() => {
+    const fetchProducts = async () => {
+      if (!productDebouncedTerm) {
+        setFilteredProducts([]); // clear results when search is empty
+        return;
+      }
+      const { data } = await searchProducts(productSearch);
+
+      setFilteredProducts(data.data); // now filteredProducts is an array
+    };
+
+    fetchProducts();
+  }, [productDebouncedTerm]);
+
+  const [inventorySearch] = useDebounce(searchTerm, 500); // 500ms delay
+  useEffect(() => {
+    const fetchBranches = async () => {
+      if (!inventorySearch) {
+        setInventory([]); // clear results when search is empty
+        return;
+      }
+      const { data } = await searchInvotory(searchTerm);
+      setInventory(data.data); // now filteredProducts is an array
+    };
+
+    fetchBranches();
+  }, [inventorySearch]);
 
   // Validation functions
   const validateField = (name: keyof ValidationErrors, value: any): string | undefined => {
@@ -215,35 +194,45 @@ const BranchInventoryPage: React.FC = () => {
   };
 
   // CRUD Operations
-  const handleCreateInventory = () => {
+  const handleCreateInventory = async () => {
     if (!validateForm()) return;
-
-    const inventoryToCreate: IBranchInventory = {
-      id: `inv-${Date.now()}`,
-      organizationId: 'org-001',
-      branchId: newInventory.branchId!,
-      productId: newInventory.productId!,
-      quantityOnHand: newInventory.quantityOnHand || 0,
-      quantityReserved: newInventory.quantityReserved || 0,
-      costPrice: newInventory.costPrice,
-      sellingPrice: newInventory.sellingPrice || 0,
-      isActive: newInventory.isActive ?? true,
-    };
-
-    setInventory([...inventory, inventoryToCreate]);
-    setShowInventoryModal(false);
-    resetForm();
+    try {
+      const inventoryToCreate: IBranchInventory = {
+        //   id: `inv-${Date.now()}`,
+        //   organizationId: 'org-001',
+        branchId: newInventory.branchId!,
+        productId: newInventory.productId!,
+        quantityOnHand: newInventory.quantityOnHand || 0,
+        quantityReserved: newInventory.quantityReserved || 0,
+        costPrice: newInventory.costPrice,
+        sellingPrice: newInventory.sellingPrice || 0,
+        isActive: newInventory.isActive ?? true,
+      };
+      const { data } = await createInventory(inventoryToCreate);
+      setInventory([...inventory, data]);
+      setShowInventoryModal(false);
+      resetForm();
+    } catch (error: any) {
+      alert('something went wrong');
+      console.error(error.message);
+    }
   };
 
-  const handleUpdateInventory = () => {
+  const handleUpdateInventory = async () => {
     if (!editingInventory || !validateForm()) return;
 
-    setInventory(
-      inventory.map((item) => (item.id === editingInventory.id ? { ...(newInventory as IBranchInventory) } : item))
-    );
-    setShowInventoryModal(false);
-    setEditingInventory(null);
-    resetForm();
+    try {
+      const { data } = await updateInventory(newInventory as IBranchInventory);
+      setInventory(
+        inventory.map((item) => (item.id === editingInventory.id ? { ...(data as IBranchInventory) } : item))
+      );
+      setShowInventoryModal(false);
+      setEditingInventory(null);
+      resetForm();
+    } catch (error: any) {
+      alert('something went wrong');
+      console.error(error.message);
+    }
   };
 
   const handleEditInventory = (item: IBranchInventory) => {
@@ -253,9 +242,15 @@ const BranchInventoryPage: React.FC = () => {
     setShowInventoryModal(true);
   };
 
-  const handleDeleteInventory = (inventoryId: string) => {
-    if (window.confirm('Are you sure you want to delete this inventory entry?')) {
-      setInventory(inventory.filter((item) => item.id !== inventoryId));
+  const handleDeleteInventory = async (inventoryId: string) => {
+    try {
+      if (window.confirm('Are you sure you want to delete this inventory entry?')) {
+        await deleteInventory(inventoryId);
+        setInventory(inventory.filter((item) => item.id !== inventoryId));
+      }
+    } catch (error: any) {
+      alert('something went wrong');
+      console.error(error.message);
     }
   };
 
@@ -289,15 +284,15 @@ const BranchInventoryPage: React.FC = () => {
   };
 
   const getBranchName = (branchId: string) => {
-    return mockBranches.find((b) => b.id === branchId)?.name || 'Unknown Branch';
+    return branches.find((b) => b.id === branchId)?.name || 'Unknown Branch';
   };
 
   const getProductName = (productId: string) => {
-    return mockProducts.find((p) => p.id === productId)?.name || 'Unknown Product';
+    return products.find((p) => p.id === productId)?.name || 'Unknown Product';
   };
 
   const getProductSku = (productId: string) => {
-    return mockProducts.find((p) => p.id === productId)?.sku || 'N/A';
+    return products.find((p) => p.id === productId)?.sku || 'N/A';
   };
 
   const getStatusColor = (isActive: boolean) => {
@@ -483,7 +478,7 @@ const BranchInventoryPage: React.FC = () => {
 
             <select className="border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
               <option value="">All Branches</option>
-              {mockBranches.map((branch) => (
+              {branches?.map((branch) => (
                 <option key={branch.id} value={branch.id}>
                   {branch.name}
                 </option>
@@ -685,6 +680,7 @@ const BranchInventoryPage: React.FC = () => {
                           onClick={() => {
                             handleFieldChange('productId', product.id);
                             setProductSearch(product.name);
+                            setNewInventory((prevState) => ({ ...prevState, sellingPrice: product.price }));
                             setShowProductDropdown(false);
                           }}
                         >

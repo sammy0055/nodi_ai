@@ -53,7 +53,7 @@ export class ProductService {
     const updatedProduct = updatedRows[0].get({ plain: true }); // plain JS object
     return updatedProduct;
   }
-  
+
   static async removeProduct(productId: string, user: Pick<User, 'id' | 'organizationId'>) {
     if (!productId) throw new Error('product id is required');
     // const whatsappData = await WhatSappSettingsModel.findOne({ where: { organizationId: user.organizationId } });
@@ -81,7 +81,7 @@ export class ProductService {
     };
     if (searchQuery && searchQuery.trim() !== '') {
       where[Op.and] = literal(`
-    to_tsvector('english', coalesce("Product"."name",'') || ' ' || coalesce("Product"."description",''))
+    to_tsvector('english', coalesce("Products"."name",'') || ' ' || coalesce("Products"."description",''))
     @@ plainto_tsquery('english', '${searchQuery}')
   `);
     }
@@ -95,7 +95,7 @@ export class ProductService {
             [
               literal(`
             ts_rank(
-              to_tsvector('english', coalesce("Product"."name",'') || ' ' || coalesce("Product"."description",'')),
+              to_tsvector('english', coalesce("Products"."name",'') || ' ' || coalesce("Products"."description",'')),
               plainto_tsquery('english', '${searchQuery}')
             )
           `),

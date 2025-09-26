@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { generateTokens, verifyToken } from '../utils/jwt';
 import jwt from 'jsonwebtoken';
 import { UserService } from '../services/users.service';
-import { appConfig } from '../config';
+import { appConfig } from '../../config';
 import { setAuthHeaderCookie } from '../helpers/set-auth-header';
 
 export interface TokenPayload {
@@ -34,7 +34,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
         try {
           const newTokens = await UserService.refreshToken(tokens.refresh_token);
 
-          setAuthHeaderCookie(res, newTokens, "auth_tokens");
+          setAuthHeaderCookie(res, newTokens, 'auth_tokens');
 
           const { id, organizationId, email, userType } = verifyToken(newTokens.access_token, 'access') as any;
           req.user = { id, organizationId, email, userType };
@@ -86,7 +86,7 @@ export const adminAuthMiddleware = async (req: Request, res: Response, next: Nex
             refresh_token: refreshToken,
             expires_in,
           };
-         setAuthHeaderCookie(res, newTokens, "auth_tokens");
+          setAuthHeaderCookie(res, newTokens, 'auth_tokens');
 
           const { id, email, type } = verifyToken(newTokens.access_token, 'access') as any;
           req.adminUser = { id, email, type };
