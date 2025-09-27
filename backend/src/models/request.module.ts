@@ -52,8 +52,8 @@ RequestModel.init(
         model: ModelNames.Organizations,
         key: 'id',
       },
-      onUpdate: 'CASCADE', // Update notification if organization changes
-      onDelete: 'SET NULL', // Keep notification if organization is deleted
+      onUpdate: 'CASCADE', // Update if organization changes
+      onDelete: 'SET NULL', // Keep if organization is deleted
     },
     requesterUserId: {
       type: DataTypes.UUID,

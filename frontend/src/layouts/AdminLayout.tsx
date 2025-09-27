@@ -35,6 +35,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const navigationItems = [
     { path: '/admin/dashboard', label: 'Dashboard', icon: <FiHome className="text-lg" /> },
     { path: '/admin/request', label: 'Request', icon: <FiRefreshCw className="text-lg" /> },
+    { path: '/admin/update-waba', label: 'update-waba', icon: <FiRefreshCw className="text-lg" /> },
     { path: '/admin/organizations', label: 'Organizations', icon: <FiUsers className="text-lg" /> },
     { path: '/admin/subscriptions', label: 'Subscriptions', icon: <FiDollarSign className="text-lg" /> },
     { path: '/admin/conversations', label: 'Conversation Logs', icon: <FiMessageSquare className="text-lg" /> },

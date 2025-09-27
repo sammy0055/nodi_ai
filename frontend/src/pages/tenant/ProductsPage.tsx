@@ -24,8 +24,11 @@ import {
   useProductOptionValue,
   useProductsSetRecoilState,
   useProductsValue,
+  useWhatsappValue,
 } from '../../store/authAtoms';
 import { useDebounce } from 'use-debounce';
+import { useNavigate } from 'react-router';
+import { PageRoutes } from '../../routes';
 // Define types based on your schema
 const ProductStatusTypes = {
   ACTIVE: 'active',
@@ -268,10 +271,10 @@ const ProductsPage: React.FC = () => {
   const setProducts = useProductsSetRecoilState();
   const productOptions = useProductOptionValue();
   const setProductOptions = useProductOptionSetRecoilState();
+  const whatsappData = useWhatsappValue();
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
-  const [whatsappCatalogId, setWhatsappCatalogId] = useState<string | null>(null);
   const [showProductModal, setShowProductModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -292,9 +295,9 @@ const ProductsPage: React.FC = () => {
   // Pagination
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const currentProducts = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
+  const navigate = useNavigate();
   const handleCreateCatalog = () => {
-    setWhatsappCatalogId('catalog_12345');
+    navigate(`/app/${PageRoutes.SETTINGS}`);
   };
 
   const handleDeleteProduct = async (productId: string) => {
@@ -517,6 +520,8 @@ const ProductsPage: React.FC = () => {
     );
   };
 
+  if (!whatsappData?.catalogId) return <CatalogWarning />;
+
   return (
     <div className="space-y-6 p-4 md:p-0">
       {/* Header */}
@@ -539,7 +544,6 @@ const ProductsPage: React.FC = () => {
       </div>
 
       {/* WhatsApp Catalog Warning */}
-      {!whatsappCatalogId && <CatalogWarning />}
 
       {/* Search and Filters */}
       <div className="bg-white rounded-lg shadow-medium p-4">

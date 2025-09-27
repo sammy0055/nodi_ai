@@ -31,7 +31,27 @@ export class AdminUserService {
   }
 
   async getRequests(): Promise<Promise<{ data: BaseRequestAttributes; message: string }>> {
-    return await ApiClient("ADMIN_GET_REQUESTS", {
+    return await ApiClient('ADMIN_GET_REQUESTS', {
+      headers: {
+        'app-user-secret': import.meta.env.VITE_ADMIN_SECET,
+      },
+    });
+  }
+
+  async updateOrganizationWABA(data: any) {
+    await ApiClient('ADMIN_UPDATE_ORG_WABA', {
+      method: 'POST',
+      body: data,
+      headers: {
+        'app-user-secret': import.meta.env.VITE_ADMIN_SECET,
+      },
+    });
+  }
+
+  async approveRequest(data: any) {
+    await ApiClient('ADMIN_APPROVE_REQUEST', {
+      method: 'POST',
+      body: data,
       headers: {
         'app-user-secret': import.meta.env.VITE_ADMIN_SECET,
       },

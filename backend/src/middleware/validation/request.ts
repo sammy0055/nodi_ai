@@ -13,8 +13,8 @@ const requestSchemaUpdate = z.object({
   status: z.enum([...Object.values(RequestStatus)] as any).optional(),
   approvedByUserId: z.string(),
   approvalNotes: z.string().trim(),
-  approvedAt: z.date().optional(),
-  rejectedAt: z.date().optional(),
+  approvedAt: z.coerce.date().optional(),
+  rejectedAt: z.coerce.date().optional(),
 });
 
 export const validateRequestSchema = () => {

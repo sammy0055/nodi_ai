@@ -1,6 +1,14 @@
 const API_BASE_URL = 'http://localhost:4000/api';
 
+export const APP_USER_API_ROUTES = {
+  ADMIN_GET_REQUESTS: `${API_BASE_URL}/app-user/request/get-requests`,
+  ADMIN_APPROVE_REQUEST: `${API_BASE_URL}/app-user/request/approve`,
+  ADMIN_UPDATE_ORG_WABA: `${API_BASE_URL}/app-user/request/update-waba`,
+  ADMIN_LOGIN: `${API_BASE_URL}/app-user/login`,
+  CURRENT_ADMIN_USER: `${API_BASE_URL}/app-user/current-user`,
+};
 export const API_ROUTES = {
+  ...APP_USER_API_ROUTES,
   LOGIN: `${API_BASE_URL}/user/login`,
   SIGNUP: `${API_BASE_URL}/user/sign-up`,
   CREATE_ORGANIZATION: `${API_BASE_URL}/organization/create`,
@@ -9,9 +17,7 @@ export const API_ROUTES = {
   CURRENT_USER: `${API_BASE_URL}/user/current-user`,
   WHATSAPP_AUTH: `${API_BASE_URL}/whatsapp-settings/get-whatsapp-auth-url`,
   EXCHANGE_WABA_CODE: `${API_BASE_URL}/whatsapp-settings/exchange-whatsapp-code-for-access-token`,
-  ADMIN_LOGIN: `${API_BASE_URL}/app-user/login`,
-  CURRENT_ADMIN_USER: `${API_BASE_URL}/app-user/current-user`,
-  ADMIN_GET_REQUESTS: `${API_BASE_URL}/app-user/request/get-requests`,
+  GET_REQUST: `${API_BASE_URL}/organization/request/get-request`,
   ADD_PRODUCT: `${API_BASE_URL}/organization/product/create-product`,
   GET_PRODUCTS: `${API_BASE_URL}/organization/product/products`,
   UPDATE_PRODUCT: `${API_BASE_URL}/organization/product/products`,
@@ -31,6 +37,7 @@ export const API_ROUTES = {
   UPDATE_BRANCH_INVENTORY: `${API_BASE_URL}/organization/branch-inventory/update`,
   GET_BRANCH_INVENTORIES: `${API_BASE_URL}/organization/branch-inventory/get-inventories`,
   DELETE_BRANCH_INVENTOTRY: `${API_BASE_URL}/organization/branch-inventory/inventory`,
+  CREATE_CATALOG_REQUEST: `${API_BASE_URL}/organization/request/create`,
 } as const;
 
 export type ApiRouteName = keyof typeof API_ROUTES;

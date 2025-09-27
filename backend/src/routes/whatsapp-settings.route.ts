@@ -24,24 +24,29 @@ WhatSappRoute.get('/get-whatsapp-auth-url', authMiddleware, (req, res) => {
   }
 });
 
-WhatSappRoute.post('/exchange-whatsapp-code-for-access-token', validateWhatsappSettingsSchema(), async (req, res) => {
-  try {
-    const payload = { ...req.body, user: req.user };
-    const data = await WhatSappSettingsController.exchangeWhatSappCodeForAccessTokens(payload);
-    const response: APIResponseFormat<any> = {
-      message: 'whatsapp accessToken retrieved successfully',
-      data,
-    };
-    res.status(201).json(response);
-  } catch (error: any) {
-    const response: APIResponseFormat<null> = {
-      message: error.message,
-      error: error,
-    };
-    errorLogger(error);
-    res.status(500).json(response);
+WhatSappRoute.post(
+  '/exchange-whatsapp-code-for-access-token',
+  authMiddleware,
+  validateWhatsappSettingsSchema(),
+  async (req, res) => {
+    try {
+      const payload = { ...req.body, user: req.user };
+      const data = await WhatSappSettingsController.exchangeWhatSappCodeForAccessTokens(payload);
+      const response: APIResponseFormat<any> = {
+        message: 'whatsapp accessToken retrieved successfully',
+        data,
+      };
+      res.status(201).json(response);
+    } catch (error: any) {
+      const response: APIResponseFormat<null> = {
+        message: error.message,
+        error: error,
+      };
+      errorLogger(error);
+      res.status(500).json(response);
+    }
   }
-});
+);
 
 WhatSappRoute.post('/mock-add-data', authMiddleware, async (req, res) => {
   try {

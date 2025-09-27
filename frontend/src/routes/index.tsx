@@ -23,6 +23,7 @@ export const PageRoutes = {
   CUSTOMERS: 'customers',
   BILLING: 'billing',
   ADMIN_DASHBOARD: 'dashboard',
+  ADDMIN_UPDATE_WABA: "update-waba"
 } as const;
 
 const router = createBrowserRouter([

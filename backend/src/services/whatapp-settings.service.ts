@@ -32,7 +32,7 @@ export class WhatSappSettingsService {
       client_id: this.meta_app_id,
       client_secret: this.meta_app_secret,
       grant_type: 'authorization_code',
-      redirect_uri: this.meta_callback_url,
+      // redirect_uri: this.meta_callback_url,
       code,
     };
     const encoded = new URLSearchParams(params);
@@ -75,9 +75,6 @@ export class WhatSappSettingsService {
     };
 
     const whatBussinessAccountData = await WhatSappSettingsModel.create(payload);
-    console.log('====whatBussinessAccountData=========');
-    console.log(payload);
-    console.log('====================================');
     return whatBussinessAccountData;
   }
 
@@ -145,18 +142,3 @@ export class WhatSappSettingsService {
     return await WhatSappSettingsModel.create({ ...data, organizationId: user.organizationId });
   }
 }
-
-// const url = 'https://graph.facebook.com/v22.0/oauth/access_token';
-// const response = await fetch(url, {
-//   method: 'POST',
-//   body: JSON.stringify({
-//     client_id: '2512895449065253',
-//     client_secret: '********************************',
-//     grant_type: 'authorization_code',
-//     redirect_uri:
-//       'https://developers.facebook.com/es/oauth/callback/?use_case_enum=WHATSAPP_BUSINESS_MESSAGING&selected_tab=wa-dev-quickstart&product_route=whatsapp-business&business_id=213148529184583&nonce=iKl2bOgqmZ0PGeXCHYLDgYyQMsjKTW46',
-//   }),
-//   headers: { 'Content-Type': 'application/json' },
-// });
-// const data = await response.json();
-// console.log(data);

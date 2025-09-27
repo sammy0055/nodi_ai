@@ -50,7 +50,7 @@ WhatSappSettingsModel.init(
       values: Object.values(WhatSappConnectionStatus),
       defaultValue: 'not-connected',
     },
-    accessToken: { type: DataTypes.STRING, allowNull: true },
+    accessToken: { type: DataTypes.TEXT, allowNull: true },
     token_type: { type: DataTypes.STRING, allowNull: true },
     isSubscribedToWebhook: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     whatsappTemplates: { type: DataTypes.ARRAY(DataTypes.STRING), allowNull: false, defaultValue: [] },

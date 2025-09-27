@@ -13,6 +13,7 @@ import {
 } from 'react-icons/fi';
 import Button from '../../components/atoms/Button/Button';
 import { useAdminUserValue, useRequestSetRecoilState, useRequestValue } from '../../store/admin/authAtoms';
+import { AdminUserService } from '../../services/admin/AdminUserService';
 
 // Define types based on your interface
 // Define types based on your interface
@@ -29,23 +30,33 @@ const RequestRoutePage: React.FC = () => {
   const [expandedRequest, setExpandedRequest] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<any | 'all'>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const { approveRequest } = new AdminUserService();
+  const handleApprove = async (requestId: string) => {
+    try {
+      const aprovedData: any = {
+        id: requestId,
+        status: 'approved',
+        approvedAt: new Date(),
+        approvedByUserId: adminUser?.id!,
+        approvalNotes: 'Request approved',
+      };
 
-  const handleApprove = (requestId: string) => {
-
-    setRequests((prevState) => {
-      const updatedRequest = prevState.map((req) => {
-        return req.id === requestId
-          ? {
-              ...req,
-              status: 'approved' as 'approved',
-              approvedAt: new Date(),
-              approvedByUserId: adminUser?.id!,
-              approvalNotes: 'Request approved',
-            }
-          : req;
+      await approveRequest(aprovedData);
+      setRequests((prevState) => {
+        const updatedRequest = prevState.map((req) => {
+          return req.id === requestId
+            ? {
+                ...req,
+                ...aprovedData,
+              }
+            : req;
+        });
+        return updatedRequest;
       });
-      return updatedRequest;
-    });
+    } catch (error: any) {
+      alert('something went wrong');
+      console.error(error.message);
+    }
   };
 
   const handleReject = (requestId: string) => {
@@ -182,7 +193,7 @@ const RequestRoutePage: React.FC = () => {
                           )}`}
                         >
                           {getStatusIcon(request.status)}
-                          {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                          {request?.status?.charAt(0).toUpperCase() + request?.status!.slice(1)}
                         </span>
                         <span className="ml-2 text-xs text-neutral-500">
                           <FiTag className="inline mr-1" size={12} />
@@ -193,7 +204,7 @@ const RequestRoutePage: React.FC = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => toggleExpand(request.id)}
+                      onClick={() => toggleExpand(request.id!)}
                       className="shrink-0 ml-2"
                     >
                       {expandedRequest === request.id ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
@@ -221,13 +232,13 @@ const RequestRoutePage: React.FC = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleReject(request.id)}
+                        onClick={() => handleReject(request.id!)}
                         className="flex-1 text-error hover:bg-error-50 text-xs"
                       >
                         <FiX className="mr-1" size={12} />
                         Reject
                       </Button>
-                      <Button size="sm" onClick={() => handleApprove(request.id)} className="flex-1 text-xs">
+                      <Button size="sm" onClick={() => handleApprove(request.id!)} className="flex-1 text-xs">
                         <FiCheck className="mr-1" size={12} />
                         Approve
                       </Button>
@@ -246,7 +257,7 @@ const RequestRoutePage: React.FC = () => {
                         )}`}
                       >
                         {getStatusIcon(request.status)}
-                        {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                        {request.status!.charAt(0).toUpperCase() + request.status!.slice(1)}
                       </span>
                     </div>
                     <p className="text-neutral-600 mb-4">{request.description}</p>
@@ -280,19 +291,19 @@ const RequestRoutePage: React.FC = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleReject(request.id)}
+                          onClick={() => handleReject(request.id!)}
                           className="text-error hover:bg-error-50"
                         >
                           <FiX className="mr-1" />
                           Reject
                         </Button>
-                        <Button size="sm" onClick={() => handleApprove(request.id)}>
+                        <Button size="sm" onClick={() => handleApprove(request.id!)}>
                           <FiCheck className="mr-1" />
                           Approve
                         </Button>
                       </>
                     )}
-                    <Button variant="outline" size="sm" onClick={() => toggleExpand(request.id)}>
+                    <Button variant="outline" size="sm" onClick={() => toggleExpand(request.id!)}>
                       {expandedRequest === request.id ? (
                         <FiChevronUp className="mr-1" />
                       ) : (

@@ -8,12 +8,14 @@ import {
   FiShoppingBag,
   FiExternalLink,
   FiHelpCircle,
+  FiClock,
 } from 'react-icons/fi';
 import Button from '../../components/atoms/Button/Button';
 import Input from '../../components/atoms/Input/Input';
 import { useOrgSetRecoilState, useOrgValue, useWhatsappSetRecoilState, useWhatsappValue } from '../../store/authAtoms';
 import { OrganizationService } from '../../services/organizationService';
 import { useWhatsAppSignup } from '../../hooks/whatsapp';
+import type { BaseRequestAttributes } from '../../types/request';
 
 const SettingsPage: React.FC = () => {
   const orgData = useOrgValue();
@@ -29,8 +31,10 @@ const SettingsPage: React.FC = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [catalogRequest, setCatalogRequest] = useState<any>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const { updateOrganization, exchangeCodeForAccessToken } = new OrganizationService();
+  const { updateOrganization, exchangeCodeForAccessToken, requestCatalogCreation, getOrganizationRequest } =
+    new OrganizationService();
   const handleOrgChange = (field: string, value: string) => {
     setOrgData((prev) => ({ ...prev!, [field]: value }));
   };
@@ -56,6 +60,19 @@ const SettingsPage: React.FC = () => {
   };
 
   useEffect(() => {
+    const fn = async () => {
+      const { data } = await getOrganizationRequest('CatalogRequest');
+      setCatalogRequest({
+        title: data.title,
+        description: data.description,
+        status: data.status,
+        requestType: 'CatalogRequest',
+      });
+    };
+    fn();
+  }, []);
+
+  useEffect(() => {
     if (!sessionInfo) return;
     const exchangeCode = async () => {
       try {
@@ -66,11 +83,9 @@ const SettingsPage: React.FC = () => {
           whatsappBusinessId: sessionInfo?.data.waba_id!,
           whatsappPhoneNumberId: sessionInfo?.data.phone_number_id!,
         };
-        console.log('============sessionInfo====', { sessionInfo, sdkResponse });
+
         const { data } = await exchangeCodeForAccessToken(WABA);
-        console.log('=============exchangeCodeForAccessToken=======================');
-        console.log(data);
-        console.log('====================================');
+        setWhatsappData(data);
         setIsLoading(false);
       } catch (error) {
         console.error('WhatsApp onboarding failed', error);
@@ -85,11 +100,19 @@ const SettingsPage: React.FC = () => {
     setIsLoading(true);
     try {
       // Simulate catalog creation process
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      setWhatsappData((prev) => ({
-        ...prev!,
-        catalogId: 'catalog_12345',
-      }));
+      const requestInput: BaseRequestAttributes = {
+        title: 'create catalog for my business',
+        description: 'create catalog on meta dashboard for my business so i can start adding products',
+        requestType: 'CatalogRequest',
+      };
+
+      const { data } = await requestCatalogCreation(requestInput);
+      setCatalogRequest({
+        title: data.title,
+        description: data.description,
+        status: data.status,
+        requestType: 'CatalogRequest',
+      });
     } catch (error) {
       console.error('Catalog creation failed', error);
     } finally {
@@ -263,6 +286,27 @@ const SettingsPage: React.FC = () => {
                       Manage Products
                     </Button>
                   </div>
+                </div>
+              ) : catalogRequest ? (
+                <div>
+                  <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800 mb-3">
+                    <FiClock className="mr-1" />
+                    Request Being Processed
+                  </div>
+                  <p className="text-sm text-neutral-600 mb-3">
+                    Your product catalog request is currently being processed. This usually takes a few minutes. You'll
+                    be notified once your catalog is ready.
+                  </p>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <h5 className="font-medium text-blue-800 text-sm mb-2">Request Details:</h5>
+                    <pre className="text-xs text-blue-700 overflow-x-auto">
+                      {JSON.stringify(catalogRequest || {}, null, 2)}
+                    </pre>
+                  </div>
+                  <Button variant="outline" className="mt-3" disabled>
+                    <FiClock className="mr-2" />
+                    Processing Request...
+                  </Button>
                 </div>
               ) : (
                 <div>
