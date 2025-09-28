@@ -6,6 +6,7 @@ import type { IOrganization } from '../types/organization';
 import type { IWhatSappSettings } from '../types/whatsapp';
 import type { Product, ProductOption } from '../types/product';
 import type { IArea, IBranch, IBranchInventory, IZone } from '../types/branch';
+import type { CreditBalanceAttributes, ISubscription, ISubscriptionPlan, UsageRecordAttributes } from '../types/subscription';
 
 export const userAtom = atom<User | null>({
   key: uuid(),
@@ -58,6 +59,26 @@ export const areaAtom = atom<IArea[] | []>({
   default: [],
 });
 
+export const subscriptionPlansAtom = atom<ISubscriptionPlan[] | []>({
+  key: uuid(),
+  default: [],
+});
+
+export const subscriptionAtom = atom<ISubscription | null>({
+  key: uuid(),
+  default: null,
+});
+
+export const creditUsageAtom = atom<UsageRecordAttributes[] | []>({
+  key: uuid(),
+  default: [],
+});
+
+export const creditBalanceAtom = atom<CreditBalanceAttributes | null>({
+  key: uuid(),
+  default: null,
+});
+
 // Read values
 export const useUserValue = (): User | null => useRecoilValue(userAtom);
 export const useOrgValue = (): IOrganization => useRecoilValue(orgAtom);
@@ -68,6 +89,10 @@ export const useBranchValue = (): IBranch[] | [] => useRecoilValue(branchAtom);
 export const useZoneValue = (): IZone[] | [] => useRecoilValue(zoneAtom);
 export const useAreaValue = (): IArea[] | [] => useRecoilValue(areaAtom);
 export const useBranchInventoryValue = (): IBranchInventory[] | [] => useRecoilValue(branchInventoryAtom);
+export const useSubscriptionPlanValue = (): ISubscriptionPlan[] | [] => useRecoilValue(subscriptionPlansAtom);
+export const useSubscriptionValue = (): ISubscription | null => useRecoilValue(subscriptionAtom);
+export const useCreditUsageValue = (): UsageRecordAttributes[] | [] => useRecoilValue(creditUsageAtom);
+export const useCreditBalanceValue = (): CreditBalanceAttributes | null => useRecoilValue(creditBalanceAtom);
 
 // Set values
 export const useUserSetRecoilState = () => useSetRecoilState(userAtom);
@@ -79,3 +104,7 @@ export const useBranchSetRecoilState = () => useSetRecoilState(branchAtom);
 export const useZoneSetRecoilState = () => useSetRecoilState(zoneAtom);
 export const useAreaSetRecoilState = () => useSetRecoilState(areaAtom);
 export const useBranchInventorySetRecoilState = () => useSetRecoilState(branchInventoryAtom);
+export const useSubscriptionPlanSetRecoilState = () => useSetRecoilState(subscriptionPlansAtom);
+export const useSubscriptionSetRecoilState = () => useSetRecoilState(subscriptionAtom);
+export const useCreditUsageSetRecoilState = () => useSetRecoilState(creditUsageAtom);
+export const useCreditBalanceSetRecoilState = () => useSetRecoilState(creditBalanceAtom);

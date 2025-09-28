@@ -10,6 +10,8 @@ export enum EnvList {
   APP_USER_AUTH_SECRET = 'APP_USER_AUTH_SECRET',
   STRIPE_PUBLIC_KEY = 'STRIPE_PUBLIC_KEY',
   STRIPE_SECRET_KEY = 'STRIPE_SECRET_KEY',
+  STRIPE_SUCCESS_URL = 'STRIPE_SUCCESS_URL',
+  STRIPE_CANCEL_URL = 'STRIPE_CANCEL_URL',
   STRIPE_WEBHOOK_SECRET = 'STRIPE_WEBHOOK_SECRET',
   GOOGLE_CLIENT_ID = 'GOOGLE_CLIENT_ID',
   GOOGLE_CLIENT_SECRET = 'GOOGLE_CLIENT_SECRET',
@@ -37,8 +39,8 @@ export const appConfig = {
   stripe: {
     publicKey: getEnv(EnvList.STRIPE_PUBLIC_KEY),
     secretKey: getEnv(EnvList.STRIPE_SECRET_KEY),
-    successUrl: 'http://localhost:3000/success',
-    cancelUrl: 'http://localhost:3000/cancel',
+    successUrl: getEnv(EnvList.STRIPE_SUCCESS_URL),
+    cancelUrl: getEnv(EnvList.STRIPE_CANCEL_URL),
     webhookSecret: getEnv(EnvList.STRIPE_WEBHOOK_SECRET),
   },
   googleAuth: {

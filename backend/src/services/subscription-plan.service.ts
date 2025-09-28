@@ -1,9 +1,11 @@
 import { stripe } from '../helpers/stripe';
 import { SubscriptionPlanModel } from '../models/subscription-plan.model';
 import { ISubscriptionPlan } from '../types/subscription-plan';
+import { AdminUser } from '../types/users';
 
 export class SubscriptionPanService {
-  static async createSubscriptionPlan(plan: ISubscriptionPlan) {
+  static async createSubscriptionPlan(plan: ISubscriptionPlan, user: AdminUser) {
+    if (user.type !== 'admin') throw new Error('Forbidden');
     const subscriptionPlan = await stripe.products.create({
       name: plan.name,
       description: plan.description,
@@ -25,6 +27,6 @@ export class SubscriptionPanService {
     return await SubscriptionPlanModel.create(payload);
   }
   static async getSubscriptionPlans() {
-    return await SubscriptionPlanModel.findAll()
+    return await SubscriptionPlanModel.findAll();
   }
 }

@@ -13,50 +13,19 @@ import {
   FiX,
 } from 'react-icons/fi';
 import Button from '../../components/atoms/Button/Button';
-
-// Types based on your schema
-
-export interface ISubscription {
-  id: string;
-  organizationId?: string | null;
-  planId: string;
-  subscriptionId: string;
-  status: 'active' | 'past_due' | 'trialing' | 'expired';
-  startDate: Date;
-  currentPeriodStart: Date;
-  currentPeriodEnd: Date;
-  nextBillingDate: Date;
-  cancelAtPeriodEnd: boolean;
-}
-
-export interface CreditBalanceAttributes {
-  id: string;
-  organizationId: string;
-  totalCredits: number;
-  usedCredits: number;
-  remainingCredits: number;
-}
-
-export interface UsageRecordAttributes {
-  id: string;
-  organizationId: string;
-  subscriptionId: string;
-  featureName: string;
-  creditsConsumed: number;
-  metadata: any;
-  createdAt: Date;
-}
-
-export interface ISubscriptionPlan {
-  id: string;
-  stripePlanId: string;
-  stripePlanPriceId: string;
-  name: string;
-  description: string;
-  price: number;
-  creditPoints: number;
-  features?: string[];
-}
+import type {
+  CreditBalanceAttributes,
+  ISubscription,
+  ISubscriptionPlan,
+  UsageRecordAttributes,
+} from '../../types/subscription';
+import {
+  useCreditBalanceValue,
+  useCreditUsageValue,
+  useSubscriptionPlanValue,
+  useSubscriptionValue,
+} from '../../store/authAtoms';
+import { SubscriptionService } from '../../services/subscriptionService';
 
 // Chart data interface
 interface ChartData {
@@ -65,145 +34,6 @@ interface ChartData {
   type: 'API Calls' | 'Data Export' | 'Report Generation' | 'Data Import';
 }
 
-// Mock data based on your schema
-const mockSubscriptionPlans: ISubscriptionPlan[] = [
-  {
-    id: 'plan-1',
-    stripePlanId: 'price_basic',
-    stripePlanPriceId: 'price_basic_monthly',
-    name: 'Basic',
-    description: 'Perfect for small teams getting started',
-    price: 29,
-    creditPoints: 1000,
-    features: ['1,000 credits per month', 'Basic analytics', 'Email support', 'Up to 5 team members'],
-  },
-  {
-    id: 'plan-2',
-    stripePlanId: 'price_pro',
-    stripePlanPriceId: 'price_pro_monthly',
-    name: 'Professional',
-    description: 'Ideal for growing businesses',
-    price: 79,
-    creditPoints: 5000,
-    features: [
-      '5,000 credits per month',
-      'Advanced analytics',
-      'Priority support',
-      'Up to 20 team members',
-      'API access',
-      'Custom integrations',
-    ],
-  },
-  {
-    id: 'plan-3',
-    stripePlanId: 'price_enterprise',
-    stripePlanPriceId: 'price_enterprise_monthly',
-    name: 'Enterprise',
-    description: 'For large organizations with custom needs',
-    price: 199,
-    creditPoints: 20000,
-    features: [
-      '20,000 credits per month',
-      'Advanced analytics & reporting',
-      '24/7 dedicated support',
-      'Unlimited team members',
-      'Full API access',
-      'Custom integrations',
-      'SLA guarantee',
-      'Onboarding assistance',
-    ],
-  },
-];
-
-const mockCurrentSubscription: ISubscription = {
-  id: 'sub-1',
-  organizationId: 'org-1',
-  planId: 'plan-1',
-  subscriptionId: 'sub_123456',
-  status: 'active',
-  startDate: new Date('2024-01-01'),
-  currentPeriodStart: new Date('2024-02-01'),
-  currentPeriodEnd: new Date('2024-03-01'),
-  nextBillingDate: new Date('2024-03-01'),
-  cancelAtPeriodEnd: false,
-};
-
-const mockCreditBalance: CreditBalanceAttributes = {
-  id: 'credit-1',
-  organizationId: 'org-1',
-  totalCredits: 1000,
-  usedCredits: 350,
-  remainingCredits: 650,
-};
-
-const mockUsageRecords: UsageRecordAttributes[] = [
-  {
-    id: 'usage-1',
-    organizationId: 'org-1',
-    subscriptionId: 'sub-1',
-    featureName: 'API Calls',
-    creditsConsumed: 50,
-    metadata: { endpoint: '/api/products', count: 100 },
-    createdAt: new Date('2024-02-15T10:30:00'),
-  },
-  {
-    id: 'usage-2',
-    organizationId: 'org-1',
-    subscriptionId: 'sub-1',
-    featureName: 'Data Export',
-    creditsConsumed: 100,
-    metadata: { format: 'CSV', records: 5000 },
-    createdAt: new Date('2024-02-14T14:20:00'),
-  },
-  {
-    id: 'usage-3',
-    organizationId: 'org-1',
-    subscriptionId: 'sub-1',
-    featureName: 'Report Generation',
-    creditsConsumed: 75,
-    metadata: { type: 'Sales Report', period: 'Monthly' },
-    createdAt: new Date('2024-02-13T09:15:00'),
-  },
-  {
-    id: 'usage-4',
-    organizationId: 'org-1',
-    subscriptionId: 'sub-1',
-    featureName: 'API Calls',
-    creditsConsumed: 25,
-    metadata: { endpoint: '/api/inventory', count: 50 },
-    createdAt: new Date('2024-02-12T16:45:00'),
-  },
-  {
-    id: 'usage-5',
-    organizationId: 'org-1',
-    subscriptionId: 'sub-1',
-    featureName: 'Data Import',
-    creditsConsumed: 100,
-    metadata: { format: 'Excel', records: 1000 },
-    createdAt: new Date('2024-02-11T11:30:00'),
-  },
-  // Add more records for better chart data
-  {
-    id: 'usage-6',
-    organizationId: 'org-1',
-    subscriptionId: 'sub-1',
-    featureName: 'API Calls',
-    creditsConsumed: 30,
-    metadata: { endpoint: '/api/users', count: 60 },
-    createdAt: new Date('2024-02-10T08:20:00'),
-  },
-  {
-    id: 'usage-7',
-    organizationId: 'org-1',
-    subscriptionId: 'sub-1',
-    featureName: 'Data Export',
-    creditsConsumed: 80,
-    metadata: { format: 'PDF', records: 2000 },
-    createdAt: new Date('2024-02-09T15:30:00'),
-  },
-];
-
-// Generate chart data from usage records
 const generateChartData = (records: UsageRecordAttributes[]): ChartData[] => {
   const dailyData: { [key: string]: { credits: number; types: { [key: string]: number } } } = {};
 
@@ -317,19 +147,21 @@ const LineChart: React.FC<{ data: ChartData[] }> = ({ data }) => {
 };
 
 const BillingPage: React.FC = () => {
-  const [plans] = useState<ISubscriptionPlan[]>(mockSubscriptionPlans);
-  const [currentSubscription, setCurrentSubscription] = useState<ISubscription>(mockCurrentSubscription);
-  const [creditBalance, setCreditBalance] = useState<CreditBalanceAttributes>(mockCreditBalance);
-  const [usageRecords, setUsageRecords] = useState<UsageRecordAttributes[]>(mockUsageRecords);
+  const plans = useSubscriptionPlanValue();
+  const currentSubscription = useSubscriptionValue();
+  const creditBalance = useCreditBalanceValue();
+  const usageRecords = useCreditUsageValue();
+
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<ISubscriptionPlan | null>(null);
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredRecords, setFilteredRecords] = useState<UsageRecordAttributes[]>(mockUsageRecords);
+  const [filteredRecords, setFilteredRecords] = useState<UsageRecordAttributes[]>(usageRecords);
   const [chartType, setChartType] = useState<'bar' | 'line'>('bar');
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
-
-  const currentPlan = plans.find((plan) => plan.id === currentSubscription.planId);
+  const [btnLoading, setBtnLoading] = useState(false);
+  const { createSubscription, upgradeSubscription } = new SubscriptionService();
+  const currentPlan = plans.find((plan) => plan.id === currentSubscription?.planId);
 
   // Generate chart data
   const chartData = useMemo(() => generateChartData(usageRecords), [usageRecords]);
@@ -351,7 +183,7 @@ const BillingPage: React.FC = () => {
 
   const handleSubscribe = (plan: ISubscriptionPlan) => {
     setSelectedPlan(plan);
-    setIsUpgrading(currentSubscription.planId !== plan.id);
+    setIsUpgrading(currentSubscription?.planId !== plan.id);
     setShowPlanModal(true);
   };
 
@@ -360,20 +192,24 @@ const BillingPage: React.FC = () => {
 
     // Simulate API call
     try {
-      const newSubscription: ISubscription = {
-        ...currentSubscription,
-        planId: selectedPlan.id,
-        status: isUpgrading ? 'active' : 'trialing',
-        nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      };
+      if (currentPlan?.id) {
+        setBtnLoading(true);
+        await upgradeSubscription({ planId: selectedPlan.id });
+        setBtnLoading(false);
+        setShowPlanModal(false);
+        setSelectedPlan(null);
+        window.location.reload();
+        return;
+      }
+      const { data } = await createSubscription({ planId: selectedPlan.id });
+      window.location.href = data.url;
 
-      setCurrentSubscription(newSubscription);
       setShowPlanModal(false);
       setSelectedPlan(null);
-
-      alert(`Successfully ${isUpgrading ? 'upgraded to' : 'subscribed to'} ${selectedPlan.name} plan!`);
-    } catch (error) {
+    } catch (error: any) {
       alert('Error processing subscription. Please try again.');
+      console.error(error.message);
+      setShowPlanModal(false);
     }
   };
 
@@ -392,16 +228,18 @@ const BillingPage: React.FC = () => {
     }
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date | string) => {
+    const parsedDate = typeof date === 'string' ? new Date(date) : date;
+
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-    }).format(date);
+    }).format(parsedDate);
   };
 
   const getCreditUsagePercentage = () => {
-    return (creditBalance.usedCredits / creditBalance.totalCredits) * 100;
+    return (creditBalance?.usedCredits! / creditBalance?.totalCredits!) * 100;
   };
 
   // Usage Record Item Component
@@ -448,10 +286,11 @@ const BillingPage: React.FC = () => {
             <h3 className="text-lg font-semibold text-neutral-900">Current Plan</h3>
             <span
               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                currentSubscription.status
+                currentSubscription?.status!
               )}`}
             >
-              {currentSubscription.status.charAt(0).toUpperCase() + currentSubscription.status.slice(1)}
+              {currentSubscription?.status &&
+                currentSubscription?.status?.charAt(0).toUpperCase() + currentSubscription?.status?.slice(1)}
             </span>
           </div>
 
@@ -472,13 +311,13 @@ const BillingPage: React.FC = () => {
                 <div>
                   <p className="text-neutral-500">Current Period</p>
                   <p className="font-medium">
-                    {formatDate(currentSubscription.currentPeriodStart)} -{' '}
-                    {formatDate(currentSubscription.currentPeriodEnd)}
+                    {formatDate(currentSubscription?.currentPeriodStart!)} -{' '}
+                    {formatDate(currentSubscription?.currentPeriodEnd!)}
                   </p>
                 </div>
                 <div>
                   <p className="text-neutral-500">Next Billing</p>
-                  <p className="font-medium">{formatDate(currentSubscription.nextBillingDate)}</p>
+                  <p className="font-medium">{formatDate(currentSubscription?.nextBillingDate!)}</p>
                 </div>
               </div>
 
@@ -506,14 +345,14 @@ const BillingPage: React.FC = () => {
             <div className="flex justify-between items-center">
               <span className="text-neutral-600">Remaining Credits</span>
               <span className="text-2xl font-bold text-primary-600">
-                {creditBalance.remainingCredits.toLocaleString()}
+                {creditBalance?.remainingCredits.toLocaleString()}
               </span>
             </div>
 
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Used: {creditBalance.usedCredits.toLocaleString()}</span>
-                <span>Total: {creditBalance.totalCredits.toLocaleString()}</span>
+                <span>Used: {creditBalance?.usedCredits.toLocaleString()}</span>
+                <span>Total: {creditBalance?.totalCredits.toLocaleString()}</span>
               </div>
 
               <div className="w-full bg-neutral-200 rounded-full h-2">
@@ -528,17 +367,17 @@ const BillingPage: React.FC = () => {
               <div className="p-3 bg-green-50 rounded-lg">
                 <FiArrowDown className="mx-auto text-green-600 mb-1" />
                 <p className="text-sm font-medium text-green-600">Available</p>
-                <p className="text-lg font-bold">{creditBalance.remainingCredits.toLocaleString()}</p>
+                <p className="text-lg font-bold">{creditBalance?.remainingCredits.toLocaleString()}</p>
               </div>
               <div className="p-3 bg-yellow-50 rounded-lg">
                 <FiZap className="mx-auto text-yellow-600 mb-1" />
                 <p className="text-sm font-medium text-yellow-600">Used</p>
-                <p className="text-lg font-bold">{creditBalance.usedCredits.toLocaleString()}</p>
+                <p className="text-lg font-bold">{creditBalance?.usedCredits.toLocaleString()}</p>
               </div>
               <div className="p-3 bg-blue-50 rounded-lg">
                 <FiCheckCircle className="mx-auto text-blue-600 mb-1" />
                 <p className="text-sm font-medium text-blue-600">Total</p>
-                <p className="text-lg font-bold">{creditBalance.totalCredits.toLocaleString()}</p>
+                <p className="text-lg font-bold">{creditBalance?.totalCredits.toLocaleString()}</p>
               </div>
             </div>
           </div>
@@ -714,7 +553,7 @@ const BillingPage: React.FC = () => {
                     <div
                       key={plan.id}
                       className={`border-2 rounded-lg p-6 transition-all duration-300 hover:shadow-lg ${
-                        currentSubscription.planId === plan.id
+                        currentSubscription?.planId === plan.id
                           ? 'border-primary-500 bg-primary-50'
                           : 'border-neutral-200 hover:border-primary-300'
                       }`}
@@ -740,13 +579,14 @@ const BillingPage: React.FC = () => {
                       </ul>
 
                       <Button
-                        variant={currentSubscription.planId === plan.id ? 'outline' : 'primary'}
+                        variant={currentSubscription?.planId === plan.id ? 'outline' : 'primary'}
                         onClick={() => handleSubscribe(plan)}
                         className="w-full"
+                        disabled={currentSubscription?.planId === plan.id}
                       >
-                        {currentSubscription.planId === plan.id
+                        {currentSubscription?.planId === plan.id
                           ? 'Current Plan'
-                          : currentSubscription.planId
+                          : currentSubscription?.planId
                           ? 'Upgrade'
                           : 'Subscribe'}
                       </Button>
@@ -797,7 +637,7 @@ const BillingPage: React.FC = () => {
                     <Button variant="outline" onClick={() => setSelectedPlan(null)}>
                       Back to Plans
                     </Button>
-                    <Button onClick={handleConfirmSubscription} variant="primary">
+                    <Button onClick={handleConfirmSubscription} variant="primary" isLoading={btnLoading}>
                       <FiCreditCard className="mr-2" />
                       Confirm {isUpgrading ? 'Upgrade' : 'Subscription'}
                     </Button>

@@ -7,7 +7,7 @@ import { errorLogger } from '../helpers/logger';
 export const subscriptionRoute = express.Router();
 subscriptionRoute.post('/create-plan', validateSubscriptionPlanSchema(), async (req, res) => {
   try {
-    const data = await SubscriptionPlanController.createSubscriptionPlan(req.body);
+    const data = await SubscriptionPlanController.createSubscriptionPlan(req.body, req.adminUser as any);
     const response: APIResponseFormat<any> = {
       message: 'subscription plan created successfully',
       data,

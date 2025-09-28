@@ -46,6 +46,12 @@ export const API_ROUTES = {
   GET_BRANCH_INVENTORIES: `${API_BASE_URL}/organization/branch-inventory/get-inventories`,
   DELETE_BRANCH_INVENTOTRY: `${API_BASE_URL}/organization/branch-inventory/inventory`,
   CREATE_CATALOG_REQUEST: `${API_BASE_URL}/organization/request/create`,
+  GET_SUBSCRIPTION_PLANS: `${API_BASE_URL}/organization/subscription-plan/get-subscription-plans`,
+  GET_SUBSCRIPTION: `${API_BASE_URL}/organization/subscription/get-subscription`,
+  GET_CREDIT_USAGE: `${API_BASE_URL}/organization/subscription/get-credit-usage`,
+  GET_CREDIT_BALANCE: `${API_BASE_URL}/organization/subscription/get-credit-balance`,
+  SUBSCRIBE_TO_PLAN: `${API_BASE_URL}/organization/subscription/create-checkout-session`,
+  UPGRADE_SUBSCRIPTION_PLAN: `${API_BASE_URL}/organization/subscription/upgrade-subscription`,
 } as const;
 
 export type ApiRouteName = keyof typeof API_ROUTES;

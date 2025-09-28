@@ -43,6 +43,7 @@ app.use('/api/organization/product-option', productOptionRoute);
 app.use('/api/organization/product-option-choice', productOptionChoiceRoute);
 app.use('/api/organization/request', requestRoute);
 app.use('/api/organization/subscription', subscriptionRouter);
+app.use('/api/organization/subscription-plan', subscriptionRoute);
 
 // app-user routes
 app.use('/api/app-user/subscription-plan', appUserAuthSecretValidation, subscriptionRoute);

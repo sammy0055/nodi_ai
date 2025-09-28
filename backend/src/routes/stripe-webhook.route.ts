@@ -42,6 +42,8 @@ stripeWebHookRoute.post('/webhook', async (req, res) => {
         const { startDate, currentPeriodStart, currentPeriodEnd, nextBillingDate } = calculateBillingCycle();
         const sub = await SubscriptionsModel.findOne({ where: { subscriptionId: subscription.id } });
         if (sub) throw new Error('organization already has an active subscription, kindly update subscription');
+        const subscriptionPlan = await SubscriptionPlanModel.findByPk(metadata.planId);
+        if (!subscriptionPlan) throw new Error('subscripton plan does not exist in our records');
         await OrganizationsModel.update({ stripeCustomerId: customerId }, { where: { id: metadata.organizationId } });
         await SubscriptionsModel.create({
           planId: metadata.planId,
@@ -55,9 +57,9 @@ stripeWebHookRoute.post('/webhook', async (req, res) => {
         });
         await CreditBalanceModel.create({
           organizationId: metadata.organizationId,
-          totalCredits: 10,
-          remainingCredits: 10,
-          usedCredits: 10,
+          totalCredits: subscriptionPlan.creditPoints,
+          remainingCredits: subscriptionPlan.creditPoints,
+          usedCredits: subscriptionPlan.creditPoints,
         });
         break;
       }
@@ -86,12 +88,15 @@ stripeWebHookRoute.post('/webhook', async (req, res) => {
           { where: { subscriptionId: subscriptionId } }
         );
 
-        await CreditBalanceModel.create({
-          organizationId: org.id,
-          totalCredits: 10,
-          remainingCredits: 10,
-          usedCredits: 10,
-        });
+        await CreditBalanceModel.update(
+          {
+            organizationId: org.id,
+            totalCredits: plan.creditPoints,
+            remainingCredits: plan.creditPoints,
+            usedCredits: plan.creditPoints,
+          },
+          { where: { organizationId: org.id } }
+        );
         break;
       }
       case 'customer.subscription.deleted': {

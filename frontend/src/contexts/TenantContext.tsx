@@ -11,6 +11,10 @@ import {
   useBranchInventorySetRecoilState,
   useZoneSetRecoilState,
   useAreaSetRecoilState,
+  useSubscriptionPlanSetRecoilState,
+  useSubscriptionSetRecoilState,
+  useCreditUsageSetRecoilState,
+  useCreditBalanceSetRecoilState,
 } from '../store/authAtoms';
 import { useNavigate } from 'react-router';
 import { PageRoutes } from '../routes';
@@ -21,6 +25,13 @@ import type { Product, ProductOption } from '../types/product';
 import { BranchService } from '../services/branchService';
 import type { IArea, IBranch, IBranchInventory, IZone } from '../types/branch';
 import { BranchInventoryService } from '../services/branchInventory';
+import { SubscriptionService } from '../services/subscriptionService';
+import type {
+  CreditBalanceAttributes,
+  ISubscription,
+  ISubscriptionPlan,
+  UsageRecordAttributes,
+} from '../types/subscription';
 
 export async function contextLoader() {
   try {
@@ -29,6 +40,7 @@ export async function contextLoader() {
     const { getProducts, getProductOptions } = new ProductService();
     const { getBranches, getZones, getAreas } = new BranchService();
     const { getInventories } = new BranchInventoryService();
+    const { getSubscriptionPlans, getSubscription, getCrediteBalance, getCreditUsage } = new SubscriptionService();
     const [
       userResult,
       orgResult,
@@ -38,6 +50,10 @@ export async function contextLoader() {
       zoneResults,
       areaResults,
       inventoryResults,
+      subsriptionPlanResults,
+      subscriptionResults,
+      creditUsageResults,
+      creditBalanceResults,
     ] = await Promise.allSettled([
       fetchCurrentUser(),
       getOrganization(),
@@ -47,6 +63,10 @@ export async function contextLoader() {
       getZones(),
       getAreas(),
       getInventories(),
+      getSubscriptionPlans(),
+      getSubscription(),
+      getCreditUsage(),
+      getCrediteBalance(),
     ]);
 
     const user = userResult.status === 'fulfilled' ? userResult.value : null;
@@ -57,6 +77,10 @@ export async function contextLoader() {
     const branchInventories = inventoryResults.status === 'fulfilled' ? inventoryResults.value : null;
     const zones = zoneResults.status === 'fulfilled' ? zoneResults.value : null;
     const areas = areaResults.status === 'fulfilled' ? areaResults.value : null;
+    const subscriptionPlans = subsriptionPlanResults.status === 'fulfilled' ? subsriptionPlanResults.value : null;
+    const subscription = subscriptionResults.status === 'fulfilled' ? subscriptionResults.value : null;
+    const creditUsage = creditUsageResults.status === 'fulfilled' ? creditUsageResults.value : null;
+    const creditBalance = creditBalanceResults.status === 'fulfilled' ? creditBalanceResults.value : null;
 
     return {
       user: user?.data,
@@ -67,6 +91,10 @@ export async function contextLoader() {
       zones: zones?.data.data,
       areas: areas?.data.data,
       branchInventories: branchInventories?.data.data,
+      subscriptionPlans: subscriptionPlans?.data,
+      subscription: subscription?.data,
+      creditUsage: creditUsage?.data,
+      creditBalance: creditBalance?.data,
     };
   } catch (error: any) {
     console.error('error in Tenant contextLoader:', error.message);
@@ -86,6 +114,10 @@ export const RootLoaderWrapper = ({
     zones: IZone[];
     areas: IArea[];
     branchInventories: IBranchInventory[];
+    subscriptionPlans: ISubscriptionPlan[];
+    subscription: ISubscription;
+    creditUsage: UsageRecordAttributes[];
+    creditBalance: CreditBalanceAttributes;
   };
   children: React.ReactNode;
 }) => {
@@ -98,6 +130,10 @@ export const RootLoaderWrapper = ({
   const setZones = useZoneSetRecoilState();
   const setAreas = useAreaSetRecoilState();
   const setBranchInventory = useBranchInventorySetRecoilState();
+  const setSubscriptionPlan = useSubscriptionPlanSetRecoilState();
+  const setSubscription = useSubscriptionSetRecoilState();
+  const setCreditUsage = useCreditUsageSetRecoilState();
+  const setCreditBalance = useCreditBalanceSetRecoilState();
   const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -130,6 +166,18 @@ export const RootLoaderWrapper = ({
     }
     if (data.branchInventories) {
       setBranchInventory(data.branchInventories);
+    }
+    if (data.subscriptionPlans) {
+      setSubscriptionPlan(data.subscriptionPlans);
+    }
+    if (data.subscription) {
+      setSubscription(data.subscription);
+    }
+    if (data.creditUsage) {
+      setCreditUsage(data.creditUsage);
+    }
+    if (data.creditBalance) {
+      setCreditBalance(data.creditBalance);
     }
     // 🔑 Handle redirects once, based on missing data
     if (!data.user) {
