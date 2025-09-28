@@ -485,7 +485,7 @@ const ProductsPage: React.FC = () => {
         {/* Price */}
         <div className="md:col-span-2">
           <span className="font-medium text-neutral-900">
-            {product.currency} {product.price}
+            ${product.price.toFixed(2)}
           </span>
         </div>
 

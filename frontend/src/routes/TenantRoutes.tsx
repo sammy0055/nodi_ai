@@ -6,6 +6,7 @@ import SettingsPage from '../pages/tenant/Settings';
 import ProductsPage from '../pages/tenant/ProductsPage';
 import BranchPage from '../pages/tenant/BranchPage';
 import BranchInventoryPage from '../pages/tenant/BranchInventoryPage';
+import AreasZonesPage from '../pages/tenant/AreasZonesPage';
 
 export default function TenantRoutes() {
   const data = useLoaderData();
@@ -21,6 +22,7 @@ export default function TenantRoutes() {
           <Route path={PageRoutes.CUSTOMERS} element={<div>CUSTOMERS page here</div>} />
           <Route path={PageRoutes.BILLING} element={<div>BILLING page here</div>} />
           <Route path={PageRoutes.BRANCHS} element={<BranchPage />} />
+          <Route path={PageRoutes.AreasZones} element={<AreasZonesPage />} />
           <Route path={PageRoutes.SETTINGS} element={<SettingsPage />} />
         </Routes>
       </TenantLayout>

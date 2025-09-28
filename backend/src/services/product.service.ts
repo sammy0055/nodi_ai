@@ -12,8 +12,8 @@ import { Op, literal } from 'sequelize';
 export class ProductService {
   static async createProduct(product: IProduct, user: Pick<User, 'id' | 'organizationId'>, file: File) {
     if (!user.organizationId) throw new Error('kindly create an organization to continue');
-    const whatsappData = await WhatSappSettingsModel.findOne({ where: { organizationId: user.organizationId } });
-    if (!whatsappData?.catalogId) throw new Error("you don't have an active catalog, kindly create one");
+    // const whatsappData = await WhatSappSettingsModel.findOne({ where: { organizationId: user.organizationId } });
+    // if (!whatsappData?.catalogId) throw new Error("you don't have an active catalog, kindly create one");
     const { valid, errors } = validateFile(file);
     if (!valid) throw new Error(errors.join(', '));
     const manageImageFile = new ImageUploadHelper();
@@ -24,19 +24,17 @@ export class ProductService {
     });
 
     const { imgUrl, path } = await manageImageFile.uploadImage(file);
-    const whatsappCatalogItem = await WhatsappCatalogHelper.createMetaCatalogItem(
-      {
-        itemId: createdProduct.id,
-        name: createdProduct.name,
-        description: createdProduct.description,
-        price: createdProduct.price,
-        imageUrl: imgUrl,
-      },
-      whatsappData
-    );
-    console.log('===============whatsappCatalogItem=====================');
-    console.log(whatsappCatalogItem);
-    console.log('====================================');
+    // const whatsappCatalogItem = await WhatsappCatalogHelper.createMetaCatalogItem(
+    //   {
+    //     itemId: createdProduct.id,
+    //     name: createdProduct.name,
+    //     description: createdProduct.description,
+    //     price: createdProduct.price,
+    //     imageUrl: imgUrl,
+    //   },
+    //   whatsappData
+    // );
+ 
     const [_, updatedRows] = await ProductModel.update(
       { imageUrl: imgUrl, filePath: path },
       { where: { id: createdProduct.id }, returning: true }
@@ -49,8 +47,8 @@ export class ProductService {
     const { id, ...productWithOutId } = product;
     if (!id) throw new Error('product id is required');
     if (!user.organizationId) throw new Error('kindly create an organization to continue');
-    const whatsappData = await WhatSappSettingsModel.findOne({ where: { organizationId: user.organizationId } });
-    if (!whatsappData?.catalogId) throw new Error("you don't have an active catalog, kindly create one");
+    // const whatsappData = await WhatSappSettingsModel.findOne({ where: { organizationId: user.organizationId } });
+    // if (!whatsappData?.catalogId) throw new Error("you don't have an active catalog, kindly create one");
     const manageImageFile = new ImageUploadHelper();
     const oldProduct = await ProductModel.findByPk(id);
     if (!oldProduct) throw new Error('product does not exist');

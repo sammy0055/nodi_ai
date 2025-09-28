@@ -1,4 +1,4 @@
-import { appConfig } from '../../config';
+import { appConfig } from '../config';
 import { UserTypes } from '../data/data-types';
 import { UsersModel } from '../models/users.model';
 import { ISignUp, User } from '../types/users';

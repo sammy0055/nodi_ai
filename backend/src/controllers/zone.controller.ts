@@ -15,7 +15,7 @@ export class ZoneController {
   static async getZone(zoneId: string) {
     return await ZoneService.getZone(zoneId);
   }
-  static async getZones(user: Pick<User, 'id' | 'organizationId'>, pagination:Pagination) {
-    return await ZoneService.getZones(user, pagination);
+  static async getZones(user: Pick<User, 'id' | 'organizationId'>, pagination:Pagination, searchQuery?: string) {
+    return await ZoneService.getZones(user, pagination, searchQuery);
   }
 }

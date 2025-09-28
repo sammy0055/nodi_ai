@@ -3,7 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { connectDB } from './models';
-import { appConfig } from '../config';
+import { appConfig } from './config';
 import { organizationRoute } from './routes/organization.route';
 import { userRoute } from './routes/users.route';
 import { WhatSappRoute } from './routes/whatsapp-settings.route';

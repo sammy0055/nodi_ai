@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { getEnv } from '../src/utils/getEnv';
+import { getEnv } from '../utils/getEnv';
 
 export enum EnvList {
   LOCAL_DATABASE_URL = 'LOCAL_DATABASE_URL',
@@ -17,6 +17,7 @@ export enum EnvList {
   META_APP_SECRET = 'META_APP_SECRET',
   META_APP_WHATSAPP_AUTH_CONFIG = 'META_APP_WHATSAPP_AUTH_CONFIG',
   META_APP_REDIRECT_URL = 'META_APP_REDIRECT_URL',
+  META_BUSINESS_SYSTEM_TOKEN = 'META_BUSINESS_SYSTEM_TOKEN',
   SUPERBASE_DB_PASSWORD = 'SUPERBASE_DB_PASSWORD',
   SUPERBASE_PROJECT_API_KEY = 'SUPERBASE_PROJECT_API_KEY',
   SUPERBASE_PROJECT_URL = 'SUPERBASE_PROJECT_URL',
@@ -43,6 +44,7 @@ export const appConfig = {
     GOOGLE_CLIENT_SECRET: getEnv(EnvList.GOOGLE_CLIENT_SECRET),
     GOOGLE_REDIRECT_URI: getEnv(EnvList.GOOGLE_REDIRECT_URI),
   },
+  metaBusinessToken: getEnv('META_BUSINESS_SYSTEM_TOKEN'),
   whatsapp: {
     appId: getEnv('META_APP_ID'),
     appSecret: getEnv('META_APP_SECRET'),

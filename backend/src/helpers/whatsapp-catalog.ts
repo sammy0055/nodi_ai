@@ -1,5 +1,6 @@
+import { appConfig } from '../config';
 import { IWhatSappSettings } from '../types/whatsapp-settings';
-
+const accessToken = appConfig.metaBusinessToken;
 export function priceToMetaFormat(price: any, currency = 'USD') {
   currency = currency.toUpperCase();
   if (['USD', 'EUR', 'GBP', 'CAD', 'AUD'].includes(currency)) {
@@ -24,7 +25,7 @@ export class WhatsappCatalogHelper {
     whatsappSettings: IWhatSappSettings
   ) {
     const url = `https://graph.facebook.com/v23.0/${whatsappSettings.catalogId}/items_batch`;
-    const headers = { Authorization: `Bearer ${whatsappSettings.accessToken}` };
+    const headers = { Authorization: `Bearer ${accessToken}` };
 
     const payload = {
       item_type: 'PRODUCT_ITEM',
@@ -50,14 +51,13 @@ export class WhatsappCatalogHelper {
       body: JSON.stringify(payload),
       headers: {
         ...headers,
+        'Content-Type': 'application/json',
       },
     });
 
     if (!response.ok) {
       let errorMessage = `${response.status} ${response.statusText}`;
-      console.log('====================================');
-      console.log(errorMessage, whatsappSettings.accessToken);
-      console.log('====================================');
+
       try {
         const errorData = await response.json();
         errorMessage = errorData.message || errorMessage;

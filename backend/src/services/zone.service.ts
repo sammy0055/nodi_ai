@@ -1,6 +1,7 @@
 import { ZoneModel } from '../models/zones.model';
 import { Pagination } from '../types/common-types';
 import { User } from '../types/users';
+import { Op, literal } from 'sequelize';
 
 export class ZoneService {
   static async createZone(name: string, user: Pick<User, 'id' | 'organizationId'>) {
@@ -11,8 +12,9 @@ export class ZoneService {
   }
   static async updateZone(name: string, zoneId: string) {
     if (!name) throw new Error('zone name is required');
-    const zone = await ZoneModel.update({ name }, { where: { id: zoneId }, returning: true });
-    return zone;
+    const [_, updatedRows] = await ZoneModel.update({ name }, { where: { id: zoneId }, returning: true });
+    const updatedProduct = updatedRows[0].get({ plain: true }); // plain JS object
+    return updatedProduct;
   }
   static async removeZone(zoneId: string) {
     await ZoneModel.destroy({ where: { id: zoneId } });
@@ -21,9 +23,20 @@ export class ZoneService {
     if (!zoneId) throw new Error('zoneId is required');
     return await ZoneModel.findByPk(zoneId);
   }
-  static async getZones(user: Pick<User, 'id' | 'organizationId'>, { offset, limit, page }: Pagination) {
-    const { rows: products, count: totalItems } = await ZoneModel.findAndCountAll({
-      where: { organizationId: user.organizationId! },
+  static async getZones(
+    user: Pick<User, 'id' | 'organizationId'>,
+    { offset, limit, page }: Pagination,
+    searchQuery?: string
+  ) {
+    const where: any = { organizationId: user.organizationId! };
+
+    // add full-text search condition if searchQuery exists
+    if (searchQuery) {
+      where[Op.and] = literal(`to_tsvector('english', "name") @@ plainto_tsquery('english', '${searchQuery}')`);
+    }
+
+    const { rows: zones, count: totalItems } = await ZoneModel.findAndCountAll({
+      where,
       offset,
       limit,
       order: [['createdAt', 'DESC']],
@@ -32,7 +45,7 @@ export class ZoneService {
     // prepare pagination info
     const totalPages = Math.ceil(totalItems / limit);
     return {
-      data: products,
+      data: zones,
       pagination: {
         totalItems,
         totalPages,

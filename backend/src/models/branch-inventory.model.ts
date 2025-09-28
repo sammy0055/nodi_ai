@@ -83,13 +83,21 @@ BranchInventoryModel.init(
       comment: 'The number of units set aside for pending orders or reservations',
     },
     costPrice: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.DECIMAL(10, 2),
+      get() {
+        const rawValue = this.getDataValue('costPrice');
+        return rawValue === null ? null : parseFloat(rawValue as any);
+      },
       allowNull: false,
       defaultValue: 0,
       comment: 'The cost price per unit for this branch’s stock of the product',
     },
     sellingPrice: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.DECIMAL(10, 2),
+      get() {
+        const rawValue = this.getDataValue('sellingPrice');
+        return rawValue === null ? null : parseFloat(rawValue as any);
+      },
       allowNull: false,
       comment: `The selling price per unit for this branch’s stock (can override product price)`,
     },

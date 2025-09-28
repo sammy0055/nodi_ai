@@ -1,6 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from 'uuid';
-import { appConfig } from '../../config';
+import { appConfig } from '../config';
 export class ImageUploadHelper {
   superbase: SupabaseClient;
   private bucketName = appConfig.superbase.storage.bucketName;

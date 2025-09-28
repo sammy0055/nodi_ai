@@ -31,7 +31,18 @@ ZoneModel.init(
     },
     name: { type: DataTypes.STRING, allowNull: false },
   },
-  { sequelize, modelName: ModelNames.Zones, timestamps: true }
+  {
+    sequelize,
+    modelName: ModelNames.Zones,
+    timestamps: true,
+    indexes: [
+      {
+        name: 'zone_name_search_idx',
+        using: 'GIN',
+        fields: [sequelize.literal(`to_tsvector('english', coalesce("name", ''))`)],
+      },
+    ],
+  }
 );
 
 export { ZoneModel };

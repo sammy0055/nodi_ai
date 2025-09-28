@@ -5,7 +5,7 @@ const areaSchema = z.object({
   zoneId: z.string().trim(),
   branchId: z.string().trim(),
   name: z.string().trim(),
-  deliveryTime: z.date(),
+  deliveryTime: z.coerce.date(),
   deliveryCharge: z.number(),
 });
 

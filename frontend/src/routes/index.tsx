@@ -19,6 +19,7 @@ export const PageRoutes = {
   SETTINGS: 'settings',
   PRODUCTS: 'products',
   BRANCHS:"branches",
+  AreasZones: "areasZones",
   INVENTORY: 'inventory',
   CUSTOMERS: 'customers',
   BILLING: 'billing',

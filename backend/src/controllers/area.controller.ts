@@ -16,7 +16,7 @@ export class AreaController {
   static async getArea(areaId: string, user: Pick<User, 'id' | 'organizationId'>) {
     return await AreaService.getArea(areaId, user)
   }
-  static async getAreas(user: Pick<User, 'id' | 'organizationId'>, pagination:Pagination) {
-    return await AreaService.getAreas(user, pagination)
+  static async getAreas(user: Pick<User, 'id' | 'organizationId'>, pagination:Pagination, searchQuery?: string) {
+    return await AreaService.getAreas(user, pagination, searchQuery)
   }
 }

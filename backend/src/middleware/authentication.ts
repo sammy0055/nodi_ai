@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { generateTokens, verifyToken } from '../utils/jwt';
 import jwt from 'jsonwebtoken';
 import { UserService } from '../services/users.service';
-import { appConfig } from '../../config';
+import { appConfig } from '../config';
 import { setAuthHeaderCookie } from '../helpers/set-auth-header';
 
 export interface TokenPayload {

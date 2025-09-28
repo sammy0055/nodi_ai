@@ -68,13 +68,34 @@ zoneRoute.get('/get-zones', authMiddleware, async (req, res) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
+    const searchTerm = req.query.search as string;
 
     // calculate offset
     const offset = (page - 1) * limit;
-    const data = await ZoneController.getZones(req.user!, { page, limit, offset });
+    const data = await ZoneController.getZones(req.user!, { page, limit, offset }, searchTerm);
     const response: APIResponseFormat<any> = {
       message: 'zones retrieved successfully',
       data,
+    };
+
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
+
+zoneRoute.delete('/remove-zone', authMiddleware, async (req, res) => {
+  try {
+    const zoneId = req.query.zoneId as string;
+    await ZoneController.removeZone(zoneId);
+    const response: APIResponseFormat<any> = {
+      message: 'zones removed successfully',
+      data: null,
     };
 
     res.status(201).json(response);

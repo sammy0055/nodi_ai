@@ -70,7 +70,14 @@ AreaModel.init(
       allowNull: false,
       comment: 'time of deivery for this area. can overide, deliverytime on branch',
     },
-    deliveryCharge: { type: DataTypes.INTEGER, allowNull: false },
+    deliveryCharge: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      get() {
+        const rawValue = this.getDataValue('deliveryCharge');
+        return rawValue === null ? null : parseFloat(rawValue as any);
+      },
+    },
   },
   {
     sequelize,
@@ -83,6 +90,11 @@ AreaModel.init(
       },
       {
         fields: ['organizationId'],
+      },
+      {
+        name: 'area_name_search_idx',
+        using: 'GIN',
+        fields: [sequelize.literal(`to_tsvector('english', coalesce("name", ''))`)],
       },
     ],
     hooks: {

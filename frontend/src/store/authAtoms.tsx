@@ -5,7 +5,7 @@ import type { User } from '../types/users';
 import type { IOrganization } from '../types/organization';
 import type { IWhatSappSettings } from '../types/whatsapp';
 import type { Product, ProductOption } from '../types/product';
-import type { IBranch, IBranchInventory } from '../types/branch';
+import type { IArea, IBranch, IBranchInventory, IZone } from '../types/branch';
 
 export const userAtom = atom<User | null>({
   key: uuid(),
@@ -43,7 +43,17 @@ export const branchAtom = atom<IBranch[] | []>({
   default: [],
 });
 
+export const zoneAtom = atom<IZone[] | []>({
+  key: uuid(),
+  default: [],
+});
+
 export const branchInventoryAtom = atom<IBranchInventory[] | []>({
+  key: uuid(),
+  default: [],
+});
+
+export const areaAtom = atom<IArea[] | []>({
   key: uuid(),
   default: [],
 });
@@ -55,6 +65,8 @@ export const useWhatsappValue = (): IWhatSappSettings | null => useRecoilValue(w
 export const useProductsValue = (): Product[] | [] => useRecoilValue(productsAtom);
 export const useProductOptionValue = (): ProductOption[] | [] => useRecoilValue(productOptionAtom);
 export const useBranchValue = (): IBranch[] | [] => useRecoilValue(branchAtom);
+export const useZoneValue = (): IZone[] | [] => useRecoilValue(zoneAtom);
+export const useAreaValue = (): IArea[] | [] => useRecoilValue(areaAtom);
 export const useBranchInventoryValue = (): IBranchInventory[] | [] => useRecoilValue(branchInventoryAtom);
 
 // Set values
@@ -64,4 +76,6 @@ export const useWhatsappSetRecoilState = () => useSetRecoilState(whatsappAtom);
 export const useProductsSetRecoilState = () => useSetRecoilState(productsAtom);
 export const useProductOptionSetRecoilState = () => useSetRecoilState(productOptionAtom);
 export const useBranchSetRecoilState = () => useSetRecoilState(branchAtom);
+export const useZoneSetRecoilState = () => useSetRecoilState(zoneAtom);
+export const useAreaSetRecoilState = () => useSetRecoilState(areaAtom);
 export const useBranchInventorySetRecoilState = () => useSetRecoilState(branchInventoryAtom);

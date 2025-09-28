@@ -11,9 +11,12 @@ import {
   FiMenu,
   FiX,
   FiLogOut,
+  FiNavigation,
+  FiBox,
 } from 'react-icons/fi';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { PageRoutes } from '../routes';
+import { useOrgValue, useUserValue } from '../store/authAtoms';
 
 type TenantLayoutProps = {
   children: ReactNode;
@@ -23,21 +26,17 @@ export const TenantLayout = ({ children }: TenantLayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Mock data for tenant/organization
-  const tenantData = {
-    name: 'Fashion Boutique',
-    plan: 'Premium',
-    photoUrl:
-      'https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&auto=format&fit=crop&w=64&h=64&q=80',
-  };
+  const orgData = useOrgValue();
+  const user = useUserValue();
 
   // Navigation items
   const navigationItems = [
-    { path: `/app/${PageRoutes.APP_DASHBOARD}`, label: 'Dashboard', icon: <FiHome className="text-lg" /> },
+    // { path: `/app/${PageRoutes.APP_DASHBOARD}`, label: 'Dashboard', icon: <FiHome className="text-lg" /> },
     { path: `/app/${PageRoutes.ORDERS}`, label: 'Orders', icon: <FiShoppingCart className="text-lg" /> },
     { path: `/app/${PageRoutes.PRODUCTS}`, label: 'Products', icon: <FiPackage className="text-lg" /> },
     { path: `/app/${PageRoutes.BRANCHS}`, label: 'Branches', icon: <FiTrendingUp className="text-lg" /> },
-    { path: `/app/${PageRoutes.INVENTORY}`, label: 'Branch Inventory', icon: <FiTrendingUp className="text-lg" /> },
+    { path: `/app/${PageRoutes.AreasZones}`, label: 'AreaZone', icon: <FiNavigation className="text-lg" /> },
+    { path: `/app/${PageRoutes.INVENTORY}`, label: 'Branch Inventory', icon: <FiBox className="text-lg" /> },
     { path: `/app/${PageRoutes.CUSTOMERS}`, label: 'Customers', icon: <FiUsers className="text-lg" /> },
     { path: `/app/${PageRoutes.BILLING}`, label: 'Billing', icon: <FiDollarSign className="text-lg" /> },
     { path: `/app/${PageRoutes.SETTINGS}`, label: 'Settings', icon: <FiSettings className="text-lg" /> },
@@ -71,10 +70,19 @@ export const TenantLayout = ({ children }: TenantLayoutProps) => {
             {/* Organization header */}
             <div className="flex items-center justify-between p-4 border-b border-neutral-200">
               <div className="flex items-center space-x-3">
-                <img src={tenantData.photoUrl} alt={tenantData.name} className="w-10 h-10 rounded-lg object-cover" />
+                {/* <img src={tenantData.photoUrl} alt={tenantData.name} className="w-10 h-10 rounded-lg object-cover" /> */}
+                <div className="w-10 h-10 rounded-lg bg-gray-400 flex items-center justify-center text-white font-bold">
+                  {orgData.name
+                    .split(' ')
+                    .slice(0, 2) // take at most 2 words
+                    .map((word) => word[0])
+                    .join('')
+                    .toUpperCase()}
+                </div>
+
                 <div>
-                  <h2 className="font-semibold text-neutral-900">{tenantData.name}</h2>
-                  <p className="text-xs text-primary-600">{tenantData.plan} Plan</p>
+                  <h2 className="font-semibold text-neutral-900">{orgData.name}</h2>
+                  <p className="text-xs text-primary-600">Premium Plan</p>
                 </div>
               </div>
               <button
@@ -142,7 +150,7 @@ export const TenantLayout = ({ children }: TenantLayoutProps) => {
 
               <div className="flex items-center space-x-4">
                 {/* Notifications placeholder */}
-                <div className="relative">
+                {/* <div className="relative">
                   <div className="w-2 h-2 bg-red-500 rounded-full absolute top-0 right-0"></div>
                   <button className="p-2 rounded-full hover:bg-neutral-100">
                     <svg className="w-5 h-5 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,16 +162,14 @@ export const TenantLayout = ({ children }: TenantLayoutProps) => {
                       />
                     </svg>
                   </button>
-                </div>
+                </div> */}
 
                 {/* User profile placeholder */}
                 <div className="flex items-center space-x-2">
-                  <img
-                    src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=facearea&facepad=2&w=32&h=32&q=80"
-                    alt="User profile"
-                    className="w-8 h-8 rounded-full"
-                  />
-                  <span className="text-sm font-medium text-neutral-700 hidden md:inline-block">John Doe</span>
+                  <div className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-500 text-white font-bold">
+                    {user?.name?.charAt(0).toUpperCase() || 'A'}
+                  </div>
+                  <span className="text-sm font-medium text-neutral-700 hidden md:inline-block">{user?.name}</span>
                 </div>
               </div>
             </div>

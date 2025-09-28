@@ -123,16 +123,15 @@ const BranchInventoryPage: React.FC = () => {
 
   const [inventorySearch] = useDebounce(searchTerm, 500); // 500ms delay
   useEffect(() => {
-    const fetchBranches = async () => {
+    const fn = async () => {
       if (!inventorySearch) {
-        setInventory([]); // clear results when search is empty
         return;
       }
       const { data } = await searchInvotory(searchTerm);
       setInventory(data.data); // now filteredProducts is an array
     };
 
-    fetchBranches();
+    fn();
   }, [inventorySearch]);
 
   // Validation functions
@@ -469,7 +468,7 @@ const BranchInventoryPage: React.FC = () => {
             />
           </div>
 
-          <div className="flex space-x-3">
+          {/* <div className="flex space-x-3">
             <select className="border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
               <option value="">All Status</option>
               <option value="active">Active</option>
@@ -484,7 +483,7 @@ const BranchInventoryPage: React.FC = () => {
                 </option>
               ))}
             </select>
-          </div>
+          </div> */}
         </div>
       </div>
 

@@ -90,10 +90,11 @@ areaRoute.get('/areas', authMiddleware, async (req, res) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
+    const searchTerm = req.query.search as string
 
     // calculate offset
     const offset = (page - 1) * limit;
-    const data = await AreaController.getAreas(req.user!, { page, limit, offset });
+    const data = await AreaController.getAreas(req.user!, { page, limit, offset }, searchTerm);
     const response: APIResponseFormat<any> = {
       message: 'area retreived successfully',
       data,
