@@ -8,4 +8,5 @@ export interface IOrganization {
   businessType: `${BusinessType}`;
   AIAssistantName:string
   Whatsappsettings?: IWhatSappSettings[];
+  stripeCustomerId?:string
 }

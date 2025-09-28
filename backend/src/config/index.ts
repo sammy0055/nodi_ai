@@ -10,6 +10,7 @@ export enum EnvList {
   APP_USER_AUTH_SECRET = 'APP_USER_AUTH_SECRET',
   STRIPE_PUBLIC_KEY = 'STRIPE_PUBLIC_KEY',
   STRIPE_SECRET_KEY = 'STRIPE_SECRET_KEY',
+  STRIPE_WEBHOOK_SECRET = 'STRIPE_WEBHOOK_SECRET',
   GOOGLE_CLIENT_ID = 'GOOGLE_CLIENT_ID',
   GOOGLE_CLIENT_SECRET = 'GOOGLE_CLIENT_SECRET',
   GOOGLE_REDIRECT_URI = 'GOOGLE_REDIRECT_URI',
@@ -38,6 +39,7 @@ export const appConfig = {
     secretKey: getEnv(EnvList.STRIPE_SECRET_KEY),
     successUrl: 'http://localhost:3000/success',
     cancelUrl: 'http://localhost:3000/cancel',
+    webhookSecret: getEnv(EnvList.STRIPE_WEBHOOK_SECRET),
   },
   googleAuth: {
     GOOGLE_CLIENT_ID: getEnv(EnvList.GOOGLE_CLIENT_ID),

@@ -13,7 +13,7 @@ class SubscriptionsModel
   implements ISubscription
 {
   declare id: CreationOptional<string>;
-  declare organizationId?: string | null | undefined;
+  declare organizationId: string | null | undefined;
   declare planId: string;
   declare status: `${SubstriptionStatusTypes}`;
   declare startDate: Date;
@@ -21,6 +21,7 @@ class SubscriptionsModel
   declare currentPeriodEnd: Date;
   declare nextBillingDate: Date;
   declare cancelAtPeriodEnd: CreationOptional<boolean>;
+  declare subscriptionId: string;
 
   static associate(models: DbModels) {
     this.belongsTo(models.OrganizationsModel, {
@@ -35,7 +36,7 @@ SubscriptionsModel.init(
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, allowNull: false, primaryKey: true },
     organizationId: {
       type: DataTypes.UUID,
-      allowNull: true,
+      allowNull: false,
       references: {
         model: ModelNames.Organizations,
         key: 'id',
@@ -53,6 +54,7 @@ SubscriptionsModel.init(
       onDelete: 'NO ACTION',
       onUpdate: 'NO ACTION',
     },
+    subscriptionId: { type: DataTypes.STRING, allowNull: false },
     status: {
       type: DataTypes.ENUM,
       allowNull: false,
@@ -73,8 +75,11 @@ SubscriptionsModel.init(
       {
         fields: ['organizationId'],
       },
+      {
+        fields: ['subscriptionId'],
+      },
     ],
   }
 );
 
-export {SubscriptionsModel}
+export { SubscriptionsModel };

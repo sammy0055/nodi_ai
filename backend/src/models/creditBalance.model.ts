@@ -30,7 +30,7 @@ CreditBalanceModel.init(
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, allowNull: false, primaryKey: true },
     organizationId: {
       type: DataTypes.UUID,
-      allowNull: true,
+      allowNull: false,
       references: {
         model: ModelNames.Organizations,
         key: 'id',

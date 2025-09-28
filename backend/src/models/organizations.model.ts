@@ -15,6 +15,7 @@ class OrganizationsModel
   declare businessType: `${BusinessType}`;
   declare brandTone: string;
   declare AIAssistantName: string;
+  declare stripeCustomerId?: string | undefined;
   static associate(models: DbModels) {
     //hasMany The foreign key is on the other model (the one being linked).
     this.hasMany(models.BranchesModel, { foreignKey: 'organizationId' });
@@ -72,8 +73,18 @@ OrganizationsModel.init(
     businessType: { type: DataTypes.ENUM, values: supportedBusinessTypes },
     brandTone: { type: DataTypes.STRING, defaultValue: '' },
     AIAssistantName: { type: DataTypes.STRING, allowNull: true },
+    stripeCustomerId: { type: DataTypes.STRING, allowNull: true },
   },
-  { sequelize, modelName: ModelNames.Organizations, timestamps: true }
+  {
+    sequelize,
+    modelName: ModelNames.Organizations,
+    timestamps: true,
+    indexes: [
+      {
+        fields: ['stripeCustomerId'],
+      },
+    ],
+  }
 );
 
 export { OrganizationsModel };

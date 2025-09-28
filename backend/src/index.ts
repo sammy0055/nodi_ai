@@ -18,8 +18,14 @@ import { requestRoute } from './routes/request.route';
 import { adminUserRoute } from './routes/admin-user.route';
 import { appUserAuthSecretValidation } from './middleware/authentication';
 import { branchInventoryRoute } from './routes/branch-inventory.route';
+import { subscriptionRouter } from './routes/subscription.route';
+import { stripeWebHookRoute } from './routes/stripe-webhook.route';
 
 const app = express();
+
+// dedicated routes
+app.use('/api/stripe', express.raw({ type: 'application/json' }), stripeWebHookRoute);
+
 app.use(cors({ origin: ['http://localhost:5173', true], credentials: true }));
 app.use(cookieParser());
 app.use(express.json());
@@ -36,6 +42,7 @@ app.use('/api/organization/product', productRoute);
 app.use('/api/organization/product-option', productOptionRoute);
 app.use('/api/organization/product-option-choice', productOptionChoiceRoute);
 app.use('/api/organization/request', requestRoute);
+app.use('/api/organization/subscription', subscriptionRouter);
 
 // app-user routes
 app.use('/api/app-user/subscription-plan', appUserAuthSecretValidation, subscriptionRoute);

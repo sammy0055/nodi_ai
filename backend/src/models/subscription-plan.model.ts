@@ -30,7 +30,14 @@ SubscriptionPlanModel.init(
     stripePlanPriceId: { type: DataTypes.STRING, allowNull: false },
     name: { type: DataTypes.STRING, allowNull: false },
     description: { type: DataTypes.STRING, allowNull: false },
-    price: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
+    price: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      get() {
+        const rawValue = this.getDataValue('price');
+        return rawValue === null ? null : parseFloat(rawValue as any);
+      },
+    },
     creditPoints: { type: DataTypes.INTEGER, allowNull: false, comment: 'Credit points allocated per cycle' },
     billing_cycle_days: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 30 },
     isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
