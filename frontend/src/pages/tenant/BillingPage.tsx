@@ -14,8 +14,6 @@ import {
 } from 'react-icons/fi';
 import Button from '../../components/atoms/Button/Button';
 import type {
-  CreditBalanceAttributes,
-  ISubscription,
   ISubscriptionPlan,
   UsageRecordAttributes,
 } from '../../types/subscription';
