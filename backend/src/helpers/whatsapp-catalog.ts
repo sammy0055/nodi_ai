@@ -60,6 +60,9 @@ export class WhatsappCatalogHelper {
 
       try {
         const errorData = await response.json();
+         console.log('====================================');
+        console.log(errorData);
+        console.log('====================================');
         errorMessage = errorData.message || errorMessage;
       } catch {
         throw new Error(errorMessage);

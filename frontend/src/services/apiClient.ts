@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://localhost:4000/api';
+const API_BASE_URL =
+  'http://localhost:4000/api';
 
 export const APP_USER_API_ROUTES = {
   ADMIN_GET_REQUESTS: `${API_BASE_URL}/app-user/request/get-requests`,
