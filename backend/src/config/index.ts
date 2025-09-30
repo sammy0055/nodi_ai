@@ -25,6 +25,7 @@ export enum EnvList {
   SUPERBASE_PROJECT_API_KEY = 'SUPERBASE_PROJECT_API_KEY',
   SUPERBASE_PROJECT_URL = 'SUPERBASE_PROJECT_URL',
   SUPERBASE_STORAGE_BUCKET_NAME = 'SUPERBASE_STORAGE_BUCKET_NAME',
+  OPENAI_API_KEY = 'OPENAI_API_KEY',
 }
 
 const env = getEnv(EnvList.NODE_ENV);
@@ -33,6 +34,7 @@ export const appConfig = {
   env,
   port: getEnv(EnvList.PORT) || 5000,
   encryptionSecret: getEnv('ENCRYPTION_SECRET'),
+  openaiKey: getEnv('OPENAI_API_KEY'),
   db: {
     url: env === 'dev' ? getEnv(EnvList.LOCAL_DATABASE_URL) : getEnv(EnvList.PROD_DATABASE_URL),
   },

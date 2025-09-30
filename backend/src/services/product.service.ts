@@ -12,35 +12,35 @@ import { Op, literal } from 'sequelize';
 export class ProductService {
   static async createProduct(product: IProduct, user: Pick<User, 'id' | 'organizationId'>, file: File) {
     if (!user.organizationId) throw new Error('kindly create an organization to continue');
-    const whatsappData = await WhatSappSettingsModel.findOne({ where: { organizationId: user.organizationId } });
-    if (!whatsappData?.catalogId) throw new Error("you don't have an active catalog, kindly create one");
+    // const whatsappData = await WhatSappSettingsModel.findOne({ where: { organizationId: user.organizationId } });
+    // if (!whatsappData?.catalogId) throw new Error("you don't have an active catalog, kindly create one");
     const { valid, errors } = validateFile(file);
     if (!valid) throw new Error(errors.join(', '));
-    const manageImageFile = new ImageUploadHelper();
+    // const manageImageFile = new ImageUploadHelper();
     const createdProduct = await ProductModel.create({
       ...product,
       organizationId: user.organizationId,
       metaProductId: 'ddedde',
     });
 
-    const { imgUrl, path } = await manageImageFile.uploadImage(file);
-    const whatsappCatalogItem = await WhatsappCatalogHelper.createMetaCatalogItem(
-      {
-        itemId: createdProduct.id,
-        name: createdProduct.name,
-        description: createdProduct.description,
-        price: createdProduct.price,
-        imageUrl: imgUrl,
-      },
-      whatsappData
-    );
+    // const { imgUrl, path } = await manageImageFile.uploadImage(file);
+    // const whatsappCatalogItem = await WhatsappCatalogHelper.createMetaCatalogItem(
+    //   {
+    //     itemId: createdProduct.id,
+    //     name: createdProduct.name,
+    //     description: createdProduct.description,
+    //     price: createdProduct.price,
+    //     imageUrl: imgUrl,
+    //   },
+    //   whatsappData
+    // );
 
-    const [_, updatedRows] = await ProductModel.update(
-      { imageUrl: imgUrl, filePath: path, metaProductId: whatsappCatalogItem?.id || 'nullId' },
-      { where: { id: createdProduct.id }, returning: true }
-    );
-    const updatedProduct = updatedRows[0].get({ plain: true }); // plain JS object
-    return updatedProduct;
+    // const [_, updatedRows] = await ProductModel.update(
+    //   { imageUrl: imgUrl, filePath: path },
+    //   { where: { id: createdProduct.id }, returning: true }
+    // );
+    // const updatedProduct = updatedRows[0].get({ plain: true }); // plain JS object
+    return createdProduct;
   }
 
   static async updateProduct(product: IProduct, user: Pick<User, 'id' | 'organizationId'>, file: File) {

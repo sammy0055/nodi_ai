@@ -520,7 +520,7 @@ const ProductsPage: React.FC = () => {
     );
   };
 
-  if (!whatsappData?.catalogId) return <CatalogWarning />;
+  // if (!whatsappData?.catalogId) return <CatalogWarning />;
 
   return (
     <div className="space-y-6 p-4 md:p-0">

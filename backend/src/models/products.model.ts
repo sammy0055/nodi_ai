@@ -4,6 +4,7 @@ import { DbModels } from '.';
 import { ProductStatusTypes } from '../data/data-types';
 import { IProduct } from '../types/product';
 import { ModelNames } from './model-names';
+import { generateEmbedding } from '../helpers/open-ai';
 
 class ProductModel
   extends Model<
@@ -23,6 +24,7 @@ class ProductModel
   declare metaProductId: string;
   declare status: CreationOptional<`${ProductStatusTypes}`>;
   declare filePath: CreationOptional<string>;
+  declare embedding?: number[] | undefined;
 
   static associate(models: DbModels) {
     this.belongsTo(models.OrganizationsModel, {
@@ -70,10 +72,19 @@ ProductModel.init(
       values: [...Object.values(ProductStatusTypes)],
       defaultValue: ProductStatusTypes.ACTIVE,
     },
+    embedding: {
+      type: (DataTypes as any).VECTOR(1536),
+      allowNull: true,
+      // set(value: number[]) {
+      //   // convert to string Postgres expects
+      //   this.setDataValue('embedding', `{${value.join(',')}}`);
+      // },
+    }, // OpenAI embedding size
   },
   {
     sequelize,
     modelName: ModelNames.Products,
+    tableName: ModelNames.Products,
     timestamps: true,
     indexes: [
       {
@@ -84,7 +95,29 @@ ProductModel.init(
         using: 'GIN',
         fields: [sequelize.literal(`to_tsvector('english', coalesce("name",'') || ' ' || coalesce("description",''))`)],
       },
+      // ---------------- vector similarity index ----------------
+      {
+        name: 'product_embedding_idx',
+        using: 'IVFFlat',
+        fields: [sequelize.literal('"embedding" vector_cosine_ops')],
+        concurrently: false, // optional: false means index builds immediately
+      },
     ],
+    // hooks: {
+    //   beforeCreate: async (product: ProductModel) => {
+    //     const text = `${product.name} ${product.description} ${product.price}`;
+    //     const embedding = await generateEmbedding(text);
+    //     console.log('====================================');
+    //     console.log(embedding);
+    //     console.log('====================================');
+    //     product.embedding = embedding;
+    //   },
+    //   beforeUpdate: async (product: ProductModel) => {
+    //     const text = `${product.name} ${product.description} ${product.price}`;
+    //     const embedding = await generateEmbedding(text);
+    //     product.embedding = embedding;
+    //   },
+    // },
   }
 );
 

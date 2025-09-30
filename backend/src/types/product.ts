@@ -12,4 +12,5 @@ export interface IProduct {
   metaProductId: string;
   imageUrl?: string;
   filePath?: string; // path in superbase storage
+  embedding?: number[];
 }
