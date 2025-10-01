@@ -17,8 +17,9 @@ export class ProductService {
     const { valid, errors } = validateFile(file);
     if (!valid) throw new Error(errors.join(', '));
     // const manageImageFile = new ImageUploadHelper();
+    const {id, ...restData} = product
     const createdProduct = await ProductModel.create({
-      ...product,
+      ...restData,
       organizationId: user.organizationId,
       metaProductId: 'ddedde',
     });

@@ -67,4 +67,8 @@ export const appConfig = {
   appUser: {
     authSecret: getEnv('APP_USER_AUTH_SECRET'),
   },
+  mcpKeys:{
+    openaiKey: getEnv('OPENAI_API_KEY'),
+    model: "gpt-4.1-2025-04-14"
+  }
 };

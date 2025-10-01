@@ -20,6 +20,7 @@ import { appUserAuthSecretValidation } from './middleware/authentication';
 import { branchInventoryRoute } from './routes/branch-inventory.route';
 import { subscriptionRouter } from './routes/subscription.route';
 import { stripeWebHookRoute } from './routes/stripe-webhook.route';
+import { ManageVectorStore } from './helpers/vector-store.js';
 
 const app = express();
 
@@ -50,7 +51,9 @@ app.use('/api/app-user/subscription-plan', appUserAuthSecretValidation, subscrip
 app.use('/api/app-user', appUserAuthSecretValidation, adminUserRoute);
 app.use('/api/app-user/request', appUserAuthSecretValidation, requestRoute);
 
+const vectorStore = new ManageVectorStore();
 const PORT = appConfig.port;
 app.listen(PORT, async () => {
   await connectDB();
+  await vectorStore.initCollection();
 });
