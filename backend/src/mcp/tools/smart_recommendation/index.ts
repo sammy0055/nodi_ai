@@ -9,6 +9,7 @@ export const getRecommendations = (server: McpServer) => {
       title: 'get_recommendations',
       description: 'Get recommended products based on search, with availability status',
       inputSchema: {
+        organizationId: z.string(),
         query: z.string().describe("Customer's interest or search term").optional(),
         area: z.string().describe("Customer's area").optional(),
         maxResults: z.number().default(5),
@@ -35,6 +36,7 @@ export const suggestAlternatives = (server: McpServer) => {
       title: 'suggest_alternatives',
       description: 'Suggest alternative products when requested product is unavailable',
       inputSchema: {
+        organizationId: z.string(),
         productId: z.string().describe("Original product that's unavailable"),
         area: z.string().describe("Customer's area"),
       },

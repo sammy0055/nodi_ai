@@ -9,6 +9,7 @@ export const createOrder = (server: McpServer) => {
       title: 'create_order',
       description: 'Create an order with inventory reservation',
       inputSchema: {
+        organizationId: z.string(),
         branchId: z.string(),
         deliveryArea: z.string().optional(),
         serviceType: z.enum(['delivery', 'takeaway']).optional(),
@@ -45,6 +46,7 @@ export const getBranchInfo = (server: McpServer) => {
       title: 'get_branch_info',
       description: 'Get comprehensive branch information including services and delivery areas',
       inputSchema: {
+        organizationId: z.string(),
         branchId: z.string().optional(),
         area: z.string().describe('Filter by area if needed').optional(),
       },

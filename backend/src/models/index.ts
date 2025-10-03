@@ -17,6 +17,8 @@ import { ProductOptionChoiceModel } from './product-option-choice.model';
 import { NotificationModel } from './notification.model';
 import { RequestModel } from './request.module';
 import { AdminUserModel } from './admin-user.model';
+import { CustomerModel } from './customer.model';
+import { OrderModel } from './order.module';
 
 interface DbModels {
   OrganizationsModel: typeof OrganizationsModel;
@@ -37,6 +39,8 @@ interface DbModels {
   ProductOptionChoiceModel: typeof ProductOptionChoiceModel;
   NotificationModel: typeof NotificationModel;
   RequestModel: typeof RequestModel;
+  CustomerModel: typeof CustomerModel;
+  OrderModel: typeof OrderModel;
 }
 
 const models: DbModels = {
@@ -58,6 +62,8 @@ const models: DbModels = {
   ProductOptionChoiceModel,
   NotificationModel,
   RequestModel,
+  CustomerModel,
+  OrderModel,
 };
 
 Object.values(models).forEach((model: any) => {

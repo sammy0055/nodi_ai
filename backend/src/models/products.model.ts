@@ -24,7 +24,6 @@ class ProductModel
   declare metaProductId: string;
   declare status: CreationOptional<`${ProductStatusTypes}`>;
   declare filePath: CreationOptional<string>;
-  declare embedding?: number[] | undefined;
 
   static associate(models: DbModels) {
     this.belongsTo(models.OrganizationsModel, {

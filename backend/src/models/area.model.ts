@@ -4,6 +4,7 @@ import { DbModels } from '.';
 import { IArea } from '../types/area';
 import { BranchesModel } from './branches.model';
 import { ModelNames } from './model-names';
+import { ManageVectorStore } from '../helpers/vector-store';
 
 class AreaModel extends Model<InferAttributes<AreaModel>, InferCreationAttributes<AreaModel>> implements IArea {
   declare id: CreationOptional<string>;
@@ -98,16 +99,22 @@ AreaModel.init(
       },
     ],
     hooks: {
-      async beforeCreate(area: IArea) {
+      beforeCreate: async (area: IArea) => {
         if (area.deliveryTime) {
           await BranchesModel.update({ deliveryTime: area.deliveryTime }, { where: { id: area.branchId } });
         }
+
+        const vectorStore = new ManageVectorStore();
+        await vectorStore.insertAreaEmbedding(area);
       },
 
-      async beforeUpdate(area: IArea) {
+      beforeUpdate: async (area: IArea) => {
         if (area.deliveryTime) {
           await BranchesModel.update({ deliveryTime: area.deliveryTime }, { where: { id: area.branchId } });
         }
+
+        const vectorStore = new ManageVectorStore();
+        await vectorStore.insertAreaEmbedding(area);
       },
     },
   }

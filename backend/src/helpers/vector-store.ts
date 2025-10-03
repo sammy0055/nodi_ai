@@ -2,6 +2,22 @@ import { QdrantClient } from '@qdrant/js-client-rest';
 import { generateEmbedding } from './vector-embedding';
 import { IProduct } from '../types/product';
 import { IArea } from '../types/area';
+import { ZoneModel } from '../models/zones.model';
+import { ProductModel } from '../models/products.model';
+import { AreaModel } from '../models/area.model';
+
+interface AreaSearchParams {
+  organizationId: string;
+  branchId?: string;
+  query: string;
+  limit?: number;
+}
+
+interface ProductSearchParans {
+  organizationId: string;
+  query?: string;
+  limit?: number;
+}
 
 export class ManageVectorStore {
   protected qdrant: QdrantClient;
@@ -50,25 +66,35 @@ export class ManageVectorStore {
   }
 
   // ✅ Search similar products by natural language query
-  async searchProducts(query: string, limit = 5) {
+  async searchProducts({ query, organizationId, limit = 5 }: ProductSearchParans) {
+    if (!query) {
+      const producs = ProductModel.findAll({ limit });
+      return producs;
+    }
     const embedding = await generateEmbedding(query);
 
     const results = await this.qdrant.search(this.collectionName, {
+      filter: {
+        must: [{ key: 'organizationId', match: { value: organizationId } }],
+      },
       vector: embedding,
       limit,
     });
 
-    return results.map((r) => ({
-      score: r.score,
-      product: r.payload,
-    }));
+    return results.map((r) => r.payload);
+
+    // return results.map((r) => ({
+    //   score: r.score,
+    //   product: r.payload,
+    // }));
   }
 
   async insertAreaEmbedding(
     area: Pick<IArea, 'id' | 'name' | 'deliveryCharge' | 'deliveryTime' | 'branchId' | 'zoneId'>
   ) {
     const { id, name, deliveryCharge, deliveryTime } = area;
-    const text = `areaName:${name}, deliveryCharge:${deliveryCharge}, deliveryTime:${deliveryTime}`;
+    const zone = await ZoneModel.findByPk(area.zoneId);
+    const text = `area:${name}, zone:${zone?.name}, deliveryCharge:${deliveryCharge}, deliveryTime:${deliveryTime}`;
     const embedding = await generateEmbedding(text);
     await this.qdrant.upsert(this.collectionName, {
       wait: true,
@@ -84,16 +110,28 @@ export class ManageVectorStore {
     console.log(`🔄 Areas ${id} embedding upserted`);
   }
 
-  async searchAreas(query: string, limit = 5) {
+  async searchAreas({ query, organizationId, branchId, limit = 5 }: AreaSearchParams) {
+    if (!query) {
+      const areas = await AreaModel.findAll({ where: { organizationId: organizationId }, limit });
+      return areas;
+    }
     const embedding = await generateEmbedding(query);
+    const mustFilters: any[] = [{ key: 'organizationId', match: { value: organizationId } }];
+
+    if (branchId) {
+      mustFilters.push({ key: 'branchId', match: { value: branchId } });
+    }
     const results = await this.qdrant.search(this.collectionName, {
+      filter: { must: mustFilters },
       vector: embedding,
       limit,
     });
 
-    return results.map((r) => ({
-      score: r.score,
-      product: r.payload,
-    }));
+    return results.map((r) => r.payload);
+
+    // return results.map((r) => ({
+    //   score: r.score,
+    //   product: r.payload,
+    // }));
   }
 }

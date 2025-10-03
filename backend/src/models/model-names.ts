@@ -5,7 +5,7 @@ export enum ModelNames {
   Organizations = 'Organizations',
   Products = 'Products',
   Users = 'Users',
-  AdminUser = "AdminUser",
+  AdminUser = 'AdminUser',
   Whatsappsettings = 'Whatsappsettings',
   Zones = 'Zones',
   SubscriptionPlans = 'SubscriptionPlans',
@@ -16,5 +16,7 @@ export enum ModelNames {
   ProductOptions = 'ProductOptions',
   ProductOptionChoices = 'ProductOptionChoices',
   Notifications = 'Notifications',
-  Request = "Request"
+  Request = 'Request',
+  Customers = 'Customers',
+  Orders = 'Orders',
 }

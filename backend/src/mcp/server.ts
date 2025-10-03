@@ -36,16 +36,6 @@ createOrder(server);
 getBranchInfo(server);
 
 const main = async () => {
-  const argv = process.argv.slice(2); // ["--orgId=abc123", "--debug"]
-
-  const args = Object.fromEntries(
-    argv.map((arg) => {
-      const [key, value] = arg.replace(/^--/, '').split('=');
-      return [key, value ?? true];
-    })
-  );
-
-  console.error('orgId --------------', args.orgId);
   try {
     const transport = new StdioServerTransport();
     await server.connect(transport);

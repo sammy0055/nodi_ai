@@ -58,10 +58,13 @@ export class MCPClient extends UsageBase {
     );
   }
 
-  protected async handleToolCall(conversationId: string, toolCall: any): Promise<void> {
+  protected async handleToolCall(conversationId: string, organizationId: string, toolCall: any): Promise<void> {
     let args;
     try {
       args = JSON.parse(toolCall.arguments);
+      if (!args.organizationId) {
+        args.organizationId = organizationId;
+      }
     } catch {
       await this.openai.conversations.items.create(conversationId, {
         items: [
@@ -121,7 +124,7 @@ export class MCPClient extends UsageBase {
     });
   }
 
-  protected async query(label: string, systemPrompt: string) {
+  protected async query(label: string, organizationId: string, systemPrompt: string) {
     // init a new conversation
     const conversation = await this.openai.conversations.create({
       items: [{ role: 'system', content: systemPrompt }],
@@ -156,7 +159,7 @@ export class MCPClient extends UsageBase {
       }
 
       for (const toolCall of toolCalls) {
-        await this.handleToolCall(conversation.id, toolCall);
+        await this.handleToolCall(conversation.id, organizationId, toolCall);
       }
 
       iteration++;
@@ -165,8 +168,8 @@ export class MCPClient extends UsageBase {
     return finalResponse;
   }
 
-  async process(query: string, systemPrompt: string) {
-    const res = await this.query(query, systemPrompt);
+  async process(query: string, organizationId: string, systemPrompt: string) {
+    const res = await this.query(query, organizationId, systemPrompt);
     // this.increaseCredits();
     return res;
   }

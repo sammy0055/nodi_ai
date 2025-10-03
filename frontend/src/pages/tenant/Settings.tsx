@@ -19,6 +19,9 @@ import type { BaseRequestAttributes } from '../../types/request';
 
 const SettingsPage: React.FC = () => {
   const orgData = useOrgValue();
+  console.log('=============orgData=======================');
+  console.log(orgData);
+  console.log('====================================');
   const setOrgData = useOrgSetRecoilState();
   const whatsappData = useWhatsappValue();
   const setWhatsappData = useWhatsappSetRecoilState();
