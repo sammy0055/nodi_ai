@@ -1,12 +1,10 @@
 import { z } from 'zod';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp';
-import { BranchInventoryModel } from '../../../models/branch-inventory.model';
 import { Op } from 'sequelize';
-import { OrderModel } from '../../../models/order.module';
-import { IArea } from '../../../types/area';
 import { ManageVectorStore } from '../../../helpers/vector-store';
-import { BranchesModel } from '../../../models/branches.model';
+import { models } from '../../../models';
 
+const {BranchesModel, OrderModel, BranchInventoryModel} = models
 // Create order with inventory check
 export const createOrder = (server: McpServer) => {
   return server.registerTool(
@@ -122,11 +120,13 @@ export const getBranchInfo = (server: McpServer) => {
 
           return { content: [{ type: 'text', text: JSON.stringify(branches) }] };
         }
+        const branches = await BranchesModel.findAll({ where: { organizationId: params.organizationId } });
         return {
           content: [
             {
               type: 'text',
-              text: 'Kindly specific the area or branch you want to search for',
+              text: JSON.stringify(branches),
+              mimeType: 'application/json',
             },
           ],
         };

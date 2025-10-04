@@ -1,12 +1,12 @@
 import { z } from 'zod';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp';
 import { ManageVectorStore } from '../../../helpers/vector-store';
-import { AreaModel } from '../../../models/area.model';
 import { Op } from 'sequelize';
-import { BranchesModel } from '../../../models/branches.model';
-import { ZoneModel } from '../../../models/zones.model';
 import dayjs from 'dayjs';
 import { IArea } from '../../../types/area';
+import { models } from '../../../models';
+
+const { ZoneModel, BranchesModel, AreaModel } = models;
 // Get delivery options for area
 export const getDeliveryOptions = (server: McpServer) => {
   return server.registerTool(
@@ -29,14 +29,16 @@ export const getDeliveryOptions = (server: McpServer) => {
           branchId: params.branchId,
         });
 
-        if (!areas) {
+        if (areas.length === 0) {
           return { content: [{ type: 'text', text: 'no area found' }] };
         }
 
         const areaIds = areas.map((area: any) => area.id);
 
-        const areasDetails = AreaModel.findAll({
+        const areasDetails = await AreaModel.findAll({
           where: {
+            organizationId: params.organizationId,
+            ...(params.branchId && { branchId: params.branchId }),
             id: {
               [Op.in]: areaIds.filter(Boolean),
             },
@@ -81,7 +83,7 @@ export const calculateDelivery = (server: McpServer) => {
         organizationId: z.string(),
         area: z.string(),
         branchId: z.string(),
-        zone: z.string(),
+        // zone: z.string().optional(),
       },
     },
     async (params) => {

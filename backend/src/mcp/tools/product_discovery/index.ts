@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp';
 import { ManageVectorStore } from '../../../helpers/vector-store';
-import { BranchInventoryModel } from '../../../models/branch-inventory.model';
 import { Op } from 'sequelize';
-import { ProductModel } from '../../../models/products.model';
-import { BranchesModel } from '../../../models/branches.model';
+import { models } from '../../../models';
+
+const { BranchInventoryModel, ProductModel, BranchesModel } = models;
 
 // Search products across organization
 export const searchProducts = (server: McpServer) => {
@@ -25,6 +25,11 @@ export const searchProducts = (server: McpServer) => {
     async ({ query, organizationId, maxResults }) => {
       const vectorStore = new ManageVectorStore();
       try {
+        if (!query) {
+          const products = await ProductModel.findAll({ where: { organizationId }, limit: maxResults });
+          return { content: [{ type: 'text', text: JSON.stringify(products) }] };
+        }
+
         const products = await vectorStore.searchProducts({
           query: query,
           organizationId: organizationId,
@@ -88,9 +93,8 @@ export const getProductWithAvailability = (server: McpServer) => {
         const productsInBranches = await BranchInventoryModel.findAll({
           where: {
             organizationId: params.organizationId,
-            branchId: {
-              [Op.in]: branches.filter(Boolean), // removes undefined/null
-            },
+            productId: params.productId,
+            ...(branches.length !== 0 && { branchId: branches[0] }),
           } as any,
           include: [
             {
@@ -117,7 +121,7 @@ export const getProductWithAvailability = (server: McpServer) => {
           content: [
             {
               type: 'text',
-              text: 'Failed to get product details with real-time inventory availability across branches',
+              text: `Failed to get product details with real-time inventory availability across branches`,
             },
           ],
         };

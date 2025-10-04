@@ -183,8 +183,7 @@ export class MCPChatBot extends MCPClient {
   public async connectToServer() {
     this.transport = new StdioClientTransport({
       command: 'npx',
-      args: ['tsx', 'src/mcp/server.ts', '--orgId=123org'],
-      //   stderr: 'ignore',
+      args: ['tsx', 'src/mcp/server.ts'],
     });
 
     try {

@@ -17,4 +17,4 @@ const testMcp = async (query: string) => {
 };
 
 // testMcp('hello');
-// run();
+run();

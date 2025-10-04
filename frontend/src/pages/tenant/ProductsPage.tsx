@@ -335,15 +335,19 @@ const ProductsPage: React.FC = () => {
     });
     setShowProductModal(true);
   };
-
+console.log('================products====================');
+console.log(products);
+console.log('====================================');
   const handleSaveProduct = async () => {
     try {
       if (selectedProduct) {
+        
         // Update existing product
         const { data } = await updateProduct(editingProduct as Product);
         if (productOptions.length !== 0) {
+          const productOption = productOptions.filter(op => op.productId === selectedProduct.id)
           const optionChoices = productOptions.flatMap((item) => item.choices || []);
-          const { data } = await updateProductOption(productOptions as any);
+          const { data } = await updateProductOption(productOption as any);
           if (optionChoices.length !== 0) {
             const { data: choiceData } = await updateProductChoice(optionChoices as any);
             setProductOptions((prevState) => [...prevState, { ...data, choices: choiceData as any }]);

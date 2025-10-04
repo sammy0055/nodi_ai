@@ -86,8 +86,11 @@ AreaModel.init(
     timestamps: true,
     indexes: [
       {
-        unique: true,
-        fields: ['zoneId', 'branchId'],
+        // unique: true,
+        fields: ['zoneId'],
+      },
+      {
+        fields: ['branchId'],
       },
       {
         fields: ['organizationId'],

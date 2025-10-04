@@ -4,8 +4,9 @@ import { ManageVectorStore } from '../../../helpers/vector-store';
 import { IArea } from '../../../types/area';
 import { BranchesModel } from '../../../models/branches.model';
 import { Op } from 'sequelize';
-import { BranchInventoryModel } from '../../../models/branch-inventory.model';
-import { ProductModel } from '../../../models/products.model';
+import { models } from '../../../models';
+
+const { ProductModel, BranchInventoryModel } = models;
 
 // Find branches with product in customer's area
 export const findBranchesWithProduct = (server: McpServer) => {
@@ -26,41 +27,22 @@ export const findBranchesWithProduct = (server: McpServer) => {
       const vectorStore = new ManageVectorStore();
 
       try {
-        if (params.area) {
-          const areas: IArea[] = (await vectorStore.searchAreas({
-            query: params.area,
-            organizationId: params.organizationId,
-          })) as any;
-          if (areas && areas.length !== 0) {
-            const branches = areas.map((area) => area?.branchId);
-            const productInventory = await BranchInventoryModel.findAll({
-              where: {
-                organizationId: params.organizationId,
-                productId: params.productId,
-                branchId: {
-                  [Op.in]: branches.filter(Boolean), // removes undefined/null
-                },
-              },
-              include: [
-                { model: ProductModel, as: 'product' },
-                { model: BranchesModel, as: 'branch' },
-              ],
-            });
-
-            return {
-              content: [
-                {
-                  type: 'text',
-                  text: JSON.stringify(productInventory),
-                  mimeType: 'application/json',
-                },
-              ],
-            };
-          }
+        const areas: IArea[] = (await vectorStore.searchAreas({
+          query: params.area,
+          organizationId: params.organizationId,
+        })) as any;
+        if (areas && areas.length !== 0) {
+          return { content: [{ type: 'text', text: 'This product is not available in your area' }] };
         }
-
-        const productwithBranches = await BranchInventoryModel.findAll({
-          where: { productId: params.productId, organizationId: params.organizationId },
+        const branches = areas.map((area) => area?.branchId);
+        const productInventory = await BranchInventoryModel.findAll({
+          where: {
+            organizationId: params.organizationId,
+            productId: params.productId,
+            branchId: {
+              [Op.in]: branches.filter(Boolean), // removes undefined/null
+            },
+          },
           include: [
             { model: ProductModel, as: 'product' },
             { model: BranchesModel, as: 'branch' },
@@ -71,11 +53,29 @@ export const findBranchesWithProduct = (server: McpServer) => {
           content: [
             {
               type: 'text',
-              text: JSON.stringify(productwithBranches),
+              text: JSON.stringify(productInventory),
               mimeType: 'application/json',
             },
           ],
         };
+
+        // const productwithBranches = await BranchInventoryModel.findAll({
+        //   where: { productId: params.productId, organizationId: params.organizationId },
+        //   include: [
+        //     { model: ProductModel, as: 'product' },
+        //     { model: BranchesModel, as: 'branch' },
+        //   ],
+        // });
+
+        // return {
+        //   content: [
+        //     {
+        //       type: 'text',
+        //       text: JSON.stringify(productwithBranches),
+        //       mimeType: 'application/json',
+        //     },
+        //   ],
+        // };
       } catch (error: any) {
         return {
           content: [

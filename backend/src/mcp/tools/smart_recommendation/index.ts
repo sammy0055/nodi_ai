@@ -3,9 +3,9 @@ import { Op } from 'sequelize';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp';
 import { ManageVectorStore } from '../../../helpers/vector-store';
 import { IArea } from '../../../types/area';
-import { BranchInventoryModel } from '../../../models/branch-inventory.model';
-import { ProductModel } from '../../../models/products.model';
+import { models } from '../../../models';
 
+const { ProductModel, BranchesModel, BranchInventoryModel } = models;
 // Product recommendations with availability
 export const getRecommendations = (server: McpServer) => {
   return server.registerTool(
@@ -40,16 +40,25 @@ export const getRecommendations = (server: McpServer) => {
         const productIds = products.map((p: any) => p?.id);
         const availableProductsInBranch = await BranchInventoryModel.findAll({
           where: {
-            branchId: {
-              [Op.in]: branchIds.filter(Boolean),
-            },
-            productId: {
-              [Op.in]: productIds.filter(Boolean),
-            },
+            organizationId: params.organizationId,
+            ...(branchIds.length !== 0 && {
+              branchId: {
+                [Op.in]: branchIds.filter(Boolean),
+              },
+            }),
+            ...(productIds.length !== 0 && {
+              productId: {
+                [Op.in]: productIds.filter(Boolean),
+              },
+            }),
             quantityOnHand: {
               [Op.gt]: 0,
             },
           },
+          include: [
+            { model: ProductModel, as: 'product' },
+            { model: BranchesModel, as: 'branch' },
+          ],
           limit: params.maxResults,
         });
         return {
@@ -119,6 +128,10 @@ export const suggestAlternatives = (server: McpServer) => {
               [Op.gt]: 0,
             },
           },
+          include: [
+            { model: ProductModel, as: 'product' },
+            { model: BranchesModel, as: 'branch' },
+          ],
           limit: 10,
         });
         return {

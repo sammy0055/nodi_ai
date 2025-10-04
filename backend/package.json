@@ -14,7 +14,8 @@
     "mcp-client:dev": "tsx src/mcp/client.ts",
     "mcp-server:dev": "tsx watch src/mcp/server.ts",
     "mcp-server:start": "node dist/mcp/server.js",
-    "mcp-server:inspect": "set DANGEROUSLY_OMIT_AUTH=true && npx @modelcontextprotocol/inspector npx tsx src/mcp/server.ts"
+    "mcp-server:inspect": "set DANGEROUSLY_OMIT_AUTH=true && npx @modelcontextprotocol/inspector npx tsx src/mcp/server.ts",
+    "mcp-server-start:inspect": "set DANGEROUSLY_OMIT_AUTH=true && node @modelcontextprotocol/inspector node dist/mcp/server.js"
   },
   "devDependencies": {
     "@flydotio/dockerfile": "^0.7.10",

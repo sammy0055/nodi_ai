@@ -10,7 +10,7 @@ const populateProducts = async () => {
   for (const product of Products) {
     const p = await ProductModel.create({
       ...product,
-      organizationId: '834e202a-b622-40d1-a350-529bf084a4ed',
+      organizationId: '1fcb582c-562a-4e29-8518-6e50eb61f254',
       metaProductId: 'fadsfw',
     });
     const op = mockProductOptions.find((item) => item.productId === product.id);
