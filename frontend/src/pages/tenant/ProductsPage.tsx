@@ -335,9 +335,7 @@ const ProductsPage: React.FC = () => {
     });
     setShowProductModal(true);
   };
-console.log('================products====================');
-console.log(products);
-console.log('====================================');
+
   const handleSaveProduct = async () => {
     try {
       if (selectedProduct) {

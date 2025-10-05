@@ -16,7 +16,7 @@ export class ProductService {
     // if (!whatsappData?.catalogId) throw new Error("you don't have an active catalog, kindly create one");
     const { valid, errors } = validateFile(file);
     if (!valid) throw new Error(errors.join(', '));
-    // const manageImageFile = new ImageUploadHelper();
+    const manageImageFile = new ImageUploadHelper();
     const {id, ...restData} = product
     const createdProduct = await ProductModel.create({
       ...restData,
@@ -24,7 +24,7 @@ export class ProductService {
       metaProductId: 'ddedde',
     });
 
-    // const { imgUrl, path } = await manageImageFile.uploadImage(file);
+    const { imgUrl, path } = await manageImageFile.uploadImage(file);
     // const whatsappCatalogItem = await WhatsappCatalogHelper.createMetaCatalogItem(
     //   {
     //     itemId: createdProduct.id,
@@ -36,12 +36,12 @@ export class ProductService {
     //   whatsappData
     // );
 
-    // const [_, updatedRows] = await ProductModel.update(
-    //   { imageUrl: imgUrl, filePath: path },
-    //   { where: { id: createdProduct.id }, returning: true }
-    // );
-    // const updatedProduct = updatedRows[0].get({ plain: true }); // plain JS object
-    return createdProduct;
+    const [_, updatedRows] = await ProductModel.update(
+      { imageUrl: imgUrl, filePath: path },
+      { where: { id: createdProduct.id }, returning: true }
+    );
+    const updatedProduct = updatedRows[0].get({ plain: true }); // plain JS object
+    return updatedProduct;
   }
 
   static async updateProduct(product: IProduct, user: Pick<User, 'id' | 'organizationId'>, file: File) {
