@@ -24,4 +24,5 @@ Enterprise – $1,299/month
 Full features, AI enhancements, priority support
 
 things to fix ----------------------
-1. move system prompt to when conversation is created
+
+1. create association to retreive products with options in mcp server

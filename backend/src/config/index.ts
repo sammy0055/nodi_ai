@@ -26,6 +26,8 @@ export enum EnvList {
   SUPERBASE_PROJECT_URL = 'SUPERBASE_PROJECT_URL',
   SUPERBASE_STORAGE_BUCKET_NAME = 'SUPERBASE_STORAGE_BUCKET_NAME',
   OPENAI_API_KEY = 'OPENAI_API_KEY',
+  LOCAL_QDRANT = 'LOCAL_QDRANT',
+  PROD_QDRANT = 'PROD_QDRANT',
 }
 
 const env = getEnv(EnvList.NODE_ENV);
@@ -37,6 +39,7 @@ export const appConfig = {
   openaiKey: getEnv('OPENAI_API_KEY'),
   db: {
     url: env === 'dev' ? getEnv(EnvList.LOCAL_DATABASE_URL) : getEnv(EnvList.PROD_DATABASE_URL),
+    qdrant: env === 'dev' ? getEnv(EnvList.LOCAL_QDRANT) : getEnv(EnvList.PROD_QDRANT),
   },
   stripe: {
     publicKey: getEnv(EnvList.STRIPE_PUBLIC_KEY),
@@ -67,8 +70,8 @@ export const appConfig = {
   appUser: {
     authSecret: getEnv('APP_USER_AUTH_SECRET'),
   },
-  mcpKeys:{
+  mcpKeys: {
     openaiKey: getEnv('OPENAI_API_KEY'),
-    model: "gpt-4.1-2025-04-14"
-  }
+    model: 'gpt-4.1-2025-04-14',
+  },
 };

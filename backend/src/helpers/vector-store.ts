@@ -5,6 +5,7 @@ import { IArea } from '../types/area';
 import { ZoneModel } from '../models/zones.model';
 import { ProductModel } from '../models/products.model';
 import { AreaModel } from '../models/area.model';
+import { appConfig } from '../config';
 
 interface AreaSearchParams {
   organizationId: string;
@@ -25,7 +26,7 @@ export class ManageVectorStore {
 
   constructor() {
     this.qdrant = new QdrantClient({
-      url: 'http://localhost:6333', // Qdrant container endpoint
+      url: appConfig.db.qdrant, // Qdrant container endpoint
     });
   }
 
