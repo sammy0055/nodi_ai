@@ -21,6 +21,7 @@ import { branchInventoryRoute } from './routes/branch-inventory.route';
 import { subscriptionRouter } from './routes/subscription.route';
 import { stripeWebHookRoute } from './routes/stripe-webhook.route';
 import { ManageVectorStore } from './helpers/vector-store.js';
+import { ChatService } from './mcp/ChatService.js';
 
 const app = express();
 
@@ -50,6 +51,23 @@ app.use('/api/organization/subscription-plan', subscriptionRoute);
 app.use('/api/app-user/subscription-plan', appUserAuthSecretValidation, subscriptionRoute);
 app.use('/api/app-user', appUserAuthSecretValidation, adminUserRoute);
 app.use('/api/app-user/request', appUserAuthSecretValidation, requestRoute);
+
+// test
+app.post('/api/chat', async (req, res) => {
+  const whatsappBusinessId = req.body.whatsappBusinessId;
+  const userPhoneNumber = req.body.userPhoneNumber;
+  const userMessage = req.body.message;
+
+  try {
+    const chat = await ChatService.init(userPhoneNumber, whatsappBusinessId);
+    await chat.connectToServer();
+    const response = await chat.processQuery(userMessage);
+    return res.send(response);
+  } catch (error: any) {
+    console.log('chat-error', error);
+    return res.status(500).json({ error: error.message });
+  }
+});
 
 const vectorStore = new ManageVectorStore();
 const PORT = appConfig.port;

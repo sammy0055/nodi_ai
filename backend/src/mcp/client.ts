@@ -3,6 +3,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import OpenAI from 'openai';
 import { FunctionTool } from 'openai/resources/responses/responses';
 import { appConfig } from '../config';
+import { ChatHistoryManager } from '../services/ChatHistoryManager.service';
 
 interface MCP_RESPONSE {
   content: {
@@ -17,6 +18,7 @@ export class MCPClient extends UsageBase {
   public openai!: OpenAI;
   public transport: StdioClientTransport | null = null;
   protected tools: FunctionTool[] = [];
+  private chatHistory: ChatHistoryManager;
 
   llm_model = 'gpt-4.1-2025-04-14';
   maxIterations = 5;
@@ -28,6 +30,7 @@ export class MCPClient extends UsageBase {
       name: 'credobyite',
       version: '1.0.0',
     });
+    this.chatHistory = new ChatHistoryManager();
   }
 
   protected async connectToServer() {
@@ -62,9 +65,7 @@ export class MCPClient extends UsageBase {
     let args;
     try {
       args = JSON.parse(toolCall.arguments);
-      if (!args.organizationId) {
-        args.organizationId = organizationId;
-      }
+      args.organizationId = organizationId;
     } catch {
       await this.openai.conversations.items.create(conversationId, {
         items: [
@@ -75,6 +76,7 @@ export class MCPClient extends UsageBase {
           },
         ],
       });
+
       return;
     }
 
@@ -94,7 +96,6 @@ export class MCPClient extends UsageBase {
       );
       console.log('====================================');
     } catch (err: any) {
-      toolResult = { content: [{ text: `Error: ${err.message}` }] };
       await this.openai.conversations.items.create(conversationId, {
         items: [
           {
@@ -106,7 +107,6 @@ export class MCPClient extends UsageBase {
           },
         ],
       });
-
       return;
     }
 
@@ -124,18 +124,16 @@ export class MCPClient extends UsageBase {
     });
   }
 
-  protected async query(label: string, organizationId: string, systemPrompt: string) {
+  protected async query({ query, organizationId, conversationId }: ProcessQueryTypes) {
     // init a new conversation
-    const conversation = await this.openai.conversations.create({
-      items: [{ role: 'system', content: systemPrompt }],
-    });
+    let currentConversationId = conversationId;
 
+    await this.openai.conversations.items.create(conversationId, {
+      items: [{ role: 'user', content: query }],
+    });
+    await this.chatHistory.addMessage(conversationId, { role: 'user', content: query });
     let iteration = 0;
-    let finalResponse = null;
-
-    await this.openai.conversations.items.create(conversation.id, {
-      items: [{ role: 'user', content: label }],
-    });
+    let finalResponse = '';
 
     while (iteration < this.maxIterations) {
       const response = await this.openai.responses.create({
@@ -148,7 +146,7 @@ export class MCPClient extends UsageBase {
         ],
 
         tools: this.tools,
-        conversation: conversation.id, // OpenAI remembers everything
+        conversation: conversationId, // OpenAI remembers everything
       });
 
       const toolCalls = response.output.filter((item) => item.type === 'function_call');
@@ -159,17 +157,17 @@ export class MCPClient extends UsageBase {
       }
 
       for (const toolCall of toolCalls) {
-        await this.handleToolCall(conversation.id, organizationId, toolCall);
+        await this.handleToolCall(currentConversationId, organizationId, toolCall);
       }
 
       iteration++;
     }
-
+    await this.chatHistory.addMessage(conversationId, { role: 'assistant', content: finalResponse });
     return finalResponse;
   }
 
-  async process(query: string, organizationId: string, systemPrompt: string) {
-    const res = await this.query(query, organizationId, systemPrompt);
+  async process({ query, organizationId, conversationId }: ProcessQueryTypes) {
+    const res = await this.query({ query, organizationId, conversationId });
     // this.increaseCredits();
     return res;
   }
@@ -194,4 +192,10 @@ export class MCPChatBot extends MCPClient {
       throw error;
     }
   }
+}
+
+interface ProcessQueryTypes {
+  query: string;
+  organizationId: string;
+  conversationId: string;
 }

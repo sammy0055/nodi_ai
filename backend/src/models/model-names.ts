@@ -19,4 +19,6 @@ export enum ModelNames {
   Request = 'Request',
   Customers = 'Customers',
   Orders = 'Orders',
+  Conversations = "Conversations",
+  ChatMessage = "ChatMessage"
 }

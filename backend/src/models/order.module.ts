@@ -19,7 +19,6 @@ class OrderModel
   declare source: `${OrderSourceTypes}`;
   declare items: any[];
   declare subtotal: number;
-  declare shippingAmount: number;
   declare deliveryCharge: number;
   declare discountAmount?: number | undefined;
   declare totalAmount: number;
@@ -93,14 +92,6 @@ OrderModel.init(
       allowNull: false,
       get() {
         const rawValue = this.getDataValue('subtotal');
-        return rawValue === null ? null : parseFloat(rawValue as any);
-      },
-    },
-    shippingAmount: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-      get() {
-        const rawValue = this.getDataValue('shippingAmount');
         return rawValue === null ? null : parseFloat(rawValue as any);
       },
     },

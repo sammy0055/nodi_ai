@@ -19,6 +19,8 @@ import { RequestModel } from './request.module';
 import { AdminUserModel } from './admin-user.model';
 import { CustomerModel } from './customer.model';
 import { OrderModel } from './order.module';
+import { Conversation } from './conversation.model';
+import { ChatMessage } from './chat-messages.model';
 
 interface DbModels {
   OrganizationsModel: typeof OrganizationsModel;
@@ -41,6 +43,8 @@ interface DbModels {
   RequestModel: typeof RequestModel;
   CustomerModel: typeof CustomerModel;
   OrderModel: typeof OrderModel;
+  Conversation: typeof Conversation;
+  ChatMessage: typeof ChatMessage;
 }
 
 const models: DbModels = {
@@ -64,6 +68,8 @@ const models: DbModels = {
   RequestModel,
   CustomerModel,
   OrderModel,
+  Conversation,
+  ChatMessage,
 };
 
 Object.values(models).forEach((model: any) => {

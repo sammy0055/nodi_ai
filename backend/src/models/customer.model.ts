@@ -38,7 +38,7 @@ CustomerModel.init(
       onDelete: 'CASCADE',
       onUpdate: 'CASCADE',
     },
-    name: { type: DataTypes.STRING, allowNull: false },
+    name: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
     phone: { type: DataTypes.STRING, allowNull: false },
     source: {
       type: DataTypes.ENUM,

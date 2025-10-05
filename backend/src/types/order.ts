@@ -49,7 +49,6 @@ export interface IOrder {
   source: `${OrderSourceTypes}`;
   items: OrderItem[];
   subtotal: number;
-  shippingAmount: number;
   deliveryCharge: number; // New: delivery charge from area
   discountAmount?: number;
   totalAmount: number;

@@ -22,3 +22,6 @@ Enterprise – $1,299/month
 20,000 credits/month
 ~20M AI tokens or 20,000 WhatsApp conversations or 100,000 catalog calls
 Full features, AI enhancements, priority support
+
+things to fix ----------------------
+1. move system prompt to when conversation is created

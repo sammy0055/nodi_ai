@@ -5,7 +5,7 @@ const testMcp = async (query: string) => {
   try {
     const organizationId = '';
     await client.connectToServer();
-    const result = await client.process(query, organizationId, '');
+    const result = await client.process(query, organizationId, '', '');
     console.log('=========mcp-client-results=============');
     console.log(result);
     console.log('====================================');
@@ -16,5 +16,5 @@ const testMcp = async (query: string) => {
   }
 };
 
-// testMcp('hello');
-run();
+testMcp('hello');
+// run();

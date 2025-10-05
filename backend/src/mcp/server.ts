@@ -5,6 +5,7 @@ import { checkRealTimeAvailability, findBranchesWithProduct } from './tools/loca
 import { calculateDelivery, getDeliveryOptions } from './tools/delivery_and_service';
 import { getRecommendations, suggestAlternatives } from './tools/smart_recommendation';
 import { createOrder, getBranchInfo } from './tools/order_and_service';
+import { createCustomerProfile, getCustomerProfile } from './tools/customer';
 
 export const server = new McpServer({
   name: 'Credobyte-MCP-Server',
@@ -34,6 +35,10 @@ suggestAlternatives(server);
 // order and service
 createOrder(server);
 getBranchInfo(server);
+
+// customer
+getCustomerProfile(server);
+createCustomerProfile(server);
 
 const main = async () => {
   try {
