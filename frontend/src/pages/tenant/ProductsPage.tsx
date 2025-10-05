@@ -9,8 +9,8 @@ import {
   FiChevronLeft,
   FiChevronRight,
   FiPackage,
-  FiShoppingBag,
-  FiAlertCircle,
+  // FiShoppingBag,
+  // FiAlertCircle,
   FiX,
   FiImage,
   FiSave,
@@ -24,11 +24,11 @@ import {
   useProductOptionValue,
   useProductsSetRecoilState,
   useProductsValue,
-  useWhatsappValue,
+  // useWhatsappValue,
 } from '../../store/authAtoms';
 import { useDebounce } from 'use-debounce';
-import { useNavigate } from 'react-router';
-import { PageRoutes } from '../../routes';
+// import { useNavigate } from 'react-router';
+// import { PageRoutes } from '../../routes';
 // Define types based on your schema
 const ProductStatusTypes = {
   ACTIVE: 'active',
@@ -271,7 +271,7 @@ const ProductsPage: React.FC = () => {
   const setProducts = useProductsSetRecoilState();
   const productOptions = useProductOptionValue();
   const setProductOptions = useProductOptionSetRecoilState();
-  const whatsappData = useWhatsappValue();
+  // const whatsappData = useWhatsappValue();
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -295,10 +295,10 @@ const ProductsPage: React.FC = () => {
   // Pagination
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const currentProducts = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-  const navigate = useNavigate();
-  const handleCreateCatalog = () => {
-    navigate(`/app/${PageRoutes.SETTINGS}`);
-  };
+  // const navigate = useNavigate();
+  // const handleCreateCatalog = () => {
+  //   navigate(`/app/${PageRoutes.SETTINGS}`);
+  // };
 
   const handleDeleteProduct = async (productId: string) => {
     try {
@@ -444,23 +444,23 @@ const ProductsPage: React.FC = () => {
   };
 
   // WhatsApp Catalog Warning Component
-  const CatalogWarning = () => (
-    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-      <div className="flex items-center">
-        <FiAlertCircle className="text-yellow-600 mr-3 text-xl" />
-        <div className="flex-1">
-          <h3 className="text-yellow-800 font-medium">WhatsApp Catalog Required</h3>
-          <p className="text-yellow-700 text-sm mt-1">
-            You need to create a WhatsApp product catalog to manage products for WhatsApp Business.
-          </p>
-        </div>
-        <Button onClick={handleCreateCatalog}>
-          <FiShoppingBag className="mr-2" />
-          Create Catalog
-        </Button>
-      </div>
-    </div>
-  );
+  // const CatalogWarning = () => (
+  //   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+  //     <div className="flex items-center">
+  //       <FiAlertCircle className="text-yellow-600 mr-3 text-xl" />
+  //       <div className="flex-1">
+  //         <h3 className="text-yellow-800 font-medium">WhatsApp Catalog Required</h3>
+  //         <p className="text-yellow-700 text-sm mt-1">
+  //           You need to create a WhatsApp product catalog to manage products for WhatsApp Business.
+  //         </p>
+  //       </div>
+  //       <Button onClick={handleCreateCatalog}>
+  //         <FiShoppingBag className="mr-2" />
+  //         Create Catalog
+  //       </Button>
+  //     </div>
+  //   </div>
+  // );
 
   // Product Row Component
   const ProductRow: React.FC<{ product: Product }> = ({ product }) => {

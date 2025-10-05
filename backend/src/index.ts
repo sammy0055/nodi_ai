@@ -28,7 +28,7 @@ const app = express();
 // dedicated routes
 app.use('/api/stripe', express.raw({ type: 'application/json' }), stripeWebHookRoute);
 
-app.use(cors({ origin: ['http://localhost:5173', true], credentials: true }));
+app.use(cors({ origin: ['http://localhost:5173', 'https://labanon.naetechween.com', true], credentials: true }));
 app.use(cookieParser());
 app.use(express.json());
 
