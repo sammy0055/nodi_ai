@@ -2,14 +2,24 @@ import { ChatHistoryManager } from '../services/ChatHistoryManager.service';
 import { models } from '../models';
 import { MCPChatBot } from './client';
 import { createSystemPrompt } from './prompts';
+import { decrypt } from '../utils/crypto-utils';
 
 const { CustomerModel, WhatSappSettingsModel, OrganizationsModel } = models;
+
+interface SendWhatSappMessageProps {
+  WhatSappBusinessPhoneNumberId?: string;
+  recipientPhoneNumber: string;
+  access_token?: string;
+  message?: string;
+}
 
 export class ChatService extends MCPChatBot {
   protected organizationId: string = '';
   protected conversationId: string = '';
   protected userPhoneNumber: string;
   protected organizationWhatsappId: string;
+  protected whatsappAccessToken: string = '';
+  protected WhatSappBusinessPhoneNumberId: string = '';
   constructor(userPhoneNumber: string, organizationWhatsappId: string) {
     super();
     this.organizationWhatsappId = organizationWhatsappId;
@@ -28,11 +38,16 @@ export class ChatService extends MCPChatBot {
     }
 
     instance.organizationId = data.organizationId!;
+    instance.whatsappAccessToken = decrypt(data.accessToken!);
+    instance.WhatSappBusinessPhoneNumberId = data.whatsappPhoneNumberIds[0];
     return instance;
   }
 
   private async getOrganization() {
     const org = await OrganizationsModel.findByPk(this.organizationId);
+    if (!org) {
+      throw new Error('organization does not exist for this whatsapp business acount');
+    }
     const planOrg = org?.get({ plain: true });
     return planOrg;
   }
@@ -74,7 +89,7 @@ export class ChatService extends MCPChatBot {
       organizationData: planOrg!,
       customerData: customer,
       businessTone: 'formal',
-      assistantName: 'Alex',
+      assistantName: planOrg.AIAssistantName || 'Alex',
     });
 
     const conversation = await this.getAndCreateConversationIfNotExist(systemPrompt);
@@ -85,4 +100,59 @@ export class ChatService extends MCPChatBot {
     });
     return res;
   }
+
+  async sendWhatSappMessage({ recipientPhoneNumber, message }: SendWhatSappMessageProps) {
+    const url = `https://graph.facebook.com/v20.0/${this.WhatSappBusinessPhoneNumberId}/messages`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${this.whatsappAccessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messaging_product: 'whatsapp',
+        to: recipientPhoneNumber,
+        text: { body: message },
+      }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(`Error ${res.status}: ${errorData.error.message}`);
+    }
+    // const data = await res.json();
+    console.log('✅ Message sent successfully:');
+  }
 }
+
+// body: JSON.stringify({
+//       messaging_product: 'whatsapp',
+//       to: recipientPhoneNumber,
+//       type: 'template',
+//       template: {
+//         name: 'address_update',
+//         language: { code: 'en_US' },
+//         components: [
+//           {
+//             type: 'body',
+//             parameters: [
+//               {
+//                 type: 'text',
+//                 parameter_name: '1',
+//                 text: 'first man',
+//               },
+//               {
+//                 type: 'text',
+//                 parameter_name: '2',
+//                 text: 'we da here with you',
+//               },
+//               {
+//                 type: 'text',
+//                 parameter_name: '3',
+//                 text: 'da nice',
+//               },
+//             ],
+//           },
+//         ],
+//       },
+//     }),

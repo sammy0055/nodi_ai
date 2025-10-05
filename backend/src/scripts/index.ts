@@ -1,20 +1,32 @@
+import { ChatService } from '../mcp/ChatService';
 import { MCPChatBot } from '../mcp/client';
+import { IWhatSappSettings } from '../types/whatsapp-settings';
+import { decrypt } from '../utils/crypto-utils';
 import { run } from './migration';
+
+const ddd = {
+  whatsappBusinessId: '800165909091155',
+  whatsappPhoneNumberIds: ['836394619552231'],
+  accessToken:
+    '',
+  organizationId: '',
+};
 const testMcp = async (query: string) => {
-  const client = new MCPChatBot();
+  // const client = new MCPChatBot();
+  const chat = new ChatService('', '');
+  const accessToken = decrypt(ddd.accessToken)
   try {
-    const organizationId = '';
-    await client.connectToServer();
-    const result = await client.process(query, organizationId, '', '');
-    console.log('=========mcp-client-results=============');
-    console.log(result);
-    console.log('====================================');
+    await chat.sendWhatSappMessage({
+      access_token: accessToken,
+      WhatSappBusinessPhoneNumberId: ddd.whatsappPhoneNumberIds[0],
+      recipientPhoneNumber: '+2348171727284',
+    });
   } catch (error: any) {
-    console.log('===========mcp-client-error==========');
+    console.log('===========mcp-rrrr-error==========');
     console.log(error);
     console.log('====================================');
   }
 };
 
-testMcp('hello');
+// testMcp('hello');
 // run();
