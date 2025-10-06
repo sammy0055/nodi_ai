@@ -1,5 +1,5 @@
-const API_BASE_URL =
-  import.meta.env.VITE_ENV_PROD === 'PROD' ? import.meta.env.VITE_BACKEND_PROD_APP_URL : 'http://localhost:4000/api';
+const API_BASE_URL = import.meta.env.VITE_BACKEND_PROD_APP_URL;
+// import.meta.env.VITE_ENV_PROD === 'PROD' ? import.meta.env.VITE_BACKEND_PROD_APP_URL : 'http://localhost:4000/api';
 // import.meta.env.VITE_BACKEND_PROD_APP_URL
 export const APP_USER_API_ROUTES = {
   ADMIN_GET_REQUESTS: `${API_BASE_URL}/app-user/request/get-requests`,
@@ -54,7 +54,7 @@ export const API_ROUTES = {
   SUBSCRIBE_TO_PLAN: `${API_BASE_URL}/organization/subscription/create-checkout-session`,
   UPGRADE_SUBSCRIPTION_PLAN: `${API_BASE_URL}/organization/subscription/upgrade-subscription`,
   GET_ORDERS: `${API_BASE_URL}/organization/order/get-all`,
-  UPDATE_ORDER_STATUS: `${API_BASE_URL}/organization/order/update-order-status`
+  UPDATE_ORDER_STATUS: `${API_BASE_URL}/organization/order/update-order-status`,
 } as const;
 
 export type ApiRouteName = keyof typeof API_ROUTES;

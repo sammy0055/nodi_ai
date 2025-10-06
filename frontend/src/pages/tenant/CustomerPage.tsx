@@ -17,7 +17,6 @@ import {
   FiArrowLeft,
 } from 'react-icons/fi';
 import Button from '../../components/atoms/Button/Button';
-import Input from '../../components/atoms/Input/Input';
 import { useDebounce } from 'use-debounce';
 
 // Types based on your schema
@@ -183,7 +182,7 @@ const mockCustomers: Customer[] = [
 ];
 
 const CustomersPage: React.FC = () => {
-  const [customers, setCustomers] = useState<Customer[]>(mockCustomers);
+  const [customers] = useState<Customer[]>(mockCustomers);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>(mockCustomers);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
