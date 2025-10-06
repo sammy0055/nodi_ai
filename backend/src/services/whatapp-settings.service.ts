@@ -62,7 +62,7 @@ export class WhatSappSettingsService {
     //   accessToken: data.access_token,
     //   whatsappPhoneNumberId,
     // });
-    console.log(`✅------------registeredNumber successful:${registeredNumber}`);
+    // console.log(`✅------------registeredNumber successful:${registeredNumber}`);
     if (!user.organizationId) throw new Error('you need to have an organization first');
     const payload = {
       organizationId: user.organizationId,
