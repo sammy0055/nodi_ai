@@ -57,11 +57,11 @@ export class WhatSappSettingsService {
       whatsappPhoneNumberId,
     });
     console.log(`✅------------SubscribedToWebhook successful:${isSubscribedToWebhook}`);
-    const registeredNumber = await this.registerPhoneNumber({
-      whatsappBusinessId: whatsappBusinessId,
-      accessToken: data.access_token,
-      whatsappPhoneNumberId,
-    });
+    // const registeredNumber = await this.registerPhoneNumber({
+    //   whatsappBusinessId: whatsappBusinessId,
+    //   accessToken: data.access_token,
+    //   whatsappPhoneNumberId,
+    // });
     console.log(`✅------------registeredNumber successful:${registeredNumber}`);
     if (!user.organizationId) throw new Error('you need to have an organization first');
     const payload = {
