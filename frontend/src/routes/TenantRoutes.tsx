@@ -8,6 +8,8 @@ import BranchPage from '../pages/tenant/BranchPage';
 import BranchInventoryPage from '../pages/tenant/BranchInventoryPage';
 import AreasZonesPage from '../pages/tenant/AreasZonesPage';
 import BillingPage from '../pages/tenant/BillingPage';
+import OrdersPage from '../pages/tenant/OrderPage';
+import CustomersPage from '../pages/tenant/CustomerPage';
 
 export default function TenantRoutes() {
   const data = useLoaderData();
@@ -16,12 +18,12 @@ export default function TenantRoutes() {
       <TenantLayout>
         <Routes>
           <Route path="/" element={<Navigate to={PageRoutes.APP_DASHBOARD} />} />
-          <Route path={PageRoutes.APP_DASHBOARD} element={<div>dashboard page here</div>} />
-          <Route path={PageRoutes.ORDERS} element={<div>ORDERS page here</div>} />
+          {/* <Route path={PageRoutes.APP_DASHBOARD} element={<div>dashboard page here</div>} /> */}
+          <Route path={PageRoutes.ORDERS} element={<OrdersPage />} />
           <Route path={PageRoutes.PRODUCTS} element={<ProductsPage />} />
           <Route path={PageRoutes.INVENTORY} element={<BranchInventoryPage />} />
-          <Route path={PageRoutes.CUSTOMERS} element={<div>CUSTOMERS page here</div>} />
-          <Route path={PageRoutes.BILLING} element={<BillingPage/>} />
+          <Route path={PageRoutes.CUSTOMERS} element={<CustomersPage/>} />
+          <Route path={PageRoutes.BILLING} element={<BillingPage />} />
           <Route path={PageRoutes.BRANCHS} element={<BranchPage />} />
           <Route path={PageRoutes.AreasZones} element={<AreasZonesPage />} />
           <Route path={PageRoutes.SETTINGS} element={<SettingsPage />} />

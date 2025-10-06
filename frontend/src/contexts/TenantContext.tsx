@@ -15,6 +15,7 @@ import {
   useSubscriptionSetRecoilState,
   useCreditUsageSetRecoilState,
   useCreditBalanceSetRecoilState,
+  useOrdersSetRecoilState,
 } from '../store/authAtoms';
 import { useNavigate } from 'react-router';
 import { PageRoutes } from '../routes';
@@ -32,6 +33,8 @@ import type {
   ISubscriptionPlan,
   UsageRecordAttributes,
 } from '../types/subscription';
+import { OrderService } from '../services/orderService';
+import type { IOrder } from '../pages/tenant/OrderPage';
 
 export async function contextLoader() {
   try {
@@ -41,6 +44,7 @@ export async function contextLoader() {
     const { getBranches, getZones, getAreas } = new BranchService();
     const { getInventories } = new BranchInventoryService();
     const { getSubscriptionPlans, getSubscription, getCrediteBalance, getCreditUsage } = new SubscriptionService();
+    const { getOrders } = new OrderService();
     const [
       userResult,
       orgResult,
@@ -54,6 +58,7 @@ export async function contextLoader() {
       subscriptionResults,
       creditUsageResults,
       creditBalanceResults,
+      orderResults,
     ] = await Promise.allSettled([
       fetchCurrentUser(),
       getOrganization(),
@@ -67,6 +72,7 @@ export async function contextLoader() {
       getSubscription(),
       getCreditUsage(),
       getCrediteBalance(),
+      getOrders(),
     ]);
 
     const user = userResult.status === 'fulfilled' ? userResult.value : null;
@@ -81,6 +87,7 @@ export async function contextLoader() {
     const subscription = subscriptionResults.status === 'fulfilled' ? subscriptionResults.value : null;
     const creditUsage = creditUsageResults.status === 'fulfilled' ? creditUsageResults.value : null;
     const creditBalance = creditBalanceResults.status === 'fulfilled' ? creditBalanceResults.value : null;
+    const orders = orderResults.status === 'fulfilled' ? orderResults.value : null;
 
     return {
       user: user?.data,
@@ -95,6 +102,7 @@ export async function contextLoader() {
       subscription: subscription?.data,
       creditUsage: creditUsage?.data,
       creditBalance: creditBalance?.data,
+      orders: orders?.data.data,
     };
   } catch (error: any) {
     console.error('error in Tenant contextLoader:', error.message);
@@ -118,6 +126,7 @@ export const RootLoaderWrapper = ({
     subscription: ISubscription;
     creditUsage: UsageRecordAttributes[];
     creditBalance: CreditBalanceAttributes;
+    orders: IOrder[];
   };
   children: React.ReactNode;
 }) => {
@@ -134,6 +143,7 @@ export const RootLoaderWrapper = ({
   const setSubscription = useSubscriptionSetRecoilState();
   const setCreditUsage = useCreditUsageSetRecoilState();
   const setCreditBalance = useCreditBalanceSetRecoilState();
+  const setOrders = useOrdersSetRecoilState();
   const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -178,6 +188,9 @@ export const RootLoaderWrapper = ({
     }
     if (data.creditBalance) {
       setCreditBalance(data.creditBalance);
+    }
+    if (data.orders) {
+      setOrders(data.orders);
     }
     // 🔑 Handle redirects once, based on missing data
     if (!data.user) {

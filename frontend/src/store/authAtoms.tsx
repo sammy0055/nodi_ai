@@ -6,7 +6,13 @@ import type { IOrganization } from '../types/organization';
 import type { IWhatSappSettings } from '../types/whatsapp';
 import type { Product, ProductOption } from '../types/product';
 import type { IArea, IBranch, IBranchInventory, IZone } from '../types/branch';
-import type { CreditBalanceAttributes, ISubscription, ISubscriptionPlan, UsageRecordAttributes } from '../types/subscription';
+import type {
+  CreditBalanceAttributes,
+  ISubscription,
+  ISubscriptionPlan,
+  UsageRecordAttributes,
+} from '../types/subscription';
+import type { IOrder } from '../pages/tenant/OrderPage';
 
 export const userAtom = atom<User | null>({
   key: uuid(),
@@ -79,6 +85,11 @@ export const creditBalanceAtom = atom<CreditBalanceAttributes | null>({
   default: null,
 });
 
+export const ordersAtom = atom<IOrder[] | []>({
+  key: uuid(),
+  default: [],
+});
+
 // Read values
 export const useUserValue = (): User | null => useRecoilValue(userAtom);
 export const useOrgValue = (): IOrganization => useRecoilValue(orgAtom);
@@ -93,6 +104,7 @@ export const useSubscriptionPlanValue = (): ISubscriptionPlan[] | [] => useRecoi
 export const useSubscriptionValue = (): ISubscription | null => useRecoilValue(subscriptionAtom);
 export const useCreditUsageValue = (): UsageRecordAttributes[] | [] => useRecoilValue(creditUsageAtom);
 export const useCreditBalanceValue = (): CreditBalanceAttributes | null => useRecoilValue(creditBalanceAtom);
+export const useOrdersValue = (): IOrder[] | [] => useRecoilValue(ordersAtom);
 
 // Set values
 export const useUserSetRecoilState = () => useSetRecoilState(userAtom);
@@ -108,3 +120,4 @@ export const useSubscriptionPlanSetRecoilState = () => useSetRecoilState(subscri
 export const useSubscriptionSetRecoilState = () => useSetRecoilState(subscriptionAtom);
 export const useCreditUsageSetRecoilState = () => useSetRecoilState(creditUsageAtom);
 export const useCreditBalanceSetRecoilState = () => useSetRecoilState(creditBalanceAtom);
+export const useOrdersSetRecoilState = () => useSetRecoilState(ordersAtom);

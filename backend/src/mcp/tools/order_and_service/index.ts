@@ -4,7 +4,7 @@ import { Op } from 'sequelize';
 import { ManageVectorStore } from '../../../helpers/vector-store';
 import { models } from '../../../models';
 
-const {BranchesModel, OrderModel, BranchInventoryModel} = models
+const { BranchesModel, OrderModel, BranchInventoryModel } = models;
 // Create order with inventory check
 export const createOrder = (server: McpServer) => {
   return server.registerTool(
@@ -13,9 +13,11 @@ export const createOrder = (server: McpServer) => {
       title: 'create_order',
       description: 'Create an order with inventory reservation',
       inputSchema: {
+        title: z.string().describe('title for the order'),
         organizationId: z.string(),
         customerId: z.string(),
         branchId: z.string(),
+        deliveryAreaId: z.string().describe('the id of the delivery area'),
         serviceType: z.enum(['delivery', 'takeaway']).optional(),
         items: z.array(
           z.object({
@@ -37,8 +39,7 @@ export const createOrder = (server: McpServer) => {
         subtotal: z.number(),
         deliveryCharge: z.number(),
         totalAmount: z.number(),
-        deliveryAreaId: z.string().optional(),
-        deliveryAreaName: z.string().optional(),
+        deliveryAreaName: z.string(),
       },
     },
     async (params) => {

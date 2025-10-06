@@ -1,4 +1,4 @@
-import { DataTypes, Model, InferAttributes, InferCreationAttributes, CreationOptional } from 'sequelize';
+import { DataTypes, Model, InferAttributes, InferCreationAttributes, CreationOptional, literal } from 'sequelize';
 import { sequelize } from './db';
 import { DbModels } from '.';
 import { ModelNames } from './model-names';
@@ -12,6 +12,7 @@ class OrderModel
   implements IOrder
 {
   declare id: CreationOptional<string>;
+  declare title?: string;
   declare organizationId: string;
   declare customerId: string;
   declare branchId: string;
@@ -28,6 +29,7 @@ class OrderModel
   declare deliveryZoneId?: string | undefined;
   declare deliveryZoneName?: string | undefined;
   declare deliveryTime?: Date | undefined;
+  declare searchVector?: any;
 
   static associate(models: DbModels) {
     this.belongsTo(models.OrganizationsModel, {
@@ -50,6 +52,7 @@ class OrderModel
 OrderModel.init(
   {
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, allowNull: false, primaryKey: true },
+    title: { type: DataTypes.STRING, allowNull: false, defaultValue:"" },
     organizationId: {
       type: DataTypes.UUID,
       allowNull: false,
@@ -126,8 +129,37 @@ OrderModel.init(
     deliveryZoneId: { type: DataTypes.STRING, allowNull: true },
     deliveryZoneName: { type: DataTypes.STRING, allowNull: true },
     deliveryTime: { type: DataTypes.DATE, allowNull: true },
+    searchVector: {
+      type: 'TSVECTOR',
+      allowNull: true,
+    },
   },
-  { sequelize, modelName: ModelNames.Orders, tableName: ModelNames.Orders, timestamps: true }
+  {
+    sequelize,
+    modelName: ModelNames.Orders,
+    tableName: ModelNames.Orders,
+    timestamps: true,
+    indexes: [
+      {
+        name: 'order_search_idx',
+        fields: ['searchVector'],
+        using: 'GIN',
+      },
+    ],
+    hooks: {
+      beforeSave: async (order: any) => {
+        const searchText = [
+          order.id,
+          order.branchId,
+          (order as any).customerId, // if you store name here
+        ]
+          .filter(Boolean)
+          .join(' ');
+        const escapedText = searchText.replace(/'/g, "''");
+        order.setDataValue('searchVector', literal(`to_tsvector('english', '${escapedText}')`));
+      },
+    },
+  }
 );
 
 export { OrderModel };

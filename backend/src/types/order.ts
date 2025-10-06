@@ -2,21 +2,13 @@ export enum OrderStatusTypes {
   PENDING = 'pending',
   CONFIRMED = 'confirmed',
   PROCESSING = 'processing',
-  PREPARING = 'preparing',
-  READY_FOR_PICKUP = 'ready_for_pickup',
   SHIPPED = 'shipped',
-  OUT_FOR_DELIVERY = 'out_for_delivery',
   DELIVERED = 'delivered',
   CANCELLED = 'cancelled',
-  REJECTED = 'rejected',
-  ON_HOLD = 'on_hold',
   RETURNED = 'returned',
   REFUNDED = 'refunded',
-  PARTIALLY_DELIVERED = 'partially_delivered',
-  AWAITING_PAYMENT = 'awaiting_payment',
-  PAYMENT_FAILED = 'payment_failed',
-  AWAITING_FULFILLMENT = 'awaiting_fulfillment',
 }
+
 export enum OrderSourceTypes {
   CHATBOT = 'chatbot',
   WEBSITE = 'website',

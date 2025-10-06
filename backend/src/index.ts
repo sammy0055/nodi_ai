@@ -22,6 +22,7 @@ import { subscriptionRouter } from './routes/subscription.route';
 import { stripeWebHookRoute } from './routes/stripe-webhook.route';
 import { ManageVectorStore } from './helpers/vector-store.js';
 import { chatRoute } from './mcp/chat-webhook.js';
+import { orderRoute } from './routes/order.route.js';
 
 const app = express();
 
@@ -48,6 +49,7 @@ app.use('/api/organization/product-option-choice', productOptionChoiceRoute);
 app.use('/api/organization/request', requestRoute);
 app.use('/api/organization/subscription', subscriptionRouter);
 app.use('/api/organization/subscription-plan', subscriptionRoute);
+app.use('/api/organization/order', orderRoute);
 
 // app-user routes
 app.use('/api/app-user/subscription-plan', appUserAuthSecretValidation, subscriptionRoute);
