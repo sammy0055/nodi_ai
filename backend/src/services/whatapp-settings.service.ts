@@ -101,23 +101,6 @@ export class WhatSappSettingsService {
   }
 
   static async registerPhoneNumber({ accessToken, whatsappPhoneNumberId }: RegisterPhoneNumberArg) {
-    // const url = `https://graph.facebook.com/v20.0/${whatsappBusinessId}/phone_numbers`;
-    // const res = await fetch(url, {
-    //   method: 'GET',
-    //   headers: {
-    //     Authorization: `Bearer ${accessToken}`,
-    //   },
-    // });
-
-    // if (!res.ok) {
-    //   const errorData = await res.json();
-    //   throw new Error(`Error ${res.status}: ${errorData.error.message}`);
-    // }
-
-    // const phoneNumbers = (await res.json()) as { data: WhatsAppBusinessAccountPhoneNumber[] };
-    // if (phoneNumbers.data.length === 0) throw new Error('No phone number was found in your WhatsApp account');
-    // const phoneNumber = phoneNumbers.data[0];
-
     const registrationUrl = `https://graph.facebook.com/v20.0/${whatsappPhoneNumberId}/register`;
     const resRegister = await fetch(registrationUrl, {
       method: 'POST',

@@ -22,6 +22,11 @@ class CustomerModel
       foreignKey: 'organizationId',
       as: 'organization',
     });
+
+    this.hasMany(models.Conversation, {
+      foreignKey:"customerId",
+      as:"conversations"
+    })
   }
 }
 
@@ -47,7 +52,28 @@ CustomerModel.init(
     },
     preferences: { type: DataTypes.JSONB, allowNull: true },
   },
-  { sequelize, modelName: ModelNames.Customers, tableName: ModelNames.Customers, timestamps: true }
+  {
+    sequelize,
+    modelName: ModelNames.Customers,
+    tableName: ModelNames.Customers,
+    timestamps: true,
+    indexes: [
+      {
+        name: 'customer_search_idx',
+        using: 'GIN',
+        fields: [
+          sequelize.literal(`
+            to_tsvector(
+              'english',
+              coalesce("id"::text, '') || ' ' ||
+              coalesce("name", '') || ' ' ||
+              coalesce("phone", '')
+            )
+          `),
+        ],
+      },
+    ],
+  }
 );
 
 export { CustomerModel };

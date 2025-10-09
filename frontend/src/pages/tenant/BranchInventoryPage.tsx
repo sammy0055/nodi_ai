@@ -26,6 +26,8 @@ import {
 import { BranchService } from '../../services/branchService';
 import type { IBranchInventory } from '../../types/branch';
 import { BranchInventoryService } from '../../services/branchInventory';
+import { CurrencySymbols } from './ProductsPage';
+import type { CurrencyCode } from '../../types/product';
 
 // Validation interface
 interface ValidationErrors {
@@ -41,7 +43,6 @@ const BranchInventoryPage: React.FC = () => {
   const products = useProductsValue();
   const branches = useBranchValue();
   const inventory = useBranchInventoryValue();
-
   const setInventory = useBranchInventorySetRecoilState();
   //   const [inventory, setInventory] = useState<IBranchInventory[]>(mockInventory);
   const [searchTerm, setSearchTerm] = useState('');
@@ -83,13 +84,14 @@ const BranchInventoryPage: React.FC = () => {
   const totalPages = Math.ceil(filteredInventory.length / itemsPerPage);
   const currentInventory = filteredInventory.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   const [filteredBranches, setFilteredBranches] = useState<any[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   // Filter branches and products for dropdowns
   const { searchBranch } = new BranchService();
   const [branchDebouncedTerm] = useDebounce(branchSearch, 500); // 500ms delay
+
   useEffect(() => {
     const fetchBranches = async () => {
       if (!branchDebouncedTerm) {
-        setFilteredBranches([]); // clear results when search is empty
         return;
       }
       const { data } = await searchBranch(branchSearch);
@@ -102,15 +104,14 @@ const BranchInventoryPage: React.FC = () => {
   const [productDebouncedTerm] = useDebounce(productSearch, 500); // 500ms delay
   const { searchProducts } = new ProductService();
 
-  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   useEffect(() => {
     setFilteredBranches(branches);
     setFilteredProducts(products);
   }, [products, branches]);
+
   useEffect(() => {
     const fetchProducts = async () => {
       if (!productDebouncedTerm) {
-        setFilteredProducts([]); // clear results when search is empty
         return;
       }
       const { data } = await searchProducts(productSearch);
@@ -353,10 +354,16 @@ const BranchInventoryPage: React.FC = () => {
       {/* Pricing - 3 columns */}
       <div className="md:col-span-3 hidden md:block">
         <div className="text-right space-y-1">
-          <p className="text-lg font-bold text-neutral-900">${item.sellingPrice.toFixed(2)}</p>
+          <p className="text-lg font-bold text-neutral-900">
+            {CurrencySymbols[item.product?.currency as CurrencyCode]}
+            {item.sellingPrice.toFixed(2)}
+          </p>
           {item.costPrice && item.costPrice > 0 && (
             <>
-              <p className="text-sm text-neutral-500">Cost: ${item.costPrice.toFixed(2)}</p>
+              <p className="text-sm text-neutral-500">
+                Cost: {CurrencySymbols[item.product?.currency as CurrencyCode]}
+                {item.costPrice.toFixed(2)}
+              </p>
               <p
                 className={`text-xs font-medium ${
                   item.sellingPrice - item.costPrice >= 0 ? 'text-green-600' : 'text-red-600'
@@ -705,8 +712,8 @@ const BranchInventoryPage: React.FC = () => {
                 <Input
                   label="Quantity On Hand"
                   type="number"
-                  value={newInventory.quantityOnHand || 0}
-                  onChange={(e) => handleFieldChange('quantityOnHand', parseInt(e.target.value) || 0)}
+                  value={newInventory.quantityOnHand}
+                  onChange={(e) => handleFieldChange('quantityOnHand', parseInt(e.target.value))}
                   error={validationErrors.quantityOnHand}
                   min="0"
                   max="100000"
@@ -715,19 +722,19 @@ const BranchInventoryPage: React.FC = () => {
                 <Input
                   label="Quantity Reserved"
                   type="number"
-                  value={newInventory.quantityReserved || 0}
-                  onChange={(e) => handleFieldChange('quantityReserved', parseInt(e.target.value) || 0)}
+                  value={newInventory.quantityReserved}
+                  onChange={(e) => handleFieldChange('quantityReserved', parseInt(e.target.value))}
                   error={validationErrors.quantityReserved}
                   min="0"
-                  max={newInventory.quantityOnHand || 0}
+                  max={newInventory.quantityOnHand}
                 />
 
                 <Input
                   label="Cost Price"
                   type="number"
                   step="0.01"
-                  value={newInventory.costPrice || 0}
-                  onChange={(e) => handleFieldChange('costPrice', parseFloat(e.target.value) || 0)}
+                  value={newInventory.costPrice}
+                  onChange={(e) => handleFieldChange('costPrice', parseFloat(e.target.value))}
                   error={validationErrors.costPrice}
                   min="0"
                   max="1000000"
@@ -738,8 +745,8 @@ const BranchInventoryPage: React.FC = () => {
                 label="Selling Price *"
                 type="number"
                 step="0.01"
-                value={newInventory.sellingPrice || 0}
-                onChange={(e) => handleFieldChange('sellingPrice', parseFloat(e.target.value) || 0)}
+                value={newInventory.sellingPrice}
+                onChange={(e) => handleFieldChange('sellingPrice', parseFloat(e.target.value))}
                 error={validationErrors.sellingPrice}
                 required
                 min="0"

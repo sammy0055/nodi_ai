@@ -18,34 +18,8 @@ import {
 } from 'react-icons/fi';
 import Button from '../../components/atoms/Button/Button';
 import { useDebounce } from 'use-debounce';
-
-// Types based on your schema
-interface Message {
-  id: string;
-  created_at: Date;
-  content: string | null;
-  role: 'user' | 'assistant' | 'system' | 'function';
-  conversation_id: string;
-}
-
-interface Conversation {
-  id: string;
-  title?: string;
-  messages: Message[];
-}
-
-interface Customer {
-  id: string;
-  organizationId: string;
-  name: string;
-  phone: string;
-  preferences?: Record<string, any> | undefined;
-  source: 'chatbot' | 'website' | 'mobile_app' | 'api';
-  conversations: Conversation[];
-  email?: string;
-  createdAt?: Date;
-  lastActive?: Date;
-}
+import type { Conversation, Customer, Message } from '../../types/customer';
+import { useCustomerValue } from '../../store/authAtoms';
 
 // Mock data (same as before)
 const mockCustomers: Customer[] = [
@@ -59,7 +33,7 @@ const mockCustomers: Customer[] = [
     preferences: {
       language: 'en',
       notifications: true,
-      theme: 'light'
+      theme: 'light',
     },
     createdAt: new Date('2024-01-15'),
     lastActive: new Date('2024-02-15'),
@@ -72,38 +46,40 @@ const mockCustomers: Customer[] = [
             id: 'MSG-001',
             conversation_id: 'CONV-001',
             role: 'user',
-            content: 'Hi, I\'m interested in the wireless headphones. Do you have them in stock?',
-            created_at: new Date('2024-02-15T10:30:00')
+            content: "Hi, I'm interested in the wireless headphones. Do you have them in stock?",
+            created_at: new Date('2024-02-15T10:30:00'),
           },
           {
             id: 'MSG-002',
             conversation_id: 'CONV-001',
             role: 'assistant',
-            content: 'Hello! Yes, we have the wireless headphones in stock. They are available in black, white, and blue colors.',
-            created_at: new Date('2024-02-15T10:31:00')
+            content:
+              'Hello! Yes, we have the wireless headphones in stock. They are available in black, white, and blue colors.',
+            created_at: new Date('2024-02-15T10:31:00'),
           },
           {
             id: 'MSG-003',
             conversation_id: 'CONV-001',
             role: 'user',
             content: 'Great! What about the battery life?',
-            created_at: new Date('2024-02-15T10:32:00')
+            created_at: new Date('2024-02-15T10:32:00'),
           },
           {
             id: 'MSG-004',
             conversation_id: 'CONV-001',
             role: 'assistant',
-            content: 'The battery lasts up to 30 hours on a single charge. It also supports fast charging - 15 minutes of charging gives you 5 hours of playback.',
-            created_at: new Date('2024-02-15T10:33:00')
+            content:
+              'The battery lasts up to 30 hours on a single charge. It also supports fast charging - 15 minutes of charging gives you 5 hours of playback.',
+            created_at: new Date('2024-02-15T10:33:00'),
           },
           {
             id: 'MSG-005',
             conversation_id: 'CONV-001',
             role: 'user',
-            content: 'Perfect! I\'ll take the black ones.',
-            created_at: new Date('2024-02-15T10:35:00')
-          }
-        ]
+            content: "Perfect! I'll take the black ones.",
+            created_at: new Date('2024-02-15T10:35:00'),
+          },
+        ],
       },
       {
         id: 'CONV-002',
@@ -114,18 +90,19 @@ const mockCustomers: Customer[] = [
             conversation_id: 'CONV-002',
             role: 'user',
             content: 'I need help with my order #ORD-001. When will it be delivered?',
-            created_at: new Date('2024-02-16T14:20:00')
+            created_at: new Date('2024-02-16T14:20:00'),
           },
           {
             id: 'MSG-007',
             conversation_id: 'CONV-002',
             role: 'assistant',
-            content: 'I can see your order is scheduled for delivery tomorrow between 2-4 PM. You can track it using this link: [tracking-link]',
-            created_at: new Date('2024-02-16T14:21:00')
-          }
-        ]
-      }
-    ]
+            content:
+              'I can see your order is scheduled for delivery tomorrow between 2-4 PM. You can track it using this link: [tracking-link]',
+            created_at: new Date('2024-02-16T14:21:00'),
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'CUST-002',
@@ -137,7 +114,7 @@ const mockCustomers: Customer[] = [
     preferences: {
       language: 'en',
       notifications: false,
-      currency: 'USD'
+      currency: 'USD',
     },
     createdAt: new Date('2024-01-20'),
     lastActive: new Date('2024-02-14'),
@@ -151,38 +128,40 @@ const mockCustomers: Customer[] = [
             conversation_id: 'CONV-003',
             role: 'user',
             content: 'I want to return the smart watch I purchased last week.',
-            created_at: new Date('2024-02-14T09:15:00')
+            created_at: new Date('2024-02-14T09:15:00'),
           },
           {
             id: 'MSG-009',
             conversation_id: 'CONV-003',
             role: 'assistant',
-            content: 'I\'m sorry to hear that. Could you let me know the reason for the return?',
-            created_at: new Date('2024-02-14T09:16:00')
+            content: "I'm sorry to hear that. Could you let me know the reason for the return?",
+            created_at: new Date('2024-02-14T09:16:00'),
           },
           {
             id: 'MSG-010',
             conversation_id: 'CONV-003',
             role: 'user',
-            content: 'The battery doesn\'t last as long as advertised.',
-            created_at: new Date('2024-02-14T09:17:00')
+            content: "The battery doesn't last as long as advertised.",
+            created_at: new Date('2024-02-14T09:17:00'),
           },
           {
             id: 'MSG-011',
             conversation_id: 'CONV-003',
             role: 'assistant',
-            content: 'I understand. I\'ve initiated the return process for you. You\'ll receive an email with the return label and instructions.',
-            created_at: new Date('2024-02-14T09:18:00')
-          }
-        ]
-      }
-    ]
+            content:
+              "I understand. I've initiated the return process for you. You'll receive an email with the return label and instructions.",
+            created_at: new Date('2024-02-14T09:18:00'),
+          },
+        ],
+      },
+    ],
   },
   // ... (other mock customers remain the same)
 ];
 
 const CustomersPage: React.FC = () => {
-  const [customers] = useState<Customer[]>(mockCustomers);
+  const customers = useCustomerValue();
+  // const [customers] = useState<Customer[]>(mockCustomers);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>(mockCustomers);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -199,11 +178,12 @@ const CustomersPage: React.FC = () => {
     if (!debouncedSearchTerm) {
       setFilteredCustomers(customers);
     } else {
-      const filtered = customers.filter(customer =>
-        customer.id.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-        customer.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-        customer.phone.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-        customer.email?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+      const filtered = customers.filter(
+        (customer) =>
+          customer.id.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+          customer.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+          customer.phone.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+          customer.email?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
       );
       setFilteredCustomers(filtered);
     }
@@ -282,26 +262,26 @@ const CustomersPage: React.FC = () => {
       <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
         <div className={`flex max-w-[85%] ${isUser ? 'flex-row-reverse' : 'flex-row'} items-start space-x-3`}>
           {/* Avatar */}
-          <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-            isUser ? 'bg-primary-500' : 'bg-neutral-300'
-          }`}>
-            {isUser ? (
-              <FiUser className="text-white text-sm" />
-            ) : (
-              <FiMessageSquare className="text-white text-sm" />
-            )}
+          <div
+            className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+              isUser ? 'bg-primary-500' : 'bg-neutral-300'
+            }`}
+          >
+            {isUser ? <FiUser className="text-white text-sm" /> : <FiMessageSquare className="text-white text-sm" />}
           </div>
-          
+
           {/* Message Content */}
           <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
-            <div className={`rounded-2xl px-4 py-3 ${
-              isUser 
-                ? 'bg-primary-500 text-white rounded-br-md' 
-                : 'bg-white text-neutral-800 border border-neutral-200 rounded-bl-md shadow-sm'
-            }`}>
+            <div
+              className={`rounded-2xl px-4 py-3 ${
+                isUser
+                  ? 'bg-primary-100 text-primary-900 rounded-br-md border border-primary-200'
+                  : 'bg-white text-neutral-800 border border-neutral-200 rounded-bl-md shadow-sm'
+              }`}
+            >
               <p className="text-sm leading-relaxed">{message.content}</p>
             </div>
-            
+
             {/* Timestamp */}
             <div className="flex items-center mt-1 text-xs text-neutral-500">
               <FiClock className="mr-1" size={10} />
@@ -315,7 +295,7 @@ const CustomersPage: React.FC = () => {
 
   // Compact Customer Card Component
   const CustomerCard: React.FC<{ customer: Customer }> = ({ customer }) => (
-    <div 
+    <div
       className={`p-4 border border-neutral-200 rounded-lg hover:border-primary-300 hover:shadow-sm transition-all cursor-pointer ${
         selectedCustomer?.id === customer.id ? 'border-primary-500 bg-primary-50 shadow-sm' : 'bg-white'
       }`}
@@ -326,18 +306,18 @@ const CustomersPage: React.FC = () => {
         <div className="flex-shrink-0 w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
           <FiUser className="text-primary-600 text-lg" />
         </div>
-        
+
         {/* Customer Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
-            <h3 className="font-semibold text-neutral-900 truncate text-sm">
-              {customer.name}
-            </h3>
-            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${getSourceColor(customer.source)}`}>
+            <h3 className="font-semibold text-neutral-900 truncate text-sm">{customer.name}</h3>
+            <span
+              className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${getSourceColor(customer.source)}`}
+            >
               {getSourceIcon(customer.source)}
             </span>
           </div>
-          
+
           <div className="space-y-1 text-xs text-neutral-600">
             <div className="flex items-center">
               <FiPhone className="mr-2" size={12} />
@@ -350,16 +330,14 @@ const CustomersPage: React.FC = () => {
               </div>
             )}
           </div>
-          
+
           {/* Stats */}
           <div className="flex items-center justify-between mt-3 text-xs text-neutral-500">
             <div className="flex items-center">
               <FiMessageCircle className="mr-1" size={12} />
               <span>{customer.conversations.length} conv</span>
             </div>
-            <div>
-              {customer.lastActive ? formatDate(customer.lastActive) : 'Never'}
-            </div>
+            <div>{customer.lastActive ? formatDate(customer.lastActive) : 'Never'}</div>
           </div>
         </div>
       </div>
@@ -368,15 +346,16 @@ const CustomersPage: React.FC = () => {
 
   // Pagination
   const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
-  const currentCustomers = filteredCustomers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const currentCustomers = filteredCustomers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="flex flex-col lg:flex-row h-full bg-white">
       {/* Customer List - Always visible on desktop, conditional on mobile */}
-      <div className={`${isMobileDetailView ? 'hidden' : 'flex'} lg:flex flex-col w-full lg:w-80 xl:w-96 border-r border-neutral-200`}>
+      <div
+        className={`${
+          isMobileDetailView ? 'hidden' : 'flex'
+        } lg:flex flex-col w-full lg:w-80 xl:w-96 border-r border-neutral-200`}
+      >
         {/* Header */}
         <div className="p-4 border-b border-neutral-200">
           <div className="flex flex-col space-y-3">
@@ -415,9 +394,7 @@ const CustomersPage: React.FC = () => {
                 )}
               </div>
             ) : (
-              currentCustomers.map((customer) => (
-                <CustomerCard key={customer.id} customer={customer} />
-              ))
+              currentCustomers.map((customer) => <CustomerCard key={customer.id} customer={customer} />)
             )}
           </div>
         </div>
@@ -496,7 +473,10 @@ const CustomersPage: React.FC = () => {
                 >
                   {getSourceIcon(selectedCustomer.source)}
                   <span className="ml-1 hidden sm:inline">
-                    {selectedCustomer.source.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                    {selectedCustomer.source
+                      .split('_')
+                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                      .join(' ')}
                   </span>
                 </span>
               </div>
@@ -582,7 +562,8 @@ const CustomersPage: React.FC = () => {
                             </span>
                           </div>
                           <p className="text-sm text-primary-700 mt-1">
-                            {selectedCustomer.conversations.reduce((total, conv) => total + conv.messages.length, 0)} total messages
+                            {selectedCustomer.conversations.reduce((total, conv) => total + conv.messages.length, 0)}{' '}
+                            total messages
                           </p>
                         </div>
 
@@ -603,9 +584,7 @@ const CustomersPage: React.FC = () => {
                                 </span>
                               </div>
                               {conversation.messages[0] && (
-                                <p className="text-xs text-neutral-600 truncate">
-                                  {conversation.messages[0].content}
-                                </p>
+                                <p className="text-xs text-neutral-600 truncate">{conversation.messages[0].content}</p>
                               )}
                             </div>
                           ))}
@@ -644,14 +623,14 @@ const CustomersPage: React.FC = () => {
                           }`}
                         >
                           <div className="flex items-center space-x-2">
-                            <span className="truncate max-w-32">
-                              {conversation.title || 'Untitled'}
-                            </span>
-                            <span className={`px-1.5 py-0.5 rounded text-xs ${
-                              selectedConversation?.id === conversation.id
-                                ? 'bg-white text-primary-600'
-                                : 'bg-neutral-100 text-neutral-600'
-                            }`}>
+                            <span className="truncate max-w-32">{conversation.title || 'Untitled'}</span>
+                            <span
+                              className={`px-1.5 py-0.5 rounded text-xs ${
+                                selectedConversation?.id === conversation.id
+                                  ? 'bg-white text-primary-600'
+                                  : 'bg-neutral-100 text-neutral-600'
+                              }`}
+                            >
                               {conversation.messages.length}
                             </span>
                           </div>
@@ -671,7 +650,8 @@ const CustomersPage: React.FC = () => {
                               {selectedConversation.title || 'Untitled Conversation'}
                             </h3>
                             <p className="text-xs text-neutral-500 mt-1">
-                              {selectedConversation.messages.length} messages • {formatDate(selectedConversation.messages[0]?.created_at || new Date())}
+                              {selectedConversation.messages.length} messages •{' '}
+                              {formatDate(selectedConversation.messages[0]?.created_at || new Date())}
                             </p>
                           </div>
                         </div>

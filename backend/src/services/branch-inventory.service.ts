@@ -9,7 +9,10 @@ import { User } from '../types/users';
 export class BranchInventoryService {
   static async createInventory(data: IBranchInventory, user: Pick<User, 'id' | 'organizationId'>) {
     if (!user.organizationId) throw new Error('organization ID is required');
-    return await BranchInventoryModel.create({ ...data, organizationId: user.organizationId });
+    return await BranchInventoryModel.create(
+      { ...data, organizationId: user.organizationId },
+      { include: [{ model: ProductModel, as: 'product', attributes: ['id', 'name', 'currency'] }] }
+    );
   }
 
   static async updateInventory(data: IBranchInventory, user: Pick<User, 'id' | 'organizationId'>) {
@@ -56,7 +59,7 @@ export class BranchInventoryService {
         {
           model: ProductModel,
           as: 'product',
-          attributes: ['id', 'name'],
+          attributes: ['id', 'name', 'currency'],
         },
         {
           model: BranchesModel,

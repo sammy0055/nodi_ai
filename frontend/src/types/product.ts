@@ -30,3 +30,35 @@ export interface ProductOption {
   maxSelection?: number;
   choices?: ProductOptionChoice[];
 }
+
+
+export const CurrencyCode = {
+  USD: 'USD',
+  EUR: 'EUR',
+  GBP: 'GBP',
+  JPY: 'JPY',
+  CNY: 'CNY',
+  CAD: 'CAD',
+  AUD: 'AUD',
+  CHF: 'CHF',
+  INR: 'INR',
+  NGN: 'NGN',
+  ZAR: 'ZAR',
+  KES: 'KES',
+  GHS: 'GHS',
+  SAR: 'SAR',
+  AED: 'AED',
+  EGP: 'EGP',
+  TRY: 'TRY',
+  SGD: 'SGD',
+  HKD: 'HKD',
+  BRL: 'BRL',
+  MXN: 'MXN',
+  RUB: 'RUB',
+  KRW: 'KRW',
+  IDR: 'IDR',
+  MYR: 'MYR',
+  LBP: 'LBP',
+} as const;
+
+export type CurrencyCode = typeof CurrencyCode[keyof typeof CurrencyCode];

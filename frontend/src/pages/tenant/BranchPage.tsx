@@ -54,13 +54,13 @@ const BranchesPage: React.FC = () => {
   const [takeAwayTimeUnit, setTakeAwayTimeUnit] = useState<'minutes' | 'hours' | 'days'>('minutes');
   const { createBranch, updateBranch, deleteBranch, searchBranch } = new BranchService();
   // Helper functions to convert between Date and time units
-  const getTimeValue = (date: Date | string | number | undefined, unit: 'minutes' | 'hours' | 'days'): number => {
-    if (!date) return 0;
+  const getTimeValue = (date: Date | string | number | undefined, unit: 'minutes' | 'hours' | 'days'): number | null => {
+    if (!date) return null;
 
     // normalize to Date
     const d = date instanceof Date ? date : new Date(date); // handles string or number
 
-    if (isNaN(d.getTime())) return 0; // invalid date fallback
+    if (isNaN(d.getTime())) return null; // invalid date fallback
 
     const totalMinutes = Math.floor(d.getTime() / (1000 * 60));
 
@@ -743,9 +743,9 @@ const BranchesPage: React.FC = () => {
                             <Input
                               label=""
                               type="number"
-                              value={getTimeValue(newBranch.deliveryTime, deliveryTimeUnit)}
+                              value={getTimeValue(newBranch.deliveryTime, deliveryTimeUnit) || ""}
                               onChange={(e) => {
-                                const value = parseInt(e.target.value) || 0;
+                                const value = parseInt(e.target.value);
                                 const newTime = setTimeValue(value, deliveryTimeUnit);
                                 handleFieldChange('deliveryTime', newTime);
                               }}
@@ -778,9 +778,9 @@ const BranchesPage: React.FC = () => {
                             <Input
                               label=""
                               type="number"
-                              value={getTimeValue(newBranch.takeAwayTime, takeAwayTimeUnit)}
+                              value={getTimeValue(newBranch.takeAwayTime, takeAwayTimeUnit) || ""}
                               onChange={(e) => {
-                                const value = parseInt(e.target.value) || 0;
+                                const value = parseInt(e.target.value);
                                 const newTime = setTimeValue(value, takeAwayTimeUnit);
                                 handleFieldChange('takeAwayTime', newTime);
                               }}

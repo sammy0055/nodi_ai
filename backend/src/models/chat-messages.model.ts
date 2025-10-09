@@ -2,6 +2,7 @@
 import { DataTypes, Model, Optional, UUIDV4 } from 'sequelize';
 import { sequelize } from './db';
 import { ModelNames } from './model-names';
+import { DbModels } from '.';
 
 interface ChatMessageAttributes {
   id: string;
@@ -34,6 +35,13 @@ class ChatMessage extends Model<ChatMessageAttributes, ChatMessageCreationAttrib
   public is_compressed!: boolean;
   public compressed_from?: string[];
   public created_at!: Date;
+
+  static associate(models: DbModels) {
+    this.belongsTo(models.Conversation, {
+      foreignKey: 'conversation_id',
+      as: 'conversations',
+    });
+  }
 }
 
 ChatMessage.init(

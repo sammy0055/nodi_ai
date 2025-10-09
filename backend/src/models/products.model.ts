@@ -2,7 +2,7 @@ import { DataTypes, Model, InferAttributes, InferCreationAttributes, CreationOpt
 import { sequelize } from './db';
 import { DbModels } from '.';
 import { ProductStatusTypes } from '../data/data-types';
-import { IProduct } from '../types/product';
+import { CurrencyCode, IProduct } from '../types/product';
 import { ModelNames } from './model-names';
 import { ManageVectorStore } from '../helpers/vector-store';
 
@@ -19,7 +19,7 @@ class ProductModel
   declare name: string;
   declare price: number;
   declare description: string;
-  declare currency: CreationOptional<string>;
+  declare currency: CreationOptional<`${CurrencyCode}`>;
   declare imageUrl: CreationOptional<string>;
   declare metaProductId: string;
   declare status: CreationOptional<`${ProductStatusTypes}`>;
@@ -62,10 +62,10 @@ ProductModel.init(
       },
     },
     description: { type: DataTypes.STRING, allowNull: false },
-    currency: { type: DataTypes.STRING, allowNull: false, defaultValue: 'USD' },
+    currency: { type: DataTypes.ENUM, values: [...Object.values(CurrencyCode)], allowNull: false, defaultValue: 'USD' },
     imageUrl: { type: DataTypes.STRING, allowNull: true, defaultValue: '' },
     filePath: { type: DataTypes.STRING, allowNull: true, defaultValue: '', comment: 'path to superbase storage' },
-    metaProductId: { type: DataTypes.STRING, allowNull: false },
+    metaProductId: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
     status: {
       type: DataTypes.ENUM,
       values: [...Object.values(ProductStatusTypes)],

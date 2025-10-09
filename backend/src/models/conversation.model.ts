@@ -3,6 +3,7 @@ import { DataTypes, Model, Optional, UUIDV4 } from 'sequelize';
 import { sequelize } from './db';
 // import { DbModels } from '.';
 import { ModelNames } from './model-names';
+import { DbModels } from '.';
 
 interface ConversationAttributes {
   id: string;
@@ -28,6 +29,23 @@ class Conversation
   public is_active!: boolean;
   public created_at!: Date;
   public updated_at!: Date;
+
+    static associate(models: DbModels) {
+    this.belongsTo(models.OrganizationsModel, {
+      foreignKey: 'organizationId',
+      as: 'organization',
+    });
+
+     this.belongsTo(models.CustomerModel, {
+      foreignKey: 'customerId',
+      as: 'customers',
+    });
+
+      this.hasMany(models.ChatMessage, {
+      foreignKey:"conversation_id",
+      as:"messages"
+    })
+  }
 }
 
 Conversation.init(

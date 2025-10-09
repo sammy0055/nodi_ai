@@ -17,7 +17,7 @@ import {
 } from 'react-icons/fi';
 import Input from '../../components/atoms/Input/Input';
 import Button from '../../components/atoms/Button/Button';
-import type { Product, ProductOptionChoice, ProductOption } from '../../types/product';
+import { type Product, type ProductOptionChoice, type ProductOption, CurrencyCode } from '../../types/product';
 import { ProductService } from '../../services/productService';
 import {
   useProductOptionSetRecoilState,
@@ -32,13 +32,42 @@ import { useDebounce } from 'use-debounce';
 // Define types based on your schema
 const ProductStatusTypes = {
   ACTIVE: 'active',
+  INACTIVE: 'inactive',
   DRAFT: 'draft',
-  ARCHIVED: 'archived',
 };
 
 const ProductOptionType = {
   SINGLE: 'single',
   MULTIPLE: 'multiple',
+};
+
+export const CurrencySymbols: Record<CurrencyCode, string> = {
+  [CurrencyCode.USD]: '$',
+  [CurrencyCode.EUR]: '€',
+  [CurrencyCode.GBP]: '£',
+  [CurrencyCode.JPY]: '¥',
+  [CurrencyCode.CNY]: '¥',
+  [CurrencyCode.CAD]: '$',
+  [CurrencyCode.AUD]: '$',
+  [CurrencyCode.CHF]: 'CHF',
+  [CurrencyCode.INR]: '₹',
+  [CurrencyCode.NGN]: '₦',
+  [CurrencyCode.ZAR]: 'R',
+  [CurrencyCode.KES]: 'KSh',
+  [CurrencyCode.GHS]: '₵',
+  [CurrencyCode.SAR]: 'ر.س',
+  [CurrencyCode.AED]: 'د.إ',
+  [CurrencyCode.EGP]: '£',
+  [CurrencyCode.TRY]: '₺',
+  [CurrencyCode.SGD]: '$',
+  [CurrencyCode.HKD]: '$',
+  [CurrencyCode.BRL]: 'R$',
+  [CurrencyCode.MXN]: '$',
+  [CurrencyCode.RUB]: '₽',
+  [CurrencyCode.KRW]: '₩',
+  [CurrencyCode.IDR]: 'Rp',
+  [CurrencyCode.MYR]: 'RM',
+  [CurrencyCode.LBP]: 'ل.ل',
 };
 
 const ProductOptionsManager: React.FC<{
@@ -59,7 +88,7 @@ const ProductOptionsManager: React.FC<{
 
     const { data } = await addProductOption(newOption);
     const choices = {
-      id: `choice-${Date.now()}-1`,
+      id: ``,
       productOptionId: data.id,
       label: 'Choice 1',
       priceAdjustment: 0,
@@ -91,7 +120,7 @@ const ProductOptionsManager: React.FC<{
   const addChoice = async (optionId: string) => {
     try {
       const choices = {
-        id: `choice-${Date.now()}-1`,
+        id: ``,
         productOptionId: optionId,
         label: 'New Choice',
         priceAdjustment: 0,
@@ -222,7 +251,7 @@ const ProductOptionsManager: React.FC<{
                     type="number"
                     value={choice.priceAdjustment}
                     onChange={(e: any) =>
-                      updateChoice(option.id, choice.id, { priceAdjustment: parseFloat(e.target.value) || 0 })
+                      updateChoice(option.id, choice.id, { priceAdjustment: parseFloat(e.target.value) })
                     }
                     className="w-32"
                     // size="sm"
@@ -339,11 +368,10 @@ const ProductsPage: React.FC = () => {
   const handleSaveProduct = async () => {
     try {
       if (selectedProduct) {
-        
         // Update existing product
         const { data } = await updateProduct(editingProduct as Product);
         if (productOptions.length !== 0) {
-          const productOption = productOptions.filter(op => op.productId === selectedProduct.id)
+          const productOption = productOptions.filter((op) => op.productId === selectedProduct.id);
           const optionChoices = productOptions.flatMap((item) => item.choices || []);
           const { data } = await updateProductOption(productOption as any);
           if (optionChoices.length !== 0) {
@@ -395,48 +423,48 @@ const ProductsPage: React.FC = () => {
     }
   };
 
-  const handleImportFile = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Simulate file processing
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        // Parse CSV and create products (simplified)
-        const content = e.target?.result as string;
-        const lines = content.split('\n');
-        const importedProducts: Product[] = [];
+  // const handleImportFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = event.target.files?.[0];
+  //   if (file) {
+  //     // Simulate file processing
+  //     const reader = new FileReader();
+  //     reader.onload = (e) => {
+  //       // Parse CSV and create products (simplified)
+  //       const content = e.target?.result as string;
+  //       const lines = content.split('\n');
+  //       const importedProducts: Product[] = [];
 
-        lines.slice(1).forEach((line, index) => {
-          if (line.trim()) {
-            const [name, sku, price, description] = line.split(',');
-            importedProducts.push({
-              id: `imported-${Date.now()}-${index}`,
-              organizationId: 'org-001',
-              sku: sku || `IMPORT-${index}`,
-              status: 'draft',
-              name: name || `Imported Product ${index}`,
-              price: parseFloat(price) || 0,
-              description: description || '',
-              currency: 'USD',
-              metaProductId: `meta-imported-${Date.now()}-${index}`,
-            });
-          }
-        });
+  //       lines.slice(1).forEach((line, index) => {
+  //         if (line.trim()) {
+  //           const [name, sku, price, description] = line.split(',');
+  //           importedProducts.push({
+  //             id: `imported-${Date.now()}-${index}`,
+  //             organizationId: 'org-001',
+  //             sku: sku || `IMPORT-${index}`,
+  //             status: 'draft',
+  //             name: name || `Imported Product ${index}`,
+  //             price: parseFloat(price) || 0,
+  //             description: description || '',
+  //             currency: 'USD',
+  //             metaProductId: `meta-imported-${Date.now()}-${index}`,
+  //           });
+  //         }
+  //       });
 
-        setProducts([...products, ...importedProducts]);
-        setShowImportModal(false);
-      };
-      reader.readAsText(file);
-    }
-  };
+  //       setProducts([...products, ...importedProducts]);
+  //       setShowImportModal(false);
+  //     };
+  //     reader.readAsText(file);
+  //   }
+  // };
 
   const getStatusColor = (status: any) => {
     switch (status) {
       case ProductStatusTypes.ACTIVE:
         return 'bg-green-100 text-green-800';
-      case ProductStatusTypes.DRAFT:
+      case ProductStatusTypes.INACTIVE:
         return 'bg-yellow-100 text-yellow-800';
-      case ProductStatusTypes.ARCHIVED:
+      case ProductStatusTypes.DRAFT:
         return 'bg-neutral-100 text-neutral-800';
       default:
         return 'bg-neutral-100 text-neutral-800';
@@ -487,7 +515,8 @@ const ProductsPage: React.FC = () => {
         {/* Price */}
         <div className="md:col-span-2">
           <span className="font-medium text-neutral-900">
-            ${product.price.toFixed(2)}
+            {CurrencySymbols[product.currency as CurrencyCode]}
+            {product.price.toFixed(2)}
           </span>
         </div>
 
@@ -723,8 +752,8 @@ const ProductsPage: React.FC = () => {
                 <Input
                   label="Price"
                   type="number"
-                  value={editingProduct.price || 0}
-                  onChange={(e) => setEditingProduct({ ...editingProduct, price: parseFloat(e.target.value) || 0 })}
+                  value={editingProduct.price}
+                  onChange={(e) => setEditingProduct({ ...editingProduct, price: parseFloat(e.target.value) })}
                   required
                 />
 
@@ -737,7 +766,22 @@ const ProductsPage: React.FC = () => {
                   >
                     {/* <option value={ProductStatusTypes.DRAFT}>Draft</option> */}
                     <option value={ProductStatusTypes.ACTIVE}>Active</option>
-                    <option value={ProductStatusTypes.ARCHIVED}>Archived</option>
+                     <option value={ProductStatusTypes.INACTIVE}>Inactive</option>
+                    <option value={ProductStatusTypes.DRAFT}>Draft</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-neutral-700">Currency</label>
+                  <select
+                    className="border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    value={editingProduct.currency}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, currency: e.target.value })}
+                  >
+                    {/* <option value={ProductStatusTypes.DRAFT}>Draft</option> */}
+                    {Object.values(CurrencyCode).map((currency) => (
+                      <option value={currency}>{currency}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -784,7 +828,7 @@ const ProductsPage: React.FC = () => {
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
+            {/* <div className="p-6 space-y-4">
               <p className="text-neutral-600">
                 Upload a CSV file with your product data. Expected columns: Name, SKU, Price, Description
               </p>
@@ -812,7 +856,7 @@ const ProductsPage: React.FC = () => {
                   {`Name,SKU,Price,Description\nWireless Headphones,SKU-001,79.99,High-quality headphones\nSmart Watch,SKU-002,199.99,Feature-rich smartwatch`}
                 </pre>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       )}

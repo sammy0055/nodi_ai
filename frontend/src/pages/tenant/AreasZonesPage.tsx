@@ -551,7 +551,7 @@ const AreasZonesPage: React.FC = () => {
                 </div>
                 <div className="md:col-span-2 hidden md:block text-right">
                   <p className="font-medium text-neutral-900">{formatTime(area.deliveryTime)}</p>
-                  <p className="text-sm text-neutral-500">${area.deliveryCharge.toFixed(2)} charge</p>
+                  <p className="text-sm text-neutral-500">{area.deliveryCharge.toFixed(2)} charge</p>
                 </div>
                 <div className="md:col-span-2 flex justify-end space-x-2">
                   <Button variant="outline" size="sm" onClick={() => handleEditArea(area)}>
