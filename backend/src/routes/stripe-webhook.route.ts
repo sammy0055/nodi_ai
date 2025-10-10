@@ -120,4 +120,5 @@ stripeWebHookRoute.post('/webhook', async (req, res) => {
     console.error(error.message);
     // send alert to app-admin
   }
+    res.sendStatus(200);
 });

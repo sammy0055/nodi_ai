@@ -32,6 +32,7 @@ Put this in: -----
 labanon.naetechween.com {
     reverse_proxy localhost:4000
 }
+to open file: cat /etc/caddy/Caddyfile
 
 Step 3: Restart Caddy---------------------------------
 sudo systemctl restart caddy

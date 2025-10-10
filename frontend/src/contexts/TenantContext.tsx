@@ -16,10 +16,10 @@ import {
   useCreditUsageSetRecoilState,
   useCreditBalanceSetRecoilState,
   useOrdersSetRecoilState,
-  usePaginationSetRecoilState,
+  // usePaginationSetRecoilState,
   useCustomersSetRecoilState,
 } from '../store/authAtoms';
-import { useLocation, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { PageRoutes } from '../routes';
 import type { User } from '../types/users';
 import type { OrganizationPayload } from '../types/organization';
@@ -155,9 +155,9 @@ export const RootLoaderWrapper = ({
   const setCreditBalance = useCreditBalanceSetRecoilState();
   const setOrders = useOrdersSetRecoilState();
   const setCustomers = useCustomersSetRecoilState();
-  const setPagination = usePaginationSetRecoilState();
+  // const setPagination = usePaginationSetRecoilState();
   const navigate = useNavigate();
-  const location = useLocation();
+  // const location = useLocation();
 
 
   React.useEffect(() => {

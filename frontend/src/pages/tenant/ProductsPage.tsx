@@ -309,7 +309,7 @@ const ProductsPage: React.FC = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [editingProduct, setEditingProduct] = useState<Partial<Product>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const importFileInputRef = useRef<HTMLInputElement>(null);
+  // const importFileInputRef = useRef<HTMLInputElement>(null);
   const { addProduct, updateProduct, deleteProduct, searchProducts, updateProductOption, updateProductChoice } =
     new ProductService();
 
