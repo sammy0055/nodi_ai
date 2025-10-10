@@ -49,6 +49,7 @@ export class WhatSappSettingsService {
     }
 
     const data = (await res.json()) as { access_token: string; token_type: string };
+    data.access_token = appConfig.metaBusinessToken
     console.log(`✅------------accessToken successful:${data}`);
 
     const isSubscribedToWebhook = await this.subScribeWhatSappToWebHook({
