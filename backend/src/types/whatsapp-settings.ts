@@ -24,7 +24,7 @@ export interface WhatSappAuthPayload {
 export interface RegisterPhoneNumberArg {
   accessToken: string;
   whatsappBusinessId: string;
-  whatsappPhoneNumberId:string
+  whatsappPhoneNumberId: string;
 }
 
 export interface WhatsAppBusinessAccountPhoneNumber {
@@ -32,4 +32,20 @@ export interface WhatsAppBusinessAccountPhoneNumber {
   display_phone_number: string;
   id: string;
   quality_rating: 'GREEN' | 'YELLOW' | 'RED' | string;
+}
+
+export interface WhatsAppPhoneNumberInfo {
+  verified_name: string;
+  code_verification_status: 'VERIFIED' | 'UNVERIFIED' | 'PENDING' | string;
+  display_phone_number: string;
+  quality_rating: 'GREEN' | 'YELLOW' | 'RED' | 'UNKNOWN' | string;
+  platform_type: 'CLOUD_API' | 'ON_PREMISE' | string;
+  throughput: {
+    level: 'STANDARD' | 'NOT_APPLICABLE' | string;
+  };
+  last_onboarded_time: string; // ISO date string
+  webhook_configuration?: {
+    application: string;
+  };
+  id: string;
 }
