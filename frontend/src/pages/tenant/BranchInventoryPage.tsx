@@ -26,8 +26,7 @@ import {
 import { BranchService } from '../../services/branchService';
 import type { IBranchInventory } from '../../types/branch';
 import { BranchInventoryService } from '../../services/branchInventory';
-import { CurrencySymbols } from './ProductsPage';
-import type { CurrencyCode } from '../../types/product';
+import { CurrencySymbols, type CurrencyCode } from '../../types/product';
 
 // Validation interface
 interface ValidationErrors {

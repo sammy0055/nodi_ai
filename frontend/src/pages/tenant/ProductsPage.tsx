@@ -17,7 +17,7 @@ import {
 } from 'react-icons/fi';
 import Input from '../../components/atoms/Input/Input';
 import Button from '../../components/atoms/Button/Button';
-import { type Product, type ProductOptionChoice, type ProductOption, CurrencyCode } from '../../types/product';
+import { type Product, type ProductOptionChoice, type ProductOption, CurrencyCode, CurrencySymbols } from '../../types/product';
 import { ProductService } from '../../services/productService';
 import {
   useProductOptionSetRecoilState,
@@ -41,34 +41,7 @@ const ProductOptionType = {
   MULTIPLE: 'multiple',
 };
 
-export const CurrencySymbols: Record<CurrencyCode, string> = {
-  [CurrencyCode.USD]: '$',
-  [CurrencyCode.EUR]: '€',
-  [CurrencyCode.GBP]: '£',
-  [CurrencyCode.JPY]: '¥',
-  [CurrencyCode.CNY]: '¥',
-  [CurrencyCode.CAD]: '$',
-  [CurrencyCode.AUD]: '$',
-  [CurrencyCode.CHF]: 'CHF',
-  [CurrencyCode.INR]: '₹',
-  [CurrencyCode.NGN]: '₦',
-  [CurrencyCode.ZAR]: 'R',
-  [CurrencyCode.KES]: 'KSh',
-  [CurrencyCode.GHS]: '₵',
-  [CurrencyCode.SAR]: 'ر.س',
-  [CurrencyCode.AED]: 'د.إ',
-  [CurrencyCode.EGP]: '£',
-  [CurrencyCode.TRY]: '₺',
-  [CurrencyCode.SGD]: '$',
-  [CurrencyCode.HKD]: '$',
-  [CurrencyCode.BRL]: 'R$',
-  [CurrencyCode.MXN]: '$',
-  [CurrencyCode.RUB]: '₽',
-  [CurrencyCode.KRW]: '₩',
-  [CurrencyCode.IDR]: 'Rp',
-  [CurrencyCode.MYR]: 'RM',
-  [CurrencyCode.LBP]: 'ل.ل',
-};
+
 
 const ProductOptionsManager: React.FC<{
   productId: string;

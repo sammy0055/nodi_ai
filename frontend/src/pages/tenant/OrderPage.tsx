@@ -70,6 +70,7 @@ export interface OrderItem {
   product: {
     name: string;
     price: number;
+    currency: string;
   };
 }
 
@@ -90,6 +91,7 @@ export interface IOrder {
   deliveryAreaId: string; // to be checked
   deliveryAreaName?: string;
   deliveryTime?: Date;
+  shippingAddress: string;
   createdAt: Date;
   updatedAt: Date;
   branch: {

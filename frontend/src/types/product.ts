@@ -62,3 +62,31 @@ export const CurrencyCode = {
 } as const;
 
 export type CurrencyCode = typeof CurrencyCode[keyof typeof CurrencyCode];
+export const CurrencySymbols: Record<CurrencyCode, string> = {
+  [CurrencyCode.USD]: '$',
+  [CurrencyCode.EUR]: '€',
+  [CurrencyCode.GBP]: '£',
+  [CurrencyCode.JPY]: '¥',
+  [CurrencyCode.CNY]: '¥',
+  [CurrencyCode.CAD]: '$',
+  [CurrencyCode.AUD]: '$',
+  [CurrencyCode.CHF]: 'CHF',
+  [CurrencyCode.INR]: '₹',
+  [CurrencyCode.NGN]: '₦',
+  [CurrencyCode.ZAR]: 'R',
+  [CurrencyCode.KES]: 'KSh',
+  [CurrencyCode.GHS]: '₵',
+  [CurrencyCode.SAR]: 'ر.س',
+  [CurrencyCode.AED]: 'د.إ',
+  [CurrencyCode.EGP]: '£',
+  [CurrencyCode.TRY]: '₺',
+  [CurrencyCode.SGD]: '$',
+  [CurrencyCode.HKD]: '$',
+  [CurrencyCode.BRL]: 'R$',
+  [CurrencyCode.MXN]: '$',
+  [CurrencyCode.RUB]: '₽',
+  [CurrencyCode.KRW]: '₩',
+  [CurrencyCode.IDR]: 'Rp',
+  [CurrencyCode.MYR]: 'RM',
+  [CurrencyCode.LBP]: 'ل.ل',
+};
