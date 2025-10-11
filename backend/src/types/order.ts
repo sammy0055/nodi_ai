@@ -50,4 +50,5 @@ export interface IOrder {
   deliveryZoneId?: string;
   deliveryZoneName?: string;
   deliveryTime?: Date;
+  shippingAddress: string;
 }

@@ -3,9 +3,11 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp';
 import { Op } from 'sequelize';
 import { ManageVectorStore } from '../../../helpers/vector-store';
 import { models } from '../../../models';
+import { CurrencyCode } from '../../../types/product';
 
 const { BranchesModel, OrderModel, BranchInventoryModel } = models;
 // Create order with inventory check
+const currencyCodes = Object.values(CurrencyCode);
 export const createOrder = (server: McpServer) => {
   return server.registerTool(
     'create_order',
@@ -17,8 +19,9 @@ export const createOrder = (server: McpServer) => {
         organizationId: z.string(),
         customerId: z.string(),
         branchId: z.string(),
+        currency: z.enum(currencyCodes as any),
         deliveryAreaId: z.string().describe('the id of the delivery area'),
-        serviceType: z.enum(['delivery', 'takeaway']).optional(),
+        serviceType: z.enum(['delivery', 'takeaway']),
         items: z.array(
           z.object({
             productId: z.string(),
@@ -40,6 +43,7 @@ export const createOrder = (server: McpServer) => {
         deliveryCharge: z.number(),
         totalAmount: z.number(),
         deliveryAreaName: z.string(),
+        shippingAddress: z.string().describe('Full delivery address where the order should be shipped.').optional(),
       },
     },
     async (params) => {

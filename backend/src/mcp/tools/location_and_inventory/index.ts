@@ -3,7 +3,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp';
 import { ManageVectorStore } from '../../../helpers/vector-store';
 import { IArea } from '../../../types/area';
 import { BranchesModel } from '../../../models/branches.model';
-import { Op } from 'sequelize';
+import { literal, Op } from 'sequelize';
 import { models } from '../../../models';
 
 const { ProductModel, BranchInventoryModel } = models;
@@ -125,6 +125,43 @@ export const checkRealTimeAvailability = (server: McpServer) => {
       } catch (error: any) {
         return {
           content: [{ type: 'text', text: 'Failed to find products available at specific branch with quantity' }],
+        };
+      }
+    }
+  );
+};
+
+export const updateInventory = (server: McpServer) => {
+  return server.registerTool(
+    'adjust_branch_stock',
+    {
+      title: 'Adjust Branch Stock',
+      description: 'Update a branch’s inventory by deducting quantities of ordered products.',
+      inputSchema: {
+        organizationId: z.string(),
+        branchId: z.string(),
+        products: z.array(
+          z.object({
+            productId: z.string(),
+            quantity: z.number(),
+          })
+        ),
+      },
+    },
+    async (params) => {
+      for (const product of params.products) {
+        await BranchInventoryModel.update(
+          { quantityOnHand: literal(`quantityOnHand - ${product.quantity}`) },
+          { where: { productId: product.productId, branchId: params.branchId, organizationId: params.organizationId } }
+        );
+      }
+      try {
+        return {
+          content: [{ type: 'text', text: 'Branch stock adjusted successfully' }],
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: 'Failed to update the branch’s inventory' }],
         };
       }
     }

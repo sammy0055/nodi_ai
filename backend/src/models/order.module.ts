@@ -29,6 +29,7 @@ class OrderModel
   declare deliveryZoneId?: string | undefined;
   declare deliveryZoneName?: string | undefined;
   declare deliveryTime?: Date | undefined;
+  declare shippingAddress: string;
   declare searchVector?: any;
 
   static associate(models: DbModels) {
@@ -52,7 +53,7 @@ class OrderModel
 OrderModel.init(
   {
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, allowNull: false, primaryKey: true },
-    title: { type: DataTypes.STRING, allowNull: false, defaultValue:"" },
+    title: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
     organizationId: {
       type: DataTypes.UUID,
       allowNull: false,
@@ -123,8 +124,9 @@ OrderModel.init(
         return rawValue === null ? null : parseFloat(rawValue as any);
       },
     },
-    currency: { type: DataTypes.STRING, defaultValue: 'USD' },
-    deliveryAreaId: { type: DataTypes.STRING, allowNull: true },
+    currency: { type: DataTypes.STRING, allowNull: false },
+    deliveryAreaId: { type: DataTypes.STRING, allowNull: false },
+    shippingAddress: { type: DataTypes.STRING, allowNull: false },
     deliveryAreaName: { type: DataTypes.STRING, allowNull: true },
     deliveryZoneId: { type: DataTypes.STRING, allowNull: true },
     deliveryZoneName: { type: DataTypes.STRING, allowNull: true },

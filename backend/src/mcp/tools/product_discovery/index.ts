@@ -4,7 +4,7 @@ import { ManageVectorStore } from '../../../helpers/vector-store';
 import { Op } from 'sequelize';
 import { models } from '../../../models';
 
-const { BranchInventoryModel, ProductModel, BranchesModel } = models;
+const { BranchInventoryModel, ProductModel, BranchesModel, ProductOptionModel, ProductOptionChoiceModel } = models;
 
 // Search products across organization
 export const searchProducts = (server: McpServer) => {
@@ -36,7 +36,19 @@ export const searchProducts = (server: McpServer) => {
           limit: maxResults || 10,
         });
 
-        if (!products)
+        const productIds = products.map((p) => p?.id) as string[];
+        const productsInDB = await ProductModel.findAll({
+          where: {
+            id: {
+              [Op.in]: productIds.filter(Boolean),
+            },
+          },
+          include: [
+            { model: ProductOptionModel, as: 'options', include: [{ model: ProductOptionChoiceModel, as: 'choices' }] },
+          ],
+        });
+
+        if (!productsInDB)
           return {
             content: [
               {
@@ -49,7 +61,7 @@ export const searchProducts = (server: McpServer) => {
           content: [
             {
               type: 'text',
-              text: JSON.stringify(products),
+              text: JSON.stringify(productsInDB),
               mimeType: 'application/json',
             },
           ],

@@ -45,7 +45,7 @@ ProductOptionModel.init(
     type: { type: DataTypes.ENUM, values: [...Object.values(ProductOptionTypes)] },
     isRequired: { type: DataTypes.BOOLEAN, defaultValue: false },
     minSelection: { type: DataTypes.INTEGER, defaultValue: 1 },
-    maxSelection: { type: DataTypes.INTEGER, defaultValue: 1 },
+    maxSelection: { type: DataTypes.INTEGER, defaultValue: 10 },
   },
   {
     sequelize,

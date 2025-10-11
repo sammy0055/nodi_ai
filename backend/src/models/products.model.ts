@@ -35,6 +35,11 @@ class ProductModel
       foreignKey: 'productId',
       as: 'branchInventory',
     });
+
+    this.hasMany(models.ProductOptionModel, {
+      foreignKey: 'productId',
+      as: 'options',
+    });
   }
 }
 
