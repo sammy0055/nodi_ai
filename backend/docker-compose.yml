@@ -6,11 +6,18 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: sammy0055
+      POSTGRES_DB: nodi_ai
     ports:
       - '5432:5432'
+    command:
+      - 'postgres'
+      - '-c'
+      - 'listen_addresses=*'
+      - '-c'
+      - 'max_connections=200'
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
     networks:
       - app_network
 
