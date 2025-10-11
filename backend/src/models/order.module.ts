@@ -29,7 +29,8 @@ class OrderModel
   declare deliveryZoneId?: string | undefined;
   declare deliveryZoneName?: string | undefined;
   declare deliveryTime?: Date | undefined;
-  declare shippingAddress: string;
+  declare shippingAddress: string | null;
+  declare serviceType: 'delivery' | 'takeaway';
   declare searchVector?: any;
 
   static associate(models: DbModels) {
@@ -46,6 +47,11 @@ class OrderModel
     this.belongsTo(models.BranchesModel, {
       foreignKey: 'branchId',
       as: 'branch',
+    });
+
+    this.belongsTo(models.AreaModel, {
+      foreignKey: 'deliveryAreaId',
+      as: 'area',
     });
   }
 }
@@ -77,6 +83,14 @@ OrderModel.init(
       allowNull: false,
       references: {
         model: ModelNames.Branches,
+        key: 'id',
+      },
+    },
+    deliveryAreaId: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      references: {
+        model: ModelNames.Areas,
         key: 'id',
       },
     },
@@ -125,11 +139,9 @@ OrderModel.init(
       },
     },
     currency: { type: DataTypes.STRING, allowNull: false },
-    deliveryAreaId: { type: DataTypes.STRING, allowNull: false },
     shippingAddress: { type: DataTypes.STRING, allowNull: false },
+    serviceType: { type: DataTypes.ENUM('delivery', 'takeaway'), allowNull: false },
     deliveryAreaName: { type: DataTypes.STRING, allowNull: true },
-    deliveryZoneId: { type: DataTypes.STRING, allowNull: true },
-    deliveryZoneName: { type: DataTypes.STRING, allowNull: true },
     deliveryTime: { type: DataTypes.DATE, allowNull: true },
     searchVector: {
       type: 'TSVECTOR',

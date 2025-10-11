@@ -91,7 +91,8 @@ export interface IOrder {
   deliveryAreaId: string; // to be checked
   deliveryAreaName?: string;
   deliveryTime?: Date;
-  shippingAddress: string;
+  shippingAddress?: string;
+  serviceType: 'delivery' | 'takeaway';
   createdAt: Date;
   updatedAt: Date;
   branch: {
@@ -104,6 +105,14 @@ export interface IOrder {
     id: string;
     name: string;
     phone: string;
+  };
+  area: {
+    id: string;
+    name: string;
+    zone: {
+      id: string;
+      name: string;
+    };
   };
 }
 
@@ -615,14 +624,18 @@ const OrdersPage: React.FC = () => {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-neutral-500">Delivery Area:</span>
-                        <span className="font-medium">{selectedOrder.deliveryAreaName}</span>
+                        <span className="font-medium">{selectedOrder.area.name}</span>
                       </div>
-                      {/* {selectedOrder.deliveryZoneName && (
+                      <div className="flex justify-between">
+                        <span className="text-neutral-500">Delivery Zone:</span>
+                        <span className="font-medium">{selectedOrder.area.zone.name}</span>
+                      </div>
+                      {selectedOrder.serviceType === 'delivery' && (
                         <div className="flex justify-between">
-                          <span className="text-neutral-500">Delivery Zone:</span>
-                          <span className="font-medium">{selectedOrder.deliveryZoneName}</span>
+                          <span className="text-neutral-500">Shipping Address:</span>
+                          <span className="font-medium">{selectedOrder.shippingAddress}</span>
                         </div>
-                      )} */}
+                      )}
                       {selectedOrder.deliveryTime && (
                         <div className="flex justify-between">
                           <span className="text-neutral-500">Scheduled Delivery:</span>

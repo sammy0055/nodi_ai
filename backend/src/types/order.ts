@@ -50,5 +50,6 @@ export interface IOrder {
   deliveryZoneId?: string;
   deliveryZoneName?: string;
   deliveryTime?: Date;
-  shippingAddress: string;
+  shippingAddress?: string | null;
+  serviceType: 'delivery' | 'takeaway';
 }

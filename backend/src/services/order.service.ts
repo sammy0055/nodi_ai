@@ -1,7 +1,9 @@
+import { AreaModel } from '../models/area.model';
 import { BranchesModel } from '../models/branches.model';
 import { CustomerModel } from '../models/customer.model';
 import { OrderModel } from '../models/order.module';
 import { ProductModel } from '../models/products.model';
+import { ZoneModel } from '../models/zones.model';
 import { Pagination } from '../types/common-types';
 import { OrderStatusTypes } from '../types/order';
 import { User } from '../types/users';
@@ -28,25 +30,31 @@ export class OrderService {
       include: [
         { model: CustomerModel, as: 'customer' },
         { model: BranchesModel, as: 'branch' },
+        {
+          model: AreaModel,
+          as: 'area',
+          attributes: ['id', 'name'],
+          include: [{ model: ZoneModel, as: 'zone', attributes: ['id', 'name'] }],
+        },
       ], // join for customer info
       order: [['createdAt', 'DESC']], // recent first
     });
 
     // prepare pagination info
     const totalPages = Math.ceil(totalItems / limit);
-for (const order of orders) {
-  for (let i = 0; i < order.items.length; i++) {
-    const item = order.items[i];
-    if (item.productId) {
-      const product = await ProductModel.findByPk(item.productId);
-      if (product) {
-        order.items[i].product = product; // attach the actual product
-        // optionally remove productId if you don't need it
-        delete order.items[i].productId;
+    for (const order of orders) {
+      for (let i = 0; i < order.items.length; i++) {
+        const item = order.items[i];
+        if (item.productId) {
+          const product = await ProductModel.findByPk(item.productId);
+          if (product) {
+            order.items[i].product = product; // attach the actual product
+            // optionally remove productId if you don't need it
+            delete order.items[i].productId;
+          }
+        }
       }
     }
-  }
-}
     return {
       data: orders,
       pagination: {
