@@ -24,7 +24,7 @@ class OrderModel
   declare discountAmount?: number | undefined;
   declare totalAmount: number;
   declare currency: string;
-  declare deliveryAreaId?: string | undefined;
+  declare deliveryAreaId: string;
   declare deliveryAreaName?: string | undefined;
   declare deliveryZoneId?: string | undefined;
   declare deliveryZoneName?: string | undefined;
@@ -87,12 +87,14 @@ OrderModel.init(
       },
     },
     deliveryAreaId: {
-      type: DataTypes.STRING,
+      type: DataTypes.UUID,
       allowNull: false,
       references: {
         model: ModelNames.Areas,
         key: 'id',
       },
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
     },
     source: {
       type: DataTypes.ENUM,
