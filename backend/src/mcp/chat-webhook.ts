@@ -57,7 +57,7 @@ chatRoute.post('/chat-webhook', async (req, res) => {
       const chat = await ChatService.init(userPhoneNumber, whatsappBusinessId);
       await chat.connectToServer();
       const response = await chat.processQuery(userMessage);
-      return chat.sendWhatSappMessage({ recipientPhoneNumber: userPhoneNumber, message: response });
+      return await chat.sendWhatSappMessage({ recipientPhoneNumber: userPhoneNumber, message: response });
     } catch (error: any) {
       console.log('chat-error', error);
       return res.status(500).json({ error: error.message });

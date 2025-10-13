@@ -131,39 +131,39 @@ export const checkRealTimeAvailability = (server: McpServer) => {
   );
 };
 
-export const updateInventory = (server: McpServer) => {
-  return server.registerTool(
-    'adjust_branch_stock',
-    {
-      title: 'Adjust Branch Stock',
-      description: 'Update a branch’s inventory by deducting quantities of ordered products.',
-      inputSchema: {
-        organizationId: z.string(),
-        branchId: z.string(),
-        products: z.array(
-          z.object({
-            productId: z.string(),
-            quantity: z.number(),
-          })
-        ),
-      },
-    },
-    async (params) => {
-      for (const product of params.products) {
-        await BranchInventoryModel.update(
-          { quantityOnHand: literal(`quantityOnHand - ${product.quantity}`) },
-          { where: { productId: product.productId, branchId: params.branchId, organizationId: params.organizationId } }
-        );
-      }
-      try {
-        return {
-          content: [{ type: 'text', text: 'Branch stock adjusted successfully' }],
-        };
-      } catch (error: any) {
-        return {
-          content: [{ type: 'text', text: 'Failed to update the branch’s inventory' }],
-        };
-      }
-    }
-  );
-};
+// export const updateInventory = (server: McpServer) => {
+//   return server.registerTool(
+//     'adjust_branch_stock',
+//     {
+//       title: 'Adjust Branch Stock',
+//       description: 'Update a branch’s inventory by deducting quantities of ordered products.',
+//       inputSchema: {
+//         organizationId: z.string(),
+//         branchId: z.string(),
+//         products: z.array(
+//           z.object({
+//             productId: z.string(),
+//             quantity: z.number(),
+//           })
+//         ),
+//       },
+//     },
+//     async (params) => {
+//       for (const product of params.products) {
+//         await BranchInventoryModel.update(
+//           { quantityOnHand: literal(`quantityOnHand - ${product.quantity}`) },
+//           { where: { productId: product.productId, branchId: params.branchId, organizationId: params.organizationId } }
+//         );
+//       }
+//       try {
+//         return {
+//           content: [{ type: 'text', text: 'Branch stock adjusted successfully' }],
+//         };
+//       } catch (error: any) {
+//         return {
+//           content: [{ type: 'text', text: 'Failed to update the branch’s inventory' }],
+//         };
+//       }
+//     }
+//   );
+// };

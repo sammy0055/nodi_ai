@@ -80,6 +80,18 @@ export const createOrder = (server: McpServer) => {
           }
         }
         const order = await OrderModel.create(params as any);
+        if (order) {
+          for (const product of products) {
+            await BranchInventoryModel.decrement('quantityOnHand', {
+              by: product.qty,
+              where: {
+                productId: product.productId,
+                branchId: params.branchId,
+                organizationId: params.organizationId,
+              },
+            });
+          }
+        }
         return {
           content: [
             {
