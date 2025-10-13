@@ -6,6 +6,8 @@ import { ZoneModel } from '../models/zones.model';
 import { ProductModel } from '../models/products.model';
 import { AreaModel } from '../models/area.model';
 import { appConfig } from '../config';
+import { IOrder } from '../types/order';
+import { OrderModel } from '../models/order.module';
 
 interface AreaSearchParams {
   organizationId: string;
@@ -18,6 +20,14 @@ interface ProductSearchParans {
   organizationId: string;
   query?: string;
   limit?: number;
+}
+
+interface OrderSearchParams {
+  organizationId: string;
+  query?: string;
+  limit?: number;
+  orderId?: string;
+  customerId: string;
 }
 
 export class ManageVectorStore {
@@ -134,5 +144,47 @@ export class ManageVectorStore {
     //   score: r.score,
     //   product: r.payload,
     // }));
+  }
+
+  async insertOrderEmbedding(order: Pick<IOrder, 'id' | 'title' | 'items' | 'customerId'>) {
+    const productNames = order.items.map((p) => p.productName).join(',');
+    const text = `orderTitle:${order.title}, productNames:${productNames}`;
+    const embedding = await generateEmbedding(text);
+    await this.qdrant.upsert(this.collectionName, {
+      wait: true,
+      points: [
+        {
+          id: order.id,
+          vector: embedding,
+          payload: order,
+        },
+      ],
+    });
+  }
+
+  async searchOrders({ query, organizationId, orderId, customerId, limit = 5 }: OrderSearchParams) {
+    if (!query && !orderId) {
+      const orders = await OrderModel.findAll({ where: { organizationId: organizationId, customerId: customerId } });
+      return orders;
+    }
+
+    const mustFilters: any[] = [
+      { key: 'organizationId', match: { value: organizationId } },
+      { key: 'customerId', match: { value: customerId } },
+    ];
+
+    if (query) {
+      const embedding = await generateEmbedding(query);
+      if (orderId) {
+        mustFilters.push({ key: 'id', match: { value: orderId } });
+      }
+      const results = await this.qdrant.search(this.collectionName, {
+        filter: { must: mustFilters },
+        vector: embedding,
+        limit,
+      });
+
+      return results.map((r) => r.payload);
+    }
   }
 }

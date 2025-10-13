@@ -12,6 +12,13 @@ interface MCP_RESPONSE {
   }[];
 }
 
+interface HandleToolCallParams {
+  conversationId: string;
+  organizationId: string;
+  customerId: string;
+  toolCall: any;
+}
+
 class UsageBase {}
 export class MCPClient extends UsageBase {
   protected mcp: Client;
@@ -61,11 +68,17 @@ export class MCPClient extends UsageBase {
     );
   }
 
-  protected async handleToolCall(conversationId: string, organizationId: string, toolCall: any): Promise<void> {
+  protected async handleToolCall({
+    toolCall,
+    conversationId,
+    organizationId,
+    customerId,
+  }: HandleToolCallParams): Promise<void> {
     let args;
     try {
       args = JSON.parse(toolCall.arguments);
       args.organizationId = organizationId;
+      args.customerId = customerId;
     } catch {
       await this.openai.conversations.items.create(conversationId, {
         items: [
@@ -124,7 +137,7 @@ export class MCPClient extends UsageBase {
     });
   }
 
-  protected async query({ query, organizationId, conversationId }: ProcessQueryTypes) {
+  protected async query({ query, organizationId, conversationId, customerId }: ProcessQueryTypes) {
     // init a new conversation
     let currentConversationId = conversationId;
 
@@ -157,7 +170,7 @@ export class MCPClient extends UsageBase {
       }
 
       for (const toolCall of toolCalls) {
-        await this.handleToolCall(currentConversationId, organizationId, toolCall);
+        await this.handleToolCall({ conversationId: currentConversationId, organizationId, toolCall, customerId });
       }
 
       iteration++;
@@ -166,8 +179,8 @@ export class MCPClient extends UsageBase {
     return finalResponse;
   }
 
-  async process({ query, organizationId, conversationId }: ProcessQueryTypes) {
-    const res = await this.query({ query, organizationId, conversationId });
+  async process({ query, organizationId, customerId, conversationId }: ProcessQueryTypes) {
+    const res = await this.query({ query, organizationId, customerId, conversationId });
     // this.increaseCredits();
     return res;
   }
@@ -198,4 +211,5 @@ interface ProcessQueryTypes {
   query: string;
   organizationId: string;
   conversationId: string;
+  customerId: string;
 }

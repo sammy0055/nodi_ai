@@ -4,6 +4,7 @@ import { Op } from 'sequelize';
 import { ManageVectorStore } from '../../../helpers/vector-store';
 import { models } from '../../../models';
 import { CurrencyCode } from '../../../types/product';
+import { OrderStatusTypes } from '../../../types/order';
 
 const { BranchesModel, OrderModel, BranchInventoryModel } = models;
 // Create order with inventory check
@@ -43,7 +44,17 @@ export const createOrder = (server: McpServer) => {
         deliveryCharge: z.number(),
         totalAmount: z.number(),
         deliveryAreaName: z.string(),
-        shippingAddress: z.string().describe('Full delivery address where the order should be shipped.').optional(),
+        shippingAddress: z
+          .string()
+          .describe('Full delivery address: street, building, floor, apartment, landmark.')
+          .optional(),
+        shippingAddressCoordinates: z
+          .object({
+            longitude: z.number(),
+            latitude: z.number(),
+            googleMapUrl: z.string(),
+          })
+          .optional(),
       },
     },
     async (params) => {
@@ -136,6 +147,7 @@ export const getBranchInfo = (server: McpServer) => {
           ],
         };
       } catch (error: any) {
+        console.error(`MCP-ERROR:${error.message}`);
         return {
           content: [
             {
@@ -143,6 +155,82 @@ export const getBranchInfo = (server: McpServer) => {
               text: 'Failed to get branch information',
             },
           ],
+        };
+      }
+    }
+  );
+};
+
+export const getOrderDetails = (server: McpServer) => {
+  return server.registerTool(
+    'get_order_details',
+    {
+      title: 'get_order_details',
+      description:
+        'Retrieves comprehensive information about a specific order including customer details, items, pricing, delivery information, and cancellation eligibility status.',
+      inputSchema: {
+        organizationId: z.string(),
+        customerId: z.string().describe('the id of the customer'),
+        orderId: z.string().describe('the id of the order').optional(),
+        query: z.string().describe('Search query e.g(product names, order title)').optional(),
+      },
+    },
+    async (params) => {
+      const vectorStore = new ManageVectorStore();
+      try {
+        const results = await vectorStore.searchOrders(params);
+        if (results?.length === 0) {
+          return {
+            content: [{ type: 'text', text: 'No order found' }],
+          };
+        }
+        return {
+          content: [{ type: 'text', text: JSON.stringify(results), mimeType: 'application/json' }],
+        };
+      } catch (error: any) {
+        console.error(`MCP-ERROR:${error.message}`);
+        return {
+          content: [{ type: 'text', text: 'Failed to get order details' }],
+        };
+      }
+    }
+  );
+};
+
+export const cancelOrder = (server: McpServer) => {
+  return server.registerTool(
+    'cancel_order',
+    {
+      title: 'cancel_order',
+      description:
+        'Cancels an order if it is still within the allowed cancellation window. Validates eligibility before processing the cancellation.',
+      inputSchema: {
+        orderId: z.string().describe('the id of the order'),
+        // customerId: z.string().describe('the id of the customer'),
+        // organizationId: z.string(),
+      },
+    },
+    async ({ orderId }) => {
+      // check if we are still within the cancelation window
+      if (!orderId) {
+        return { content: [{ type: 'text', text: 'orderId messing, kindly provide the order ID' }] };
+      }
+      const order = await OrderModel.findByPk(orderId);
+
+      if (!order) {
+        return { content: [{ type: 'text', text: 'order was not found' }] };
+      }
+      if (!order.canBeCancelled()) {
+        return { content: [{ type: 'text', text: 'order has passed cancelation window' }] };
+      }
+      await order.update({ status: OrderStatusTypes.CANCELLED });
+      try {
+        return {
+          content: [{ type: 'text', text: 'order cancelled successfully' }],
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: 'Failed to cancel order' }],
         };
       }
     }

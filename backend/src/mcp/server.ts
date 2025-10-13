@@ -4,7 +4,7 @@ import { getProductWithAvailability, searchProducts } from './tools/product_disc
 import { checkRealTimeAvailability, findBranchesWithProduct } from './tools/location_and_inventory';
 import { calculateDelivery, getDeliveryOptions } from './tools/delivery_and_service';
 import { getRecommendations, suggestAlternatives } from './tools/smart_recommendation';
-import { createOrder, getBranchInfo } from './tools/order_and_service';
+import { cancelOrder, createOrder, getBranchInfo, getOrderDetails } from './tools/order_and_service';
 import { createCustomerProfile, getCustomerProfile } from './tools/customer';
 
 export const server = new McpServer({
@@ -35,6 +35,8 @@ suggestAlternatives(server);
 // order and service
 createOrder(server);
 getBranchInfo(server);
+getOrderDetails(server);
+cancelOrder(server);
 
 // customer
 getCustomerProfile(server);

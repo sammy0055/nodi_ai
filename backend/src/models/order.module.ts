@@ -3,6 +3,7 @@ import { sequelize } from './db';
 import { DbModels } from '.';
 import { ModelNames } from './model-names';
 import { IOrder, OrderSourceTypes, OrderStatusTypes } from '../types/order';
+import { ManageVectorStore } from '../helpers/vector-store';
 
 class OrderModel
   extends Model<
@@ -12,7 +13,7 @@ class OrderModel
   implements IOrder
 {
   declare id: CreationOptional<string>;
-  declare title?: string;
+  declare title: string;
   declare organizationId: string;
   declare customerId: string;
   declare branchId: string;
@@ -30,8 +31,11 @@ class OrderModel
   declare deliveryZoneName?: string | undefined;
   declare deliveryTime?: Date | undefined;
   declare shippingAddress: string | null;
+  declare shippingAddressCoordinates: { longitude: number; latitude: number; googleMapUrl: string };
   declare serviceType: 'delivery' | 'takeaway';
   declare searchVector?: any;
+  declare cancelWindowMinutes: number;
+  declare cancellationDeadline: Date;
 
   static associate(models: DbModels) {
     this.belongsTo(models.OrganizationsModel, {
@@ -53,6 +57,20 @@ class OrderModel
       foreignKey: 'deliveryAreaId',
       as: 'area',
     });
+  }
+
+  // Add a helper method to check if order can be cancelled
+  canBeCancelled(): boolean {
+    if (!this.cancellationDeadline) return false;
+    return new Date() <= this.cancellationDeadline;
+  }
+
+  // Add a helper method to get remaining time in minutes
+  getRemainingCancellationTime(): number {
+    if (!this.cancellationDeadline) return -1;
+    const now = new Date();
+    const diffMs = this.cancellationDeadline.getTime() - now.getTime();
+    return diffMs > 0 ? Math.ceil(diffMs / (1000 * 60)) : -1;
   }
 }
 
@@ -140,8 +158,22 @@ OrderModel.init(
         return rawValue === null ? null : parseFloat(rawValue as any);
       },
     },
+    cancelWindowMinutes: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 30, // Default 30 minutes cancellation window
+      validate: {
+        min: 0,
+      },
+    },
+    cancellationDeadline: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      // This will be automatically calculated when order is created
+    },
     currency: { type: DataTypes.STRING, allowNull: false },
     shippingAddress: { type: DataTypes.STRING, allowNull: false },
+    shippingAddressCoordinates: { type: DataTypes.JSONB, allowNull: true },
     serviceType: { type: DataTypes.ENUM('delivery', 'takeaway'), allowNull: false },
     deliveryAreaName: { type: DataTypes.STRING, allowNull: true },
     deliveryTime: { type: DataTypes.DATE, allowNull: true },
@@ -163,7 +195,17 @@ OrderModel.init(
       },
     ],
     hooks: {
-      beforeSave: async (order: any) => {
+      beforeCreate: async (order: any) => {
+        if (order.cancelWindowMinutes !== undefined) {
+          // Set cancellation deadline based on cancelWindowMinutes
+          const deadline = new Date();
+          deadline.setMinutes(deadline.getMinutes() + order.cancelWindowMinutes);
+          order.cancellationDeadline = deadline;
+        }
+
+        const vectorStore = new ManageVectorStore();
+        await vectorStore.insertOrderEmbedding(order);
+
         const searchText = [
           order.id,
           order.branchId,
@@ -173,6 +215,16 @@ OrderModel.init(
           .join(' ');
         const escapedText = searchText.replace(/'/g, "''");
         order.setDataValue('searchVector', literal(`to_tsvector('english', '${escapedText}')`));
+      },
+      beforeUpdate: async (order: any) => {
+        // Recalculate cancellation deadline if cancelWindowMinutes changed
+        if (order.changed('cancelWindowMinutes')) {
+          const deadline = new Date();
+          deadline.setMinutes(deadline.getMinutes() + order.cancelWindowMinutes);
+          order.cancellationDeadline = deadline;
+        }
+        const vectorStore = new ManageVectorStore();
+        await vectorStore.insertOrderEmbedding(order);
       },
     },
   }

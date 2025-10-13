@@ -34,6 +34,7 @@ export interface OrderItem {
 }
 export interface IOrder {
   id: string;
+  title: string;
   customerId: string;
   organizationId: string;
   branchId: string;
@@ -52,4 +53,11 @@ export interface IOrder {
   deliveryTime?: Date;
   shippingAddress?: string | null;
   serviceType: 'delivery' | 'takeaway';
+  shippingAddressCoordinates: {
+    longitude: number;
+    latitude: number;
+    googleMapUrl: string;
+  };
+  cancelWindowMinutes: number;
+  cancellationDeadline: Date;
 }

@@ -97,6 +97,7 @@ export class ChatService extends MCPChatBot {
       query: userMessage,
       organizationId: this.organizationId,
       conversationId: conversation.id,
+      customerId: customer.id,
     });
     return res;
   }
