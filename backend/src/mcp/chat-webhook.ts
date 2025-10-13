@@ -44,7 +44,7 @@ chatRoute.post('/chat-webhook', async (req, res) => {
         }
         console.log('Got message:', msg.id, msg.text?.body);
         // process each message independently
-        handleMessages(entry.id, msg);
+        await handleMessages(entry.id, msg);
       }
     }
   }
