@@ -26,7 +26,17 @@ export const searchProducts = (server: McpServer) => {
       const vectorStore = new ManageVectorStore();
       try {
         if (!query) {
-          const products = await ProductModel.findAll({ where: { organizationId }, limit: maxResults });
+          const products = await ProductModel.findAll({
+            where: { organizationId },
+            limit: maxResults,
+            include: [
+              {
+                model: ProductOptionModel,
+                as: 'options',
+                include: [{ model: ProductOptionChoiceModel, as: 'choices' }],
+              },
+            ],
+          });
           return { content: [{ type: 'text', text: JSON.stringify(products) }] };
         }
 
