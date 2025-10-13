@@ -56,7 +56,9 @@ const AreasZonesPage: React.FC = () => {
   // Areas state
   const areas = useAreaValue();
   const setAreas = useAreaSetRecoilState();
-
+console.log('====================================');
+console.log(areas);
+console.log('====================================');
   // const [areas, setAreas] = useState<IArea[]>(mockAreas);
   const [areaSearch, setAreaSearch] = useState('');
   const [showAreaModal, setShowAreaModal] = useState(false);
