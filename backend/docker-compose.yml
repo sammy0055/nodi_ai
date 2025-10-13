@@ -9,15 +9,16 @@ services:
       POSTGRES_DB: nodi_ai
     ports:
       - '4010:5432'
-    command: >
-      postgres
-      -c listen_addresses=*
-      -c max_connections=200
-      -c hba_file=/etc/postgresql/pg_hba.conf
+    command:
+      - 'postgres'
+      - '-c'
+      - 'listen_addresses=*'
+      - '-c'
+      - 'max_connections=200'
     volumes:
       - postgres_data:/var/lib/postgresql/data
       # - ./pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
-      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
+      # - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
     networks:
       - app_network
 
