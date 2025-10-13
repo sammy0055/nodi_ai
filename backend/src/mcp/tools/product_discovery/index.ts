@@ -47,7 +47,9 @@ export const searchProducts = (server: McpServer) => {
             { model: ProductOptionModel, as: 'options', include: [{ model: ProductOptionChoiceModel, as: 'choices' }] },
           ],
         });
-
+        console.error('============productsInDB============');
+        console.error(JSON.stringify(productsInDB, null, 2));
+        console.error('====================================');
         if (!productsInDB)
           return {
             content: [
