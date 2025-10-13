@@ -18,7 +18,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       # - ./pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
-      # - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
+      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
     networks:
       - app_network
 
