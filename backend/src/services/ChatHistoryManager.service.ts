@@ -141,7 +141,11 @@ export class ChatHistoryManager {
     if (!conversation) throw new Error('Conversation not found');
 
     if (conversation.tokenCount <= this.config.maxContextTokens) {
-      return record.map((r) => r.chatContent).flat();
+      const messages = record.map((r) => r.chatContent).flat();
+      console.log('===============no neet for summary=====================');
+      console.log(messages);
+      console.log('====================================');
+      return messages;
     }
 
     // Summarize older messages
@@ -160,7 +164,7 @@ export class ChatHistoryManager {
     const newTotalTokens = recentTokens + summaryTokens;
 
     // Persist: replace old messages with summary + recent
-    const newChatContent = [summaryMessage, ...recentMessages];
+    const newChatContent = [{ role: 'assistant', content: summaryMessage }, ...recentMessages];
 
     await Promise.all([
       AiChatHistoryModel.destroy({
@@ -173,6 +177,9 @@ export class ChatHistoryManager {
       AiChatHistoryModel.create({ chatContent: newChatContent, conversation_id: conversationId }),
       conversation.update({ tokenCount: newTotalTokens }),
     ]);
+    console.log('========newChatContent with summary========');
+    console.log(messages);
+    console.log('====================================');
     return newChatContent;
   }
 

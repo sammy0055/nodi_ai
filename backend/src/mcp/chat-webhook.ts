@@ -39,7 +39,6 @@ chatRoute.post('/chat-webhook', async (req, res) => {
     for (const change of entry.changes || []) {
       for (const msg of change.value?.messages || []) {
         if (isDuplicate(msg.id)) {
-          res.sendStatus(200);
           return;
         }
         console.log('Got message:', msg.id, msg.text?.body);

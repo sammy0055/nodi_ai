@@ -173,6 +173,9 @@ export class MCPClient extends UsageBase {
 
     while (iteration < this.maxIterations) {
       const history = await this.chatHistory.getMessagesForLLM(conversationId);
+      console.log('=============history===============');
+      console.log(JSON.stringify(history, null, 2));
+      console.log('====================================');
       const response = await this.openai.responses.create({
         model: this.llm_model,
         input: [
