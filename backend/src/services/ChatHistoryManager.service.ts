@@ -153,6 +153,9 @@ export class ChatHistoryManager {
     const recentMessages = messages.slice(-this.config.keepRecentMessages);
     const oldMessages = messages.slice(0, -this.config.keepRecentMessages);
     const oldMessagesIds = record.slice(0, -this.config.keepRecentMessages).map((r) => r.id);
+    console.log('=============oldMessages=======================');
+    console.log(oldMessages, oldMessagesIds);
+    console.log('====================================');
     // Estimate tokens of recent messages (or track per-message tokens if needed)
     // For simplicity, assume summarization reduces old messages to ~200 tokens
     const summaryPrompt = this.buildSummaryPrompt(oldMessages);
