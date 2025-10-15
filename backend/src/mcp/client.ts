@@ -184,6 +184,8 @@ export class MCPClient extends UsageBase {
 
       for (const toolCall of toolCalls) {
         await this.handleToolCall({ conversationId: currentConversationId, organizationId, toolCall, customerId });
+        // Add delay between calls (e.g., 1 second)
+        await new Promise((r) => setTimeout(r, 1000));
       }
 
       iteration++;
