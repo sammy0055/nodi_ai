@@ -25,7 +25,7 @@ interface CreateConversationProps {
 }
 
 interface AIChatMessageAttributes {
-  message: any[] | string;
+  message: any
   conversation_id: string;
   tokenCount: number;
 }

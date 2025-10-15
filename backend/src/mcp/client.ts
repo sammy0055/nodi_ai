@@ -163,7 +163,7 @@ export class MCPClient extends UsageBase {
     // Add user message to history
     await this.chatHistory.addChatbotMessage({
       conversation_id: conversationId,
-      message: query,
+      message: { role: 'user', content: query },
       tokenCount: this.chatHistory.estimateTokens(query + systemPrompt),
     });
     await this.chatHistory.addMessage(conversationId, { role: 'user', content: query });
@@ -180,7 +180,7 @@ export class MCPClient extends UsageBase {
         model: this.llm_model,
         input: [
           { role: 'system', content: systemPrompt },
-          // { role: 'assistant', content: history },
+          { role: 'assistant', content: [{ type: 'input_text', text: history as any }] },
           { role: 'user', content: query },
         ],
 
@@ -203,7 +203,7 @@ export class MCPClient extends UsageBase {
     }
     await this.chatHistory.addChatbotMessage({
       conversation_id: conversationId,
-      message: finalResponse,
+      message: { role: 'assistant', content: finalResponse },
       tokenCount: totalTokenUsed,
     });
     await this.chatHistory.addMessage(conversationId, { role: 'assistant', content: finalResponse });
