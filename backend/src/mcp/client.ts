@@ -83,7 +83,8 @@ export class MCPClient extends UsageBase {
       await this.chatHistory.addChatbotMessage({
         conversation_id: conversationId,
         message: {
-          items: [
+          role: 'assistant',
+          content: [
             {
               type: 'function_call_output',
               call_id: toolCall.call_id,
@@ -109,7 +110,8 @@ export class MCPClient extends UsageBase {
       await this.chatHistory.addChatbotMessage({
         conversation_id: conversationId,
         message: {
-          items: [
+          role: 'assistant',
+          content: [
             {
               type: 'function_call_output',
               call_id: toolCall.call_id,
@@ -129,7 +131,8 @@ export class MCPClient extends UsageBase {
       await this.chatHistory.addChatbotMessage({
         conversation_id: conversationId,
         message: {
-          items: [
+          role: 'assistant',
+          content: [
             {
               type: 'function_call_output',
               call_id: toolCall.call_id,
@@ -151,7 +154,8 @@ export class MCPClient extends UsageBase {
     await this.chatHistory.addChatbotMessage({
       conversation_id: conversationId,
       message: {
-        items: [
+        role: 'assistant',
+        content: [
           {
             type: 'function_call_output',
             call_id: toolCall.call_id,
