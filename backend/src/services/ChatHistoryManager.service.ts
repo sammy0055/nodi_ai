@@ -35,9 +35,9 @@ export class ChatHistoryManager {
 
   constructor(config: Partial<ChatHistoryConfig> = {}) {
     this.config = {
-      maxContextTokens: 10000,
-      compressionThreshold: 8000,
-      keepRecentMessages: 20,
+      maxContextTokens: 6000,
+      compressionThreshold: 5000,
+      keepRecentMessages: 7,
       tokenBuffer: 500,
       ...config,
     };
@@ -163,10 +163,6 @@ export class ChatHistoryManager {
 
     // get ids of old messages for deletion
     const oldMessagesIds = record.filter((r) => oldMessages.includes(r.chatContent)).map((r) => r.id);
-
-    console.log('=============oldMessages=======================');
-    console.log(oldMessages, oldMessagesIds);
-    console.log('====================================');
     // Estimate tokens of recent messages (or track per-message tokens if needed)
     // For simplicity, assume summarization reduces old messages to ~200 tokens
     const summaryPrompt = this.buildSummaryPrompt(oldMessages);
@@ -191,9 +187,7 @@ export class ChatHistoryManager {
       AiChatHistoryModel.create({ chatContent: newChatContent, conversation_id: conversationId }),
       conversation.update({ tokenCount: newTotalTokens }),
     ]);
-    console.log('========newChatContent with summary========');
-    console.log(messages);
-    console.log('====================================');
+  
     return newChatContent;
   }
 
@@ -222,9 +216,7 @@ export class ChatHistoryManager {
         return '';
       })
       .join('\n\n');
-    console.log('=============formated message=======================');
-    console.log(conversationText);
-    console.log('====================================');
+
     return `Please provide a concise summary of the following conversation, preserving key information, decisions, and context that would be important for continuing the dialogue, no follow up questions, do as instructed:
         ${conversationText}`;
   }
