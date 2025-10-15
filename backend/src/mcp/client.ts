@@ -79,11 +79,6 @@ export class MCPClient extends UsageBase {
       args = JSON.parse(toolCall.arguments);
       args.organizationId = organizationId;
       args.customerId = customerId;
-      await this.chatHistory.addChatbotMessage({
-        conversation_id: conversationId,
-        message: toolCall,
-        tokenCount: 0,
-      });
     } catch {
       await this.chatHistory.addChatbotMessage({
         conversation_id: conversationId,
