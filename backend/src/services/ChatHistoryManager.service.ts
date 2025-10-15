@@ -142,9 +142,6 @@ export class ChatHistoryManager {
 
     if (conversation.tokenCount <= this.config.maxContextTokens) {
       const messages = record.map((r) => r.chatContent && r.chatContent).flat();
-      console.log('===============no neet for summary=====================');
-      console.log(messages);
-      console.log('====================================');
       return messages;
     }
 
@@ -187,8 +184,33 @@ export class ChatHistoryManager {
   }
 
   private buildSummaryPrompt(messages: any[]): string {
-    const conversationText = messages;
+    const conversationText = messages
+      .map((msg) => {
+        // 🔹 system / user / assistant messages
+        if (msg.role) {
+          if (Array.isArray(msg.content)) {
+            const text = msg.content.map((c: any) => (typeof c === 'object' ? c.text || '' : c)).join(' ');
+            return `${msg.role.toUpperCase()}: ${text}`;
+          }
+          return `${msg.role.toUpperCase()}: ${msg.content}`;
+        }
 
+        // 🔹 tool calls (no role)
+        if (msg.type === 'function_call' || msg.type === 'tool_call') {
+          return `TOOL CALL (${msg.name}): ${msg.arguments}`;
+        }
+
+        // 🔹 tool call output (after execution)
+        if (msg.type === 'function_call_output' || msg.type === 'tool_call_output') {
+          return `TOOL RESPONSE (${msg.name || msg.call_id}): ${msg.output || msg.result}`;
+        }
+
+        return '';
+      })
+      .join('\n\n');
+    console.log('=============formated message=======================');
+    console.log(conversationText);
+    console.log('====================================');
     return `Please provide a concise summary of the following conversation, preserving key information, decisions, and context that would be important for continuing the dialogue, no follow up questions, do as instructed:
         ${conversationText}`;
   }
