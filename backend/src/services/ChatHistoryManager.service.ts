@@ -189,8 +189,8 @@ export class ChatHistoryManager {
   private buildSummaryPrompt(messages: any[]): string {
     const conversationText = messages;
 
-    return `Please provide a concise summary of the following conversation, preserving key information, decisions, and context that would be important for continuing the dialogue:
-        ${conversationText} Summary:`;
+    return `Please provide a concise summary of the following conversation, preserving key information, decisions, and context that would be important for continuing the dialogue, no follow up questions, do as instructed:
+        ${conversationText}`;
   }
 
   private async generateSummary(prompt: string): Promise<string> {
