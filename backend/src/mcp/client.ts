@@ -83,16 +83,10 @@ export class MCPClient extends UsageBase {
       await this.chatHistory.addChatbotMessage({
         conversation_id: conversationId,
         message: {
-          role: 'assistant',
-          content: [
-            {
-              type: 'function_call_output',
-              call_id: toolCall.call_id,
-              output: JSON.stringify({ error: 'Invalid JSON arguments' }),
-            },
-          ],
-        } as any,
-
+          type: 'function_call_output',
+          call_id: toolCall.call_id,
+          output: JSON.stringify({ error: 'Invalid JSON arguments' }),
+        },
         tokenCount: 0,
       });
       return;
@@ -110,14 +104,10 @@ export class MCPClient extends UsageBase {
       await this.chatHistory.addChatbotMessage({
         conversation_id: conversationId,
         message: {
-          role: 'assistant',
-          content: [
-            {
-              type: 'function_call_output',
-              call_id: toolCall.call_id,
-              output: JSON.stringify(toolCall),
-            },
-          ],
+          type: toolCall.type,
+          name: toolCall.name,
+          call_id: toolCall.call_id,
+          arguments: toolCall.arguments,
         },
         tokenCount: 0,
       });
@@ -131,17 +121,12 @@ export class MCPClient extends UsageBase {
       await this.chatHistory.addChatbotMessage({
         conversation_id: conversationId,
         message: {
-          role: 'assistant',
-          content: [
-            {
-              type: 'function_call_output',
-              call_id: toolCall.call_id,
-              output: JSON.stringify({
-                error: `Tool execution failed: ${err.message}`,
-              }),
-            },
-          ],
-        } as any,
+          type: 'function_call_output',
+          call_id: toolCall.call_id,
+          output: JSON.stringify({
+            error: `Tool execution failed: ${err.message}`,
+          }),
+        },
         tokenCount: 0,
       });
 
@@ -154,15 +139,10 @@ export class MCPClient extends UsageBase {
     await this.chatHistory.addChatbotMessage({
       conversation_id: conversationId,
       message: {
-        role: 'assistant',
-        content: [
-          {
-            type: 'function_call_output',
-            call_id: toolCall.call_id,
-            output: JSON.stringify(toolResultContent),
-          },
-        ],
-      } as any,
+        type: 'function_call_output',
+        call_id: toolCall.call_id,
+        output: JSON.stringify(toolResultContent),
+      },
       tokenCount: 0,
     });
   }
