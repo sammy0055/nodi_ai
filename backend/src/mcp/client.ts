@@ -145,14 +145,18 @@ export class MCPClient extends UsageBase {
     const toolResultContent = toolResult.content.map((i) => i.text);
 
     // feed tool result back into conversation
-    await this.openai.conversations.items.create(conversationId, {
-      items: [
-        {
-          type: 'function_call_output',
-          call_id: toolCall.call_id,
-          output: JSON.stringify(toolResultContent),
-        },
-      ],
+    await this.chatHistory.addChatbotMessage({
+      conversation_id: conversationId,
+      message: {
+        items: [
+          {
+            type: 'function_call_output',
+            call_id: toolCall.call_id,
+            output: JSON.stringify(toolResultContent),
+          },
+        ],
+      } as any,
+      tokenCount: 0,
     });
   }
 
