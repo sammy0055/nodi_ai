@@ -17,8 +17,8 @@ export interface ChatHistoryConfig {
 interface CreateConversationProps {
   organizationId: string;
   customerId: string;
-  title?: string;
-  systemPrompt: string;
+  title?: string; //to be removed in future
+  systemPrompt?: string;
 }
 
 export class ChatHistoryManager {
@@ -42,7 +42,9 @@ export class ChatHistoryManager {
     title,
   }: CreateConversationProps): Promise<Conversation> {
     const openai = new OpenAI({ apiKey: appConfig.mcpKeys.openaiKey });
-    const conversation = await openai.conversations.create({ items: [{ role: 'system', content: systemPrompt }] });
+    const conversation = await openai.conversations.create(
+      systemPrompt ? { items: [{ role: 'system', content: systemPrompt }] } : {}
+    );
     return await Conversation.create({
       id: conversation.id,
       organizationId: organizationId,

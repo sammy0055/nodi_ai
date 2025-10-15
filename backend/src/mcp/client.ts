@@ -137,12 +137,15 @@ export class MCPClient extends UsageBase {
     });
   }
 
-  protected async query({ query, organizationId, conversationId, customerId }: ProcessQueryTypes) {
+  protected async query({ query, organizationId, conversationId, customerId, systemPrompt }: ProcessQueryTypes) {
     // init a new conversation
     let currentConversationId = conversationId;
 
     await this.openai.conversations.items.create(conversationId, {
-      items: [{ role: 'user', content: query }],
+      items: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: query },
+      ],
     });
     await this.chatHistory.addMessage(conversationId, { role: 'user', content: query });
     let iteration = 0;
@@ -179,8 +182,8 @@ export class MCPClient extends UsageBase {
     return finalResponse;
   }
 
-  async process({ query, organizationId, customerId, conversationId }: ProcessQueryTypes) {
-    const res = await this.query({ query, organizationId, customerId, conversationId });
+  async process({ query, organizationId, customerId, conversationId, systemPrompt }: ProcessQueryTypes) {
+    const res = await this.query({ query, organizationId, customerId, conversationId, systemPrompt });
     // this.increaseCredits();
     return res;
   }
@@ -209,6 +212,7 @@ export class MCPChatBot extends MCPClient {
 
 interface ProcessQueryTypes {
   query: string;
+  systemPrompt: string;
   organizationId: string;
   conversationId: string;
   customerId: string;
