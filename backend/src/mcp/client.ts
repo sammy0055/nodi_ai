@@ -180,7 +180,7 @@ export class MCPClient extends UsageBase {
         model: this.llm_model,
         input: [
           { role: 'system', content: systemPrompt },
-          { role: 'assistant', content: history },
+          // { role: 'assistant', content: history },
           { role: 'user', content: query },
         ],
 
