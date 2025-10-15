@@ -6,14 +6,14 @@ import { DbModels } from '.';
 export interface AichatHistoryAttributes {
   id: string;
   conversation_id: string;
-  chatContent: any[];
+  chatContent: any;
   tokenCount: number;
 }
 
 class AiChatHistoryModel extends Model implements AichatHistoryAttributes {
   public id!: string;
   public conversation_id!: string;
-  public chatContent!: any[];
+  public chatContent!: any;
   public tokenCount!: number;
 
   static associate(models: DbModels) {

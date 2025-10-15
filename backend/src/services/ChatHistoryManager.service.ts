@@ -37,7 +37,7 @@ export class ChatHistoryManager {
     this.config = {
       maxContextTokens: 10000,
       compressionThreshold: 8000,
-      keepRecentMessages: 12,
+      keepRecentMessages: 20,
       tokenBuffer: 500,
       ...config,
     };
@@ -146,10 +146,24 @@ export class ChatHistoryManager {
     }
 
     // Summarize older messages
+    // flatten all messages
     const messages = record.map((r) => r.chatContent).flat();
-    const recentMessages = messages.slice(-this.config.keepRecentMessages);
-    const oldMessages = messages.slice(0, -this.config.keepRecentMessages);
-    const oldMessagesIds = record.slice(0, -this.config.keepRecentMessages).map((r) => r.id);
+
+    // get the last N messages
+    let recentMessages = messages.slice(-this.config.keepRecentMessages);
+
+    // collect all call_ids present in those recent messages
+    const callIdsToKeep = new Set(recentMessages.filter((m) => m?.call_id).map((m) => m?.call_id));
+
+    // now ensure both sides (function_call + function_call_output) with same call_id stay together
+    recentMessages = messages.filter((m) => recentMessages.includes(m) || (m?.call_id && callIdsToKeep.has(m?.call_id)));
+
+    // older messages (everything else)
+    const oldMessages = messages.filter((m) => !recentMessages.includes(m));
+
+    // get ids of old messages for deletion
+    const oldMessagesIds = record.filter((r) => oldMessages.includes(r.chatContent)).map((r) => r.id);
+
     console.log('=============oldMessages=======================');
     console.log(oldMessages, oldMessagesIds);
     console.log('====================================');
