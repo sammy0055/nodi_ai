@@ -3,7 +3,7 @@
 import OpenAI from 'openai';
 import { ChatMessage } from '../models/chat-messages.model';
 import { Conversation } from '../models/conversation.model';
-import { ChatCompletionMessageParam, OpenAIToolCall, OpenAIRole, OpenAIToolResult } from '../types/chat';
+import { OpenAIToolCall, OpenAIRole, OpenAIToolResult } from '../types/chat';
 import { encode } from 'gpt-tokenizer';
 import { appConfig } from '../config';
 import { v4 as uuidv4 } from 'uuid';
@@ -35,9 +35,9 @@ export class ChatHistoryManager {
 
   constructor(config: Partial<ChatHistoryConfig> = {}) {
     this.config = {
-      maxContextTokens: 8000,
-      compressionThreshold: 6000,
-      keepRecentMessages: 5,
+      maxContextTokens: 10000,
+      compressionThreshold: 8000,
+      keepRecentMessages: 12,
       tokenBuffer: 500,
       ...config,
     };
