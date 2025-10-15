@@ -10,6 +10,7 @@ interface ConversationAttributes {
   organizationId: string;
   customerId: string;
   title?: string;
+  tokenCount?: number;
   is_active: boolean;
   created_at: Date;
   updated_at: Date;
@@ -27,24 +28,25 @@ class Conversation
   public customerId!: string;
   public title?: string;
   public is_active!: boolean;
+  public tokenCount!: number;
   public created_at!: Date;
   public updated_at!: Date;
 
-    static associate(models: DbModels) {
+  static associate(models: DbModels) {
     this.belongsTo(models.OrganizationsModel, {
       foreignKey: 'organizationId',
       as: 'organization',
     });
 
-     this.belongsTo(models.CustomerModel, {
+    this.belongsTo(models.CustomerModel, {
       foreignKey: 'customerId',
       as: 'customers',
     });
 
-      this.hasMany(models.ChatMessage, {
-      foreignKey:"conversation_id",
-      as:"messages"
-    })
+    this.hasMany(models.ChatMessage, {
+      foreignKey: 'conversation_id',
+      as: 'messages',
+    });
   }
 }
 
@@ -82,6 +84,11 @@ Conversation.init(
     is_active: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
+    },
+    tokenCount: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      allowNull: false,
     },
     created_at: {
       type: DataTypes.DATE,

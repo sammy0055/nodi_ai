@@ -79,17 +79,26 @@ export class MCPClient extends UsageBase {
       args = JSON.parse(toolCall.arguments);
       args.organizationId = organizationId;
       args.customerId = customerId;
-    } catch {
-      await this.openai.conversations.items.create(conversationId, {
-        items: [
-          {
-            type: 'function_call_output',
-            call_id: toolCall.call_id,
-            output: JSON.stringify({ error: 'Invalid JSON arguments' }),
-          },
-        ],
+      await this.chatHistory.addChatbotMessage({
+        conversation_id: conversationId,
+        message: toolCall,
+        tokenCount: 0,
       });
+    } catch {
+      await this.chatHistory.addChatbotMessage({
+        conversation_id: conversationId,
+        message: {
+          items: [
+            {
+              type: 'function_call_output',
+              call_id: toolCall.call_id,
+              output: JSON.stringify({ error: 'Invalid JSON arguments' }),
+            },
+          ],
+        } as any,
 
+        tokenCount: 0,
+      });
       return;
     }
 
@@ -102,6 +111,11 @@ export class MCPClient extends UsageBase {
         name: toolCall.name,
         arguments: args,
       })) as MCP_RESPONSE;
+      await this.chatHistory.addChatbotMessage({
+        conversation_id: conversationId,
+        message: toolResult as any,
+        tokenCount: 0,
+      });
       console.log('====================================');
       console.log(
         'Tool execution successfull: ',
@@ -109,17 +123,22 @@ export class MCPClient extends UsageBase {
       );
       console.log('====================================');
     } catch (err: any) {
-      await this.openai.conversations.items.create(conversationId, {
-        items: [
-          {
-            type: 'function_call_output',
-            call_id: toolCall.call_id,
-            output: JSON.stringify({
-              error: `Tool execution failed: ${err.message}`,
-            }),
-          },
-        ],
+      await this.chatHistory.addChatbotMessage({
+        conversation_id: conversationId,
+        message: {
+          items: [
+            {
+              type: 'function_call_output',
+              call_id: toolCall.call_id,
+              output: JSON.stringify({
+                error: `Tool execution failed: ${err.message}`,
+              }),
+            },
+          ],
+        } as any,
+        tokenCount: 0,
       });
+
       return;
     }
 
@@ -141,33 +160,34 @@ export class MCPClient extends UsageBase {
     // init a new conversation
     let currentConversationId = conversationId;
 
-    await this.openai.conversations.items.create(conversationId, {
-      items: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: query },
-      ],
+    // Add user message to history
+    await this.chatHistory.addChatbotMessage({
+      conversation_id: conversationId,
+      message: query,
+      tokenCount: this.chatHistory.estimateTokens(query + systemPrompt),
     });
     await this.chatHistory.addMessage(conversationId, { role: 'user', content: query });
     let iteration = 0;
     let finalResponse = '';
+    let totalTokenUsed = 0;
 
     while (iteration < this.maxIterations) {
+      const history = await this.chatHistory.getMessagesForLLM(conversationId);
       const response = await this.openai.responses.create({
         model: this.llm_model,
         input: [
-          {
-            role: 'user',
-            content: '', // empty content ➡️ forces model to continue
-          },
+          { role: 'system', content: systemPrompt },
+          { role: 'assistant', content: history },
+          { role: 'user', content: query },
         ],
 
         tools: this.tools,
-        conversation: conversationId, // OpenAI remembers everything
       });
 
       const toolCalls = response.output.filter((item) => item.type === 'function_call');
 
       if (toolCalls.length === 0) {
+        totalTokenUsed = response.usage?.total_tokens || 0;
         finalResponse = response.output_text;
         break;
       }
@@ -178,6 +198,11 @@ export class MCPClient extends UsageBase {
 
       iteration++;
     }
+    await this.chatHistory.addChatbotMessage({
+      conversation_id: conversationId,
+      message: finalResponse,
+      tokenCount: totalTokenUsed,
+    });
     await this.chatHistory.addMessage(conversationId, { role: 'assistant', content: finalResponse });
     return finalResponse;
   }

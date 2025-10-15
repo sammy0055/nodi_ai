@@ -3,9 +3,12 @@
 import OpenAI from 'openai';
 import { ChatMessage } from '../models/chat-messages.model';
 import { Conversation } from '../models/conversation.model';
-import { ChatCompletionMessageParam, StoredMessage, OpenAIToolCall, OpenAIRole, OpenAIToolResult } from '../types/chat';
+import { ChatCompletionMessageParam, OpenAIToolCall, OpenAIRole, OpenAIToolResult } from '../types/chat';
 import { encode } from 'gpt-tokenizer';
 import { appConfig } from '../config';
+import { v4 as uuidv4 } from 'uuid';
+import { AiChatHistoryModel } from '../models/ai-chat-history.model';
+import { Op } from 'sequelize';
 
 export interface ChatHistoryConfig {
   maxContextTokens: number;
@@ -19,6 +22,12 @@ interface CreateConversationProps {
   customerId: string;
   title?: string; //to be removed in future
   systemPrompt?: string;
+}
+
+interface AIChatMessageAttributes {
+  message: any[] | string;
+  conversation_id: string;
+  tokenCount: number;
 }
 
 export class ChatHistoryManager {
@@ -35,18 +44,9 @@ export class ChatHistoryManager {
   }
 
   // Create a new conversation
-  async createConversation({
-    organizationId,
-    customerId,
-    systemPrompt,
-    title,
-  }: CreateConversationProps): Promise<Conversation> {
-    const openai = new OpenAI({ apiKey: appConfig.mcpKeys.openaiKey });
-    const conversation = await openai.conversations.create(
-      systemPrompt ? { items: [{ role: 'system', content: systemPrompt }] } : {}
-    );
+  async createConversation({ organizationId, customerId, title }: CreateConversationProps): Promise<Conversation> {
     return await Conversation.create({
-      id: conversation.id,
+      id: uuidv4(),
       organizationId: organizationId,
       customerId: customerId,
       title: title,
@@ -90,30 +90,6 @@ export class ChatHistoryManager {
     return chatMessage;
   }
 
-  // Get messages formatted for OpenAI API
-  private async getMessagesForOpenAI(conversationId: string): Promise<ChatCompletionMessageParam[]> {
-    const messages = await this.getFullMessageHistory(conversationId);
-
-    const totalTokens = messages.reduce((sum, msg) => sum + msg.tokens, 0);
-
-    if (totalTokens > this.config.compressionThreshold) {
-      return await this.getCompressedMessages(conversationId, messages);
-    }
-
-    return this.formatForOpenAI(messages);
-  }
-
-  // Get full message history for frontend
-  private async getFullMessageHistory(conversationId: string): Promise<StoredMessage[]> {
-    const messages = await ChatMessage.findAll({
-      where: { conversation_id: conversationId },
-      order: [['message_index', 'ASC']],
-      raw: true,
-    });
-
-    return messages.map((msg) => this.mapToStoredMessage(msg));
-  }
-
   // Get conversations for organization
   async getConversationsByOrganization(
     organizationId: string,
@@ -136,95 +112,72 @@ export class ChatHistoryManager {
     return conv?.get({ plain: true });
   }
 
-  // Get complete conversation with messages
-  private async getConversationWithMessages(conversationId: string): Promise<{
-    conversation: Conversation;
-    messages: StoredMessage[];
-  }> {
-    const conversation = await Conversation.findByPk(conversationId);
-    if (!conversation) {
-      throw new Error('Conversation not found');
+  // the section below is for storing and managing chat history and context meant for LLM consumption -----------------------------------
+
+  async addChatbotMessage({ message, conversation_id, tokenCount }: AIChatMessageAttributes) {
+    if (message) {
+      await AiChatHistoryModel.create({
+        conversation_id: conversation_id,
+        chatContent: typeof message === 'string' ? [message] : message,
+        tokenCount: tokenCount,
+      });
+
+      const conversation = await Conversation.findByPk(conversation_id);
+      if (conversation) {
+        await conversation.update(
+          { updated_at: new Date(), tokenCount: tokenCount + conversation.tokenCount },
+          { where: { id: conversation_id } }
+        );
+      }
     }
-
-    const messages = await this.getFullMessageHistory(conversationId);
-
-    return {
-      conversation,
-      messages,
-    };
   }
 
-  // Compress messages when context gets too long
-  private async getCompressedMessages(
-    conversationId: string,
-    messages: StoredMessage[]
-  ): Promise<ChatCompletionMessageParam[]> {
+  async getMessagesForLLM(conversationId: string): Promise<any[]> {
+    const [record, conversation] = await Promise.all([
+      AiChatHistoryModel.findAll({ where: { conversation_id: conversationId } }),
+      Conversation.findByPk(conversationId),
+    ]);
+    if (record.length === 0) return [];
+    if (!conversation) throw new Error('Conversation not found');
+
+    if (conversation.tokenCount <= this.config.maxContextTokens) {
+      return record.map((r) => r.chatContent).flat();
+    }
+
+    // Summarize older messages
+    const messages = record.map((r) => r.chatContent).flat();
     const recentMessages = messages.slice(-this.config.keepRecentMessages);
-    const olderMessages = messages.slice(0, -this.config.keepRecentMessages);
+    const oldMessages = messages.slice(0, -this.config.keepRecentMessages);
+    const oldMessagesIds = record.slice(0, -this.config.keepRecentMessages).map((r) => r.id);
+    // Estimate tokens of recent messages (or track per-message tokens if needed)
+    // For simplicity, assume summarization reduces old messages to ~200 tokens
+    const summaryPrompt = this.buildSummaryPrompt(oldMessages);
+    const summaryMessage = await this.generateSummary(summaryPrompt); // returns { role: 'system', content: '...' }
 
-    if (olderMessages.length === 0) {
-      return this.formatForOpenAI(recentMessages);
-    }
+    // Estimate token counts (use your tokenizer for accuracy)
+    const recentTokens = record.reduce((sum, r) => sum + (r.tokenCount || 0), 0);
+    const summaryTokens = this.estimateTokens(summaryMessage);
+    const newTotalTokens = recentTokens + summaryTokens;
 
-    // Create compression summary
-    const compressionResult = await this.createCompressionSummary(conversationId, olderMessages);
+    // Persist: replace old messages with summary + recent
+    const newChatContent = [summaryMessage, ...recentMessages];
 
-    // Combine compressed summary with recent messages
-    return [
-      {
-        role: 'system',
-        content: compressionResult.summary,
-      },
-      ...this.formatForOpenAI(recentMessages),
-    ];
+    await Promise.all([
+      AiChatHistoryModel.destroy({
+        where: {
+          id: {
+            [Op.in]: oldMessagesIds,
+          },
+        },
+      }),
+      AiChatHistoryModel.create({ chatContent: newChatContent, conversation_id: conversationId }),
+      conversation.update({ tokenCount: newTotalTokens }),
+    ]);
+    return newChatContent;
   }
 
-  // Create summary of older messages
-  private async createCompressionSummary(
-    conversationId: string,
-    messages: StoredMessage[]
-  ): Promise<{ summary: string; compressedMessageId: string }> {
-    const summaryPrompt = this.buildSummaryPrompt(messages);
-    const summary = await this.generateSummary(summaryPrompt);
-
-    const compressedFrom = messages.map((m) => m.id).filter(Boolean) as string[];
-
-    const compressedMessage = await ChatMessage.create({
-      conversation_id: conversationId,
-      role: 'system',
-      content: summary,
-      message_index: messages[0].message_index,
-      is_compressed: true,
-      compressed_from: compressedFrom,
-      tokens: this.estimateTokens(summary),
-    });
-
-    return {
-      summary: `Previous conversation summary: ${summary}`,
-      compressedMessageId: compressedMessage.id,
-    };
-  }
-
-  private buildSummaryPrompt(messages: StoredMessage[]): string {
-    const conversationText = messages
-      .map((msg) => {
-        const role = msg.role.toUpperCase();
-        const content = msg.content || '';
-        let toolInfo = '';
-
-        if (msg.tool_calls && msg.tool_calls.length > 0) {
-          toolInfo = `\nTools called: ${msg.tool_calls
-            .map((tc: OpenAIToolCall) => `${tc.function.name}(${tc.function.arguments})`)
-            .join(', ')}`;
-        }
-
-        if (msg.tool_results) {
-          toolInfo += `\nTool results: ${JSON.stringify(msg.tool_results)}`;
-        }
-
-        return `${role}: ${content}${toolInfo}`;
-      })
-      .join('\n\n');
+  private buildSummaryPrompt(messages: any[]): string {
+    const conversationText = messages;
 
     return `Please provide a concise summary of the following conversation, preserving key information, decisions, and context that would be important for continuing the dialogue:
         ${conversationText} Summary:`;
@@ -248,74 +201,13 @@ export class ChatHistoryManager {
     return responses.output_text;
   }
 
-  // Format messages for OpenAI API
-  private formatForOpenAI(messages: StoredMessage[]): ChatCompletionMessageParam[] {
-    return messages.map((msg) => {
-      const openAIMessage: ChatCompletionMessageParam = {
-        role: msg.role,
-        content: msg.content,
-      };
-
-      if (msg.tool_calls && msg.tool_calls.length > 0) {
-        openAIMessage.tool_calls = msg.tool_calls;
-      }
-
-      if (msg.tool_call_id) {
-        openAIMessage.tool_call_id = msg.tool_call_id;
-      }
-
-      if (msg.role === 'tool') {
-        openAIMessage.name = msg.tool_call_id;
-      }
-
-      return openAIMessage;
-    });
-  }
-
-  private mapToStoredMessage(chatMessage: ChatMessage): StoredMessage {
-    return {
-      id: chatMessage.id,
-      role: chatMessage.role,
-      content: chatMessage.content,
-      tool_calls: chatMessage.tool_calls,
-      tool_call_id: chatMessage.tool_call_id,
-      tool_results: chatMessage.tool_results,
-      tokens: chatMessage.tokens,
-      message_index: chatMessage.message_index,
-      is_compressed: chatMessage.is_compressed,
-      created_at: chatMessage.created_at,
-    };
-  }
-
   // Estimate tokens (using gpt-tokenizer)
-  private estimateTokens(content: string): number {
+  public estimateTokens(content: string): number {
     return encode(content).length;
   }
-
-  // Utility to handle tool calls and responses
-  private async addToolCall(
-    conversationId: string,
-    assistantMessage: string | null,
-    toolCalls: OpenAIToolCall[]
-  ): Promise<ChatMessage> {
-    return await this.addMessage(conversationId, {
-      role: 'assistant',
-      content: assistantMessage,
-      tool_calls: toolCalls,
-    });
-  }
-
-  private async addToolResponse(
-    conversationId: string,
-    toolCallId: string,
-    result: any,
-    content?: string
-  ): Promise<ChatMessage> {
-    return await this.addMessage(conversationId, {
-      role: 'assistant',
-      content: content || JSON.stringify(result),
-      tool_call_id: toolCallId,
-      tool_results: result,
-    });
-  }
 }
+
+// add message with conv id, keep record of token count per conversation
+// get messages by conv id, check token count, if > maxContextTokens, summarize
+// store summary as system message, remove old messages, keep recent few messages
+// retrieve messages for LLM input, include summary and recent messages
