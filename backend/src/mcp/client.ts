@@ -113,7 +113,15 @@ export class MCPClient extends UsageBase {
       })) as MCP_RESPONSE;
       await this.chatHistory.addChatbotMessage({
         conversation_id: conversationId,
-        message: toolResult as any,
+        message: {
+          items: [
+            {
+              type: 'function_call_output',
+              call_id: toolCall.call_id,
+              output: JSON.stringify(toolCall),
+            },
+          ],
+        },
         tokenCount: 0,
       });
       console.log('====================================');
