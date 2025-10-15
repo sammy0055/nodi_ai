@@ -25,7 +25,7 @@ interface CreateConversationProps {
 }
 
 interface AIChatMessageAttributes {
-  message: any
+  message: any;
   conversation_id: string;
   tokenCount: number;
 }
@@ -118,7 +118,7 @@ export class ChatHistoryManager {
     if (message) {
       await AiChatHistoryModel.create({
         conversation_id: conversation_id,
-        chatContent: typeof message === 'string' ? [message] : message,
+        chatContent: message,
         tokenCount: tokenCount,
       });
 
@@ -141,7 +141,7 @@ export class ChatHistoryManager {
     if (!conversation) throw new Error('Conversation not found');
 
     if (conversation.tokenCount <= this.config.maxContextTokens) {
-      const messages = record.map((r) => r.chatContent).flat();
+      const messages = record.map((r) => r.chatContent && r.chatContent).flat();
       console.log('===============no neet for summary=====================');
       console.log(messages);
       console.log('====================================');

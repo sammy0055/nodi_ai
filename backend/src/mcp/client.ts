@@ -178,11 +178,7 @@ export class MCPClient extends UsageBase {
       console.log('====================================');
       const response = await this.openai.responses.create({
         model: this.llm_model,
-        input: [
-          { role: 'system', content: systemPrompt },
-          { role: 'assistant', content: history },
-          { role: 'user', content: query },
-        ],
+        input: [{ role: 'system', content: systemPrompt }, ...history, { role: 'user', content: query }],
 
         tools: this.tools,
       });
