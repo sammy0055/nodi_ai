@@ -28,7 +28,7 @@ export class MCPClient extends UsageBase {
   private chatHistory: ChatHistoryManager;
 
   llm_model = 'gpt-4.1-2025-04-14';
-  maxIterations = 5;
+  maxIterations = 3;
   OPENAI_API_KEY = '';
 
   constructor() {
@@ -66,6 +66,9 @@ export class MCPClient extends UsageBase {
       'Connected to server with tools:',
       this.tools.map(({ name }) => name)
     );
+    console.log('==============testing double======================');
+    console.log("testing double");
+    console.log('=================testing double===================');
   }
 
   protected async handleToolCall({
