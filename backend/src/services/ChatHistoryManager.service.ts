@@ -156,7 +156,9 @@ export class ChatHistoryManager {
     const callIdsToKeep = new Set(recentMessages.filter((m) => m?.call_id).map((m) => m?.call_id));
 
     // now ensure both sides (function_call + function_call_output) with same call_id stay together
-    recentMessages = messages.filter((m) => recentMessages.includes(m) || (m?.call_id && callIdsToKeep.has(m?.call_id)));
+    recentMessages = messages.filter(
+      (m) => recentMessages.includes(m) || (m?.call_id && callIdsToKeep.has(m?.call_id))
+    );
 
     // older messages (everything else)
     const oldMessages = messages.filter((m) => !recentMessages.includes(m));
@@ -187,11 +189,14 @@ export class ChatHistoryManager {
       AiChatHistoryModel.create({ chatContent: newChatContent, conversation_id: conversationId }),
       conversation.update({ tokenCount: newTotalTokens }),
     ]);
-  
+
     return newChatContent;
   }
 
   private buildSummaryPrompt(messages: any[]): string {
+    console.log('📛========buildSummaryIncommingChatHistory===============');
+    console.log(messages);
+    console.log('📛====================================');
     const conversationText = messages
       .map((msg) => {
         // 🔹 system / user / assistant messages

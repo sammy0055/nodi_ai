@@ -188,15 +188,15 @@ export class MCPClient extends UsageBase {
 
       for (const toolCall of toolCalls) {
         // extract existing call_ids from history to skip duplicates
-        const existingCallIds = new Set(
-          history
-            .filter((msg: any) => msg?.type === 'function_call' || msg?.type === 'function_call_output')
-            .map((msg: any) => msg?.call_id)
-            .filter(Boolean)
-        );
+        const existingCallIds = history
+          .filter((msg: any) => msg?.type === 'function_call' || msg?.type === 'function_call_output')
+          .map((msg: any) => msg?.call_id)
+          .filter(Boolean);
 
-        if (existingCallIds.has(toolCall.call_id)) {
-          console.log(`Skipping duplicate tool call: ${toolCall.name} (${toolCall.call_id})`);
+        if (existingCallIds.includes(toolCall.call_id)) {
+          console.log('⚠️ ====================================');
+          console.log(console.log(`Skipping duplicate tool call: ${toolCall.name} (${toolCall.call_id})`));
+          console.log('⚠️ ====================================');
           continue;
         }
 
