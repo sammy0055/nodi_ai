@@ -83,7 +83,7 @@ export class ChatService extends MCPChatBot {
   public async processQuery(userMessage: string) {
     const planOrg = await this.getOrganization();
     const customer = await this.getCustomerData();
-    await this.connectToServer();
+    await this.connectToMcpServer();
     const systemPrompt = createSystemPrompt({
       organizationData: planOrg!,
       customerData: customer,

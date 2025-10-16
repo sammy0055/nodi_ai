@@ -214,7 +214,7 @@ export class MCPChatBot extends MCPClient {
     super();
   }
 
-  public async connectToServer() {
+  public async connectToMcpServer() {
     this.transport = new StdioClientTransport({
       command: 'npx',
       args: ['tsx', 'src/mcp/server.ts'],
@@ -222,7 +222,7 @@ export class MCPChatBot extends MCPClient {
 
     try {
       await this.mcp.connect(this.transport);
-      await super.connectToServer();
+      await this.connectToServer();
     } catch (error) {
       console.error('Failed to connect to MCP server: ', error);
       throw error;
