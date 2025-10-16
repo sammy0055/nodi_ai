@@ -152,17 +152,32 @@ export class ChatHistoryManager {
     // get the last N messages
     let recentMessages = messages.slice(-this.config.keepRecentMessages);
 
-    // collect all call_ids present in those recent messages
-    const callIdsToKeep = new Set(recentMessages.filter((m) => m?.call_id).map((m) => m?.call_id));
+    // find call_ids that have both function_call and function_call_output
+    const callIdsToKeep = messages
+      .filter((m) => m?.call_id)
+      .reduce((acc, curr, _, all) => {
+        const hasPair = all.some(
+          (x) =>
+            x.call_id === curr.call_id &&
+            x.type !== curr.type &&
+            (x.type === 'function_call' || x.type === 'function_call_output')
+        );
 
-    // now ensure both sides (function_call + function_call_output) with same call_id stay together
-    recentMessages = messages.filter(
-      (m) => recentMessages.includes(m) || (m?.call_id && callIdsToKeep.has(m?.call_id))
-    );
+        if (hasPair && !acc.includes(curr.call_id)) {
+          acc.push(curr.call_id);
+        }
+        return acc;
+      }, []);
 
-    // older messages (everything else)
+    // filter to keep both recent and valid tool call pairs
+    recentMessages = messages.filter((m, i) => {
+      const inRecentWindow = i >= messages.length - this.config.keepRecentMessages;
+      const isPairedCall = m?.call_id && callIdsToKeep.includes(m.call_id);
+      return inRecentWindow || isPairedCall;
+    });
+
+    // old messages are everything else
     const oldMessages = messages.filter((m) => !recentMessages.includes(m));
-
     // get ids of old messages for deletion
     const oldMessagesIds = record.filter((r) => oldMessages.includes(r.chatContent)).map((r) => r.id);
     // Estimate tokens of recent messages (or track per-message tokens if needed)

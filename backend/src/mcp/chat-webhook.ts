@@ -39,7 +39,7 @@ chatRoute.post('/chat-webhook', async (req, res) => {
     for (const change of entry.changes || []) {
       for (const msg of change.value?.messages || []) {
         if (isDuplicate(msg.id)) {
-          return;
+          continue;
         }
         console.log('Got message:', msg.id, msg.text?.body);
         // process each message independently
@@ -57,8 +57,8 @@ chatRoute.post('/chat-webhook', async (req, res) => {
       const response = await chat.processQuery(userMessage);
       return await chat.sendWhatSappMessage({ recipientPhoneNumber: userPhoneNumber, message: response });
     } catch (error: any) {
-      console.log('chat-error', error);
-      return res.status(500).json({ error: error.message });
+      console.log('webhook-chat-error', error);
+      // return res.status(500).json({ error: error.message });
     }
   }
 });
