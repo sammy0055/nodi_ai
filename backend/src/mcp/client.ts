@@ -162,13 +162,14 @@ export class MCPClient extends UsageBase {
     let finalResponse = '';
     let totalTokenUsed = 0;
 
-    const history = await this.chatHistory.getMessagesForLLM(conversationId);
+    let history = await this.chatHistory.getMessagesForLLM(conversationId);
     const inputMessages =
       iteration === 0
         ? [{ role: 'system', content: systemPrompt }, ...history, { role: 'user', content: query }]
         : [{ role: 'system', content: systemPrompt }, ...history];
 
     while (iteration < this.maxIterations) {
+      history = await this.chatHistory.getMessagesForLLM(conversationId);
       console.log('=============history===============');
       console.log(JSON.stringify(history, null, 2));
       console.log('====================================');
