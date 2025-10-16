@@ -28,7 +28,7 @@ export class MCPClient extends UsageBase {
   private chatHistory: ChatHistoryManager;
 
   llm_model = 'gpt-4.1-2025-04-14';
-  maxIterations = 3;
+  maxIterations = 5;
   OPENAI_API_KEY = '';
 
   constructor() {
