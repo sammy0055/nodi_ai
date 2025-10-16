@@ -67,7 +67,7 @@ export class MCPClient extends UsageBase {
       this.tools.map(({ name }) => name)
     );
     console.log('==============testing double======================');
-    console.log("testing double");
+    console.log('testing double');
     console.log('=================testing double===================');
   }
 
@@ -165,15 +165,19 @@ export class MCPClient extends UsageBase {
     let finalResponse = '';
     let totalTokenUsed = 0;
 
+    const history = await this.chatHistory.getMessagesForLLM(conversationId);
+    const inputMessages =
+      iteration === 0
+        ? [{ role: 'system', content: systemPrompt }, ...history, { role: 'user', content: query }]
+        : [{ role: 'system', content: systemPrompt }, ...history];
+
     while (iteration < this.maxIterations) {
-      const history = await this.chatHistory.getMessagesForLLM(conversationId);
       console.log('=============history===============');
       console.log(JSON.stringify(history, null, 2));
       console.log('====================================');
       const response = await this.openai.responses.create({
         model: this.llm_model,
-        input: [{ role: 'system', content: systemPrompt }, ...history, { role: 'user', content: query }],
-
+        input: inputMessages,
         tools: this.tools,
       });
 
@@ -186,6 +190,19 @@ export class MCPClient extends UsageBase {
       }
 
       for (const toolCall of toolCalls) {
+        // extract existing call_ids from history to skip duplicates
+        const existingCallIds = new Set(
+          history
+            .filter((msg: any) => msg?.type === 'function_call' || msg?.type === 'function_call_output')
+            .map((msg: any) => msg?.call_id)
+            .filter(Boolean)
+        );
+
+        if (existingCallIds.has(toolCall.call_id)) {
+          console.log(`Skipping duplicate tool call: ${toolCall.name} (${toolCall.call_id})`);
+          continue;
+        }
+
         await this.handleToolCall({ conversationId: currentConversationId, organizationId, toolCall, customerId });
         // Add delay between calls (e.g., 1 second)
         await new Promise((r) => setTimeout(r, 1000));
