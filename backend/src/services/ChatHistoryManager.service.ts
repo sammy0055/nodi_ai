@@ -148,10 +148,14 @@ export class ChatHistoryManager {
     // Summarize older messages
     // flatten all messages
     const messages = record.map((r) => r.chatContent).flat();
-
+    console.log('📛========buildSummaryIncommingChatHistoryeRcord===============');
+    console.log(messages);
+    console.log('📛====================================');
     // get the last N messages
     let recentMessages = messages.slice(-this.config.keepRecentMessages);
-
+    console.log('📛========buildSummaryIncommingeRcentMessages===============');
+    console.log(recentMessages);
+    console.log('📛====================================');
     // find call_ids that have both function_call and function_call_output
     const callIdsToKeep = messages
       .filter((m) => m?.call_id)
@@ -169,6 +173,9 @@ export class ChatHistoryManager {
         return acc;
       }, []);
 
+    console.log('📛========buildSummaryIncommingeCallIdsToKeep===============');
+    console.log(callIdsToKeep);
+    console.log('📛====================================');
     // filter to keep both recent and valid tool call pairs
     recentMessages = messages.filter((m, i) => {
       const inRecentWindow = i >= messages.length - this.config.keepRecentMessages;
@@ -176,12 +183,17 @@ export class ChatHistoryManager {
       return inRecentWindow || isPairedCall;
     });
 
+    console.log('📛========buildSummaryIncommingeRcentMessagesAterTooFilter===============');
+    console.log(recentMessages);
+    console.log('📛====================================');
     // old messages are everything else
     const oldMessages = messages.filter((m) => !recentMessages.includes(m));
+    console.log('📛========buildSummaryIncommingeCallIdsToKeep===============');
+    console.log(oldMessages);
+    console.log('📛====================================');
     // get ids of old messages for deletion
     const oldMessagesIds = record.filter((r) => oldMessages.includes(r.chatContent)).map((r) => r.id);
-    // Estimate tokens of recent messages (or track per-message tokens if needed)
-    // For simplicity, assume summarization reduces old messages to ~200 tokens
+
     const summaryPrompt = this.buildSummaryPrompt(oldMessages);
     const summaryMessage = await this.generateSummary(summaryPrompt); // returns { role: 'system', content: '...' }
 
@@ -209,9 +221,6 @@ export class ChatHistoryManager {
   }
 
   private buildSummaryPrompt(messages: any[]): string {
-    console.log('📛========buildSummaryIncommingChatHistory===============');
-    console.log(messages);
-    console.log('📛====================================');
     const conversationText = messages
       .map((msg) => {
         // 🔹 system / user / assistant messages
