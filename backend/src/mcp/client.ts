@@ -66,9 +66,6 @@ export class MCPClient extends UsageBase {
       'Connected to server with tools:',
       this.tools.map(({ name }) => name)
     );
-    console.log('==============testing double======================');
-    console.log('testing double');
-    console.log('=================testing double===================');
   }
 
   protected async handleToolCall({
