@@ -61,6 +61,9 @@ export class OrderService {
     
           if (area) {
              const plainArea = area.get({ plain: true });
+             console.log('==============plainArea======================');
+             console.log(plainArea);
+             console.log('====================================');
             order.area = { name: plainArea.name, id: plainArea.id, zone: plainArea.zone };
           }
         }
