@@ -44,9 +44,18 @@ export class ChatHistoryManager {
   }
 
   // Create a new conversation
-  async createConversation({ organizationId, customerId, title }: CreateConversationProps): Promise<Conversation> {
+  async createConversation({
+    organizationId,
+    customerId,
+    systemPrompt,
+    title,
+  }: CreateConversationProps): Promise<Conversation> {
+    const openai = new OpenAI({ apiKey: appConfig.mcpKeys.openaiKey });
+    const conversation = await openai.conversations.create(
+      systemPrompt ? { items: [{ role: 'system', content: systemPrompt }] } : {}
+    );
     return await Conversation.create({
-      id: uuidv4(),
+      id: conversation.id,
       organizationId: organizationId,
       customerId: customerId,
       title: title,
