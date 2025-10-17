@@ -34,54 +34,54 @@ export class OrderService {
       order: [['createdAt', 'DESC']], // recent first
     });
 
-    // {
-    //     model: AreaModel,
-    //     as: 'area',
-    //     attributes: ['id', 'name'],
-    //     include: [{ model: ZoneModel, as: 'zone', attributes: ['id', 'name'] }],
-    //   },
-
     // prepare pagination info
     const totalPages = Math.ceil(totalItems / limit);
+    const plainOrders = [];
+
     for (const order of orders) {
-      for (let i = 0; i < order.items.length; i++) {
-        const item = order.items[i];
+      const plainOrder = order.get({ plain: true });
+
+      for (let i = 0; i < plainOrder.items.length; i++) {
+        const item = plainOrder.items[i];
+
         if (item.productId) {
           const product = await ProductModel.findByPk(item.productId);
           if (product) {
-            order.items[i].product = product; // attach the actual product
-            // optionally remove productId if you don't need it
-            delete order.items[i].productId;
+            plainOrder.items[i].product = product.get({ plain: true });
+            delete plainOrder.items[i].productId;
           }
         }
-        if (order.deliveryAreaId) {
-          const area = (await AreaModel.findByPk(order.deliveryAreaId, {
+
+        if (plainOrder.deliveryAreaId) {
+          const area = await AreaModel.findByPk(plainOrder.deliveryAreaId, {
             include: [{ model: ZoneModel, as: 'zone', attributes: ['id', 'name'] }],
-          })) as any;
-    
+          });
+
           if (area) {
-             const plainArea = area.get({ plain: true });
-             console.log('==============plainArea======================');
-             console.log(plainArea);
-             console.log('====================================');
-            order.area = { name: plainArea.name, id: plainArea.id, zone: plainArea.zone };
+            const plainArea = area.get({ plain: true }) as any;
+            plainOrder.area = {
+              id: plainArea.id,
+              name: plainArea.name,
+              zone: plainArea.zone,
+            };
           }
         }
       }
-    }
-    return {
-      data: orders,
-      pagination: {
-        totalItems,
-        totalPages,
-        currentPage: page,
-        pageSize: limit,
-        hasNextPage: page < totalPages,
-        hasPrevPage: page > 1,
-      },
-    };
-  }
 
+      plainOrders.push(plainOrder);
+      return {
+        data: plainOrders,
+        pagination: {
+          totalItems,
+          totalPages,
+          currentPage: page,
+          pageSize: limit,
+          hasNextPage: page < totalPages,
+          hasPrevPage: page > 1,
+        },
+      };
+    }
+  }
   static async updateOrderStatus(
     user: Pick<User, 'id' | 'organizationId'>,
     orderId: string,
