@@ -85,7 +85,6 @@ export interface IOrder {
   items: OrderItem[];
   subtotal: number;
   deliveryCharge: number;
-  discountAmount?: number;
   totalAmount: number;
   currency: string;
   deliveryAreaId: string; // to be checked
@@ -119,7 +118,6 @@ export interface IOrder {
 const OrdersPage: React.FC = () => {
   const orders = useOrdersValue();
   const setOrders = useOrdersSetRecoilState();
-
   //   const [orders, setOrders] = useState<IOrder[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<IOrder[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -326,9 +324,6 @@ const OrdersPage: React.FC = () => {
       <div className="md:col-span-2 hidden md:block">
         <div className="text-right">
           <p className="text-lg font-bold text-neutral-900">{formatCurrency(order.totalAmount, order.currency)}</p>
-          {order.discountAmount && order.discountAmount > 0 && (
-            <p className="text-sm text-green-600">Saved {formatCurrency(order.discountAmount, order.currency)}</p>
-          )}
         </div>
       </div>
 
@@ -616,20 +611,28 @@ const OrdersPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <h4 className="font-medium text-neutral-900 mb-2">Delivery Information</h4>
+                    <h4 className="font-medium text-neutral-900 mb-2">
+                      {selectedOrder.serviceType === 'delivery' ? 'Delivery Information' : 'Pickup Information'}
+                    </h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-neutral-500">Branch:</span>
                         <span className="font-medium">{selectedOrder.branch.name}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-neutral-500">Delivery Area:</span>
-                        <span className="font-medium">{selectedOrder.area.name}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-neutral-500">Delivery Zone:</span>
-                        <span className="font-medium">{selectedOrder.area.zone.name}</span>
-                      </div>
+
+                      {selectedOrder?.area && (
+                        <>
+                          <div className="flex justify-between">
+                            <span className="text-neutral-500">Delivery Zone:</span>
+                            <span className="font-medium">{selectedOrder.area.zone?.name}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-neutral-500">Delivery Area:</span>
+                            <span className="font-medium">{selectedOrder.area.name}</span>
+                          </div>
+                        </>
+                      )}
+
                       {selectedOrder.serviceType === 'delivery' && (
                         <div className="flex justify-between">
                           <span className="text-neutral-500">Shipping Address:</span>
@@ -695,14 +698,7 @@ const OrdersPage: React.FC = () => {
                           {formatCurrency(selectedOrder.subtotal, selectedOrder.currency)}
                         </span>
                       </div>
-                      {selectedOrder.discountAmount && selectedOrder.discountAmount > 0 && (
-                        <div className="flex justify-between">
-                          <span className="text-neutral-500">Discount:</span>
-                          <span className="font-medium text-green-600">
-                            -{formatCurrency(selectedOrder.discountAmount, selectedOrder.currency)}
-                          </span>
-                        </div>
-                      )}
+
                       <div className="flex justify-between">
                         <span className="text-neutral-500">Delivery Charge:</span>
                         <span className="font-medium">
