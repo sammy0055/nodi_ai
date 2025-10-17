@@ -58,11 +58,10 @@ export class OrderService {
           const area = (await AreaModel.findByPk(order.deliveryAreaId, {
             include: [{ model: ZoneModel, as: 'zone', attributes: ['id', 'name'] }],
           })) as any;
-          console.log('===================area=================');
-          console.log(area);
-          console.log('====================================');
+    
           if (area) {
-            order.area = { name: area.name, id: area.id, zone: area.zone };
+             const plainArea = area.get({ plain: true });
+            order.area = { name: plainArea.name, id: plainArea.id, zone: plainArea.zone };
           }
         }
       }
