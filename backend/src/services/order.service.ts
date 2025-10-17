@@ -64,18 +64,11 @@ export class OrderService {
               name: plainArea.name,
               zone: plainArea.zone,
             };
-
-            console.log('================plainOrder====================');
-            console.log(plainOrder);
-            console.log('====================================');
           }
         }
+        plainOrders.push(plainOrder);
       }
 
-      plainOrders.push(plainOrder);
-      console.log('================plainOrders====================');
-            console.log(plainOrders);
-            console.log('====================================');
       return {
         data: plainOrders,
         pagination: {
