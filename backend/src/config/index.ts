@@ -72,6 +72,5 @@ export const appConfig = {
   },
   mcpKeys: {
     openaiKey: getEnv('OPENAI_API_KEY'),
-    model: 'gpt-4.1-2025-04-14',
   },
 };

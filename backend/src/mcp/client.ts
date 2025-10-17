@@ -44,7 +44,6 @@ export class MCPClient extends UsageBase {
     const mcpDetails = appConfig.mcpKeys;
     if (mcpDetails) {
       this.OPENAI_API_KEY = mcpDetails.openaiKey;
-      this.llm_model = mcpDetails.model;
     }
 
     this.openai = new OpenAI({ apiKey: this.OPENAI_API_KEY });
