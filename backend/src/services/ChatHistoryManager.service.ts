@@ -205,18 +205,15 @@ export class ChatHistoryManager {
     // Persist: replace old messages with summary + recent
     const newChatContent = [{ role: 'assistant', content: summaryMessage }, ...recentMessages];
 
-    await Promise.all([
-      AiChatHistoryModel.destroy({
-        where: {
-          id: {
-            [Op.in]: oldMessagesIds,
-          },
+    await AiChatHistoryModel.destroy({
+      where: {
+        id: {
+          [Op.in]: oldMessagesIds,
         },
-      }),
-      AiChatHistoryModel.create({ chatContent: newChatContent, conversation_id: conversationId }),
-      conversation.update({ tokenCount: newTotalTokens }),
-    ]);
-
+      },
+    });
+    await AiChatHistoryModel.create({ chatContent: newChatContent, conversation_id: conversationId });
+    await conversation.update({ tokenCount: newTotalTokens });
     return newChatContent;
   }
 
