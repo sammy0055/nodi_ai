@@ -47,9 +47,7 @@ export class OrderService {
       for (let i = 0; i < order.items.length; i++) {
         const item = order.items[i];
         if (item.productId) {
-          const product = await ProductModel.findByPk(item.productId, {
-            include: [{ model: ZoneModel, as: 'zone', attributes: ['id', 'name'] }],
-          });
+          const product = await ProductModel.findByPk(item.productId);
           if (product) {
             order.items[i].product = product; // attach the actual product
             // optionally remove productId if you don't need it
@@ -57,7 +55,10 @@ export class OrderService {
           }
         }
         if (order.deliveryAreaId) {
-          const area = (await AreaModel.findByPk(order.deliveryAreaId)) as any;
+          const area = (await AreaModel.findByPk(order.deliveryAreaId),
+          {
+            include: [{ model: ZoneModel, as: 'zone', attributes: ['id', 'name'] }],
+          }) as any;
           if (area) {
             order.area = { name: area.name, id: area.id, zone: area.zone };
           }
