@@ -31,7 +31,7 @@ export const findBranchesWithProduct = (server: McpServer) => {
           query: params.area,
           organizationId: params.organizationId,
         })) as any;
-        if (areas && areas.length !== 0) {
+        if (areas && areas.length === 0) {
           return { content: [{ type: 'text', text: 'This product is not available in your area' }] };
         }
         const branches = areas.map((area) => area?.branchId);
