@@ -105,9 +105,9 @@ OrderModel.init(
       },
     },
     deliveryAreaId: {
-      type: DataTypes.STRING,
+      type: DataTypes.UUID,
       allowNull: false,
-      defaultValue: '',
+      defaultValue: '00000000-0000-0000-0000-000000000000',
       references: {
         model: ModelNames.Areas,
         key: 'id',
