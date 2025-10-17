@@ -166,6 +166,7 @@ export class MCPClient extends UsageBase {
 
         tools: this.tools,
         conversation: conversationId, // OpenAI remembers everything
+        truncation: 'auto',
       });
 
       const toolCalls = response.output.filter((item) => item.type === 'function_call');
@@ -184,7 +185,7 @@ export class MCPClient extends UsageBase {
 
       iteration++;
     }
-    
+
     await this.chatHistory.addMessage(conversationId, { role: 'assistant', content: finalResponse });
     return finalResponse;
   }
