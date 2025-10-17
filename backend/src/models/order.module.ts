@@ -105,14 +105,9 @@ OrderModel.init(
       },
     },
     deliveryAreaId: {
-      type: DataTypes.UUID,
+      type: DataTypes.STRING,
       allowNull: true,
-      references: {
-        model: ModelNames.Areas,
-        key: 'id',
-      },
-      onDelete: 'CASCADE',
-      onUpdate: 'CASCADE',
+      defaultValue: '',
     },
     source: {
       type: DataTypes.ENUM,
