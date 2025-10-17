@@ -172,7 +172,7 @@ OrderModel.init(
       // This will be automatically calculated when order is created
     },
     currency: { type: DataTypes.STRING, allowNull: false },
-    shippingAddress: { type: DataTypes.STRING, allowNull: false },
+    shippingAddress: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
     shippingAddressCoordinates: { type: DataTypes.JSONB, allowNull: true },
     serviceType: { type: DataTypes.ENUM('delivery', 'takeaway'), allowNull: false },
     deliveryAreaName: { type: DataTypes.STRING, allowNull: true },
