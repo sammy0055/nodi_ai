@@ -21,7 +21,7 @@ export const createOrder = (server: McpServer) => {
         customerId: z.string(),
         branchId: z.string(),
         currency: z.enum(currencyCodes as any),
-        deliveryAreaId: z.string().describe('the id of the delivery area'),
+        deliveryAreaId: z.string().describe('the id of the delivery area. must be present if order is delivery.').optional(),
         serviceType: z.enum(['delivery', 'takeaway']),
         items: z.array(
           z.object({
