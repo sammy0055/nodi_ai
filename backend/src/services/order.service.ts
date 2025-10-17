@@ -30,15 +30,16 @@ export class OrderService {
       include: [
         { model: CustomerModel, as: 'customer' },
         { model: BranchesModel, as: 'branch' },
-        {
-          model: AreaModel,
-          as: 'area',
-          attributes: ['id', 'name'],
-          include: [{ model: ZoneModel, as: 'zone', attributes: ['id', 'name'] }],
-        },
       ], // join for customer info
       order: [['createdAt', 'DESC']], // recent first
     });
+
+    // {
+    //     model: AreaModel,
+    //     as: 'area',
+    //     attributes: ['id', 'name'],
+    //     include: [{ model: ZoneModel, as: 'zone', attributes: ['id', 'name'] }],
+    //   },
 
     // prepare pagination info
     const totalPages = Math.ceil(totalItems / limit);
@@ -46,11 +47,19 @@ export class OrderService {
       for (let i = 0; i < order.items.length; i++) {
         const item = order.items[i];
         if (item.productId) {
-          const product = await ProductModel.findByPk(item.productId);
+          const product = await ProductModel.findByPk(item.productId, {
+            include: [{ model: ZoneModel, as: 'zone', attributes: ['id', 'name'] }],
+          });
           if (product) {
             order.items[i].product = product; // attach the actual product
             // optionally remove productId if you don't need it
             delete order.items[i].productId;
+          }
+        }
+        if (order.deliveryAreaId) {
+          const area = (await AreaModel.findByPk(order.deliveryAreaId)) as any;
+          if (area) {
+            order.area = { name: area.name, id: area.id, zone: area.zone };
           }
         }
       }

@@ -36,6 +36,7 @@ class OrderModel
   declare searchVector?: any;
   declare cancelWindowMinutes: number;
   declare cancellationDeadline: Date;
+  declare area?: any
 
   static associate(models: DbModels) {
     this.belongsTo(models.OrganizationsModel, {
@@ -53,10 +54,6 @@ class OrderModel
       as: 'branch',
     });
 
-    this.belongsTo(models.AreaModel, {
-      foreignKey: 'deliveryAreaId',
-      as: 'area',
-    });
   }
 
   // Add a helper method to check if order can be cancelled

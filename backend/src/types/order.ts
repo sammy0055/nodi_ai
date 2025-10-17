@@ -1,3 +1,5 @@
+import { IArea } from './area';
+
 export enum OrderStatusTypes {
   PENDING = 'pending',
   CONFIRMED = 'confirmed',
@@ -60,4 +62,5 @@ export interface IOrder {
   };
   cancelWindowMinutes: number;
   cancellationDeadline: Date;
+  area?: IArea;
 }
