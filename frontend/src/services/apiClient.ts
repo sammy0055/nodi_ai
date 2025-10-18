@@ -56,6 +56,7 @@ export const API_ROUTES = {
   GET_ORDERS: `${API_BASE_URL}/organization/order/get-all`,
   UPDATE_ORDER_STATUS: `${API_BASE_URL}/organization/order/update-order-status`,
   GET_CUSTOMERS: `${API_BASE_URL}/organization/customers/get-all`,
+  GET_REVIEWS: `${API_BASE_URL}/organization/review/get-reviews`,
 } as const;
 
 export type ApiRouteName = keyof typeof API_ROUTES;

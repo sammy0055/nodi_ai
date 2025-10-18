@@ -14,6 +14,7 @@ import type {
 } from '../types/subscription';
 import type { IOrder } from '../pages/tenant/OrderPage';
 import type { Customer, Pagination } from '../types/customer';
+import type { IReview } from '../pages/tenant/ReviewPage';
 
 export const userAtom = atom<User | null>({
   key: uuid(),
@@ -96,6 +97,11 @@ export const customerAtom = atom<Customer[] | []>({
   default: [],
 });
 
+export const reviewAtom = atom<IReview[] | []>({
+  key: uuid(),
+  default: [],
+});
+
 export const paginationAtom = atom<Pagination | null>({
   key: uuid(),
   default: null,
@@ -117,6 +123,7 @@ export const useCreditUsageValue = (): UsageRecordAttributes[] | [] => useRecoil
 export const useCreditBalanceValue = (): CreditBalanceAttributes | null => useRecoilValue(creditBalanceAtom);
 export const useOrdersValue = (): IOrder[] | [] => useRecoilValue(ordersAtom);
 export const useCustomerValue = (): Customer[] | [] => useRecoilValue(customerAtom);
+export const useReviewValue = (): IReview[] | [] => useRecoilValue(reviewAtom);
 export const usePaginationValue = (): Pagination | null => useRecoilValue(paginationAtom);
 
 // Set values
@@ -135,4 +142,5 @@ export const useCreditUsageSetRecoilState = () => useSetRecoilState(creditUsageA
 export const useCreditBalanceSetRecoilState = () => useSetRecoilState(creditBalanceAtom);
 export const useOrdersSetRecoilState = () => useSetRecoilState(ordersAtom);
 export const useCustomersSetRecoilState = () => useSetRecoilState(customerAtom);
+export const useReviewsSetRecoilState = () => useSetRecoilState(reviewAtom);
 export const usePaginationSetRecoilState = () => useSetRecoilState(paginationAtom);

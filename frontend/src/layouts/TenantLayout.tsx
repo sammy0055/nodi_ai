@@ -12,6 +12,7 @@ import {
   FiLogOut,
   FiNavigation,
   FiBox,
+  FiRefreshCw,
 } from 'react-icons/fi';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { PageRoutes } from '../routes';
@@ -37,6 +38,7 @@ export const TenantLayout = ({ children }: TenantLayoutProps) => {
     { path: `/app/${PageRoutes.AreasZones}`, label: 'AreaZone', icon: <FiNavigation className="text-lg" /> },
     { path: `/app/${PageRoutes.INVENTORY}`, label: 'Branch Inventory', icon: <FiBox className="text-lg" /> },
     { path: `/app/${PageRoutes.CUSTOMERS}`, label: 'Customers', icon: <FiUsers className="text-lg" /> },
+    { path: `/app/${PageRoutes.REVIEWS}`, label: 'Reviews', icon: <FiRefreshCw className="text-lg" /> },
     { path: `/app/${PageRoutes.BILLING}`, label: 'Billing', icon: <FiDollarSign className="text-lg" /> },
     { path: `/app/${PageRoutes.SETTINGS}`, label: 'Settings', icon: <FiSettings className="text-lg" /> },
   ];

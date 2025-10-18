@@ -24,5 +24,6 @@ Enterprise – $1,299/month
 Full features, AI enhancements, priority support
 
 things to fix ----------------------
-
-1. create association to retreive products with options in mcp server
+2. add review section in frontend dashboard
+3. summary chat and clear conversation after every successful order, do the same for review
+4. add customer deliver area preference after every order.
