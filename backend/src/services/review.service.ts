@@ -60,7 +60,7 @@ export class ReviewService {
     if (allProductIds.size > 0) {
       const products = await ProductModel.findAll({
         where: { id: { [Op.in]: Array.from(allProductIds) } },
-        attributes: ['id', 'name', 'price', 'image'],
+        attributes: ['id', 'name', 'imageUrl'],
       });
 
       const productMap = new Map(products.map((p) => [p.id, p]));
