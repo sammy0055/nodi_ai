@@ -5,6 +5,7 @@ import { OrderModel } from '../models/order.module';
 import { ReviewModel } from '../models/review.model';
 import { Pagination } from '../types/common-types';
 import { User } from '../types/users';
+import { ProductModel } from '../models/products.model';
 
 export class ReviewService {
   static async getReviewsByOrganization(
@@ -45,10 +46,41 @@ export class ReviewService {
       order: [['createdAt', 'DESC']],
     });
 
+    // ---- populate product details in each order.items ----
+    const allProductIds = new Set<string>();
+    for (const review of reviews as any) {
+      const order = review.order;
+      if (order?.items && Array.isArray(order.items)) {
+        for (const item of order.items) {
+          if (item.productId) allProductIds.add(item.productId);
+        }
+      }
+    }
+
+    if (allProductIds.size > 0) {
+      const products = await ProductModel.findAll({
+        where: { id: { [Op.in]: Array.from(allProductIds) } },
+        attributes: ['id', 'name', 'price', 'image'],
+      });
+
+      const productMap = new Map(products.map((p) => [p.id, p]));
+
+      // merge product details into items
+      for (const review of reviews as any) {
+        const order = review.order;
+        if (order?.items && Array.isArray(order.items)) {
+          order.items = order.items.map((item: any) => ({
+            ...item,
+            product: productMap.get(item.productId) || null,
+          }));
+        }
+      }
+    }
+
     const totalPages = Math.ceil(totalItems / limit);
 
     return {
-      data:reviews,
+      data: reviews,
       pagination: {
         totalItems,
         totalPages,
