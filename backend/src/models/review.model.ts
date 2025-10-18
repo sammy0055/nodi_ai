@@ -76,6 +76,11 @@ ReviewModel.init(
         max: 5,
       },
     },
+    comment: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+      defaultValue: '',
+    },
   },
   {
     sequelize,
@@ -92,9 +97,7 @@ ReviewModel.init(
           sequelize.literal(`
       to_tsvector(
         'english',
-        coalesce("comment", '') || ' ' ||
-        coalesce("customerId", '') || ' ' ||
-        coalesce("orderId", '')
+        coalesce("comment", '') || ' '
       )
     `),
         ],

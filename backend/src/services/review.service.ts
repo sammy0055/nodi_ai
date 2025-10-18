@@ -23,9 +23,7 @@ export class ReviewService {
       where[Op.and] = literal(`
         to_tsvector(
           'english',
-          coalesce("Reviews"."comment",'') || ' ' ||
-          coalesce("Reviews"."customerId",'') || ' ' ||
-          coalesce("Reviews"."orderId",'')
+          coalesce("Reviews"."comment",'') || ' '
         )
         @@ plainto_tsquery('english', ${safeQuery})
       `);
