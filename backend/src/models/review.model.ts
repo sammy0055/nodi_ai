@@ -77,7 +77,40 @@ ReviewModel.init(
       },
     },
   },
-  { sequelize, modelName: ModelNames.Reviews, tableName: ModelNames.Reviews, timestamps: true }
+  {
+    sequelize,
+    modelName: ModelNames.Reviews,
+    tableName: ModelNames.Reviews,
+    timestamps: true,
+
+    indexes: [
+      // GIN text search index (for full-text search on comment)
+      {
+        name: 'review_search_idx',
+        using: 'GIN',
+        fields: [
+          sequelize.literal(`
+      to_tsvector(
+        'english',
+        coalesce("comment", '') || ' ' ||
+        coalesce("customerId", '') || ' ' ||
+        coalesce("orderId", '')
+      )
+    `),
+        ],
+      },
+      // Search by customerId
+      {
+        name: 'review_customer_idx',
+        fields: ['customerId'],
+      },
+      // Search by orderId
+      {
+        name: 'review_order_idx',
+        fields: ['orderId'],
+      },
+    ],
+  }
 );
 
 export { ReviewModel };

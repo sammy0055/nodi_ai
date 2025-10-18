@@ -24,6 +24,7 @@ import { ManageVectorStore } from './helpers/vector-store.js';
 import { chatRoute } from './mcp/chat-webhook.js';
 import { orderRoute } from './routes/order.route.js';
 import { customerRoute } from './routes/customer.route.js';
+import { reviewRoute } from './routes/review.route.js';
 
 const app = express();
 
@@ -52,6 +53,7 @@ app.use('/api/organization/subscription', subscriptionRouter);
 app.use('/api/organization/subscription-plan', subscriptionRoute);
 app.use('/api/organization/order', orderRoute);
 app.use('/api/organization/customers', customerRoute);
+app.use('/api/organization/review', reviewRoute);
 
 // app-user routes
 app.use('/api/app-user/subscription-plan', appUserAuthSecretValidation, subscriptionRoute);
