@@ -48,7 +48,7 @@ export class ReviewService {
     const totalPages = Math.ceil(totalItems / limit);
 
     return {
-      reviews,
+      data:reviews,
       pagination: {
         totalItems,
         totalPages,
