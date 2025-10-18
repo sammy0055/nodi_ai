@@ -21,5 +21,6 @@ export enum ModelNames {
   Orders = 'Orders',
   Conversations = "Conversations",
   ChatMessage = "ChatMessage",
-  AiChatHistory = "AiChatHistory",
+  AiChatHistory = "AiChatHistory", //to be removed
+  Reviews = 'Reviews',  
 }

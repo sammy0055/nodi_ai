@@ -129,3 +129,38 @@ export const calculateDelivery = (server: McpServer) => {
     }
   );
 };
+
+export const getAllZonesAndAreas = async (server: McpServer) => {
+  return server.registerTool(
+    'get_all_zones_and_areas',
+    {
+      title: 'get_all_zones_and_areas',
+      description: 'Get all zones and areas for an organization',
+      inputSchema: {
+        organizationId: z.string(),
+        maxResults: z.number().default(10).optional(),
+      },
+    },
+    async (params) => {
+      try {
+        const zonesAndAreas = await AreaModel.findAll({
+          where: { organizationId: params.organizationId },
+          limit: params.maxResults || 10,
+          include: [
+            { model: ZoneModel, as: 'zone', attributes: ['id', 'name'] },
+
+            { model: BranchesModel, as: 'branch', attributes: ['id', 'name'] },
+          ],
+        });
+        return {
+          content: [{ type: 'text', text: JSON.stringify(zonesAndAreas), mimeType: 'application/json' }],
+        };
+      } catch (error: any) {
+        console.error(`MCP-ERROR-GETZONES-AND-AREAS: ${error.message}`);
+        return {
+          content: [{ type: 'text', text: 'Failed to get Zones and Areas' }],
+        };
+      }
+    }
+  );
+};

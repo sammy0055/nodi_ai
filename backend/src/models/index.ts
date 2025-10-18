@@ -22,6 +22,7 @@ import { OrderModel } from './order.module';
 import { Conversation } from './conversation.model';
 import { ChatMessage } from './chat-messages.model';
 import { AiChatHistoryModel } from './ai-chat-history.model';
+import { ReviewModel } from './review.model';
 
 interface DbModels {
   OrganizationsModel: typeof OrganizationsModel;
@@ -47,6 +48,7 @@ interface DbModels {
   Conversation: typeof Conversation;
   ChatMessage: typeof ChatMessage;
   AiChatHistoryModel: typeof AiChatHistoryModel;
+  ReviewModel: typeof ReviewModel;
 }
 
 const models: DbModels = {
@@ -73,6 +75,7 @@ const models: DbModels = {
   Conversation,
   ChatMessage,
   AiChatHistoryModel,
+  ReviewModel
 };
 
 Object.values(models).forEach((model: any) => {
