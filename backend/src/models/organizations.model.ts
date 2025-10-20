@@ -16,6 +16,7 @@ class OrganizationsModel
   declare brandTone: string;
   declare AIAssistantName: string;
   declare stripeCustomerId?: string | undefined;
+  declare shouldUpdateChatbotSystemPrompt?: boolean | undefined;
   static associate(models: DbModels) {
     //hasMany The foreign key is on the other model (the one being linked).
     this.hasMany(models.BranchesModel, { foreignKey: 'organizationId' });
@@ -74,6 +75,7 @@ OrganizationsModel.init(
     brandTone: { type: DataTypes.STRING, defaultValue: '' },
     AIAssistantName: { type: DataTypes.STRING, allowNull: true },
     stripeCustomerId: { type: DataTypes.STRING, allowNull: true },
+    shouldUpdateChatbotSystemPrompt: { type: DataTypes.BOOLEAN, defaultValue: true },
   },
   {
     sequelize,
@@ -84,6 +86,11 @@ OrganizationsModel.init(
         fields: ['stripeCustomerId'],
       },
     ],
+    hooks: {
+      beforeUpdate: async (org: IOrganization) => {
+        org.shouldUpdateChatbotSystemPrompt = true;
+      },
+    },
   }
 );
 

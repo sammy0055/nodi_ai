@@ -9,4 +9,5 @@ export interface IOrganization {
   AIAssistantName:string
   Whatsappsettings?: IWhatSappSettings[];
   stripeCustomerId?:string
+  shouldUpdateChatbotSystemPrompt?:boolean
 }

@@ -144,7 +144,7 @@ export class MCPClient extends UsageBase {
     // Add user message to history
     await this.openai.conversations.items.create(conversationId, {
       items: [
-        { role: 'system', content: systemPrompt },
+        ...(systemPrompt?.trim() && ([{ role: 'system', content: systemPrompt }] as any)),
         { role: 'user', content: query },
       ],
     });
