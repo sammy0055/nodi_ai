@@ -9,7 +9,7 @@ import { ZoneModel } from '../models/zones.model';
 import { Pagination } from '../types/common-types';
 import { OrderStatusTypes } from '../types/order';
 import { User } from '../types/users';
-import { Op, literal } from 'sequelize';
+import { JSON, Op, literal } from 'sequelize';
 
 interface selectedOptionsAttributes {
   optionId: string;
@@ -98,7 +98,9 @@ export class OrderService {
       // push after processing
       plainOrders.push(plainOrder);
     }
-
+    console.log('====================================');
+    console.log(plainOrders);
+    console.log('====================================');
     // ✅ Return only after all orders are processed
     return {
       data: plainOrders,
