@@ -93,7 +93,7 @@ chatRoute.post('/chat-webhook', async (req, res) => {
 
     while (queue.messages.length > 0) {
       // collect all messages (handles spam bursts)
-      const batch = [...queue.messages].map((m) => m.text?.body).join('\n');
+      const batch = [...queue.messages].join('\n');
       queue.messages.length = 0; // clear buffer
       if (msg.text?.body) msg.text.body = batch;
       console.log('================batch====================');
