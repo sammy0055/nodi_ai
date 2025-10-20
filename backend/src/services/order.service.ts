@@ -112,9 +112,7 @@ export class OrderService {
       // push after processing
       plainOrders.push(plainOrder);
     }
-    console.log('====================================');
-    console.log(plainOrders);
-    console.log('====================================');
+
     // ✅ Return only after all orders are processed
     return {
       data: plainOrders,
