@@ -57,32 +57,36 @@ export class OrderService {
         if (item.productId) {
           const product = await ProductModel.findByPk(item.productId);
           if (product) {
-            if (item?.selectedOptions?.length !== 0) {
+            if (item?.selectedOptions?.length) {
               const selectedOptions = item.selectedOptions as selectedOptionsAttributes[];
-              const optionIds = selectedOptions.map((op) => op.optionId);
-              const options = await ProductOptionModel.findAll({
-                where: { id: { [Op.in]: optionIds.filter(Boolean) }, productId: product.id },
-                include: [
-                  {
-                    model: ProductOptionChoiceModel,
-                    as: 'choices',
-                    attributes: ['id', 'label', 'priceAdjustment'],
-                    where: { id: item.selectedOptions?.choiceId },
-                  },
-                ],
-              });
 
-              // convert choices array to single object
-              const plainOptions = options.map((opt) => {
-                const plain = opt.get({ plain: true }) as any;
-                return {
-                  ...plain,
-                  choice: plain.choices?.[0], // remove the array if you don’t need it
-                };
-              });
+              const options = [];
+              for (const selected of selectedOptions) {
+                if (!selected.optionId) continue;
+
+                const option = await ProductOptionModel.findOne({
+                  where: { id: selected.optionId, productId: product.id },
+                  include: [
+                    {
+                      model: ProductOptionChoiceModel,
+                      as: 'choices',
+                      attributes: ['id', 'label', 'priceAdjustment'],
+                      where: { id: selected.choiceId },
+                    },
+                  ],
+                });
+
+                if (option) {
+                  const plain = option.get({ plain: true }) as any;
+                  options.push({
+                    ...plain,
+                    choice: plain.choices?.[0] || null, // single object instead of array
+                  });
+                }
+              }
 
               const productData = product.get({ plain: true }) as any;
-              if (options.length) productData.options = plainOptions;
+              if (options.length) productData.options = options;
 
               plainOrder.items[i].product = productData;
               delete plainOrder.items[i].productId;
@@ -90,7 +94,6 @@ export class OrderService {
           }
         }
       }
-
       // attach area if present
       if (plainOrder.deliveryAreaId) {
         const area = await AreaModel.findByPk(plainOrder.deliveryAreaId, {
