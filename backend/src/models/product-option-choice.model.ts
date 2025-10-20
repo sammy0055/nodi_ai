@@ -37,7 +37,15 @@ ProductOptionChoiceModel.init(
       onUpdate: 'CASCADE',
     },
     label: { type: DataTypes.STRING, allowNull: false, comment: `"Small", "No Salt", "Extra Cheese"` },
-    priceAdjustment: { type: DataTypes.DECIMAL(10, 2), allowNull: true, comment: '+2.50, -1.00, or 0' },
+    priceAdjustment: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+      comment: '+2.50, -1.00, or 0',
+      get() {
+        const rawValue = this.getDataValue('priceAdjustment');
+        return rawValue === null ? null : parseFloat(rawValue as any);
+      },
+    },
     isDefault: { type: DataTypes.BOOLEAN, defaultValue: false, comment: 'pre-selected option' },
   },
   {

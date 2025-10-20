@@ -63,12 +63,26 @@ export class OrderService {
               const options = await ProductOptionModel.findAll({
                 where: { id: { [Op.in]: optionIds.filter(Boolean) }, productId: product.id },
                 include: [
-                  { model: ProductOptionChoiceModel, as: 'choices', attributes: ['id', 'label', 'priceAdjustment'] },
+                  {
+                    model: ProductOptionChoiceModel,
+                    as: 'choices',
+                    attributes: ['id', 'label', 'priceAdjustment'],
+                    where: { id: item.selectedOptions?.choiceId },
+                  },
                 ],
               });
 
+              // convert choices array to single object
+              const plainOptions = options.map((opt) => {
+                const plain = opt.get({ plain: true }) as any;
+                return {
+                  ...plain,
+                  choice: plain.choices?.[0], // remove the array if you don’t need it
+                };
+              });
+
               const productData = product.get({ plain: true }) as any;
-              if (options.length) productData.options = options;
+              if (options.length) productData.options = plainOptions;
 
               plainOrder.items[i].product = productData;
               delete plainOrder.items[i].productId;
