@@ -88,11 +88,17 @@ chatRoute.post('/chat-webhook', async (req, res) => {
 
     queue.processing = true;
 
+    // wait a bit to collect more messages (2s window)
+    await new Promise((r) => setTimeout(r, 2000));
+
     while (queue.messages.length > 0) {
       // collect all messages (handles spam bursts)
-      const batch = [...queue.messages];
+      const batch = [...queue.messages].map((m) => m.text?.body).join('\n');
       queue.messages.length = 0; // clear buffer
-      if (msg.text?.body) msg.text.body = batch.map((m) => m.text?.body).join('\n');
+      if (msg.text?.body) msg.text.body = batch;
+      console.log('================batch====================');
+      console.log(batch);
+      console.log('====================================');
       try {
         await processMessages(whatsappBusinessId, msg);
       } catch (err) {
@@ -113,4 +119,4 @@ chatRoute.post('/chat-webhook', async (req, res) => {
     await handleMessages(whatsappBusinessId, msg);
   }
 });
-// 
+//
