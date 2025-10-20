@@ -55,10 +55,11 @@ export type OrderSource = (typeof OrderSourceTypes)[keyof typeof OrderSourceType
 
 export interface OrderItemOption {
   optionId: string;
-  optionName: string;
+  id: string;
+  name: string;
   choiceId: string;
-  choiceLabel: string;
   priceAdjustment: number;
+  choice: { id: string; label: string; priceAdjustment: string };
 }
 
 export interface OrderItem {
@@ -66,11 +67,11 @@ export interface OrderItem {
   inventoryId: string;
   quantity: number;
   totalPrice: string;
-  selectedOptions: OrderItemOption[];
   product: {
     name: string;
     price: number;
     currency: string;
+    options: OrderItemOption[];
   };
 }
 
@@ -118,7 +119,7 @@ export interface IOrder {
 const OrdersPage: React.FC = () => {
   const orders = useOrdersValue();
   const setOrders = useOrdersSetRecoilState();
-  //   const [orders, setOrders] = useState<IOrder[]>([]);
+
   const [filteredOrders, setFilteredOrders] = useState<IOrder[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -733,11 +734,9 @@ const OrdersPage: React.FC = () => {
                           <div>
                             <h5 className="font-medium text-neutral-900">{item.product.name}</h5>
                             <p className="text-sm text-neutral-500">Qty: {item.quantity}</p>
-                            {item?.selectedOptions?.length > 0 && (
+                            {item?.product?.options.length > 0 && (
                               <div className="text-xs text-neutral-500 mt-1">
-                                {item?.selectedOptions
-                                  ?.map((opt) => `${opt.optionName}: ${opt.choiceLabel}`)
-                                  .join(', ')}
+                                {item?.product.options?.map((opt) => `${opt.name}: ${opt.choice.label}`).join(', ')}
                               </div>
                             )}
                           </div>
@@ -745,11 +744,14 @@ const OrdersPage: React.FC = () => {
                       </div>
                       <div className="text-right">
                         <p className="font-semibold text-neutral-900">{item.totalPrice}</p>
-                        {item?.selectedOptions?.some((opt) => opt.priceAdjustment > 0) && (
+                        {item?.product.options?.some((opt) => parseInt(opt.choice.priceAdjustment) > 0) && (
                           <p className="text-xs text-neutral-500">
                             +
                             {formatCurrency(
-                              item.selectedOptions?.reduce((sum, opt) => sum + opt.priceAdjustment, 0),
+                              item.product?.options?.reduce(
+                                (sum, opt) => sum + parseInt(opt.choice.priceAdjustment),
+                                0
+                              ),
                               selectedOrder.currency
                             )}{' '}
                             options
