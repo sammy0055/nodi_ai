@@ -2,12 +2,22 @@ import { AreaModel } from '../models/area.model';
 import { BranchesModel } from '../models/branches.model';
 import { CustomerModel } from '../models/customer.model';
 import { OrderModel } from '../models/order.module';
+import { ProductOptionChoiceModel } from '../models/product-option-choice.model';
+import { ProductOptionModel } from '../models/product-option.model';
 import { ProductModel } from '../models/products.model';
 import { ZoneModel } from '../models/zones.model';
 import { Pagination } from '../types/common-types';
 import { OrderStatusTypes } from '../types/order';
 import { User } from '../types/users';
 import { Op, literal } from 'sequelize';
+
+interface selectedOptionsAttributes {
+  optionId: string;
+  optionName: string;
+  choiceId: string;
+  choiceLabel: string;
+  priceAdjustment: string;
+}
 
 export class OrderService {
   static async getOrders(
@@ -47,8 +57,22 @@ export class OrderService {
         if (item.productId) {
           const product = await ProductModel.findByPk(item.productId);
           if (product) {
-            plainOrder.items[i].product = product.get({ plain: true });
-            delete plainOrder.items[i].productId;
+            if (item?.selectedOptions?.length !== 0) {
+              const selectedOptions = item.selectedOptions as selectedOptionsAttributes[];
+              const optionIds = selectedOptions.map((op) => op.optionId);
+              const options = await ProductOptionModel.findAll({
+                where: { id: { [Op.in]: optionIds.filter(Boolean) }, productId: product.id },
+                include: [
+                  { model: ProductOptionChoiceModel, as: 'choices', attributes: ['id', 'label', 'priceAdjustment'] },
+                ],
+              });
+
+              const productData = product.get({ plain: true }) as any;
+              if (options.length) productData.options = options;
+
+              plainOrder.items[i].product = productData;
+              delete plainOrder.items[i].productId;
+            }
           }
         }
       }
