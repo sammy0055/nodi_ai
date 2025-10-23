@@ -2,7 +2,7 @@ import { DataTypes, Model, InferAttributes, InferCreationAttributes, CreationOpt
 import { sequelize } from './db';
 import { DbModels } from '.';
 import { ModelNames } from './model-names';
-import { UsageRecordAttributes } from '../types/usage-record';
+import { creditFeatureName, UsageRecordAttributes } from '../types/usage-record';
 
 class UsageRecordModel
   extends Model<InferAttributes<UsageRecordModel>, InferCreationAttributes<UsageRecordModel>>
@@ -11,7 +11,7 @@ class UsageRecordModel
   declare id: CreationOptional<string>;
   declare organizationId: string;
   declare subscriptionId: string;
-  declare featureName: string;
+  declare featureName: `${creditFeatureName}`;
   declare creditsConsumed: number;
   declare metadata: any;
 
@@ -55,8 +55,19 @@ UsageRecordModel.init(
       onDelete: 'NO ACTION',
       onUpdate: 'NO ACTION',
     },
-    featureName: { type: DataTypes.STRING(100), allowNull: false },
-    creditsConsumed: { type: DataTypes.INTEGER, allowNull: false },
+    featureName: {
+      type: DataTypes.ENUM,
+      values: [...Object.values(creditFeatureName)],
+      defaultValue: creditFeatureName.Chatbot,
+    },
+    creditsConsumed: {
+      type: DataTypes.DECIMAL(10, 2),
+      get() {
+        const rawValue = this.getDataValue('creditsConsumed');
+        return rawValue === null ? null : parseFloat(rawValue as any);
+      },
+      allowNull: false,
+    },
     metadata: { type: DataTypes.JSONB, allowNull: true },
   },
   {

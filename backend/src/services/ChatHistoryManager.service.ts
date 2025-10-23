@@ -9,6 +9,7 @@ import { appConfig } from '../config';
 import { v4 as uuidv4 } from 'uuid';
 import { AiChatHistoryModel } from '../models/ai-chat-history.model';
 import { Op } from 'sequelize';
+import { calculateAndSubtractCredits } from '../helpers/billing-calcuations';
 
 export interface ChatHistoryConfig {
   maxContextTokens: number;
@@ -64,13 +65,11 @@ export class ChatHistoryManager {
 
   // Add a message with proper OpenAI structure
   async addMessage(
-    conversationId: string,
+    { conversationId, organizationId }: { conversationId: string; organizationId: string },
     message: {
       role: OpenAIRole;
       content: string | null;
-      tool_calls?: OpenAIToolCall[];
-      tool_call_id?: string;
-      tool_results?: OpenAIToolResult[];
+      token?: number;
     }
   ): Promise<ChatMessage> {
     // Get current max message index
@@ -80,20 +79,25 @@ export class ChatHistoryManager {
       })) as number) || -1;
 
     const messageIndex = maxIndex + 1;
-    const tokens = this.estimateTokens(message.content || '');
 
     const chatMessage = await ChatMessage.create({
       conversation_id: conversationId,
       role: message.role,
       content: message.content,
-      tool_calls: message.tool_calls,
-      tool_call_id: message.tool_call_id,
-      tool_results: message.tool_results,
-      tokens: tokens,
+      token: message.token || 0,
       message_index: messageIndex,
     });
 
+    // creditcheck
+    await calculateAndSubtractCredits(
+      { aiTokensUsed: message.token || 0 },
+      { organizationId: organizationId, conversationId: conversationId }
+    );
+
     // Update conversation timestamp
+    if (message.token && message.token !== 0) {
+      await Conversation.increment({ tokenCount: message.token || 0 }, { where: { id: conversationId } });
+    }
     await Conversation.update({ updated_at: new Date() }, { where: { id: conversationId } });
 
     return chatMessage;

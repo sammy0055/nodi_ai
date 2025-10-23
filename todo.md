@@ -1,8 +1,3 @@
-- add credit to organization table
-- add onboarding tracker
-- add customer table
-- photo library
-
 Credit Definition
 1 credit = 1,000 AI tokens
 1 credit = 1 WhatsApp conversation (24h window)
@@ -27,3 +22,4 @@ things to fix ----------------------
 2. add review section in frontend dashboard
 3. summary chat and clear conversation after every successful order, do the same for review
 4. add customer deliver area preference after every order.
+5. add is requiredSystemPromptUpdate to organization, set anytime there is an update in organization profile

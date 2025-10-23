@@ -4,6 +4,7 @@ import OpenAI from 'openai';
 import { FunctionTool } from 'openai/resources/responses/responses';
 import { appConfig } from '../config';
 import { ChatHistoryManager } from '../services/ChatHistoryManager.service';
+import { validateSubscriptionStatus } from '../helpers/billing-calcuations';
 
 interface MCP_RESPONSE {
   content: {
@@ -138,6 +139,7 @@ export class MCPClient extends UsageBase {
   }
 
   protected async query({ query, organizationId, conversationId, customerId, systemPrompt }: ProcessQueryTypes) {
+    await validateSubscriptionStatus(organizationId);
     // init a new conversation
     let currentConversationId = conversationId;
 
@@ -148,7 +150,7 @@ export class MCPClient extends UsageBase {
         { role: 'user', content: query },
       ],
     });
-    await this.chatHistory.addMessage(conversationId, { role: 'user', content: query });
+    await this.chatHistory.addMessage({ conversationId, organizationId }, { role: 'user', content: query });
     let iteration = 0;
     let finalResponse = '';
     let totalTokenUsed = 0;
@@ -185,7 +187,14 @@ export class MCPClient extends UsageBase {
       iteration++;
     }
 
-    await this.chatHistory.addMessage(conversationId, { role: 'assistant', content: finalResponse });
+    await this.chatHistory.addMessage(
+      { conversationId, organizationId },
+      {
+        role: 'assistant',
+        content: finalResponse,
+        token: totalTokenUsed,
+      }
+    );
     return finalResponse;
   }
 

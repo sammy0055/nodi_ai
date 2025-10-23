@@ -3,13 +3,33 @@ import { validateSubscriptionPlanSchema } from '../middleware/validation/subscri
 import { SubscriptionPlanController } from '../controllers/subscription-plan';
 import { APIResponseFormat } from '../types/apiTypes';
 import { errorLogger } from '../helpers/logger';
+import { adminAuthMiddleware } from '../middleware/authentication';
 
 export const subscriptionRoute = express.Router();
-subscriptionRoute.post('/create-plan', validateSubscriptionPlanSchema(), async (req, res) => {
+subscriptionRoute.post('/create-plan', validateSubscriptionPlanSchema(), adminAuthMiddleware, async (req, res) => {
   try {
     const data = await SubscriptionPlanController.createSubscriptionPlan(req.body, req.adminUser as any);
     const response: APIResponseFormat<any> = {
       message: 'subscription plan created successfully',
+      data,
+    };
+
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
+
+subscriptionRoute.post('/update-subscripton-plan', adminAuthMiddleware, async (req, res) => {
+  try {
+    const data = await SubscriptionPlanController.updateSubscriptionPlan(req.body, req.adminUser as any);
+    const response: APIResponseFormat<any> = {
+      message: 'subscription plan updated successfully',
       data,
     };
 

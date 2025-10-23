@@ -4,7 +4,6 @@ import { DbModels } from '.';
 import { ModelNames } from './model-names';
 import { CreditBalanceAttributes } from '../types/creditBalance';
 
-
 class CreditBalanceModel
   extends Model<
     InferAttributes<CreditBalanceModel>, // read attributes
@@ -38,9 +37,33 @@ CreditBalanceModel.init(
       onDelete: 'NO ACTION',
       onUpdate: 'NO ACTION',
     },
-    totalCredits: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
-    usedCredits: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
-    remainingCredits: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+    totalCredits: {
+      type: DataTypes.DECIMAL(10, 2),
+      get() {
+        const rawValue = this.getDataValue('totalCredits');
+        return rawValue === null ? null : parseFloat(rawValue as any);
+      },
+      allowNull: false,
+      defaultValue: 0,
+    },
+    usedCredits: {
+      type: DataTypes.DECIMAL(10, 2),
+      get() {
+        const rawValue = this.getDataValue('usedCredits');
+        return rawValue === null ? null : parseFloat(rawValue as any);
+      },
+      allowNull: false,
+      defaultValue: 0,
+    },
+    remainingCredits: {
+      type: DataTypes.DECIMAL(10, 2),
+      get() {
+        const rawValue = this.getDataValue('remainingCredits');
+        return rawValue === null ? null : parseFloat(rawValue as any);
+      },
+      allowNull: false,
+      defaultValue: 0,
+    },
   },
   {
     sequelize,
