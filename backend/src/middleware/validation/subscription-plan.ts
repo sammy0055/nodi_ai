@@ -8,7 +8,7 @@ const subscriptionPlanSchema = z.object({
   creditPoints: z.number(),
   billing_cycle_days: z.number().optional(),
   isActive: z.boolean().optional(),
-  featues: z.array(z.string()).optional(),
+  features: z.array(z.string()).optional(),
 });
 
 export const validateSubscriptionPlanSchema = () => {

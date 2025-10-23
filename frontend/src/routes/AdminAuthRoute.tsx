@@ -9,7 +9,6 @@ export default function AdminAuthRoutes() {
       <Routes>
         <Route path="/" element={<Navigate to={PageRoutes.LOGIN} />} />
         <Route path={PageRoutes.LOGIN} element={<LoginPage />} />
-      
       </Routes>
     </AuthLayout>
   );

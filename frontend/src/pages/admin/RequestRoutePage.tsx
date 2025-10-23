@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   FiCheck,
   FiX,
@@ -14,6 +14,8 @@ import {
 import Button from '../../components/atoms/Button/Button';
 import { useAdminUserValue, useRequestSetRecoilState, useRequestValue } from '../../store/admin/authAtoms';
 import { AdminUserService } from '../../services/admin/AdminUserService';
+import type { BaseRequestAttributes } from '../../types/request';
+import { useLoaderData } from 'react-router';
 
 // Define types based on your interface
 // Define types based on your interface
@@ -30,7 +32,13 @@ const RequestRoutePage: React.FC = () => {
   const [expandedRequest, setExpandedRequest] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<any | 'all'>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const data = useLoaderData() as { requests: BaseRequestAttributes[] };
   const { approveRequest } = new AdminUserService();
+
+  useEffect(() => {
+    if (!data.requests) return;
+    setRequests(data.requests);
+  }, [data.requests]);
   const handleApprove = async (requestId: string) => {
     try {
       const aprovedData: any = {

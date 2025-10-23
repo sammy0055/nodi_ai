@@ -20,7 +20,7 @@ class SubscriptionPlanModel
   declare creditPoints: number;
   declare billing_cycle_days: CreationOptional<number>;
   declare isActive: CreationOptional<boolean>;
-  declare featues?: string[] | undefined;
+  declare features ?: string[] | undefined;
 }
 
 SubscriptionPlanModel.init(
@@ -41,7 +41,7 @@ SubscriptionPlanModel.init(
     creditPoints: { type: DataTypes.INTEGER, allowNull: false, comment: 'Credit points allocated per cycle' },
     billing_cycle_days: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 30 },
     isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
-    featues: { type: DataTypes.ARRAY(DataTypes.STRING), defaultValue: [] },
+    features : { type: DataTypes.ARRAY(DataTypes.STRING), defaultValue: [] },
   },
   { sequelize, modelName: ModelNames.SubscriptionPlans, timestamps: true }
 );

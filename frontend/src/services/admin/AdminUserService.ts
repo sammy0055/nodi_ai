@@ -30,7 +30,7 @@ export class AdminUserService {
     });
   }
 
-  async getRequests(): Promise<Promise<{ data: BaseRequestAttributes; message: string }>> {
+  async getRequests(): Promise<Promise<{ data: BaseRequestAttributes[]; message: string }>> {
     return await ApiClient('ADMIN_GET_REQUESTS', {
       headers: {
         'app-user-secret': import.meta.env.VITE_ADMIN_SECET,

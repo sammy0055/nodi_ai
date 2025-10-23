@@ -1,13 +1,15 @@
-import { createBrowserRouter, RouterProvider } from 'react-router';
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router';
 import { RecoilRoot } from 'recoil';
 import App from '../App';
 import TenantRoutes from './TenantRoutes';
-import AdminRoutes from './AdminRoutes';
 import AuthRoutes from './AuthRoute';
 import { contextLoader } from '../contexts/TenantContext';
 import AdminAuthRoutes from './AdminAuthRoute';
-import { adminContextLoader } from '../contexts/AdminContext';
-import WhatsAppRedirect from '../pages/tenant/WhatsAppRedirect';
+import { adminLayoutLoader, adminRequestLoader, adminSubscriptonLoader } from '../contexts/AdminContext';
+import RequestRoutePage from '../pages/admin/RequestRoutePage';
+import WhatsAppDetailsPage from '../pages/admin/WhatsAppDetailsPage';
+import SubscriptionPlansPage from '../pages/admin/SubscriptionPlanPage';
+import AdminLayout from '../layouts/AdminLayout';
 
 export const PageRoutes = {
   LOGIN: 'sign-in',
@@ -18,13 +20,14 @@ export const PageRoutes = {
   ORDERS: 'orders',
   SETTINGS: 'settings',
   PRODUCTS: 'products',
-  BRANCHS:"branches",
-  AreasZones: "areasZones",
+  BRANCHS: 'branches',
+  AreasZones: 'areasZones',
   INVENTORY: 'inventory',
   CUSTOMERS: 'customers',
   BILLING: 'billing',
   ADMIN_DASHBOARD: 'dashboard',
-  ADDMIN_UPDATE_WABA: "update-waba",
+  ADMIN_UPDATE_WABA: 'update-waba',
+  ADMIN_SUBSCRIPTION_PLAN: 'subscriptions',
   REVIEWS: 'reviews',
 } as const;
 
@@ -43,17 +46,21 @@ const router = createBrowserRouter([
     element: <AuthRoutes />,
   },
   {
-    path: '/app/whatsapp-redirect',
-    element: <WhatsAppRedirect />,
-  },
-  {
     path: '*',
     element: <div>NoFound routes</div>,
   },
   {
     path: '/admin/*',
-    element: <AdminRoutes />,
-    loader: adminContextLoader,
+    element: <AdminLayout />,
+    loader: adminLayoutLoader,
+    children: [
+      { index: true, element: <Navigate to="dashboard" /> },
+      { path: 'dashboard', element: <div>admin dashboard page</div> },
+      { path: 'request', element: <RequestRoutePage />, loader: adminRequestLoader },
+      { path: 'billing', element: <div>billing page</div>, loader: () => '' },
+      { path: PageRoutes.ADMIN_UPDATE_WABA, element: <WhatsAppDetailsPage />, loader: () => '' },
+      { path: PageRoutes.ADMIN_SUBSCRIPTION_PLAN, element: <SubscriptionPlansPage />, loader: adminSubscriptonLoader },
+    ],
   },
   {
     path: '/admin/auth/*',

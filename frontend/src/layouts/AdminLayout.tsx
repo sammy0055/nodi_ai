@@ -1,4 +1,3 @@
-// src/components/layouts/AdminLayout/AdminLayout.tsx
 import React, { useEffect, useState } from 'react';
 import {
   FiHome,
@@ -11,25 +10,25 @@ import {
   FiLogOut,
   FiPieChart,
 } from 'react-icons/fi';
-import { Link, useLocation, useNavigate } from 'react-router';
-import { useAdminUserValue } from '../store/admin/authAtoms';
+import { Link, Outlet, useLoaderData, useLocation, useNavigate } from 'react-router';
 import type { AdminUser } from '../types/users';
 
-interface AdminLayoutProps {
-  children: React.ReactNode;
-}
-
-const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
+const AdminLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [user, setUser] = useState<AdminUser>();
   const location = useLocation();
   const navigate = useNavigate();
-  const adminUser = useAdminUserValue();
+  const data = useLoaderData() as { user: AdminUser };
 
   useEffect(() => {
-    if (!adminUser) return;
-    setUser(adminUser);
-  }, [adminUser]);
+    if (!data) return;
+    setUser(data.user);
+
+    // 🔑 Handle redirects once, based on missing data
+    if (!data.user) {
+      navigate(`/admin/auth`, { replace: true });
+    }
+  }, [data]);
 
   // Navigation items for admin
   const navigationItems = [
@@ -152,7 +151,10 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto p-6 bg-neutral-50">
-          <div className="max-w-7xl mx-auto">{children}</div>
+          <div className="max-w-7xl mx-auto">
+            {/* nested admin pages render here */}
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
