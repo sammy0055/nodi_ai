@@ -7,7 +7,7 @@ import { UsageRecordModel } from '../models/usage-records.model';
 import { creditFeatureName } from '../types/usage-record';
 
 // free trial
-const isFreeTrialActive = false;
+const isFreeTrialActive = true;
 
 export interface CreditUsageAttributes {
   aiTokensUsed: number;

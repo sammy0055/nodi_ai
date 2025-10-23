@@ -33,7 +33,7 @@ export class WhatsappCatalogHelper {
         {
           method: 'CREATE',
           data: {
-            id: `item_${itemId}`,
+            id: itemId,
             title: name,
             description,
             price: priceToMetaFormat(price, currency),
@@ -60,7 +60,7 @@ export class WhatsappCatalogHelper {
 
       try {
         const errorData = await response.json();
-         console.log('====================================');
+        console.log('====================================');
         console.log(errorData);
         console.log('====================================');
         errorMessage = errorData.message || errorMessage;
