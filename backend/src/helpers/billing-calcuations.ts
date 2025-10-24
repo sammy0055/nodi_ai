@@ -30,7 +30,8 @@ export const calculateAndSubtractCredits = async (
   args: Partial<CreditUsageAttributes>,
   org: OrganizationAttributes
 ) => {
-  await validateSubscriptionStatus(org.organizationId);
+  const isFreeTrial = await validateSubscriptionStatus(org.organizationId);
+  if (isFreeTrial) return;
   const { aiTokensUsed, catalogCalls } = args;
   const aitoken_per_credit = 1000;
   const catalogApiCall_per_credit = 5;
@@ -58,16 +59,15 @@ export const calculateAndSubtractCredits = async (
 
   const creditRecords = await CreditBalanceModel.findOne({ where: { organizationId: org.organizationId } });
   if (!creditRecords) throw new Error('Credit: no credit for organization:' + org.conversationId);
-  if (!isFreeTrialActive) {
-    if (creditRecords.totalCredits <= creditUsed) {
-      await SubscriptionsModel.update({ status: 'cancelled' }, { where: { organizationId: org.organizationId } });
-      // send email notification to organization
-      //   disable webhook subscription for whatsapp
-      console.warn('====================================');
-      console.warn('subscription cancelled for organization:' + org.organizationId);
-      console.warn('====================================');
-      return;
-    }
+
+  if (creditRecords.totalCredits <= creditUsed) {
+    await SubscriptionsModel.update({ status: 'cancelled' }, { where: { organizationId: org.organizationId } });
+    // send email notification to organization
+    //   disable webhook subscription for whatsapp
+    console.warn('====================================');
+    console.warn('subscription cancelled for organization:' + org.organizationId);
+    console.warn('====================================');
+    return;
   }
 
   await CreditBalanceModel.update(

@@ -139,7 +139,8 @@ export class MCPClient extends UsageBase {
   }
 
   protected async query({ query, organizationId, conversationId, customerId, systemPrompt }: ProcessQueryTypes) {
-    await validateSubscriptionStatus(organizationId);
+    const isFreeTrial = await validateSubscriptionStatus(organizationId);
+    if (isFreeTrial) return;
     // init a new conversation
     let currentConversationId = conversationId;
 
