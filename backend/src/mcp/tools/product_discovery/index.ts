@@ -163,15 +163,23 @@ export const getProductsByIds = (server: McpServer) => {
         'Retrieves detailed product information for multiple products using an array of product IDs. Returns product details including name, price, availability, and other relevant specifications for the requested items',
       inputSchema: {
         organizationId: z.string(),
-        product_ids: z.array(z.string()).describe('array of product ids'),
+        products: z
+          .array(
+            z.object({
+              id: z.string(),
+              quantity: z.number(),
+            })
+          )
+          .describe('array of product ids and quanttiy'),
       },
     },
     async (param) => {
       try {
+        const product_ids = param.products.map((p) => p.id);
         const products = await ProductModel.findAll({
           where: {
             id: {
-              [Op.in]: param.product_ids.filter(Boolean),
+              [Op.in]: product_ids.filter(Boolean),
             },
             organizationId: param.organizationId,
           },
