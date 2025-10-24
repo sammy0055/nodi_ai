@@ -57,7 +57,7 @@ export const searchProducts = (server: McpServer) => {
             { model: ProductOptionModel, as: 'options', include: [{ model: ProductOptionChoiceModel, as: 'choices' }] },
           ],
         });
-        
+
         if (!productsInDB)
           return {
             content: [
@@ -77,6 +77,7 @@ export const searchProducts = (server: McpServer) => {
           ],
         };
       } catch (error: any) {
+        console.error(`MCP-ERROR:${error.message}`);
         return {
           content: [{ type: 'text', text: 'Failed to get products' }],
         };
@@ -139,6 +140,7 @@ export const getProductWithAvailability = (server: McpServer) => {
           ],
         };
       } catch (error: any) {
+        console.error(`MCP-ERROR:${error.message}`);
         return {
           content: [
             {
@@ -146,6 +148,49 @@ export const getProductWithAvailability = (server: McpServer) => {
               text: `Failed to get product details with real-time inventory availability across branches`,
             },
           ],
+        };
+      }
+    }
+  );
+};
+
+export const getProductsByIds = (server: McpServer) => {
+  return server.registerTool(
+    'get_products_by_ids',
+    {
+      title: 'get_products_by_ids',
+      description:
+        'Retrieves detailed product information for multiple products using an array of product IDs. Returns product details including name, price, availability, and other relevant specifications for the requested items',
+      inputSchema: {
+        organizationId: z.string(),
+        product_ids: z.array(z.string()).describe('array of product ids'),
+      },
+    },
+    async (param) => {
+      try {
+        const products = await ProductModel.findAll({
+          where: {
+            id: {
+              [Op.in]: param.product_ids.filter(Boolean),
+            },
+            organizationId: param.organizationId,
+          },
+          include: [
+            { model: ProductOptionModel, as: 'options', include: [{ model: ProductOptionChoiceModel, as: 'choices' }] },
+          ],
+        });
+        if (products.length === 0) {
+          return {
+            content: [{ type: 'text', text: 'the selected products are no longer available in our store.' }],
+          };
+        }
+        return {
+          content: [{ type: 'text', text: JSON.stringify(products), mimeType: 'application/json' }],
+        };
+      } catch (error: any) {
+        console.error(`MCP-ERROR:${error.message}`);
+        return {
+          content: [{ type: 'text', text: 'failed to get specific products' }],
         };
       }
     }

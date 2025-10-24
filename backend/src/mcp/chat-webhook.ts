@@ -1,7 +1,7 @@
 import express from 'express';
 import NodeCache from 'node-cache';
 import { ChatService } from './ChatService';
-import { WhatsAppMessage, WhatsAppWebhookPayload } from '../types/whatsapp-webhook';
+import { ProductItem, WhatsAppMessage, WhatsAppWebhookPayload } from '../types/whatsapp-webhook';
 export const chatRoute = express.Router();
 
 export interface IncomingMessageAttr {
@@ -50,10 +50,22 @@ chatRoute.post('/chat-webhook', async (req, res) => {
         if (isDuplicate(msg.id)) {
           continue;
         }
-        console.log('Got message:', msg.id, msg.text?.body);
-        // process each message independently
-        // await handleMessages(entry.id, msg);
-        await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: msg, processMessages });
+        if (msg.type === 'order') {
+          const orderMessage = formatCatalogMessage(msg.order?.product_items!);
+          const newMsg = {
+            ...msg,
+            text: {
+              body: orderMessage,
+            },
+          };
+          console.log('Got message:', msg.id, newMsg.text?.body);
+          await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
+        } else {
+          console.log('Got message:', msg.id, msg.text?.body);
+          // process each message independently
+          // await handleMessages(entry.id, msg);
+          await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: msg, processMessages });
+        }
       }
     }
   }
@@ -114,5 +126,12 @@ chatRoute.post('/chat-webhook', async (req, res) => {
 
     // your chatbot logic here
     await handleMessages(whatsappBusinessId, msg);
+  }
+
+  function formatCatalogMessage(items: ProductItem[]): string {
+    const products = items.map((i) => i.product_retailer_id);
+    const stringifiedProducts = JSON.stringify(products);
+    const prompt = `here is a an array of products ids a customer has selected, retrieve this products and complete the order process.\n product_ids:${stringifiedProducts}`;
+    return prompt;
   }
 });

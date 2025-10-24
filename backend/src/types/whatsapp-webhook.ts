@@ -43,7 +43,7 @@ export interface WhatsAppMessage {
   type: 'text' | 'order';
 }
 
-interface ProductItem {
+export interface ProductItem {
   product_retailer_id: string;
   quantity: number;
   item_price: number;
