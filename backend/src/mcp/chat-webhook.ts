@@ -66,9 +66,6 @@ chatRoute.post('/chat-webhook', async (req, res) => {
     const userMessage = msg.text?.body || '';
 
     try {
-      console.log('===============organizationWhatsappId=====================');
-      console.log(whatsappBusinessId);
-      console.log('====================================');
       const chat = await ChatService.init(userPhoneNumber, whatsappBusinessId);
       const response = await chat.processQuery(userMessage);
       return await chat.sendWhatSappMessage({ recipientPhoneNumber: userPhoneNumber, message: response });
@@ -122,6 +119,9 @@ chatRoute.post('/chat-webhook', async (req, res) => {
     console.log(`Processing for ${userPhoneNumber}:`, msg.text?.body);
 
     // your chatbot logic here
+    console.log('===============organizationWhatsappId=====================');
+    console.log(whatsappBusinessId);
+    console.log('====================================');
     await handleMessages(whatsappBusinessId, msg);
   }
 });
