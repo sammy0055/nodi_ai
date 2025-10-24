@@ -44,9 +44,6 @@ chatRoute.get('/chat-webhook', async (req, res) => {
 chatRoute.post('/chat-webhook', async (req, res) => {
   const payload = req.body as WhatsAppWebhookPayload;
   res.sendStatus(200);
-  console.log('====================================');
-  console.log(JSON.stringify(payload, null, 2));
-  console.log('====================================');
   for (const entry of payload.entry || []) {
     for (const change of entry.changes || []) {
       for (const msg of change.value?.messages || []) {
@@ -99,9 +96,6 @@ chatRoute.post('/chat-webhook', async (req, res) => {
       const batch = [...queue.messages].join('\n');
       queue.messages.length = 0; // clear buffer
       if (msg.text?.body) msg.text.body = batch;
-      console.log('================batch====================');
-      console.log(batch);
-      console.log('====================================');
       try {
         await processMessages(whatsappBusinessId, msg);
       } catch (err) {
