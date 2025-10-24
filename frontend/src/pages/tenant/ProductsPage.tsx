@@ -101,10 +101,10 @@ const ProductOptionsManager: React.FC<{
         productOptionId: optionId,
         label: 'New Choice',
         priceAdjustment: 0,
-        isDefault: true,
+        // isDefault: true,
       };
 
-      const { data: newChoice } = await addProductOptionChoice(choices);
+      const { data: newChoice } = await addProductOptionChoice(choices as any);
 
       onOptionsChange(
         options.map((opt) => (opt.id === optionId ? { ...opt, choices: [...opt.choices!, newChoice] } : opt))
@@ -234,7 +234,7 @@ const ProductOptionsManager: React.FC<{
                     // size="sm"
                   />
 
-                  <label className="flex items-center">
+                  {/* <label className="flex items-center">
                     <input
                       type="radio"
                       name={`default-${option.id}`}
@@ -250,7 +250,7 @@ const ProductOptionsManager: React.FC<{
                       className="rounded-full border-neutral-300 text-primary-600 focus:ring-primary-500"
                     />
                     <span className="ml-2 text-sm text-neutral-700">Default</span>
-                  </label>
+                  </label> */}
 
                   <Button
                     variant="outline"

@@ -14,5 +14,5 @@ export interface ProductOptionChoice {
   productOptionId: string;
   label: string; // "Small", "No Salt", "Extra Cheese"
   priceAdjustment: number; // +2.50, -1.00, or 0
-  isDefault: boolean;
+  // isDefault: boolean;
 }

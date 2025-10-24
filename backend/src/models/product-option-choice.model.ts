@@ -15,7 +15,7 @@ class ProductOptionChoiceModel
   declare productOptionId: string;
   declare label: string;
   declare priceAdjustment: number;
-  declare isDefault: CreationOptional<boolean>;
+  // declare isDefault: CreationOptional<boolean>;
   static associate(models: DbModels) {
     this.belongsTo(models.SubscriptionsModel, {
       foreignKey: 'productOptionId',
@@ -46,7 +46,7 @@ ProductOptionChoiceModel.init(
         return rawValue === null ? null : parseFloat(rawValue as any);
       },
     },
-    isDefault: { type: DataTypes.BOOLEAN, defaultValue: false, comment: 'pre-selected option' },
+    // isDefault: { type: DataTypes.BOOLEAN, defaultValue: false, comment: 'pre-selected option' },
   },
   {
     sequelize,

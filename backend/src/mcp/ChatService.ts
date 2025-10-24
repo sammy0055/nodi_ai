@@ -77,6 +77,7 @@ export class ChatService extends MCPChatBot {
       const conv = await chatHistory.createConversation({
         organizationId: this.organizationId,
         customerId: customer.id,
+        systemPrompt: systemPrompt,
       });
       return conv?.get({ plain: true });
     }
@@ -98,7 +99,7 @@ export class ChatService extends MCPChatBot {
       await OrganizationsModel.update({ shouldUpdateChatbotSystemPrompt: false }, { where: { id: planOrg.id } });
       newSystemPrompt = systemPrompt;
     }
-    const conversation = await this.getAndCreateConversationIfNotExist(newSystemPrompt);
+    const conversation = await this.getAndCreateConversationIfNotExist(systemPrompt);
     const res = await this.process({
       query: userMessage,
       systemPrompt: newSystemPrompt,
