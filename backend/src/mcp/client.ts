@@ -4,7 +4,6 @@ import OpenAI from 'openai';
 import { FunctionTool } from 'openai/resources/responses/responses';
 import { appConfig } from '../config';
 import { ChatHistoryManager } from '../services/ChatHistoryManager.service';
-import { validateSubscriptionStatus } from '../helpers/billing-calcuations';
 
 interface MCP_RESPONSE {
   content: {
@@ -139,8 +138,6 @@ export class MCPClient extends UsageBase {
   }
 
   protected async query({ query, organizationId, conversationId, customerId, systemPrompt }: ProcessQueryTypes) {
-    const isFreeTrial = await validateSubscriptionStatus(organizationId);
-    if (isFreeTrial) return;
     // init a new conversation
     let currentConversationId = conversationId;
 
