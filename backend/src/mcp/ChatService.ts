@@ -22,6 +22,9 @@ export class ChatService extends MCPChatBot {
   protected WhatSappBusinessPhoneNumberId: string = '';
   constructor(userPhoneNumber: string, organizationWhatsappId: string) {
     super();
+    console.log('===============organizationWhatsappId=====================');
+    console.log(organizationWhatsappId);
+    console.log('====================================');
     this.organizationWhatsappId = organizationWhatsappId;
     this.userPhoneNumber = userPhoneNumber;
   }
