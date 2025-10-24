@@ -1,7 +1,7 @@
 import { appConfig } from '../config';
 import { IWhatSappSettings } from '../types/whatsapp-settings';
 const accessToken = appConfig.metaBusinessToken;
-export function priceToMetaFormat(price: any, currency = 'USD') {
+export function priceToMetaFormat(price: any, currency:string) {
   currency = currency.toUpperCase();
   if (['USD', 'EUR', 'GBP', 'CAD', 'AUD'].includes(currency)) {
     return `${parseFloat(price).toFixed(2)} ${currency}`;
@@ -21,7 +21,7 @@ interface CatalogItemTypes {
 
 export class WhatsappCatalogHelper {
   static async createMetaCatalogItem(
-    { itemId, name, description, price, currency = 'USD', imageUrl }: CatalogItemTypes,
+    { itemId, name, description, price, currency, imageUrl }: CatalogItemTypes,
     whatsappSettings: IWhatSappSettings
   ) {
     const url = `https://graph.facebook.com/v23.0/${whatsappSettings.catalogId}/items_batch`;

@@ -8,6 +8,7 @@ export class ProductService {
     formData.append('file', data.file!);
     formData.append('name', data.name);
     formData.append('price', String(data.price));
+    formData.append('currency', String(data.currency));
     formData.append('description', data.description);
     const response = await fetch(API_ROUTES.ADD_PRODUCT, {
       method: 'POST',

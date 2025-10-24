@@ -12,7 +12,7 @@ import { Op, literal } from 'sequelize';
 export class ProductService {
   static async createProduct(product: IProduct, user: Pick<User, 'id' | 'organizationId'>, file: File) {
     console.log('====================================');
-    console.log(product);
+    console.log(product.currency);
     console.log('====================================');
     if (!user.organizationId) throw new Error('kindly create an organization to continue');
     const whatsappData = await WhatSappSettingsModel.findOne({ where: { organizationId: user.organizationId } });
