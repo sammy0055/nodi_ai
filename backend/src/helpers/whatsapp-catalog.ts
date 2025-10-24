@@ -15,7 +15,7 @@ interface CatalogItemTypes {
   name: string;
   description: string;
   price: any;
-  currency?: 'USD';
+  currency: string;
   imageUrl: string;
 }
 

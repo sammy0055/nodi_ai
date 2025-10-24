@@ -31,6 +31,7 @@ export class ProductService {
         name: createdProduct.name,
         description: createdProduct.description,
         price: createdProduct.price,
+        currency: product.currency!,
         imageUrl: imgUrl,
       },
       whatsappData
