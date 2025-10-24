@@ -56,6 +56,7 @@ export class OrderService {
 
         if (item.productId) {
           const product = await ProductModel.findByPk(item.productId);
+          const productData = product?.get({ plain: true }) as any;
           if (product) {
             if (item?.selectedOptions?.length) {
               const selectedOptions = item.selectedOptions as selectedOptionsAttributes[];
@@ -85,13 +86,12 @@ export class OrderService {
                 }
               }
 
-              const productData = product.get({ plain: true }) as any;
               if (options.length) productData.options = options;
-
-              plainOrder.items[i].product = productData;
-              delete plainOrder.items[i].productId;
             }
           }
+          // ✅ always attach product, even if no options
+          plainOrder.items[i].product = productData;
+          delete plainOrder.items[i].productId;
         }
       }
       // attach area if present

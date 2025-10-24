@@ -119,7 +119,9 @@ export interface IOrder {
 const OrdersPage: React.FC = () => {
   const orders = useOrdersValue();
   const setOrders = useOrdersSetRecoilState();
-
+console.log('====================================');
+console.log(orders);
+console.log('====================================');
   const [filteredOrders, setFilteredOrders] = useState<IOrder[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -146,9 +148,9 @@ const OrdersPage: React.FC = () => {
       filtered = filtered.filter(
         (order) =>
           order.id.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-          order.customer.name?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-          order.customer.phone?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-          order.branch.name?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+          order.customer?.name?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+          order.customer?.phone?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+          order.branch?.name?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
       );
     }
 
@@ -732,11 +734,11 @@ const OrdersPage: React.FC = () => {
                             <FiPackage className="text-primary-600" />
                           </div>
                           <div>
-                            <h5 className="font-medium text-neutral-900">{item.product.name}</h5>
+                            <h5 className="font-medium text-neutral-900">{item.product?.name}</h5>
                             <p className="text-sm text-neutral-500">Qty: {item.quantity}</p>
                             {item?.product?.options.length > 0 && (
                               <div className="text-xs text-neutral-500 mt-1">
-                                {item?.product.options?.map((opt) => `${opt.name}: ${opt.choice.label}`).join(', ')}
+                                {item?.product.options?.map((opt) => `${opt?.name}: ${opt.choice.label}`).join(', ')}
                               </div>
                             )}
                           </div>
