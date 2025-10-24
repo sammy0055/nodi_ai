@@ -22,6 +22,9 @@ export class ChatService extends MCPChatBot {
   protected WhatSappBusinessPhoneNumberId: string = '';
   constructor(userPhoneNumber: string, organizationWhatsappId: string) {
     super();
+    console.log('====================================');
+    console.log(organizationWhatsappId);
+    console.log('====================================');
     this.organizationWhatsappId = organizationWhatsappId;
     this.userPhoneNumber = userPhoneNumber;
   }
@@ -83,7 +86,7 @@ export class ChatService extends MCPChatBot {
   public async processQuery(userMessage: string) {
     const planOrg = await this.getOrganization();
     const customer = await this.getCustomerData();
-    let newSystemPrompt = "";
+    let newSystemPrompt = '';
     await this.connectToMcpServer();
     const systemPrompt = createSystemPrompt({
       organizationData: planOrg!,

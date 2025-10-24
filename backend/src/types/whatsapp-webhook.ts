@@ -1,5 +1,5 @@
 export interface WhatsAppWebhookPayload {
-  object: "whatsapp_business_account";
+  object: 'whatsapp_business_account';
   entry: WhatsAppEntry[];
 }
 
@@ -14,7 +14,7 @@ export interface WhatsAppChange {
 }
 
 export interface WhatsAppValue {
-  messaging_product: "whatsapp";
+  messaging_product: 'whatsapp';
   metadata: WhatsAppMetadata;
   contacts?: WhatsAppContact[];
   messages?: WhatsAppMessage[];
@@ -39,5 +39,19 @@ export interface WhatsAppMessage {
   text?: {
     body: string;
   };
-  type: "text" | string; // can extend with other WhatsApp message types
+  order?: Order;
+  type: 'text' | 'order';
+}
+
+interface ProductItem {
+  product_retailer_id: string;
+  quantity: number;
+  item_price: number;
+  currency: string;
+}
+
+interface Order {
+  catalog_id: string;
+  text: string;
+  product_items: ProductItem[];
 }
