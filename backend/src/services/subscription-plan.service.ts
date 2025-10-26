@@ -58,14 +58,36 @@ export class SubscriptionPlanService {
       name: plan.name,
       description: plan.description,
       creditPoints: plan.creditPoints,
-      featues: plan.featues,
+      features: plan.features,
       price: plan.price,
       stripePlanPriceId: newPriceId,
     };
-
     const [_, subPlan] = await SubscriptionPlanModel.update(payload, { where: { id: plan.id }, returning: true });
     return subPlan[0].get({ plain: true }); // plain JS object
   }
+
+  static async deleteSubscriptionPlan(planId: string) {
+    if (!planId) throw new Error('subscription plan id is required');
+
+    const plan = await SubscriptionPlanModel.findByPk(planId);
+    if (!plan) throw new Error('subscription plan not found');
+
+    // Delete product from Stripe
+    await stripe.products.update(plan.stripePlanId, {
+      active: false, // mark product inactive instead of hard delete
+    });
+
+    // Optionally, deactivate its prices
+    const prices = await stripe.prices.list({ product: plan.stripePlanId });
+    for (const price of prices.data) {
+      await stripe.prices.update(price.id, { active: false });
+    }
+
+    // Delete from DB
+    await SubscriptionPlanModel.destroy({ where: { id: plan.id } });
+    return { success: true, message: 'Subscription plan deleted successfully' };
+  }
+
   static async getSubscriptionPlans() {
     return await SubscriptionPlanModel.findAll();
   }

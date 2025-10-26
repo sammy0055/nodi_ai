@@ -9,6 +9,9 @@ export class SubscriptionPlanController {
    static async updateSubscriptionPlan(plan: ISubscriptionPlan, user:AdminUser) {
     return await SubscriptionPlanService.updateSubscriptionPlan(plan, user);
   }
+  static async removeSubscriptionPlan(planId:string){
+    await SubscriptionPlanService.deleteSubscriptionPlan(planId)
+  }
   static async getSubscriptionPlans() {
     return await SubscriptionPlanService.getSubscriptionPlans()
   }

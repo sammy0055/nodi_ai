@@ -3,23 +3,14 @@ import { FiPlus, FiEdit, FiTrash2, FiSave, FiX, FiPackage, FiZap, FiCheck, FiAle
 import Button from '../../components/atoms/Button/Button';
 import Input from '../../components/atoms/Input/Input';
 import { useLoaderData } from 'react-router';
-import type { ISubscriptionPlan } from '../../types/subscription';
-
-interface SubscriptionPlan {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  creditPoints: number;
-  features: string[];
-  isActive?: boolean;
-}
+import type { CreateSubscriptionPlanAttributes, ISubscriptionPlan } from '../../types/subscription';
+import { AdminSubscriptionPlanService } from '../../services/admin/AdminSubscriptionPlanService';
 
 const SubscriptionPlansPage: React.FC = () => {
-  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [plans, setPlans] = useState<CreateSubscriptionPlanAttributes[]>([]);
   const [showPlanModal, setShowPlanModal] = useState(false);
-  const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
-  const [newPlan, setNewPlan] = useState<Partial<SubscriptionPlan>>({
+  const [editingPlan, setEditingPlan] = useState<CreateSubscriptionPlanAttributes | null>(null);
+  const [newPlan, setNewPlan] = useState<Partial<CreateSubscriptionPlanAttributes>>({
     name: '',
     description: '',
     price: 0,
@@ -29,7 +20,7 @@ const SubscriptionPlansPage: React.FC = () => {
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const data = useLoaderData() as { data: ISubscriptionPlan };
-
+  const { createSubscriptionPlan, updateSubscriptionPlan, deleteSubscriptionPlan } = new AdminSubscriptionPlanService();
   useEffect(() => {
     if (!data.data) return;
     setPlans(data.data as any);
@@ -63,11 +54,10 @@ const SubscriptionPlansPage: React.FC = () => {
   };
 
   // CRUD Operations
-  const handleCreatePlan = () => {
+  const handleCreatePlan = async () => {
     if (!validateForm()) return;
 
-    const planToCreate: SubscriptionPlan = {
-      id: `plan-${Date.now()}`,
+    const planToCreate: Omit<CreateSubscriptionPlanAttributes, 'id'> = {
       name: newPlan.name!,
       description: newPlan.description!,
       price: newPlan.price!,
@@ -76,15 +66,20 @@ const SubscriptionPlansPage: React.FC = () => {
       isActive: newPlan.isActive ?? true,
     };
 
-    setPlans([...plans, planToCreate]);
-    setShowPlanModal(false);
-    resetForm();
+    try {
+      const plan = await createSubscriptionPlan(planToCreate);
+      setPlans([...plans, plan.data]);
+      setShowPlanModal(false);
+      resetForm();
+    } catch (error: any) {
+      alert('something went wrong, please try again');
+    }
   };
 
-  const handleUpdatePlan = () => {
+  const handleUpdatePlan = async () => {
     if (!editingPlan || !validateForm()) return;
 
-    const updatedPlan: SubscriptionPlan = {
+    const updatedPlan: CreateSubscriptionPlanAttributes = {
       ...editingPlan,
       name: newPlan.name!,
       description: newPlan.description!,
@@ -94,13 +89,18 @@ const SubscriptionPlansPage: React.FC = () => {
       isActive: newPlan.isActive ?? true,
     };
 
-    setPlans(plans.map((plan) => (plan.id === editingPlan.id ? updatedPlan : plan)));
-    setShowPlanModal(false);
-    setEditingPlan(null);
-    resetForm();
+    try {
+      await updateSubscriptionPlan(updatedPlan);
+      setPlans(plans.map((plan) => (plan.id === editingPlan.id ? updatedPlan : plan)));
+      setShowPlanModal(false);
+      setEditingPlan(null);
+      resetForm();
+    } catch (error: any) {
+      alert('something went wrong, please try again');
+    }
   };
 
-  const handleEditPlan = (plan: SubscriptionPlan) => {
+  const handleEditPlan = (plan: CreateSubscriptionPlanAttributes) => {
     setEditingPlan(plan);
     setNewPlan({
       ...plan,
@@ -110,15 +110,21 @@ const SubscriptionPlansPage: React.FC = () => {
     setShowPlanModal(true);
   };
 
-  const handleDeletePlan = (planId: string) => {
-    if (window.confirm('Are you sure you want to delete this subscription plan?')) {
-      setPlans(plans.filter((plan) => plan.id !== planId));
+  const handleDeletePlan = async (planId: string) => {
+    try {
+      if (window.confirm('Are you sure you want to delete this subscription plan?')) {
+        await deleteSubscriptionPlan(planId);
+        setPlans(plans.filter((plan) => plan.id !== planId));
+      }
+    } catch (error: any) {
+      alert('something went wrong, try again');
+      console.error(error);
     }
   };
 
-  const handleToggleStatus = (planId: string) => {
-    setPlans(plans.map((plan) => (plan.id === planId ? { ...plan, isActive: !plan.isActive } : plan)));
-  };
+  // const handleToggleStatus = (planId: string) => {
+  //   setPlans(plans.map((plan) => (plan.id === planId ? { ...plan, isActive: !plan.isActive } : plan)));
+  // };
 
   const handleFeatureChange = (index: number, value: string) => {
     const updatedFeatures = [...(newPlan.features || [])];
@@ -168,7 +174,7 @@ const SubscriptionPlansPage: React.FC = () => {
   };
 
   // Plan Card Component
-  const PlanCard: React.FC<{ plan: SubscriptionPlan }> = ({ plan }) => (
+  const PlanCard: React.FC<{ plan: CreateSubscriptionPlanAttributes }> = ({ plan }) => (
     <div className="bg-white rounded-lg border border-neutral-200 shadow-sm hover:shadow-md transition-all duration-200">
       <div className="p-6">
         {/* Header */}
@@ -222,7 +228,7 @@ const SubscriptionPlansPage: React.FC = () => {
             <FiEdit className="mr-2" />
             Edit
           </Button>
-          <Button
+          {/* <Button
             variant="outline"
             size="sm"
             onClick={() => handleToggleStatus(plan.id)}
@@ -231,7 +237,7 @@ const SubscriptionPlansPage: React.FC = () => {
             }`}
           >
             {plan.isActive ? 'Deactivate' : 'Activate'}
-          </Button>
+          </Button> */}
           <Button
             variant="outline"
             size="sm"
@@ -359,7 +365,7 @@ const SubscriptionPlansPage: React.FC = () => {
                 <Input
                   label="Monthly Price ($) *"
                   type="number"
-                  value={newPlan.price || 0}
+                  value={newPlan.price || ""}
                   onChange={(e) => setNewPlan({ ...newPlan, price: parseFloat(e.target.value) || 0 })}
                   error={validationErrors.price}
                   min="0"
@@ -370,7 +376,7 @@ const SubscriptionPlansPage: React.FC = () => {
                 <Input
                   label="Credit Points *"
                   type="number"
-                  value={newPlan.creditPoints || 0}
+                  value={newPlan.creditPoints || ""}
                   onChange={(e) => setNewPlan({ ...newPlan, creditPoints: parseInt(e.target.value) || 0 })}
                   error={validationErrors.creditPoints}
                   min="0"

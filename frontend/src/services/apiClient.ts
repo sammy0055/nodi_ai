@@ -6,8 +6,13 @@ export const APP_USER_API_ROUTES = {
   ADMIN_APPROVE_REQUEST: `${API_BASE_URL}/app-user/request/approve`,
   ADMIN_UPDATE_ORG_WABA: `${API_BASE_URL}/app-user/request/update-waba`,
   ADMIN_LOGIN: `${API_BASE_URL}/app-user/login`,
+  GET_SUBSCRIPTION_PLANS: `${API_BASE_URL}/app-user/subscription-plan/get-subscription-plans`,
   CURRENT_ADMIN_USER: `${API_BASE_URL}/app-user/current-user`,
+  CREATE_SUBSCRIPTION_PLAN: `${API_BASE_URL}/app-user/subscription-plan/create-plan`,
+  UPDATE_SUBSCRIPTION_PLAN: `${API_BASE_URL}/app-user/subscription-plan/update-subscripton-plan`,
+  DELETE_SUBSCRIPTION_PLAN: `${API_BASE_URL}/app-user/subscription-plan/remove-subscription-plan`,
 };
+
 export const API_ROUTES = {
   ...APP_USER_API_ROUTES,
   LOGIN: `${API_BASE_URL}/user/login`,
@@ -80,6 +85,36 @@ export async function ApiClient<T>(
     method,
     headers: {
       'Content-Type': 'application/json',
+      ...headers,
+    },
+    body: body ? JSON.stringify(body) : undefined,
+    credentials,
+  });
+
+  if (!response.ok) {
+    let errorMessage = `${response.status} ${response.statusText}`;
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData.message || errorMessage;
+    } catch {}
+    throw new Error(errorMessage);
+  }
+
+  return (await response.json()) as T;
+}
+
+export type AdminApiRouteName = keyof typeof APP_USER_API_ROUTES;
+export async function AdminApiClient<T>(
+  route: AdminApiRouteName,
+  { method = 'GET', body, headers = {}, credentials = 'include' }: ApiOptions = {}
+): Promise<T> {
+  const url = API_ROUTES[route]; // resolve to actual URL
+
+  const response = await fetch(url, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'app-user-secret': import.meta.env.VITE_ADMIN_SECET,
       ...headers,
     },
     body: body ? JSON.stringify(body) : undefined,

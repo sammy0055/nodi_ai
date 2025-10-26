@@ -8,5 +8,5 @@ export interface ISubscriptionPlan {
   creditPoints: number;
   billing_cycle_days: number;
   isActive: boolean;
-  featues?:string[]
+  features?:string[]
 }

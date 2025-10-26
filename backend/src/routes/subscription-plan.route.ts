@@ -44,6 +44,26 @@ subscriptionRoute.post('/update-subscripton-plan', adminAuthMiddleware, async (r
   }
 });
 
+subscriptionRoute.delete('/remove-subscription-plan', adminAuthMiddleware, async (req, res) => {
+  try {
+    const planId = req.body.planId as string;
+    const data = await SubscriptionPlanController.removeSubscriptionPlan(planId);
+    const response: APIResponseFormat<any> = {
+      message: 'subscription plan updated successfully',
+      data,
+    };
+
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
+
 subscriptionRoute.get('/get-subscription-plans', async (req, res) => {
   try {
     const data = await SubscriptionPlanController.getSubscriptionPlans();

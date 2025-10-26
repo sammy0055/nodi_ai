@@ -11,7 +11,6 @@ const requestSchema = z.object({
 const requestSchemaUpdate = z.object({
   id: z.string().trim(),
   status: z.enum([...Object.values(RequestStatus)] as any).optional(),
-  approvedByUserId: z.string(),
   approvalNotes: z.string().trim(),
   approvedAt: z.coerce.date().optional(),
   rejectedAt: z.coerce.date().optional(),

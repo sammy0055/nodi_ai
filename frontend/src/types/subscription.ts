@@ -29,13 +29,17 @@ export interface UsageRecordAttributes {
   createdAt: Date;
 }
 
-export interface ISubscriptionPlan {
-  id: string;
+export interface ISubscriptionPlan extends CreateSubscriptionPlanAttributes {
   stripePlanId: string;
   stripePlanPriceId: string;
+}
+
+export interface CreateSubscriptionPlanAttributes {
+  id: string;
   name: string;
   description: string;
   price: number;
   creditPoints: number;
-  features?: string[];
+  features: string[];
+  isActive?: boolean;
 }

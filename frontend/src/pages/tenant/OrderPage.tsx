@@ -270,7 +270,7 @@ console.log('====================================');
   };
 
   // Pagination
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredOrders?.length / itemsPerPage);
   const currentOrders = filteredOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   // Order Row Component
@@ -318,7 +318,7 @@ console.log('====================================');
             <span>{formatDate(order.createdAt)}</span>
           </div>
           <div className="text-neutral-500">
-            {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+            {order.items?.length} item{order.items?.length !== 1 ? 's' : ''}
           </div>
         </div>
       </div>
@@ -372,7 +372,7 @@ console.log('====================================');
           </div>
           <div>
             <p className="text-neutral-500">Items</p>
-            <p className="font-medium">{order.items.length}</p>
+            <p className="font-medium">{order.items?.length}</p>
           </div>
           <div>
             <p className="text-neutral-500">Date</p>
@@ -496,7 +496,7 @@ console.log('====================================');
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-3"></div>
             <p>Loading orders...</p>
           </div>
-        ) : currentOrders.length === 0 ? (
+        ) : currentOrders?.length === 0 ? (
           <div className="p-8 text-center text-neutral-500">
             <FiBox className="mx-auto text-4xl text-neutral-300 mb-3" />
             <p>No orders found{searchTerm && ` matching "${searchTerm}"`}</p>
@@ -519,7 +519,7 @@ console.log('====================================');
           <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-neutral-200 space-y-3 sm:space-y-0">
             <div className="text-sm text-neutral-500">
               Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-              {Math.min(currentPage * itemsPerPage, filteredOrders.length)} of {filteredOrders.length} orders
+              {Math.min(currentPage * itemsPerPage, filteredOrders?.length)} of {filteredOrders?.length} orders
             </div>
 
             <div className="flex space-x-2">
@@ -736,7 +736,7 @@ console.log('====================================');
                           <div>
                             <h5 className="font-medium text-neutral-900">{item.product?.name}</h5>
                             <p className="text-sm text-neutral-500">Qty: {item.quantity}</p>
-                            {item?.product?.options.length > 0 && (
+                            {item?.product?.options?.length > 0 && (
                               <div className="text-xs text-neutral-500 mt-1">
                                 {item?.product.options?.map((opt) => `${opt?.name}: ${opt.choice.label}`).join(', ')}
                               </div>
