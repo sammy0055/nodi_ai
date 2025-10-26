@@ -65,14 +65,14 @@ export class WhatSappSettingsService {
       whatsappPhoneNumberId,
     });
 
-    if (this.isPhoneNumberRegistered(phoneNumberInfo)) {
-      const deregisterPayload = await this.deregisterPhoneNumber({
-        whatsappBusinessId: whatsappBusinessId,
-        accessToken: data.access_token,
-        whatsappPhoneNumberId,
-      });
-      console.log(`✅------------deregisted Number successful:${JSON.stringify(deregisterPayload, null, 2)}`);
-    }
+    // if (this.isPhoneNumberRegistered(phoneNumberInfo)) {
+    //   const deregisterPayload = await this.deregisterPhoneNumber({
+    //     whatsappBusinessId: whatsappBusinessId,
+    //     accessToken: data.access_token,
+    //     whatsappPhoneNumberId,
+    //   });
+    //   console.log(`✅------------deregisted Number successful:${JSON.stringify(deregisterPayload, null, 2)}`);
+    // }
 
     const registeredNumber = await this.registerPhoneNumber({
       whatsappBusinessId: whatsappBusinessId,
