@@ -10,6 +10,7 @@ import RequestRoutePage from '../pages/admin/RequestRoutePage';
 import WhatsAppDetailsPage from '../pages/admin/WhatsAppDetailsPage';
 import SubscriptionPlansPage from '../pages/admin/SubscriptionPlanPage';
 import AdminLayout from '../layouts/AdminLayout';
+import OrganizationsPage from '../pages/admin/OrganizationsPage';
 
 export const PageRoutes = {
   LOGIN: 'sign-in',
@@ -28,6 +29,7 @@ export const PageRoutes = {
   ADMIN_DASHBOARD: 'dashboard',
   ADMIN_UPDATE_WABA: 'update-waba',
   ADMIN_SUBSCRIPTION_PLAN: 'subscriptions',
+  ADMIN_ORGANIZATIONS: 'organizations',
   REVIEWS: 'reviews',
 } as const;
 
@@ -60,6 +62,7 @@ const router = createBrowserRouter([
       { path: 'billing', element: <div>billing page</div>, loader: () => '' },
       { path: PageRoutes.ADMIN_UPDATE_WABA, element: <WhatsAppDetailsPage />, loader: () => '' },
       { path: PageRoutes.ADMIN_SUBSCRIPTION_PLAN, element: <SubscriptionPlansPage />, loader: adminSubscriptonLoader },
+      { path: PageRoutes.ADMIN_ORGANIZATIONS, element: <OrganizationsPage /> },
     ],
   },
   {
