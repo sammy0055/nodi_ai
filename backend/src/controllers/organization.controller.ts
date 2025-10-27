@@ -16,4 +16,7 @@ export class OrganizationController {
     if (!organizationId) throw new Error('organizationId is required');
     return await OrganizationService.updateOrganization(organizationId, data);
   }
+  static async getOrganizatonsStatitics(){
+    return await OrganizationService.getOrganizatonsStatitics()
+  }
 }

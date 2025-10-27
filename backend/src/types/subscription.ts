@@ -4,7 +4,6 @@ export interface ISubscription {
   id: string; // UUID
   organizationId?: string | null; // nullable foreign key
   planId: string; // UUID foreign key to SubscriptionPlans
-  subscriptionId: string;
   status: `${SubstriptionStatusTypes}`;
   startDate: Date;
   currentPeriodStart: Date;

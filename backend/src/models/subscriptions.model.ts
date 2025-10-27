@@ -28,6 +28,11 @@ class SubscriptionsModel
       foreignKey: 'organizationId',
       as: 'organization',
     });
+
+     this.belongsTo(models.SubscriptionPlanModel, {
+      foreignKey: 'planId',
+      as: 'plan',
+    });
   }
 }
 

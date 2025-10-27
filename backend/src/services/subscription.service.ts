@@ -1,3 +1,4 @@
+import { Sequelize } from 'sequelize';
 import { appConfig } from '../config';
 import { stripe } from '../helpers/stripe';
 import { CreditBalanceModel } from '../models/creditBalance.model';
@@ -57,7 +58,7 @@ export class SubscriptionService {
     const subscription = await stripe.subscriptions.retrieve(sub.subscriptionId!, {
       expand: ['items.data.price.product'], // optional: expands price/product info
     });
-  
+
     await stripe.subscriptions.update(subscription.id, {
       items: [
         {
@@ -67,5 +68,29 @@ export class SubscriptionService {
       ],
       proration_behavior: 'create_prorations',
     });
+  }
+
+  // app-user
+  static async getSubscriptionStatistics() {
+    const planCounts = await SubscriptionsModel.findAll({
+      include: [
+        {
+          model: SubscriptionPlanModel,
+          as: 'plan',
+          attributes: [],
+        },
+      ],
+      attributes: [
+        [Sequelize.col('plan.name'), 'planName'],
+        [Sequelize.fn('COUNT', Sequelize.col('SubscriptionsModel.id')), 'count'],
+      ],
+      group: ['plan.name'],
+      raw: true,
+    });
+    const result = planCounts.reduce((acc, item: any) => {
+      acc[item.planName] = Number(item.count);
+      return acc;
+    }, {} as any);
+    return result;
   }
 }

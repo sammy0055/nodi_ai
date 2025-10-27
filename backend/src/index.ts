@@ -59,6 +59,7 @@ app.use('/api/organization/review', reviewRoute);
 app.use('/api/app-user/subscription-plan', appUserAuthSecretValidation, subscriptionRoute);
 app.use('/api/app-user', appUserAuthSecretValidation, adminUserRoute);
 app.use('/api/app-user/request', appUserAuthSecretValidation, requestRoute);
+app.use('/api/app-user/organization', organizationRoute);
 
 const vectorStore = new ManageVectorStore();
 const PORT = appConfig.port;

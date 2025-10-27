@@ -4,7 +4,7 @@ import { OrganizationController } from '../controllers/organization.controller';
 import { APIResponseFormat } from '../types/apiTypes';
 import { IOrganization } from '../types/organization';
 import { errorLogger } from '../helpers/logger';
-import { authMiddleware, TokenPayload } from '../middleware/authentication';
+import { adminAuthMiddleware, authMiddleware, TokenPayload } from '../middleware/authentication';
 import { UserController } from '../controllers/user.controller';
 import { UsersModel } from '../models/users.model';
 import { generateTokens } from '../utils/jwt';
@@ -78,6 +78,26 @@ organizationRoute.post('/update-organization', authMiddleware, async (req, res) 
 organizationRoute.get('/get-organization', authMiddleware, async (req, res) => {
   try {
     const data = await OrganizationController.getOrganization(req.query.id as string, req.user as any);
+    const response: APIResponseFormat<any> = {
+      message: 'request successfully',
+      data,
+    };
+
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
+
+// app-user route actions ----------------------------------
+organizationRoute.get('/organization-statistics', adminAuthMiddleware, async (req, res) => {
+  try {
+    const data = await OrganizationController.getOrganizatonsStatitics();
     const response: APIResponseFormat<any> = {
       message: 'request successfully',
       data,

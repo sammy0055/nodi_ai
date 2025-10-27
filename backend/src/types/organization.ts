@@ -6,8 +6,9 @@ export interface IOrganization {
   name: string;
   brandTone: string;
   businessType: `${BusinessType}`;
-  AIAssistantName:string
+  AIAssistantName: string;
   Whatsappsettings?: IWhatSappSettings[];
-  stripeCustomerId?:string
-  shouldUpdateChatbotSystemPrompt?:boolean
+  stripeCustomerId?: string;
+  shouldUpdateChatbotSystemPrompt?: boolean;
+  status: 'active' | 'suspended' | 'cancelled';
 }
