@@ -28,4 +28,8 @@ export class AdminSubscriptionPlanService {
       body: { planId },
     });
   }
+
+  async getSubPlanStatistics(): Promise<{ data: { [key: string]: number } }> {
+    return AdminApiClient('GET_SUB_PLAN_STATISTISTICS');
+  }
 }

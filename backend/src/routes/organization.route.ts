@@ -114,4 +114,29 @@ organizationRoute.get('/organization-statistics', adminAuthMiddleware, async (re
   }
 });
 
+organizationRoute.get('/get-organizations-for-admin', adminAuthMiddleware, async (req, res) => {
+  try {
+    const page = Number(req.query.page as string) || 1;
+    const limit = Number(req.query.limit as string) || 5;
+    const searchQuery = req.query.searchQuery || '';
+
+    // calculate offset
+    const offset = (page - 1) * limit;
+    const data = await OrganizationController.getOrganizationsForAdmin({ offset, limit, page }, searchQuery as string);
+    const response: APIResponseFormat<any> = {
+      message: 'request successfully',
+      data,
+    };
+
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
+
 export { organizationRoute };

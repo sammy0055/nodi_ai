@@ -17,4 +17,7 @@ export class SubscriptionController {
   static async getCreditBalance(user: Pick<User, 'id' | 'organizationId'>) {
     return await SubscriptionService.getCreditBalance(user);
   }
+  static async getSubscriptionStatisticsForOrg(){
+    return await SubscriptionService.getSubscriptionStatistics()
+  }
 }

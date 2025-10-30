@@ -69,7 +69,7 @@ export class ChatService extends MCPChatBot {
   private async getAndCreateConversationIfNotExist(systemPrompt: string) {
     const chatHistory = new ChatHistoryManager();
     const customer = await this.getCustomerData();
-    const conversation = await chatHistory.getConversationsByCustomerId(customer.id);
+    const conversation = await chatHistory.getConversationsByCustomerId(customer.id, this.organizationId);
     if (!conversation) {
       const conv = await chatHistory.createConversation({
         organizationId: this.organizationId,
@@ -84,7 +84,6 @@ export class ChatService extends MCPChatBot {
   public async processQuery(userMessage: string) {
     const planOrg = await this.getOrganization();
     const customer = await this.getCustomerData();
-    let newSystemPrompt = '';
     await this.connectToMcpServer();
     const systemPrompt = createSystemPrompt({
       organizationData: planOrg!,
@@ -94,12 +93,11 @@ export class ChatService extends MCPChatBot {
     });
     if (planOrg.shouldUpdateChatbotSystemPrompt) {
       await OrganizationsModel.update({ shouldUpdateChatbotSystemPrompt: false }, { where: { id: planOrg.id } });
-      newSystemPrompt = systemPrompt;
     }
     const conversation = await this.getAndCreateConversationIfNotExist(systemPrompt);
     const res = await this.process({
       query: userMessage,
-      systemPrompt: newSystemPrompt,
+      systemPrompt: systemPrompt,
       organizationId: this.organizationId,
       conversationId: conversation.id,
       customerId: customer.id,

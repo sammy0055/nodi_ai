@@ -28,6 +28,13 @@ class OrganizationsModel
       as: 'users',
     });
 
+    // belongsTo → The foreign key is on this model (the one calling belongsTo).
+    // Organization has one owner
+    this.belongsTo(models.UsersModel, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
+
     // Organization has many users
     this.hasMany(models.ProductModel, {
       foreignKey: 'organizationId',
@@ -50,11 +57,14 @@ class OrganizationsModel
       as: 'requests',
     });
 
-    // belongsTo → The foreign key is on this model (the one calling belongsTo).
-    // Organization has one owner
-    this.belongsTo(models.UsersModel, {
-      foreignKey: 'ownerId',
-      as: 'owner',
+    this.hasOne(models.SubscriptionsModel, {
+      foreignKey: 'organizationId',
+      as: 'subscription',
+    });
+
+    this.hasOne(models.CreditBalanceModel, {
+      foreignKey: 'organizationId',
+      as: 'creditBalance',
     });
   }
 }
@@ -67,7 +77,7 @@ OrganizationsModel.init(
       allowNull: false,
 
       references: {
-        model: 'Users',
+        model: ModelNames.Users,
         key: 'id',
       },
     }, // special owner link
@@ -87,6 +97,19 @@ OrganizationsModel.init(
       {
         fields: ['stripeCustomerId'],
       },
+      // ✅ new full-text search index
+      // {
+      //   name: 'organizations_text_search_idx',
+      //   using: 'GIN',
+      //   fields: [
+      //     sequelize.literal(`
+      //       to_tsvector(
+      //         'english',
+      //         coalesce("id"::text, '') || ' ' ||
+      //         coalesce("name", '') || ' ' ||
+      //     `),
+      //   ],
+      // },
     ],
     hooks: {
       beforeUpdate: async (org: IOrganization) => {

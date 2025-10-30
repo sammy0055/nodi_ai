@@ -59,6 +59,7 @@ UsersModel.init(
   {
     sequelize,
     modelName: ModelNames.Users,
+    tableName: ModelNames.Users,
     timestamps: true,
     indexes: [
       {

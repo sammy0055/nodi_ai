@@ -2,6 +2,7 @@ import { AdminUserService } from '../services/admin/AdminUserService';
 import type { AdminUser } from '../types/users';
 import type { BaseRequestAttributes } from '../types/request';
 import { AdminSubscriptionPlanService } from '../services/admin/AdminSubscriptionPlanService';
+import { AdminOrganziationService } from '../services/admin/AdminOrganizationService';
 
 export const adminLayoutLoader = async () => {
   try {
@@ -29,4 +30,19 @@ export const adminRequestLoader = async () => {
 export const adminSubscriptonLoader = async () => {
   const { getSubscriptionPlans } = new AdminSubscriptionPlanService();
   return await getSubscriptionPlans();
+};
+
+export const adminOrganizationStatisticsLoader = async () => {
+  const { getOrganizationStatistics, adminGetOrganizations } = new AdminOrganziationService();
+  const { getSubPlanStatistics } = new AdminSubscriptionPlanService();
+  const [subPlanStats, OrgStats, organizations] = await Promise.allSettled([
+    getSubPlanStatistics(),
+    getOrganizationStatistics(),
+    adminGetOrganizations(),
+  ]);
+
+  const subplan = subPlanStats.status === 'fulfilled' ? subPlanStats.value : null;
+  const org = OrgStats.status === 'fulfilled' ? OrgStats.value : null;
+  const adminOrganizations = organizations.status === 'fulfilled' ? organizations.value : null;
+  return { organizations: { ...org?.data, plans: subplan?.data }, adminOrganizations };
 };

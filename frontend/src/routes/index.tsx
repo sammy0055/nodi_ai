@@ -5,7 +5,12 @@ import TenantRoutes from './TenantRoutes';
 import AuthRoutes from './AuthRoute';
 import { contextLoader } from '../contexts/TenantContext';
 import AdminAuthRoutes from './AdminAuthRoute';
-import { adminLayoutLoader, adminRequestLoader, adminSubscriptonLoader } from '../contexts/AdminContext';
+import {
+  adminLayoutLoader,
+  adminOrganizationStatisticsLoader,
+  adminRequestLoader,
+  adminSubscriptonLoader,
+} from '../contexts/AdminContext';
 import RequestRoutePage from '../pages/admin/RequestRoutePage';
 import WhatsAppDetailsPage from '../pages/admin/WhatsAppDetailsPage';
 import SubscriptionPlansPage from '../pages/admin/SubscriptionPlanPage';
@@ -62,7 +67,11 @@ const router = createBrowserRouter([
       { path: 'billing', element: <div>billing page</div>, loader: () => '' },
       { path: PageRoutes.ADMIN_UPDATE_WABA, element: <WhatsAppDetailsPage />, loader: () => '' },
       { path: PageRoutes.ADMIN_SUBSCRIPTION_PLAN, element: <SubscriptionPlansPage />, loader: adminSubscriptonLoader },
-      { path: PageRoutes.ADMIN_ORGANIZATIONS, element: <OrganizationsPage /> },
+      {
+        path: PageRoutes.ADMIN_ORGANIZATIONS,
+        element: <OrganizationsPage />,
+        loader: adminOrganizationStatisticsLoader,
+      },
     ],
   },
   {

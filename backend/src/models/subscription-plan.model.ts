@@ -3,6 +3,7 @@ import { sequelize } from './db';
 
 import { ModelNames } from './model-names';
 import { ISubscriptionPlan } from '../types/subscription-plan';
+import { DbModels } from '.';
 
 class SubscriptionPlanModel
   extends Model<
@@ -20,7 +21,14 @@ class SubscriptionPlanModel
   declare creditPoints: number;
   declare billing_cycle_days: CreationOptional<number>;
   declare isActive: CreationOptional<boolean>;
-  declare features ?: string[] | undefined;
+  declare features?: string[] | undefined;
+
+  static associate(models: DbModels) {
+    this.hasMany(models.SubscriptionsModel, {
+      foreignKey: 'planId',
+      as: 'subscriptions',
+    });
+  }
 }
 
 SubscriptionPlanModel.init(
@@ -41,7 +49,7 @@ SubscriptionPlanModel.init(
     creditPoints: { type: DataTypes.INTEGER, allowNull: false, comment: 'Credit points allocated per cycle' },
     billing_cycle_days: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 30 },
     isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
-    features : { type: DataTypes.ARRAY(DataTypes.STRING), defaultValue: [] },
+    features: { type: DataTypes.ARRAY(DataTypes.STRING), defaultValue: [] },
   },
   { sequelize, modelName: ModelNames.SubscriptionPlans, timestamps: true }
 );

@@ -5,7 +5,12 @@ import { UsersModel } from '../models/users.model';
 import { IOrganization } from '../types/organization';
 import { User } from '../types/users';
 import { NotificationModel } from '../models/notification.model';
-import { Sequelize } from 'sequelize';
+import { literal, Op, Sequelize } from 'sequelize';
+import { Pagination } from '../types/common-types';
+import { SubscriptionsModel } from '../models/subscriptions.model';
+import { SubscriptionPlanModel } from '../models/subscription-plan.model';
+import { CreditBalanceModel } from '../models/creditBalance.model';
+import { ModelNames } from '../models/model-names';
 
 export class OrganizationService {
   constructor() {}
@@ -62,6 +67,70 @@ export class OrganizationService {
       ],
       raw: true,
     });
-    return stats[0];
+    const { total, ...rest } = stats[0] as any;
+    return {
+      total: total,
+      status: {
+        ...rest,
+      },
+    };
+  }
+
+  static async getOrganizationForAdmin({ offset, limit, page }: Pagination, searchQuery: string) {
+    const where: any = {};
+    // only add search when there’s text
+    if (searchQuery && searchQuery.trim() !== '') {
+      where[Op.and] = literal(`
+    to_tsvector(
+      'english',
+      coalesce(("Organizations"."id")::text, '') || ' ' ||
+      coalesce("Organizations"."name", '')
+    )
+    @@ plainto_tsquery('english', ${OrganizationsModel.sequelize!.escape(searchQuery)})
+  `);
+    }
+    const { rows: orgs, count: totalItemsRaw } = await OrganizationsModel.findAndCountAll({
+      where,
+      distinct: true, // <-- important to avoid duplicate-count from joins
+      col: 'id', // optional: ensures count works on primary key
+      order: [
+        [
+          literal(`
+        ts_rank(
+          to_tsvector(
+            'english',
+            coalesce(("Organizations"."id")::text, '') || ' ' ||
+            coalesce("Organizations"."name", '')
+          ),
+          plainto_tsquery('english', ${OrganizationsModel.sequelize!.escape(searchQuery)})
+        )
+      `),
+          'DESC',
+        ],
+      ],
+      offset,
+      limit,
+      include: [
+        { model: SubscriptionsModel, as: 'subscription', include: [{ model: SubscriptionPlanModel, as: 'plan' }] },
+        { model: CreditBalanceModel, as: 'creditBalance' },
+      ],
+    });
+
+    // totalItems from Sequelize can be number or object depending on dialect; ensure numeric
+    const totalItems = typeof totalItemsRaw === 'number' ? totalItemsRaw : (totalItemsRaw as any).count || 0;
+
+    // compute totalPages and clamp current page to a sensible value
+    const totalPages = totalItems === 0 ? 0 : Math.ceil(totalItems / limit);
+    return {
+      data: orgs,
+      pagination: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        pageSize: limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    };
   }
 }

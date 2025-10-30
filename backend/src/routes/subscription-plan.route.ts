@@ -5,8 +5,8 @@ import { APIResponseFormat } from '../types/apiTypes';
 import { errorLogger } from '../helpers/logger';
 import { adminAuthMiddleware } from '../middleware/authentication';
 
-export const subscriptionRoute = express.Router();
-subscriptionRoute.post('/create-plan', validateSubscriptionPlanSchema(), adminAuthMiddleware, async (req, res) => {
+export const subscriptionPlanRoute = express.Router();
+subscriptionPlanRoute.post('/create-plan', validateSubscriptionPlanSchema(), adminAuthMiddleware, async (req, res) => {
   try {
     const data = await SubscriptionPlanController.createSubscriptionPlan(req.body, req.adminUser as any);
     const response: APIResponseFormat<any> = {
@@ -25,7 +25,7 @@ subscriptionRoute.post('/create-plan', validateSubscriptionPlanSchema(), adminAu
   }
 });
 
-subscriptionRoute.post('/update-subscripton-plan', adminAuthMiddleware, async (req, res) => {
+subscriptionPlanRoute.post('/update-subscripton-plan', adminAuthMiddleware, async (req, res) => {
   try {
     const data = await SubscriptionPlanController.updateSubscriptionPlan(req.body, req.adminUser as any);
     const response: APIResponseFormat<any> = {
@@ -44,7 +44,7 @@ subscriptionRoute.post('/update-subscripton-plan', adminAuthMiddleware, async (r
   }
 });
 
-subscriptionRoute.delete('/remove-subscription-plan', adminAuthMiddleware, async (req, res) => {
+subscriptionPlanRoute.delete('/remove-subscription-plan', adminAuthMiddleware, async (req, res) => {
   try {
     const planId = req.body.planId as string;
     const data = await SubscriptionPlanController.removeSubscriptionPlan(planId);
@@ -64,7 +64,7 @@ subscriptionRoute.delete('/remove-subscription-plan', adminAuthMiddleware, async
   }
 });
 
-subscriptionRoute.get('/get-subscription-plans', async (req, res) => {
+subscriptionPlanRoute.get('/get-subscription-plans', async (req, res) => {
   try {
     const data = await SubscriptionPlanController.getSubscriptionPlans();
     const response: APIResponseFormat<any> = {

@@ -120,8 +120,8 @@ export class ChatHistoryManager {
     });
   }
 
-  async getConversationsByCustomerId(customerId: string) {
-    const conv = await Conversation.findOne({ where: { customerId: customerId } });
+  async getConversationsByCustomerId(customerId: string, organizationId: string) {
+    const conv = await Conversation.findOne({ where: { customerId: customerId, organizationId: organizationId } });
     return conv?.get({ plain: true });
   }
 

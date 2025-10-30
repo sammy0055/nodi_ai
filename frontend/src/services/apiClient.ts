@@ -1,5 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_BACKEND_PROD_APP_URL
-  // import.meta.env.VITE_ENV_PROD === 'PROD' ? import.meta.env.VITE_BACKEND_PROD_APP_URL : 'http://localhost:4000/api';
+const API_BASE_URL =
+  import.meta.env.VITE_ENV_PROD === 'PROD' ? import.meta.env.VITE_BACKEND_PROD_APP_URL : 'http://localhost:4000/api';
 // import.meta.env.VITE_BACKEND_PROD_APP_URL
 export const APP_USER_API_ROUTES = {
   ADMIN_GET_REQUESTS: `${API_BASE_URL}/app-user/request/get-requests`,
@@ -11,6 +11,9 @@ export const APP_USER_API_ROUTES = {
   CREATE_SUBSCRIPTION_PLAN: `${API_BASE_URL}/app-user/subscription-plan/create-plan`,
   UPDATE_SUBSCRIPTION_PLAN: `${API_BASE_URL}/app-user/subscription-plan/update-subscripton-plan`,
   DELETE_SUBSCRIPTION_PLAN: `${API_BASE_URL}/app-user/subscription-plan/remove-subscription-plan`,
+  GET_ORG_STATISTICS: `${API_BASE_URL}/app-user/organization/organization-statistics`,
+  GET_SUB_PLAN_STATISTISTICS: `${API_BASE_URL}/app-user/subscription/get-subscription-statistics`,
+  ADMIN_GET_ORGANIZATIONS: `${API_BASE_URL}/app-user/organization/get-organizations-for-admin`,
 };
 
 export const API_ROUTES = {
@@ -73,15 +76,16 @@ interface ApiOptions {
   body?: any;
   headers?: Record<string, string>;
   credentials?: RequestCredentials; // "include" | "same-origin" | "omit"
+  queryParams?: string;
 }
 
 export async function ApiClient<T>(
   route: ApiRouteName,
-  { method = 'GET', body, headers = {}, credentials = 'include' }: ApiOptions = {}
+  { method = 'GET', body, headers = {}, credentials = 'include', queryParams = '' }: ApiOptions = {}
 ): Promise<T> {
   const url = API_ROUTES[route]; // resolve to actual URL
 
-  const response = await fetch(url, {
+  const response = await fetch(`${url}${queryParams}`, {
     method,
     headers: {
       'Content-Type': 'application/json',
@@ -106,11 +110,11 @@ export async function ApiClient<T>(
 export type AdminApiRouteName = keyof typeof APP_USER_API_ROUTES;
 export async function AdminApiClient<T>(
   route: AdminApiRouteName,
-  { method = 'GET', body, headers = {}, credentials = 'include' }: ApiOptions = {}
+  { method = 'GET', body, headers = {}, credentials = 'include', queryParams = "" }: ApiOptions = {}
 ): Promise<T> {
   const url = API_ROUTES[route]; // resolve to actual URL
 
-  const response = await fetch(url, {
+  const response = await fetch(`${url}${queryParams}`, {
     method,
     headers: {
       'Content-Type': 'application/json',

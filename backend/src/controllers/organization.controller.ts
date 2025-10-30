@@ -1,4 +1,5 @@
 import { OrganizationService } from '../services/organization.service';
+import { Pagination } from '../types/common-types';
 import { IOrganization } from '../types/organization';
 import { User } from '../types/users';
 
@@ -16,7 +17,10 @@ export class OrganizationController {
     if (!organizationId) throw new Error('organizationId is required');
     return await OrganizationService.updateOrganization(organizationId, data);
   }
-  static async getOrganizatonsStatitics(){
-    return await OrganizationService.getOrganizatonsStatitics()
+  static async getOrganizatonsStatitics() {
+    return await OrganizationService.getOrganizatonsStatitics();
+  }
+  static async getOrganizationsForAdmin({ offset, limit, page }: Pagination, searchQuery: string) {
+    return await OrganizationService.getOrganizationForAdmin({ offset, limit, page }, searchQuery);
   }
 }

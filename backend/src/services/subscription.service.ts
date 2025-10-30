@@ -72,25 +72,28 @@ export class SubscriptionService {
 
   // app-user
   static async getSubscriptionStatistics() {
-    const planCounts = await SubscriptionsModel.findAll({
+    const planCounts = await SubscriptionPlanModel.findAll({
+      attributes: [
+        ['name', 'planName'],
+        [Sequelize.fn('COUNT', Sequelize.col('subscriptions.id')), 'count'],
+      ],
       include: [
         {
-          model: SubscriptionPlanModel,
-          as: 'plan',
+          model: SubscriptionsModel,
+          as: 'subscriptions',
           attributes: [],
+          required: false, // include plans even if no subs
         },
       ],
-      attributes: [
-        [Sequelize.col('plan.name'), 'planName'],
-        [Sequelize.fn('COUNT', Sequelize.col('SubscriptionsModel.id')), 'count'],
-      ],
-      group: ['plan.name'],
+      group: ['SubscriptionPlans.id'], // ✅ use table alias, not model name
       raw: true,
     });
-    const result = planCounts.reduce((acc, item: any) => {
+
+    const result = planCounts.reduce((acc: Record<string, number>, item: any) => {
       acc[item.planName] = Number(item.count);
       return acc;
-    }, {} as any);
+    }, {});
+
     return result;
   }
 }
