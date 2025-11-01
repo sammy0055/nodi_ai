@@ -46,3 +46,10 @@ export const adminOrganizationStatisticsLoader = async () => {
   const adminOrganizations = organizations.status === 'fulfilled' ? organizations.value : null;
   return { organizations: { ...org?.data, plans: subplan?.data }, adminOrganizations };
 };
+
+export const adminConversationLoader = async () => {
+  const { adminGetOrganizations } = new AdminOrganziationService();
+  const [orgs] = await Promise.allSettled([adminGetOrganizations()]);
+  const organizations = orgs.status === 'fulfilled' ? orgs.value : null;
+  return organizations?.data
+};

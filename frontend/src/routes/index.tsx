@@ -6,6 +6,7 @@ import AuthRoutes from './AuthRoute';
 import { contextLoader } from '../contexts/TenantContext';
 import AdminAuthRoutes from './AdminAuthRoute';
 import {
+  adminConversationLoader,
   adminLayoutLoader,
   adminOrganizationStatisticsLoader,
   adminRequestLoader,
@@ -16,6 +17,7 @@ import WhatsAppDetailsPage from '../pages/admin/WhatsAppDetailsPage';
 import SubscriptionPlansPage from '../pages/admin/SubscriptionPlanPage';
 import AdminLayout from '../layouts/AdminLayout';
 import OrganizationsPage from '../pages/admin/OrganizationsPage';
+import ConversationLogsPage from '../pages/admin/ConversationLogPage';
 
 export const PageRoutes = {
   LOGIN: 'sign-in',
@@ -35,6 +37,7 @@ export const PageRoutes = {
   ADMIN_UPDATE_WABA: 'update-waba',
   ADMIN_SUBSCRIPTION_PLAN: 'subscriptions',
   ADMIN_ORGANIZATIONS: 'organizations',
+  ADMIN_CONVERSATION_LOGS: 'conversations',
   REVIEWS: 'reviews',
 } as const;
 
@@ -71,6 +74,11 @@ const router = createBrowserRouter([
         path: PageRoutes.ADMIN_ORGANIZATIONS,
         element: <OrganizationsPage />,
         loader: adminOrganizationStatisticsLoader,
+      },
+      {
+        path: PageRoutes.ADMIN_CONVERSATION_LOGS,
+        element: <ConversationLogsPage />,
+        loader: adminConversationLoader,
       },
     ],
   },

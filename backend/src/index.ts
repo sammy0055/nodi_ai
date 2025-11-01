@@ -25,6 +25,7 @@ import { chatRoute } from './mcp/chat-webhook.js';
 import { orderRoute } from './routes/order.route.js';
 import { customerRoute } from './routes/customer.route.js';
 import { reviewRoute } from './routes/review.route.js';
+import { convRoute } from './routes/conversation.route.js';
 
 const app = express();
 
@@ -60,7 +61,8 @@ app.use('/api/app-user/subscription-plan', appUserAuthSecretValidation, subscrip
 app.use('/api/app-user/subscription', appUserAuthSecretValidation, subscriptionRouter);
 app.use('/api/app-user', appUserAuthSecretValidation, adminUserRoute);
 app.use('/api/app-user/request', appUserAuthSecretValidation, requestRoute);
-app.use('/api/app-user/organization', organizationRoute);
+app.use('/api/app-user/organization', appUserAuthSecretValidation, organizationRoute);
+app.use('/api/app-user/conversation', appUserAuthSecretValidation, convRoute);
 
 const vectorStore = new ManageVectorStore();
 const PORT = appConfig.port;

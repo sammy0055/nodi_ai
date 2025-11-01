@@ -14,6 +14,7 @@ export const APP_USER_API_ROUTES = {
   GET_ORG_STATISTICS: `${API_BASE_URL}/app-user/organization/organization-statistics`,
   GET_SUB_PLAN_STATISTISTICS: `${API_BASE_URL}/app-user/subscription/get-subscription-statistics`,
   ADMIN_GET_ORGANIZATIONS: `${API_BASE_URL}/app-user/organization/get-organizations-for-admin`,
+  ADMIN_GET_CONVERSATIONS: `${API_BASE_URL}/app-user/conversation/get-conversation-by-orgId`,
 };
 
 export const API_ROUTES = {
@@ -110,7 +111,7 @@ export async function ApiClient<T>(
 export type AdminApiRouteName = keyof typeof APP_USER_API_ROUTES;
 export async function AdminApiClient<T>(
   route: AdminApiRouteName,
-  { method = 'GET', body, headers = {}, credentials = 'include', queryParams = "" }: ApiOptions = {}
+  { method = 'GET', body, headers = {}, credentials = 'include', queryParams = '' }: ApiOptions = {}
 ): Promise<T> {
   const url = API_ROUTES[route]; // resolve to actual URL
 
