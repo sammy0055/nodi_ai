@@ -15,6 +15,13 @@ export const APP_USER_API_ROUTES = {
   GET_SUB_PLAN_STATISTISTICS: `${API_BASE_URL}/app-user/subscription/get-subscription-statistics`,
   ADMIN_GET_ORGANIZATIONS: `${API_BASE_URL}/app-user/organization/get-organizations-for-admin`,
   ADMIN_GET_CONVERSATIONS: `${API_BASE_URL}/app-user/conversation/get-conversation-by-orgId`,
+  ADMIN_GET_NOTIFICATIONS: `${API_BASE_URL}/app-user/notification/get-notifications`,
+  ADMIN_MARK_NOTIFICATION_AS_READ: `${API_BASE_URL}/app-user/notification/mark-notification-as-read`,
+  ADMIN_DELETE_NOTIFICATIONS: `${API_BASE_URL}/app-user/notification/delete-notification`,
+  ADMIN_GET_NOTIFICATION_EMAILS: `${API_BASE_URL}/app-user/notification-email-list/get-notification-emails`,
+  ADMIN_VERIFY_NOTIFICATION_EMAIL: `${API_BASE_URL}/app-user/notification-email-list/verify-email`,
+  ADMIN_ADD_NOTIFICATION_EMAIL: `${API_BASE_URL}/app-user/notification-email-list/add-email`,
+  ADMIN_DELETE_NOTIFICATION_EMAIL: `${API_BASE_URL}/app-user/notification-email-list/delete-email`,
 };
 
 export const API_ROUTES = {

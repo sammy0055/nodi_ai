@@ -26,6 +26,8 @@ import { orderRoute } from './routes/order.route.js';
 import { customerRoute } from './routes/customer.route.js';
 import { reviewRoute } from './routes/review.route.js';
 import { convRoute } from './routes/conversation.route.js';
+import { NotificationRoute } from './routes/notification.route.js';
+import { adminEmailListRoute } from './routes/admin-email-list.route.js';
 
 const app = express();
 
@@ -63,6 +65,8 @@ app.use('/api/app-user', appUserAuthSecretValidation, adminUserRoute);
 app.use('/api/app-user/request', appUserAuthSecretValidation, requestRoute);
 app.use('/api/app-user/organization', appUserAuthSecretValidation, organizationRoute);
 app.use('/api/app-user/conversation', appUserAuthSecretValidation, convRoute);
+app.use('/api/app-user/notification', appUserAuthSecretValidation, NotificationRoute);
+app.use('/api/app-user/notification-email-list', appUserAuthSecretValidation, adminEmailListRoute);
 
 const vectorStore = new ManageVectorStore();
 const PORT = appConfig.port;

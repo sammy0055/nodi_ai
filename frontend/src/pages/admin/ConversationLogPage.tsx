@@ -1,18 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  FiChevronDown,
-  FiMessageCircle,
-  FiUser,
-  FiZap,
-  FiClock,
-  FiBox,
-  FiRefreshCw,
-} from 'react-icons/fi';
+import { FiChevronDown, FiMessageCircle, FiUser, FiZap, FiClock, FiBox, FiRefreshCw } from 'react-icons/fi';
 import { useDebounce } from 'use-debounce';
 import { AdminOrganziationService } from '../../services/admin/AdminOrganizationService';
 import { useLoaderData } from 'react-router';
 import type { Pagination } from '../../types/customer';
 import type { ConversationAttributes, Message } from '../../types/conversations';
+import { useClickOutside } from '../../hooks/clickOutside';
 
 // Types based on your schema
 interface Organization {
@@ -53,7 +46,7 @@ const ConversationLogsPage: React.FC = () => {
       } else {
         setOrganizations(response.data.data);
       }
-      setPagination(data.pagination);
+      setPagination(response.data.pagination);
     } catch (error) {
       console.error('Error loading organizations:', error);
     } finally {
@@ -104,16 +97,22 @@ const ConversationLogsPage: React.FC = () => {
     }
   }, [selectedOrganization, loadConversations]);
 
+  // handle organization click outside effect
+  const closeDropdownOnClickOutsit = () => setShowOrgDropdown(false);
+  useClickOutside(orgDropdownRef, closeDropdownOnClickOutsit);
+
   // Infinite scroll for organizations
   const handleOrgScroll = useCallback(() => {
-    if (!orgDropdownRef.current || orgLoading || !pagination.hasNextPage) return;
+    if (!orgDropdownRef.current || orgLoading || !pagination.hasNextPage) {
+      return;
+    }
 
     const { scrollTop, scrollHeight, clientHeight } = orgDropdownRef.current;
     if (scrollHeight - scrollTop <= clientHeight + 50) {
       const orgPage = pagination?.currentPage ? pagination?.currentPage + 1 : 1;
       loadOrganizations(orgPage, organizationSearch, true);
     }
-  }, [orgLoading, pagination.hasNextPage, pagination.currentPage, organizationSearch, loadOrganizations]);
+  }, [orgLoading, pagination, pagination.currentPage, organizationSearch, loadOrganizations]);
 
   // Infinite scroll for conversations
   const handleConvScroll = useCallback(() => {

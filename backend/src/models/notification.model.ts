@@ -5,21 +5,25 @@ import { UsersModel } from './users.model';
 import { DbModels } from '.';
 import { ModelNames } from './model-names';
 import { NotificationAttributes } from '../types/notification';
-import { NotificationPriority, NotificationStatus, RelatedEntityType } from '../data/data-types';
+import {
+  NotificationPriority,
+  NotificationStatus,
+  RelatedNotificationEntity,
+} from '../data/data-types';
 
 // Define the Notification model class
 class NotificationModel
   extends Model<InferAttributes<NotificationModel>, InferCreationAttributes<NotificationModel>>
   implements NotificationAttributes
 {
-  public id!: string;
+  public id!: string | null;
   public organizationId!: string | null;
   public senderUserId!: string | null;
   public title!: string;
   declare message: string;
   declare priority: NotificationPriority;
   declare status: `${NotificationStatus}`;
-  declare relatedEntityType: RelatedEntityType;
+  declare relatedEntityType: RelatedNotificationEntity;
   declare recipientType: 'tenant' | 'admin';
   declare readAt: Date | null;
 
@@ -101,7 +105,7 @@ NotificationModel.init(
     relatedEntityType: {
       type: DataTypes.ENUM, // Type of entity this notification relates to
       allowNull: false, // Optional field
-      values: [...Object.values(RelatedEntityType)],
+      values: [...Object.values(RelatedNotificationEntity)],
     },
     recipientType: {
       type: DataTypes.ENUM('tenant', 'admin'),
@@ -110,7 +114,7 @@ NotificationModel.init(
     readAt: {
       type: DataTypes.DATE,
       allowNull: true,
-    },
+    }
   },
   {
     sequelize,

@@ -8,8 +8,10 @@ import AdminAuthRoutes from './AdminAuthRoute';
 import {
   adminConversationLoader,
   adminLayoutLoader,
+  adminNotificationLoader,
   adminOrganizationStatisticsLoader,
   adminRequestLoader,
+  adminSettingsLoader,
   adminSubscriptonLoader,
 } from '../contexts/AdminContext';
 import RequestRoutePage from '../pages/admin/RequestRoutePage';
@@ -18,6 +20,8 @@ import SubscriptionPlansPage from '../pages/admin/SubscriptionPlanPage';
 import AdminLayout from '../layouts/AdminLayout';
 import OrganizationsPage from '../pages/admin/OrganizationsPage';
 import ConversationLogsPage from '../pages/admin/ConversationLogPage';
+import NotificationsPage from '../pages/admin/NotificationsPage';
+import EmailSettingsPage from '../pages/admin/SettingsPage';
 
 export const PageRoutes = {
   LOGIN: 'sign-in',
@@ -38,6 +42,8 @@ export const PageRoutes = {
   ADMIN_SUBSCRIPTION_PLAN: 'subscriptions',
   ADMIN_ORGANIZATIONS: 'organizations',
   ADMIN_CONVERSATION_LOGS: 'conversations',
+  ADMIN_ACTIVITIES: 'activities',
+  ADMIN_SETTINGS: 'settings',
   REVIEWS: 'reviews',
 } as const;
 
@@ -64,11 +70,9 @@ const router = createBrowserRouter([
     element: <AdminLayout />,
     loader: adminLayoutLoader,
     children: [
-      { index: true, element: <Navigate to="dashboard" /> },
-      { path: 'dashboard', element: <div>admin dashboard page</div> },
+      { index: true, element: <Navigate to="request" /> },
       { path: 'request', element: <RequestRoutePage />, loader: adminRequestLoader },
-      { path: 'billing', element: <div>billing page</div>, loader: () => '' },
-      { path: PageRoutes.ADMIN_UPDATE_WABA, element: <WhatsAppDetailsPage />, loader: () => '' },
+      { path: PageRoutes.ADMIN_UPDATE_WABA, element: <WhatsAppDetailsPage /> },
       { path: PageRoutes.ADMIN_SUBSCRIPTION_PLAN, element: <SubscriptionPlansPage />, loader: adminSubscriptonLoader },
       {
         path: PageRoutes.ADMIN_ORGANIZATIONS,
@@ -79,6 +83,16 @@ const router = createBrowserRouter([
         path: PageRoutes.ADMIN_CONVERSATION_LOGS,
         element: <ConversationLogsPage />,
         loader: adminConversationLoader,
+      },
+      {
+        path: PageRoutes.ADMIN_ACTIVITIES,
+        element: <NotificationsPage />,
+        loader: adminNotificationLoader,
+      },
+      {
+        path: PageRoutes.ADMIN_SETTINGS,
+        element: <EmailSettingsPage />,
+        loader: adminSettingsLoader,
       },
     ],
   },

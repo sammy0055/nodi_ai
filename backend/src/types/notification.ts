@@ -1,16 +1,22 @@
-import { NotificationPriority, NotificationStatus, RelatedEntityType, RequestStatus } from '../data/data-types';
+import {
+  NotificationPriority,
+  NotificationStatus,
+  RelatedEntityType,
+  RelatedNotificationEntity,
+  RequestStatus,
+} from '../data/data-types';
 
 export interface NotificationAttributes {
-  id: string;
+  id?: string | null;
   organizationId: string | null; // The tenant organization sending the request
-  senderUserId: string | null; // User from tenant organization who sent the request
+  senderUserId?: string | null; // User from tenant organization who sent the request
   recipientType: 'tenant' | 'admin';
   title: string;
   message: string;
   status: `${NotificationStatus}`;
-  relatedEntityType: `${RelatedEntityType}`;
+  relatedEntityType: `${RelatedNotificationEntity}`;
   priority: NotificationPriority;
-  readAt: Date | null;
+  readAt?: Date | null;
 }
 
 export interface BaseRequestAttributes {
@@ -19,7 +25,7 @@ export interface BaseRequestAttributes {
   requesterUserId: string;
   title: string;
   description: string;
-  status:  `${RequestStatus}`;
+  status: `${RequestStatus}`;
   requestType: `${RelatedEntityType}`;
   approvedByUserId: string | null;
   approvalNotes: string | null;
@@ -44,5 +50,3 @@ export interface GenericRequestAttributes extends BaseRequestAttributes {
 }
 
 export type RequestAttributes = CatalogRequestAttributes | GenericRequestAttributes;
-
-

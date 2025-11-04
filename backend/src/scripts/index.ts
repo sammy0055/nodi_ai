@@ -1,8 +1,12 @@
+import { date } from 'zod';
+import { NotificationPriority, RelatedNotificationEntity } from '../data/data-types';
 import { ChatService } from '../mcp/ChatService';
 import { MCPChatBot } from '../mcp/client';
+import { NotificationModel } from '../models/notification.model';
 import { IWhatSappSettings } from '../types/whatsapp-settings';
 import { decrypt } from '../utils/crypto-utils';
 import { run } from './migration';
+import { sendVerificationEmail } from '../utils/send-email';
 
 const ddd = {
   whatsappBusinessId: '1390720013053482',
@@ -54,6 +58,27 @@ const testwt = async () => {
   }
 };
 
+const notificationtest = async () => {
+  try {
+    // await NotificationModel.create({
+    //   organizationId: '6dedf480-e915-431c-8328-3c9ca825b214',
+    //   title: 'new organization signup',
+    //   message: 'make enterprose just created an organization',
+    //   priority: NotificationPriority.HIGH,
+    //   status: 'unread',
+    //   relatedEntityType: RelatedNotificationEntity.ORGANIZATION,
+    //   recipientType: 'admin',
+    //   readAt: new Date(),
+    // });
+    // await sendVerificationEmail('naenet05@gmail.com', '500443');
+    console.log('successfull');
+  } catch (error) {
+    console.log('===========rrrr-error==========');
+    console.log(error);
+    console.log('====================================');
+  }
+};
+
 // testMcp('hello');
 // run();
-testwt();
+notificationtest();

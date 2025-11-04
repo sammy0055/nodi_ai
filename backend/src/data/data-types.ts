@@ -69,6 +69,16 @@ export enum NotificationPriority {
   URGENT = 'urgent',
 }
 
+export enum RelatedNotificationEntity {
+  Billing = 'billing',
+  Product = 'product',
+  SYSTEM = 'system',
+  SUBSCRIPTION = 'subscription',
+  ORGANIZATION = 'organization',
+  ORDER = 'order',
+  USER = 'user',
+}
+
 export enum RelatedEntityType {
   CatalogRequest = 'CatalogRequest',
   ProductRequest = 'ProductRequest',

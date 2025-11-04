@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  FiHome,
   FiSettings,
   FiDollarSign,
   FiMessageSquare,
@@ -8,10 +7,10 @@ import {
   FiUsers,
   FiMenu,
   FiLogOut,
-  FiPieChart,
 } from 'react-icons/fi';
 import { Link, Outlet, useLoaderData, useLocation, useNavigate } from 'react-router';
 import type { AdminUser } from '../types/users';
+import { HiOutlineBell } from 'react-icons/hi';
 
 const AdminLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -32,13 +31,12 @@ const AdminLayout: React.FC = () => {
 
   // Navigation items for admin
   const navigationItems = [
-    { path: '/admin/dashboard', label: 'Dashboard', icon: <FiHome className="text-lg" /> },
+    { path: '/admin/activities', label: 'Notifications', icon: <HiOutlineBell className="text-lg" />, hasBag: true },
     { path: '/admin/request', label: 'Request', icon: <FiRefreshCw className="text-lg" /> },
     { path: '/admin/update-waba', label: 'update-waba', icon: <FiRefreshCw className="text-lg" /> },
     { path: '/admin/organizations', label: 'Organizations', icon: <FiUsers className="text-lg" /> },
     { path: '/admin/subscriptions', label: 'Subscriptions', icon: <FiDollarSign className="text-lg" /> },
     { path: '/admin/conversations', label: 'Conversation Logs', icon: <FiMessageSquare className="text-lg" /> },
-    { path: '/admin/billing', label: 'Payment History', icon: <FiPieChart className="text-lg" /> },
     { path: '/admin/settings', label: 'System Settings', icon: <FiSettings className="text-lg" /> },
   ];
 

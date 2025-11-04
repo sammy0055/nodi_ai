@@ -51,5 +51,19 @@ export const adminConversationLoader = async () => {
   const { adminGetOrganizations } = new AdminOrganziationService();
   const [orgs] = await Promise.allSettled([adminGetOrganizations()]);
   const organizations = orgs.status === 'fulfilled' ? orgs.value : null;
-  return organizations?.data
+  return organizations?.data;
+};
+
+export const adminNotificationLoader = async () => {
+  const { getNotifications } = new AdminOrganziationService();
+  const [notifications] = await Promise.allSettled([getNotifications()]);
+  const _notifications = notifications.status === 'fulfilled' ? notifications.value : null;
+  return _notifications?.data;
+};
+
+export const adminSettingsLoader = async () => {
+  const { getAdminNotificationEmails } = new AdminOrganziationService();
+  const [adminEmailList] = await Promise.allSettled([getAdminNotificationEmails()]);
+  const _adminEmailList = adminEmailList.status === 'fulfilled' ? adminEmailList.value : null;
+  return _adminEmailList?.data;
 };

@@ -69,12 +69,11 @@ const OrganizationsPage: React.FC = () => {
     organizations: any;
     adminOrganizations: { data: { data: Organization[]; pagination: Pagination } };
   };
+  
   const [organizations, setOrganizations] = useState<Organization[]>(data.adminOrganizations.data.data);
-  // const [filteredOrganizations, setFilteredOrganizations] = useState<Organization[]>(data.adminOrganizations.data.data);
   const [statistics] = useState<Statistics>({ organizations: data.organizations });
   const [searchTerm, setSearchTerm] = useState('');
-  // const [currentPage, setCurrentPage] = useState(1);
-  // const [itemsPerPage] = useState(10);
+
   const [pagination, setPagination] = useState<Pagination>(data.adminOrganizations.data.pagination);
   const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null);
   const [showActionModal, setShowActionModal] = useState(false);
