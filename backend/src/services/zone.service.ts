@@ -37,6 +37,8 @@ export class ZoneService {
 
     const { rows: zones, count: totalItems } = await ZoneModel.findAndCountAll({
       where,
+      // distinct: true, // <-- important to avoid duplicate-count from joins
+      // col: 'id', // optional: ensures count works on primary key
       offset,
       limit,
       order: [['createdAt', 'DESC']],

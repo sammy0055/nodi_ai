@@ -20,8 +20,6 @@ import {
   useCustomersSetRecoilState,
   useReviewsSetRecoilState,
 } from '../store/authAtoms';
-import { useNavigate } from 'react-router';
-import { PageRoutes } from '../routes';
 import type { User } from '../types/users';
 import type { OrganizationPayload } from '../types/organization';
 import { ProductService } from '../services/productService';
@@ -43,25 +41,52 @@ import type { Customer, Pagination } from '../types/customer';
 import { ReviewService } from '../services/reviewService';
 import type { IReview } from '../pages/tenant/ReviewPage';
 
+export const tenantContextLoader = async () => {
+  const { getOrganization } = new OrganizationService();
+  const { fetchCurrentUser } = new UserService();
+  const [userResult, orgResult] = await Promise.allSettled([fetchCurrentUser(), getOrganization()]);
+  const user = userResult.status === 'fulfilled' ? userResult.value : null;
+  const org = orgResult.status === 'fulfilled' ? orgResult.value : null;
+  return {
+    user: user?.data,
+    org: org?.data,
+  };
+};
+
+export const areaAndZoneContextLoader = async () => {
+  const { getZones, getAreas, getBranches } = new BranchService();
+  const [zoneResults, areaResults, branchResults] = await Promise.allSettled([getZones(), getAreas(), getBranches()]);
+  const zones = zoneResults.status === 'fulfilled' ? zoneResults.value : null;
+  const areas = areaResults.status === 'fulfilled' ? areaResults.value : null;
+  const branches = branchResults.status === 'fulfilled' ? branchResults.value : null;
+  return {
+    zones: zones?.data,
+    areas: areas?.data,
+    branches: branches?.data,
+  };
+};
+
+export const branchContextLoader = async () => {
+  const { getBranches } = new BranchService();
+  const [branchResults] = await Promise.allSettled([getBranches()]);
+
+  const branches = branchResults.status === 'fulfilled' ? branchResults.value : null;
+  return {
+    branches: branches?.data,
+  };
+};
+
 export async function contextLoader() {
   try {
-    const { getOrganization } = new OrganizationService();
-    const { fetchCurrentUser } = new UserService();
     const { getProducts, getProductOptions } = new ProductService();
-    const { getBranches, getZones, getAreas } = new BranchService();
     const { getInventories } = new BranchInventoryService();
     const { getSubscriptionPlans, getSubscription, getCrediteBalance, getCreditUsage } = new SubscriptionService();
     const { getOrders } = new OrderService();
     const { getAllCustomers } = new CustomerService();
     const { getReviews } = new ReviewService();
     const [
-      userResult,
-      orgResult,
       productsResult,
       pOptionResults,
-      branchResults,
-      zoneResults,
-      areaResults,
       inventoryResults,
       subsriptionPlanResults,
       subscriptionResults,
@@ -71,13 +96,8 @@ export async function contextLoader() {
       customerResults,
       reviewResults,
     ] = await Promise.allSettled([
-      fetchCurrentUser(),
-      getOrganization(),
       getProducts(),
       getProductOptions(),
-      getBranches(),
-      getZones(),
-      getAreas(),
       getInventories(),
       getSubscriptionPlans(),
       getSubscription(),
@@ -87,15 +107,9 @@ export async function contextLoader() {
       getAllCustomers(),
       getReviews(),
     ]);
-
-    const user = userResult.status === 'fulfilled' ? userResult.value : null;
-    const org = orgResult.status === 'fulfilled' ? orgResult.value : null;
     const products = productsResult.status === 'fulfilled' ? productsResult.value : null;
     const productOptons = pOptionResults.status === 'fulfilled' ? pOptionResults.value : null;
-    const branches = branchResults.status === 'fulfilled' ? branchResults.value : null;
     const branchInventories = inventoryResults.status === 'fulfilled' ? inventoryResults.value : null;
-    const zones = zoneResults.status === 'fulfilled' ? zoneResults.value : null;
-    const areas = areaResults.status === 'fulfilled' ? areaResults.value : null;
     const subscriptionPlans = subsriptionPlanResults.status === 'fulfilled' ? subsriptionPlanResults.value : null;
     const subscription = subscriptionResults.status === 'fulfilled' ? subscriptionResults.value : null;
     const creditUsage = creditUsageResults.status === 'fulfilled' ? creditUsageResults.value : null;
@@ -105,13 +119,8 @@ export async function contextLoader() {
     const reviews = reviewResults.status === 'fulfilled' ? reviewResults.value : null;
 
     return {
-      user: user?.data,
-      org: org?.data,
       products: products?.data.data,
       productOptions: productOptons?.data,
-      branches: branches?.data.data,
-      zones: zones?.data.data,
-      areas: areas?.data.data,
       branchInventories: branchInventories?.data.data,
       subscriptionPlans: subscriptionPlans?.data,
       subscription: subscription?.data,
@@ -165,22 +174,9 @@ export const RootLoaderWrapper = ({
   const setOrders = useOrdersSetRecoilState();
   const setCustomers = useCustomersSetRecoilState();
   const setReviews = useReviewsSetRecoilState();
-  // const setPagination = usePaginationSetRecoilState();
-  const navigate = useNavigate();
-  // const location = useLocation();
 
   React.useEffect(() => {
     if (!data) return;
-    if (data.user) {
-      setUser(data.user);
-    }
-
-    if (data.org) {
-      setOrg(data.org);
-      if (data.org.whatsappsettings) {
-        setWhatsapp(data.org.whatsappsettings[0]);
-      }
-    }
 
     if (data.products) {
       setProducts(data.products);
@@ -222,12 +218,6 @@ export const RootLoaderWrapper = ({
     if (data.reviews.data) {
       setReviews(data.reviews.data);
       // setReviews(data.reviews.pagination);
-    }
-    // 🔑 Handle redirects once, based on missing data
-    if (!data.user) {
-      navigate(`/app/auth/${PageRoutes.LOGIN}`, { replace: true });
-    } else if (!data.org) {
-      navigate(`/app/auth/${PageRoutes.CREATE_ORGANIZATION}`, { replace: true });
     }
   }, [data, setUser, setOrg, setProductOptions, setWhatsapp, setProducts, setBranches, setBranchInventory]);
 

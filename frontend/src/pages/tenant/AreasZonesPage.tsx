@@ -24,6 +24,8 @@ import {
   useZoneValue,
 } from '../../store/authAtoms';
 import { useDebounce } from 'use-debounce';
+import { useLoaderData } from 'react-router';
+import type { Pagination } from '../../types/customer';
 
 // Define types based on your interfaces
 export interface IZone {
@@ -43,6 +45,10 @@ export interface IArea {
 }
 
 const AreasZonesPage: React.FC = () => {
+  const data = useLoaderData() as {
+    areas: { data: IArea[]; pagination: Pagination };
+    zones: { data: IZone[]; pagination: Pagination };
+  };
   // Zones state
   const zones = useZoneValue();
   const setZones = useZoneSetRecoilState();
@@ -56,9 +62,7 @@ const AreasZonesPage: React.FC = () => {
   // Areas state
   const areas = useAreaValue();
   const setAreas = useAreaSetRecoilState();
-console.log('====================================');
-console.log(areas);
-console.log('====================================');
+
   // const [areas, setAreas] = useState<IArea[]>(mockAreas);
   const [areaSearch, setAreaSearch] = useState('');
   const [showAreaModal, setShowAreaModal] = useState(false);
@@ -80,6 +84,8 @@ console.log('====================================');
     updateArea,
     deleteArea,
     searchAreas,
+    getZones,
+    getAreas,
   } = new BranchService();
   // Search states for dropdowns
   const [branchSearch, setBranchSearch] = useState('');
@@ -88,23 +94,19 @@ console.log('====================================');
   const [showZoneDropdown, setShowZoneDropdown] = useState(false);
 
   // Pagination
-  const [currentZonePage, setCurrentZonePage] = useState(1);
-  const [currentAreaPage, setCurrentAreaPage] = useState(1);
-  const [itemsPerPage] = useState(5);
+  const [zonePagination, setZonePagination] = useState<Pagination>();
+  const [areaPagination, setAreaPagination] = useState<Pagination>();
 
   // Filter zones and areas based on search
-  const filteredZones = zones.filter((zone) => zone.name.toLowerCase().includes(zoneSearch.toLowerCase()));
   const [filteredBranches, setFilteredBranches] = useState<any[]>([]);
   const [filteredZoneDropdown, setFilteredZoneDropdown] = useState<any[]>([]);
-  const filteredAreas = areas.filter((area) => area.name.toLowerCase().includes(areaSearch.toLowerCase()));
 
-  // Pagination calculations
-  const totalZonePages = Math.ceil(filteredZones.length / itemsPerPage);
-  const totalAreaPages = Math.ceil(filteredAreas.length / itemsPerPage);
-
-  const currentZones = filteredZones.slice((currentZonePage - 1) * itemsPerPage, currentZonePage * itemsPerPage);
-
-  const currentAreas = filteredAreas.slice((currentAreaPage - 1) * itemsPerPage, currentAreaPage * itemsPerPage);
+  useEffect(() => {
+    setZones(data.zones.data);
+    setAreas(data.areas.data);
+    setZonePagination(data.zones.pagination);
+    setAreaPagination(data.areas.pagination);
+  }, [data]);
 
   const formatTime = (input: string | Date) => {
     if (!input) return '';
@@ -356,6 +358,26 @@ console.log('====================================');
     fn();
   }, [areaDebouncedTerm]);
 
+  const handleZonePagination = async (currentPage: number) => {
+    try {
+      const { data } = await getZones(currentPage);
+      setZones((prev) => [...prev, ...data.data]);
+      setZonePagination(data.pagination);
+    } catch (error: any) {
+      alert('something went wrong, try again');
+    }
+  };
+
+  const handleAreaPagination = async (currentPage: number) => {
+    try {
+      const { data } = await getAreas(currentPage);
+      setAreas((prev) => [...prev, ...data.data]);
+      setAreaPagination(data.pagination);
+    } catch (error: any) {
+      alert('something went wrong, try again');
+    }
+  };
+
   return (
     <div className="space-y-8 p-4 md:p-0">
       {/* Header */}
@@ -399,13 +421,13 @@ console.log('====================================');
 
         {/* Zones List */}
         <div className="divide-y divide-neutral-200">
-          {currentZones.length === 0 ? (
+          {zones?.length === 0 ? (
             <div className="p-8 text-center text-neutral-500">
               <FiMap className="mx-auto text-4xl text-neutral-300 mb-3" />
               <p>No zones found{zoneSearch && ` matching "${zoneSearch}"`}</p>
             </div>
           ) : (
-            currentZones.map((zone) => (
+            zones?.map((zone) => (
               <div
                 key={zone.id}
                 className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center p-4 hover:bg-neutral-50"
@@ -442,50 +464,52 @@ console.log('====================================');
         </div>
 
         {/* Zone Pagination */}
-        {totalZonePages > 1 && (
+        {zonePagination?.totalPages && zonePagination.totalPages > 1 && (
           <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-neutral-200 space-y-3 sm:space-y-0">
             <div className="text-sm text-neutral-500">
-              Showing {(currentZonePage - 1) * itemsPerPage + 1} to{' '}
-              {Math.min(currentZonePage * itemsPerPage, filteredZones.length)} of {filteredZones.length} zones
+              Showing {(zonePagination.currentPage - 1) * zonePagination.pageSize + 1} to{' '}
+              {Math.min(zonePagination.currentPage * zonePagination.pageSize, zonePagination.totalItems)} of{' '}
+              {zonePagination.totalItems} zones
             </div>
             <div className="flex space-x-2">
               <Button
                 variant="outline"
                 size="sm"
-                disabled={currentZonePage === 1}
-                onClick={() => setCurrentZonePage(currentZonePage - 1)}
+                disabled={zonePagination.currentPage === 1}
+                onClick={() => setZonePagination((prev) => ({ ...prev!, currentPage: prev!.currentPage - 1 }))}
               >
                 <FiChevronLeft className="mr-1" />
                 Previous
               </Button>
               <div className="flex items-center space-x-1">
-                {Array.from({ length: Math.min(5, totalZonePages) }, (_, i) => {
+                {/* {Array.from({ length: Math.min(5, zonePagination.totalPages) }, (_, i) => {
                   let pageNum = i + 1;
-                  if (totalZonePages > 5) {
-                    if (currentZonePage <= 3) pageNum = i + 1;
-                    else if (currentZonePage >= totalZonePages - 2) pageNum = totalZonePages - 4 + i;
-                    else pageNum = currentZonePage - 2 + i;
+                  if (zonePagination.totalItems > 5) {
+                    if (zonePagination.currentPage <= 3) pageNum = i + 1;
+                    else if (zonePagination.currentPage >= zonePagination.totalPages - 2)
+                      pageNum = zonePagination.totalPages - 4 + i;
+                    else pageNum = zonePagination.currentPage - 2 + i;
                   }
                   return (
                     <button
                       key={pageNum}
                       className={`px-3 py-1 rounded text-sm ${
-                        pageNum === currentZonePage
+                        pageNum === zonePagination.currentPage
                           ? 'bg-primary-600 text-white'
                           : 'text-neutral-600 hover:bg-neutral-100'
                       }`}
-                      onClick={() => setCurrentZonePage(pageNum)}
+                      onClick={() => setZonePagination((prev) => ({ ...prev!, currentPage: pageNum }))}
                     >
                       {pageNum}
                     </button>
                   );
-                })}
+                })} */}
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                disabled={currentZonePage === totalZonePages}
-                onClick={() => setCurrentZonePage(currentZonePage + 1)}
+                disabled={!zonePagination.hasNextPage}
+                onClick={() => handleZonePagination(zonePagination.currentPage + 1)}
               >
                 Next
                 <FiChevronRight className="ml-1" />
@@ -528,13 +552,13 @@ console.log('====================================');
 
         {/* Areas List */}
         <div className="divide-y divide-neutral-200">
-          {currentAreas.length === 0 ? (
+          {areas?.length === 0 ? (
             <div className="p-8 text-center text-neutral-500">
               <FiMapPin className="mx-auto text-4xl text-neutral-300 mb-3" />
               <p>No areas found{areaSearch && ` matching "${areaSearch}"`}</p>
             </div>
           ) : (
-            currentAreas.map((area) => (
+            areas?.map((area) => (
               <div
                 key={area.id}
                 className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center p-4 hover:bg-neutral-50"
@@ -587,24 +611,25 @@ console.log('====================================');
         </div>
 
         {/* Area Pagination */}
-        {totalAreaPages > 1 && (
+        {areaPagination?.totalPages && areaPagination?.totalPages > 1 && (
           <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-neutral-200 space-y-3 sm:space-y-0">
             <div className="text-sm text-neutral-500">
-              Showing {(currentAreaPage - 1) * itemsPerPage + 1} to{' '}
-              {Math.min(currentAreaPage * itemsPerPage, filteredAreas.length)} of {filteredAreas.length} areas
+              Showing {(areaPagination.currentPage - 1) * areaPagination.pageSize + 1} to{' '}
+              {Math.min(areaPagination.currentPage * areaPagination.pageSize, areaPagination.totalItems)} of{' '}
+              {areaPagination.totalItems} areas
             </div>
             <div className="flex space-x-2">
               <Button
                 variant="outline"
                 size="sm"
-                disabled={currentAreaPage === 1}
-                onClick={() => setCurrentAreaPage(currentAreaPage - 1)}
+                disabled={areaPagination.currentPage === 1}
+                onClick={() => setAreaPagination((prev) => ({ ...prev!, currentPage: prev!.currentPage - 1 }))}
               >
                 <FiChevronLeft className="mr-1" />
                 Previous
               </Button>
               <div className="flex items-center space-x-1">
-                {Array.from({ length: Math.min(5, totalAreaPages) }, (_, i) => {
+                {/* {Array.from({ length: Math.min(5, totalAreaPages) }, (_, i) => {
                   let pageNum = i + 1;
                   if (totalAreaPages > 5) {
                     if (currentAreaPage <= 3) pageNum = i + 1;
@@ -624,13 +649,13 @@ console.log('====================================');
                       {pageNum}
                     </button>
                   );
-                })}
+                })} */}
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                disabled={currentAreaPage === totalAreaPages}
-                onClick={() => setCurrentAreaPage(currentAreaPage + 1)}
+                disabled={!areaPagination.hasNextPage}
+                onClick={() => handleAreaPagination(areaPagination.currentPage + 1)}
               >
                 Next
                 <FiChevronRight className="ml-1" />

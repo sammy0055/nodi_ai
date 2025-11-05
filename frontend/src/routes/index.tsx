@@ -1,9 +1,8 @@
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router';
 import { RecoilRoot } from 'recoil';
 import App from '../App';
-import TenantRoutes from './TenantRoutes';
 import AuthRoutes from './AuthRoute';
-import { contextLoader } from '../contexts/TenantContext';
+import { areaAndZoneContextLoader, branchContextLoader, tenantContextLoader } from '../contexts/TenantContext';
 import AdminAuthRoutes from './AdminAuthRoute';
 import {
   adminConversationLoader,
@@ -22,6 +21,16 @@ import OrganizationsPage from '../pages/admin/OrganizationsPage';
 import ConversationLogsPage from '../pages/admin/ConversationLogPage';
 import NotificationsPage from '../pages/admin/NotificationsPage';
 import EmailSettingsPage from '../pages/admin/SettingsPage';
+import { TenantLayout } from '../layouts/TenantLayout';
+import OrdersPage from '../pages/tenant/OrderPage';
+import AreasZonesPage from '../pages/tenant/AreasZonesPage';
+import BranchesPage from '../pages/tenant/BranchPage';
+import ProductsPage from '../pages/tenant/ProductsPage';
+import BranchInventoryPage from '../pages/tenant/BranchInventoryPage';
+import CustomersPage from '../pages/tenant/CustomerPage';
+import ReviewsPage from '../pages/tenant/ReviewPage';
+import BillingPage from '../pages/tenant/BillingPage';
+import SettingsPage from '../pages/tenant/Settings';
 
 export const PageRoutes = {
   LOGIN: 'sign-in',
@@ -54,8 +63,20 @@ const router = createBrowserRouter([
   },
   {
     path: '/app/*',
-    element: <TenantRoutes />,
-    loader: contextLoader,
+    element: <TenantLayout />,
+    loader: tenantContextLoader,
+    children: [
+      { index: true, element: <Navigate to={PageRoutes.ORDERS} /> },
+      { path: PageRoutes.ORDERS, element: <OrdersPage /> },
+      { path: PageRoutes.AreasZones, element: <AreasZonesPage />, loader: areaAndZoneContextLoader },
+      { path: PageRoutes.BRANCHS, element: <BranchesPage />, loader: branchContextLoader },
+      { path: PageRoutes.PRODUCTS, element: <ProductsPage /> },
+      { path: PageRoutes.INVENTORY, element: <BranchInventoryPage /> },
+      { path: PageRoutes.CUSTOMERS, element: <CustomersPage /> },
+      { path: PageRoutes.REVIEWS, element: <ReviewsPage /> },
+      { path: PageRoutes.BILLING, element: <BillingPage /> },
+      { path: PageRoutes.SETTINGS, element: <SettingsPage /> },
+    ],
   },
   {
     path: '/app/auth/*',

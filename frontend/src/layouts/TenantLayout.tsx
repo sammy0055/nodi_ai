@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   FiSettings,
   FiShoppingCart,
@@ -14,24 +13,55 @@ import {
   FiBox,
   FiRefreshCw,
 } from 'react-icons/fi';
-import { Link, useLocation, useNavigate } from 'react-router';
+import { Link, Outlet, useLoaderData, useLocation, useNavigate } from 'react-router';
 import { PageRoutes } from '../routes';
-import { useOrgValue, useUserValue } from '../store/authAtoms';
+import {
+  useOrgSetRecoilState,
+  useOrgValue,
+  useUserSetRecoilState,
+  useUserValue,
+  useWhatsappSetRecoilState,
+} from '../store/authAtoms';
 
-type TenantLayoutProps = {
-  children: ReactNode;
-};
-export const TenantLayout = ({ children }: TenantLayoutProps) => {
+
+export const TenantLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
   const orgData = useOrgValue();
   const user = useUserValue();
+  const data = useLoaderData() as { user: any; org: any };
+
+  const setUser = useUserSetRecoilState();
+  const setOrg = useOrgSetRecoilState();
+  const setWhatsapp = useWhatsappSetRecoilState();
+
+  useEffect(() => {
+    if (!data) return;
+    // 🔑 Handle redirects once, based on missing data
+    if (!data.user) {
+      navigate(`/app/auth/${PageRoutes.LOGIN}`, { replace: true });
+      return;
+    } else if (!data.org) {
+      navigate(`/app/auth/${PageRoutes.CREATE_ORGANIZATION}`, { replace: true });
+      return;
+    }
+
+    if (data.user) {
+      setUser(data.user);
+    }
+
+    if (data.org) {
+      setOrg(data.org);
+      if (data.org.whatsappsettings) {
+        setWhatsapp(data.org.whatsappsettings[0]);
+      }
+    }
+  }, [data]);
 
   // Navigation items
   const navigationItems = [
-    // { path: `/app/${PageRoutes.APP_DASHBOARD}`, label: 'Dashboard', icon: <FiHome className="text-lg" /> },
     { path: `/app/${PageRoutes.ORDERS}`, label: 'Orders', icon: <FiShoppingCart className="text-lg" /> },
     { path: `/app/${PageRoutes.PRODUCTS}`, label: 'Products', icon: <FiPackage className="text-lg" /> },
     { path: `/app/${PageRoutes.BRANCHS}`, label: 'Branches', icon: <FiTrendingUp className="text-lg" /> },
@@ -178,7 +208,10 @@ export const TenantLayout = ({ children }: TenantLayoutProps) => {
 
           {/* Page content */}
           <main className="flex-1 overflow-y-auto p-6 bg-neutral-50">
-            <div className="max-w-7xl mx-auto">{children}</div>
+            <div className="max-w-7xl mx-auto">
+              {/* nested admin pages render here */}
+              <Outlet />
+            </div>
           </main>
         </div>
       </div>

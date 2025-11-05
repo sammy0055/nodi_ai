@@ -18,10 +18,12 @@ import {
 } from 'react-icons/fi';
 import Button from '../../components/atoms/Button/Button';
 import Input from '../../components/atoms/Input/Input';
-import type { IBranch } from '../../types/branch';
+import type { IArea, IBranch, IZone } from '../../types/branch';
 import { BranchService } from '../../services/branchService';
 import { useBranchSetRecoilState, useBranchValue } from '../../store/authAtoms';
 import { useDebounce } from 'use-debounce';
+import { useLoaderData } from 'react-router';
+import type { Pagination } from '../../types/customer';
 
 // Validation interface
 interface ValidationErrors {
@@ -34,6 +36,9 @@ interface ValidationErrors {
 }
 
 const BranchesPage: React.FC = () => {
+  const data = useLoaderData() as {
+    branches:{data: IBranch[]; pagination: Pagination}
+  };
   const branches = useBranchValue();
   const setBranches = useBranchSetRecoilState();
   const [searchTerm, setSearchTerm] = useState('');
@@ -54,7 +59,10 @@ const BranchesPage: React.FC = () => {
   const [takeAwayTimeUnit, setTakeAwayTimeUnit] = useState<'minutes' | 'hours' | 'days'>('minutes');
   const { createBranch, updateBranch, deleteBranch, searchBranch } = new BranchService();
   // Helper functions to convert between Date and time units
-  const getTimeValue = (date: Date | string | number | undefined, unit: 'minutes' | 'hours' | 'days'): number | null => {
+  const getTimeValue = (
+    date: Date | string | number | undefined,
+    unit: 'minutes' | 'hours' | 'days'
+  ): number | null => {
     if (!date) return null;
 
     // normalize to Date
@@ -743,7 +751,7 @@ const BranchesPage: React.FC = () => {
                             <Input
                               label=""
                               type="number"
-                              value={getTimeValue(newBranch.deliveryTime, deliveryTimeUnit) || ""}
+                              value={getTimeValue(newBranch.deliveryTime, deliveryTimeUnit) || ''}
                               onChange={(e) => {
                                 const value = parseInt(e.target.value);
                                 const newTime = setTimeValue(value, deliveryTimeUnit);
@@ -778,7 +786,7 @@ const BranchesPage: React.FC = () => {
                             <Input
                               label=""
                               type="number"
-                              value={getTimeValue(newBranch.takeAwayTime, takeAwayTimeUnit) || ""}
+                              value={getTimeValue(newBranch.takeAwayTime, takeAwayTimeUnit) || ''}
                               onChange={(e) => {
                                 const value = parseInt(e.target.value);
                                 const newTime = setTimeValue(value, takeAwayTimeUnit);

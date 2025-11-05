@@ -1,4 +1,5 @@
 import type { IArea, IBranch, IZone } from '../types/branch';
+import type { Pagination } from '../types/customer';
 import { API_ROUTES, ApiClient } from './apiClient';
 
 export class BranchService {
@@ -11,7 +12,7 @@ export class BranchService {
     });
   }
 
-  async getBranches(): Promise<{ data: { data: IBranch[]; pagination: any }; message: string }> {
+  async getBranches(): Promise<{ data: { data: IBranch[]; pagination: Pagination }; message: string }> {
     return await ApiClient('GET_BRANCHES');
   }
 
@@ -58,7 +59,9 @@ export class BranchService {
     }
   }
 
-  async searchBranch(searchTerm: string): Promise<{ data: { data: IBranch[]; pagination: any }; message: string }> {
+  async searchBranch(
+    searchTerm: string
+  ): Promise<{ data: { data: IBranch[]; pagination: Pagination }; message: string }> {
     const response = await fetch(`${API_ROUTES.GET_BRANCHES}?search=${searchTerm}`, {
       method: 'GET',
       credentials: 'include',
@@ -86,9 +89,11 @@ export class BranchService {
       body: data,
     });
   }
-  async getZones(): Promise<{ data: { data: IZone[]; pagination: any }; message: string }> {
-    return await ApiClient('GET_ZONES');
+
+  async getZones(page?: number): Promise<{ data: { data: IZone[]; pagination: Pagination }; message: string }> {
+    return await ApiClient('GET_ZONES', { queryParams: `?page=${encodeURIComponent(page || 1)}` });
   }
+
   async updateZone(data: any): Promise<{ data: IZone; message: string }> {
     return await ApiClient('UPDATE_ZONE', { method: 'POST', body: data });
   }
@@ -111,7 +116,7 @@ export class BranchService {
     return await response.json();
   }
 
-  async searchZones(searchTerm: string): Promise<{ data: { data: IZone[]; pagination: any }; message: string }> {
+  async searchZones(searchTerm: string): Promise<{ data: { data: IZone[]; pagination: Pagination }; message: string }> {
     const response = await fetch(`${API_ROUTES.GET_ZONES}?search=${searchTerm}`, {
       method: 'GET',
       credentials: 'include',
@@ -136,8 +141,8 @@ export class BranchService {
   async createArea(data: IArea): Promise<{ data: IArea; message: string }> {
     return await ApiClient('CREATE_AREA', { method: 'POST', body: data });
   }
-  async getAreas(): Promise<{ data: { data: IArea[]; pagination: any }; message: string }> {
-    return await ApiClient('GET_AREAS');
+  async getAreas(page?: number): Promise<{ data: { data: IArea[]; pagination: Pagination }; message: string }> {
+    return await ApiClient('GET_AREAS', { queryParams: `?page=${encodeURIComponent(page || 1)}` });
   }
   async updateArea(data: IArea): Promise<{ data: IArea; message: string }> {
     const response = await fetch(`${API_ROUTES.UPDATE_AREA}/${data.id}`, {
@@ -184,7 +189,7 @@ export class BranchService {
     return await response.json();
   }
 
-  async searchAreas(searchTerm: string): Promise<{ data: { data: IArea[]; pagination: any }; message: string }> {
+  async searchAreas(searchTerm: string): Promise<{ data: { data: IArea[]; pagination: Pagination }; message: string }> {
     const response = await fetch(`${API_ROUTES.GET_AREAS}?search=${searchTerm}`, {
       method: 'GET',
       credentials: 'include',

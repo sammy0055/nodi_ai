@@ -66,8 +66,8 @@ zoneRoute.get('/get-zone', authMiddleware, async (req, res) => {
 
 zoneRoute.get('/get-zones', authMiddleware, async (req, res) => {
   try {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
+    const page = Number(req.query.page as string) || 1;
+    const limit = Number(req.query.limit as string) || 5;
     const searchTerm = req.query.search as string;
 
     // calculate offset
