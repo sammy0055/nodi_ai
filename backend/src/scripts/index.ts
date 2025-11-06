@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { date } from 'zod';
 import { NotificationPriority, RelatedNotificationEntity } from '../data/data-types';
 import { ChatService } from '../mcp/ChatService';
@@ -79,6 +80,59 @@ const notificationtest = async () => {
   }
 };
 
+const body = {
+  messaging_product: 'whatsapp',
+  to: '2348171727284',
+  type: 'interactive',
+  interactive: {
+    type: 'flow',
+    body: { text: 'Pick a delivery zone' }, // body is required for many flow sends
+    footer: { text: '' }, // optional
+    action: {
+      name: 'flow', // literal "flow"
+      parameters: {
+        flow_message_version: '3', // must be "3"
+        flow_id: '2316480805446882', // YOUR FLOW ID
+        flow_cta: 'Open form', // text on CTA button (optional)
+        flow_token: 'token-123', // optional unique token per interaction
+        flow_action: 'navigate', // or "data_exchange"
+        flow_action_payload: {
+          screen: 'ZONES', // optional: first screen name to open
+          data: {
+            // variables available as ${data.xxx}
+            organizationId: 'CUST_8842',
+            label: 'Pick a delivery zone',
+          },
+        },
+      },
+    },
+  },
+};
+
+const sendMessage = async () => {
+  try {
+    const url = `https://graph.facebook.com/v20.0/${814512655081481}/messages`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.META_BUSINESS_SYSTEM_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(`Error ${res.status}: ${errorData.error.message}`);
+    }
+  } catch (error: any) {
+    console.log('====================================');
+    console.log(error);
+    console.log('====================================');
+  }
+  // const data = await res.
+};
+
 // testMcp('hello');
 // run();
-notificationtest();
+// sendMessage();
