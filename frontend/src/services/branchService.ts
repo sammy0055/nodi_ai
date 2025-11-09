@@ -12,8 +12,13 @@ export class BranchService {
     });
   }
 
-  async getBranches(page?: number): Promise<{ data: { data: IBranch[]; pagination: Pagination }; message: string }> {
-    return await ApiClient('GET_BRANCHES', { queryParams: `?page=${encodeURIComponent(page || 1)}` });
+  async getBranches(
+    page?: number,
+    searchTerm?: string
+  ): Promise<{ data: { data: IBranch[]; pagination: Pagination }; message: string }> {
+    return await ApiClient('GET_BRANCHES', {
+      queryParams: `?page=${encodeURIComponent(page || 1)}&search=${encodeURIComponent(searchTerm || '')}`,
+    });
   }
 
   async updateBranch(data: IBranch): Promise<{ data: IBranch; message: string }> {
@@ -59,30 +64,6 @@ export class BranchService {
     }
   }
 
-  async searchBranch(
-    searchTerm: string
-  ): Promise<{ data: { data: IBranch[]; pagination: Pagination }; message: string }> {
-    const response = await fetch(`${API_ROUTES.GET_BRANCHES}?search=${searchTerm}`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      let errorMessage = `${response.status} ${response.statusText}`;
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.message || errorMessage;
-      } catch {
-        throw new Error(errorMessage);
-      }
-    }
-
-    return await response.json();
-  }
-
   async createZone(data: { name: string }): Promise<{ data: IZone; message: string }> {
     return await ApiClient('CREATE_ZONE', {
       method: 'POST',
@@ -90,8 +71,13 @@ export class BranchService {
     });
   }
 
-  async getZones(page?: number): Promise<{ data: { data: IZone[]; pagination: Pagination }; message: string }> {
-    return await ApiClient('GET_ZONES', { queryParams: `?page=${encodeURIComponent(page || 1)}` });
+  async getZones(
+    page?: number,
+    searchTerm?: string
+  ): Promise<{ data: { data: IZone[]; pagination: Pagination }; message: string }> {
+    return await ApiClient('GET_ZONES', {
+      queryParams: `?page=${encodeURIComponent(page || 1)}&search=${encodeURIComponent(searchTerm || '')}`,
+    });
   }
 
   async updateZone(data: any): Promise<{ data: IZone; message: string }> {
@@ -141,9 +127,15 @@ export class BranchService {
   async createArea(data: IArea): Promise<{ data: IArea; message: string }> {
     return await ApiClient('CREATE_AREA', { method: 'POST', body: data });
   }
-  async getAreas(page?: number): Promise<{ data: { data: IArea[]; pagination: Pagination }; message: string }> {
-    return await ApiClient('GET_AREAS', { queryParams: `?page=${encodeURIComponent(page || 1)}` });
+  async getAreas(
+    page?: number,
+    searchTerm?: string
+  ): Promise<{ data: { data: IArea[]; pagination: Pagination }; message: string }> {
+    return await ApiClient('GET_AREAS', {
+      queryParams: `?page=${encodeURIComponent(page || 1)}&search=${encodeURIComponent(searchTerm || '')}`,
+    });
   }
+
   async updateArea(data: IArea): Promise<{ data: IArea; message: string }> {
     const response = await fetch(`${API_ROUTES.UPDATE_AREA}/${data.id}`, {
       method: 'PUT',
@@ -170,28 +162,6 @@ export class BranchService {
   async deleteArea(id: string) {
     const response = await fetch(`${API_ROUTES.DELETE_AREA}/${id}`, {
       method: 'DELETE',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      let errorMessage = `${response.status} ${response.statusText}`;
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.message || errorMessage;
-      } catch {
-        throw new Error(errorMessage);
-      }
-    }
-
-    return await response.json();
-  }
-
-  async searchAreas(searchTerm: string): Promise<{ data: { data: IArea[]; pagination: Pagination }; message: string }> {
-    const response = await fetch(`${API_ROUTES.GET_AREAS}?search=${searchTerm}`, {
-      method: 'GET',
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',

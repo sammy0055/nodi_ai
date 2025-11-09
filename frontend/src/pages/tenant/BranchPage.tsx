@@ -63,7 +63,7 @@ const BranchesPage: React.FC = () => {
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [deliveryTimeUnit, setDeliveryTimeUnit] = useState<'minutes' | 'hours' | 'days'>('minutes');
   const [takeAwayTimeUnit, setTakeAwayTimeUnit] = useState<'minutes' | 'hours' | 'days'>('minutes');
-  const { createBranch, updateBranch, deleteBranch, searchBranch, getBranches } = new BranchService();
+  const { createBranch, updateBranch, deleteBranch, getBranches } = new BranchService();
   // Helper functions to convert between Date and time units
   const getTimeValue = (
     date: Date | string | number | undefined,
@@ -232,7 +232,7 @@ const BranchesPage: React.FC = () => {
     }
   };
 
- // CRUD Operations with validation
+  // CRUD Operations with validation
   const handleCreateBranch = async () => {
     try {
       if (!validateForm()) {
@@ -321,17 +321,12 @@ const BranchesPage: React.FC = () => {
   const [debouncedTerm] = useDebounce(searchTerm, 500); // 500ms delay
 
   useEffect(() => {
-    const searchProductFn = async () => {
-      if (!debouncedTerm) {
-        // maybe clear results
-        return;
-      }
-      // call your search API
-      const data = await searchBranch(searchTerm);
+    const Fn = async () => {
+      const data = await getBranches(1, searchTerm);
       setBranches(data.data.data);
-      setPagination(data?.data?.pagination)
+      setPagination(data?.data?.pagination);
     };
-    searchProductFn();
+    Fn();
   }, [debouncedTerm]);
 
   const resetForm = () => {
@@ -510,19 +505,6 @@ const BranchesPage: React.FC = () => {
             />
           </div>
 
-          {/* <div className="flex space-x-3">
-            <select className="border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-
-            <select className="border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-              <option value="">All Services</option>
-              <option value="delivery">Delivery</option>
-              <option value="takeaway">Take Away</option>
-            </select>
-          </div> */}
         </div>
       </div>
 
@@ -556,7 +538,7 @@ const BranchesPage: React.FC = () => {
         )}
 
         {/* Pagination */}
-        {pagination?.totalPages && pagination.totalPages > 1 && (
+        {pagination?.totalPages === 0 && pagination?.totalPages > 1 && (
           <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-neutral-200 space-y-3 sm:space-y-0">
             <div className="text-sm text-neutral-500">
               Showing {(pagination.currentPage - 1) * pagination.pageSize + 1} to{' '}

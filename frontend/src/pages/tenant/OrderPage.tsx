@@ -28,6 +28,8 @@ import Button from '../../components/atoms/Button/Button';
 import { useDebounce } from 'use-debounce';
 import { useOrdersSetRecoilState, useOrdersValue } from '../../store/authAtoms';
 import { OrderService } from '../../services/orderService';
+import { useLoaderData } from 'react-router';
+import type { Pagination } from '../../types/customer';
 
 // Order status object
 export const OrderStatusTypes = {
@@ -117,11 +119,10 @@ export interface IOrder {
 }
 
 const OrdersPage: React.FC = () => {
+  const data = useLoaderData() as { orders: { data: IOrder[]; pagination: Pagination } };
   const orders = useOrdersValue();
   const setOrders = useOrdersSetRecoilState();
-console.log('====================================');
-console.log(orders);
-console.log('====================================');
+
   const [filteredOrders, setFilteredOrders] = useState<IOrder[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -135,6 +136,12 @@ console.log('====================================');
 
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
   const { updateOrderStatus } = new OrderService();
+
+  useEffect(() => {
+    if (data) {
+      setOrders(data.orders.data);
+    }
+  }, [data]);
   // Filter orders when search term, status, or source changes
   useEffect(() => {
     filterOrders();

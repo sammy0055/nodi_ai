@@ -17,16 +17,13 @@ import Button from '../../components/atoms/Button/Button';
 import Input from '../../components/atoms/Input/Input';
 import { useDebounce } from 'use-debounce';
 import { ProductService } from '../../services/productService';
-import {
-  useBranchInventorySetRecoilState,
-  useBranchInventoryValue,
-  useBranchValue,
-  useProductsValue,
-} from '../../store/authAtoms';
+import { useBranchInventorySetRecoilState, useBranchInventoryValue } from '../../store/authAtoms';
 import { BranchService } from '../../services/branchService';
-import type { IBranchInventory } from '../../types/branch';
+import type { IBranch, IBranchInventory } from '../../types/branch';
 import { BranchInventoryService } from '../../services/branchInventory';
-import { CurrencySymbols, type CurrencyCode } from '../../types/product';
+import { CurrencySymbols, type CurrencyCode, type Product } from '../../types/product';
+import { useLoaderData, useNavigate } from 'react-router';
+import type { Pagination } from '../../types/customer';
 
 // Validation interface
 interface ValidationErrors {
@@ -39,11 +36,17 @@ interface ValidationErrors {
 }
 
 const BranchInventoryPage: React.FC = () => {
-  const products = useProductsValue();
-  const branches = useBranchValue();
+  const data = useLoaderData() as {
+    products: { data: Product[]; pagination: Pagination };
+    inventory: { data: IBranchInventory[]; pagination: Pagination };
+    braches: { data: IBranch[]; pagination: Pagination };
+  };
+
+  const navigate = useNavigate();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [branches, setBranches] = useState<IBranch[]>([]);
   const inventory = useBranchInventoryValue();
   const setInventory = useBranchInventorySetRecoilState();
-  //   const [inventory, setInventory] = useState<IBranchInventory[]>(mockInventory);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
@@ -55,6 +58,8 @@ const BranchInventoryPage: React.FC = () => {
     quantityReserved: 0,
     costPrice: 0,
     sellingPrice: 0,
+    isAllBranchSelected: false,
+    isAllProductSelected: false,
   });
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
 
@@ -68,8 +73,8 @@ const BranchInventoryPage: React.FC = () => {
 
   // Filter inventory based on search term
   const filteredInventory = inventory.filter((item) => {
-    const branch = branches.find((b) => b.id === item.branchId);
-    const product = products.find((p) => p.id === item.productId);
+    const branch = branches?.find((b) => b.id === item.branchId);
+    const product = products?.find((p) => p.id === item.productId);
 
     return (
       branch?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -79,21 +84,27 @@ const BranchInventoryPage: React.FC = () => {
     );
   });
 
+  // load initial states
+  useEffect(() => {
+    if (data) {
+      setProducts(data.products.data);
+      setInventory(data.inventory.data);
+      setBranches(data.braches.data);
+    }
+  }, [data]);
+
   // Pagination
   const totalPages = Math.ceil(filteredInventory.length / itemsPerPage);
   const currentInventory = filteredInventory.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   const [filteredBranches, setFilteredBranches] = useState<any[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   // Filter branches and products for dropdowns
-  const { searchBranch } = new BranchService();
+  const { getBranches } = new BranchService();
   const [branchDebouncedTerm] = useDebounce(branchSearch, 500); // 500ms delay
 
   useEffect(() => {
     const fetchBranches = async () => {
-      if (!branchDebouncedTerm) {
-        return;
-      }
-      const { data } = await searchBranch(branchSearch);
+      const { data } = await getBranches(1, branchSearch);
       setFilteredBranches(data.data); // now filteredProducts is an array
     };
 
@@ -138,10 +149,12 @@ const BranchInventoryPage: React.FC = () => {
   const validateField = (name: keyof ValidationErrors, value: any): string | undefined => {
     switch (name) {
       case 'branchId':
+        if (newInventory.isAllBranchSelected) break;
         if (!value) return 'Branch is required';
         break;
 
       case 'productId':
+        if (newInventory.isAllProductSelected) break;
         if (!value) return 'Product is required';
         // Check for duplicate inventory entry
         if (
@@ -206,11 +219,13 @@ const BranchInventoryPage: React.FC = () => {
         costPrice: newInventory.costPrice,
         sellingPrice: newInventory.sellingPrice || 0,
         isActive: newInventory.isActive ?? true,
+        isAllProductSelected: newInventory.isAllProductSelected,
+        isAllBranchSelected: newInventory.isAllBranchSelected,
       };
-      const { data } = await createInventory(inventoryToCreate);
-      setInventory([...inventory, data]);
+      await createInventory(inventoryToCreate);
       setShowInventoryModal(false);
       resetForm();
+      navigate(0);
     } catch (error: any) {
       alert('something went wrong');
       console.error(error.message);
@@ -255,6 +270,20 @@ const BranchInventoryPage: React.FC = () => {
 
   const handleToggleStatus = (inventoryId: string) => {
     setInventory(inventory.map((item) => (item.id === inventoryId ? { ...item, isActive: !item.isActive } : item)));
+  };
+
+  const handleToggleSelectedBranch = () => {
+    setNewInventory((prev) => ({
+      ...prev,
+      isAllBranchSelected: !prev.isAllBranchSelected,
+    }));
+  };
+
+  const handleToggleSelectedProduct = () => {
+    setNewInventory((prev) => ({
+      ...prev,
+      isAllProductSelected: !prev.isAllProductSelected,
+    }));
   };
 
   const handleFieldChange = (field: keyof IBranchInventory, value: any) => {
@@ -622,40 +651,52 @@ const BranchInventoryPage: React.FC = () => {
               {/* Branch Selection */}
               <div className="relative">
                 <label className="text-sm font-medium text-neutral-700 mb-2 block">Branch *</label>
-                <div className="relative">
+
+                <label className="flex items-center">
                   <input
-                    type="text"
-                    placeholder="Search for a branch..."
-                    className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    value={branchSearch}
-                    onChange={(e) => {
-                      setBranchSearch(e.target.value);
-                      setShowBranchDropdown(true);
-                    }}
-                    onFocus={() => setShowBranchDropdown(true)}
+                    type="checkbox"
+                    checked={newInventory.isAllBranchSelected}
+                    onChange={() => handleToggleSelectedBranch()}
+                    className="rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
                   />
-                  {showBranchDropdown && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border border-neutral-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                      {filteredBranches.map((branch) => (
-                        <div
-                          key={branch.id}
-                          className="px-4 py-3 hover:bg-neutral-100 cursor-pointer border-b border-neutral-200 last:border-b-0"
-                          onClick={() => {
-                            handleFieldChange('branchId', branch.id);
-                            setBranchSearch(branch.name);
-                            setShowBranchDropdown(false);
-                          }}
-                        >
-                          <div className="font-medium">{branch.name}</div>
-                          <div className="text-sm text-neutral-500">{branch.code}</div>
-                        </div>
-                      ))}
-                      {filteredBranches.length === 0 && (
-                        <div className="px-4 py-3 text-neutral-500">No branches found</div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                  <span className="ml-2 text-neutral-700">Add All Branches</span>
+                </label>
+                {!newInventory.isAllBranchSelected && (
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search for a branch..."
+                      className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      value={branchSearch}
+                      onChange={(e) => {
+                        setBranchSearch(e.target.value);
+                        setShowBranchDropdown(true);
+                      }}
+                      onFocus={() => setShowBranchDropdown(true)}
+                    />
+                    {showBranchDropdown && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-neutral-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                        {filteredBranches.map((branch) => (
+                          <div
+                            key={branch.id}
+                            className="px-4 py-3 hover:bg-neutral-100 cursor-pointer border-b border-neutral-200 last:border-b-0"
+                            onClick={() => {
+                              handleFieldChange('branchId', branch.id);
+                              setBranchSearch(branch.name);
+                              setShowBranchDropdown(false);
+                            }}
+                          >
+                            <div className="font-medium">{branch.name}</div>
+                            <div className="text-sm text-neutral-500">{branch.code}</div>
+                          </div>
+                        ))}
+                        {filteredBranches.length === 0 && (
+                          <div className="px-4 py-3 text-neutral-500">No branches found</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
                 {validationErrors.branchId && (
                   <span className="text-error text-sm mt-1">{validationErrors.branchId}</span>
                 )}
@@ -664,43 +705,54 @@ const BranchInventoryPage: React.FC = () => {
               {/* Product Selection */}
               <div className="relative">
                 <label className="text-sm font-medium text-neutral-700 mb-2 block">Product *</label>
-                <div className="relative">
+                <label className="flex items-center">
                   <input
-                    type="text"
-                    placeholder="Search for a product..."
-                    className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    value={productSearch}
-                    onChange={(e) => {
-                      setProductSearch(e.target.value);
-                      setShowProductDropdown(true);
-                    }}
-                    onFocus={() => setShowProductDropdown(true)}
+                    type="checkbox"
+                    checked={newInventory.isAllProductSelected}
+                    onChange={() => handleToggleSelectedProduct()}
+                    className="rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
                   />
-                  {showProductDropdown && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border border-neutral-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                      {filteredProducts.map((product) => (
-                        <div
-                          key={product.id}
-                          className="px-4 py-3 hover:bg-neutral-100 cursor-pointer border-b border-neutral-200 last:border-b-0"
-                          onClick={() => {
-                            handleFieldChange('productId', product.id);
-                            setProductSearch(product.name);
-                            setNewInventory((prevState) => ({ ...prevState, sellingPrice: product.price }));
-                            setShowProductDropdown(false);
-                          }}
-                        >
-                          <div className="font-medium">{product.name}</div>
-                          <div className="text-sm text-neutral-500">
-                            SKU: {product.sku} | ${product.price.toFixed(2)}
+                  <span className="ml-2 text-neutral-700">Add All Products</span>
+                </label>
+                {!newInventory.isAllProductSelected && (
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search for a product..."
+                      className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      value={productSearch}
+                      onChange={(e) => {
+                        setProductSearch(e.target.value);
+                        setShowProductDropdown(true);
+                      }}
+                      onFocus={() => setShowProductDropdown(true)}
+                    />
+                    {showProductDropdown && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-neutral-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                        {filteredProducts.map((product) => (
+                          <div
+                            key={product.id}
+                            className="px-4 py-3 hover:bg-neutral-100 cursor-pointer border-b border-neutral-200 last:border-b-0"
+                            onClick={() => {
+                              handleFieldChange('productId', product.id);
+                              setProductSearch(product.name);
+                              setNewInventory((prevState) => ({ ...prevState, sellingPrice: product.price }));
+                              setShowProductDropdown(false);
+                            }}
+                          >
+                            <div className="font-medium">{product.name}</div>
+                            <div className="text-sm text-neutral-500">
+                              SKU: {product.sku} | ${product.price.toFixed(2)}
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                      {filteredProducts.length === 0 && (
-                        <div className="px-4 py-3 text-neutral-500">No products found</div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                        ))}
+                        {filteredProducts.length === 0 && (
+                          <div className="px-4 py-3 text-neutral-500">No products found</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
                 {validationErrors.productId && (
                   <span className="text-error text-sm mt-1">{validationErrors.productId}</span>
                 )}

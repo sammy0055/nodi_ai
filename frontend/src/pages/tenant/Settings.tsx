@@ -199,6 +199,14 @@ const SettingsPage: React.FC = () => {
               disabled={!isEditing}
               placeholder="Give your AI assistant a name"
             />
+
+            <Input
+              label="Language Protected Terms"
+              value={orgData.languageProtectedTerms}
+              onChange={(e) => handleOrgChange('languageProtectedTerms', e.target.value)}
+              disabled={!isEditing}
+              placeholder="Set The Protected Terms For Your Preferred Language"
+            />
           </div>
         </div>
 

@@ -1,3 +1,4 @@
+import type { Pagination } from '../types/customer';
 import type { Product, ProductOption, ProductOptionChoice } from '../types/product';
 import { API_ROUTES, ApiClient } from './apiClient';
 
@@ -56,8 +57,13 @@ export class ProductService {
 
     return await response.json();
   }
-  async getProducts(): Promise<{ data: { data: Product[] }; message: string }> {
-    return await ApiClient('GET_PRODUCTS');
+  async getProducts(
+    page?: number,
+    searchTerm?: string
+  ): Promise<{ data: { data: Product[]; pagination: Pagination }; message: string }> {
+    return await ApiClient('GET_PRODUCTS', {
+      queryParams: `?page=${encodeURIComponent(page || 1)}&searchQuery=${encodeURIComponent(searchTerm || '')}`,
+    });
   }
   async searchProducts(searchTerm: string): Promise<{ data: { data: Product[] }; message: string }> {
     const response = await fetch(`${API_ROUTES.GET_PRODUCTS}?searchQuery=${searchTerm}`, {

@@ -8,4 +8,6 @@ export interface IBranchInventory {
   costPrice?: number;
   sellingPrice: number;
   isActive: boolean;
+  isAllBranchSelected?: boolean;
+  isAllProductSelected?: boolean;
 }

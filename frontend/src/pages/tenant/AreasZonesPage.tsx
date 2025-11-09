@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   FiPlus,
   FiSearch,
@@ -16,16 +16,12 @@ import {
 import Button from '../../components/atoms/Button/Button';
 import Input from '../../components/atoms/Input/Input';
 import { BranchService } from '../../services/branchService';
-import {
-  useAreaSetRecoilState,
-  useAreaValue,
-  useBranchValue,
-  useZoneSetRecoilState,
-  useZoneValue,
-} from '../../store/authAtoms';
+import { useAreaSetRecoilState, useAreaValue, useZoneSetRecoilState, useZoneValue } from '../../store/authAtoms';
 import { useDebounce } from 'use-debounce';
 import { useLoaderData } from 'react-router';
 import type { Pagination } from '../../types/customer';
+import type { IBranch } from '../../types/branch';
+import { useClickOutside } from '../../hooks/clickOutside';
 
 // Define types based on your interfaces
 export interface IZone {
@@ -48,11 +44,13 @@ const AreasZonesPage: React.FC = () => {
   const data = useLoaderData() as {
     areas: { data: IArea[]; pagination: Pagination };
     zones: { data: IZone[]; pagination: Pagination };
+    branches: { data: IBranch[]; pagination: Pagination };
   };
   // Zones state
   const zones = useZoneValue();
   const setZones = useZoneSetRecoilState();
-  const branches = useBranchValue();
+  const [branches, setBranches] = useState<IBranch[]>([]);
+  const [branchPagination, setBranchPagination] = useState<Pagination>();
   const [zoneSearch, setZoneSearch] = useState('');
   const [showZoneModal, setShowZoneModal] = useState(false);
   const [editingZone, setEditingZone] = useState<IZone | null>(null);
@@ -79,11 +77,10 @@ const AreasZonesPage: React.FC = () => {
     updateZone,
     deleteZone,
     searchZones,
-    searchBranch,
+    getBranches,
     createArea,
     updateArea,
     deleteArea,
-    searchAreas,
     getZones,
     getAreas,
   } = new BranchService();
@@ -100,12 +97,27 @@ const AreasZonesPage: React.FC = () => {
   // Filter zones and areas based on search
   const [filteredBranches, setFilteredBranches] = useState<any[]>([]);
   const [filteredZoneDropdown, setFilteredZoneDropdown] = useState<any[]>([]);
+  const ZoneDropdownRefs = useRef<HTMLDivElement | null>(null);
+  const BranchDropdownRefs = useRef<HTMLDivElement | null>(null);
+
+  // close dropdown on click outside
+  useClickOutside(ZoneDropdownRefs, () => {
+    setShowZoneDropdown(false);
+  });
+
+  useClickOutside(BranchDropdownRefs, () => {
+    setShowBranchDropdown(false);
+  });
 
   useEffect(() => {
-    setZones(data.zones.data);
-    setAreas(data.areas.data);
-    setZonePagination(data.zones.pagination);
-    setAreaPagination(data.areas.pagination);
+    if (data) {
+      setZones(data.zones.data);
+      setAreas(data.areas.data);
+      setZonePagination(data.zones.pagination);
+      setAreaPagination(data.areas.pagination);
+      setBranches(data.branches.data);
+      setBranchPagination(data.branches.pagination);
+    }
   }, [data]);
 
   const formatTime = (input: string | Date) => {
@@ -317,46 +329,141 @@ const AreasZonesPage: React.FC = () => {
     setFilteredBranches(branches);
   }, [branches, zones]);
 
-  const [branchDebouncedTerm] = useDebounce(branchSearch, 500); // 500ms delay
-  useEffect(() => {
-    const fetchBranches = async () => {
-      if (!branchDebouncedTerm) {
-        setFilteredBranches([]); // clear results when search is empty
-        return;
+  const loadZones = useCallback(async (page: number = 1, search: string = '', append: boolean = false) => {
+    try {
+      const { data } = await getZones(page, search);
+      if (append) {
+        setZones((prev) => [...prev, ...data.data]);
+      } else {
+        setZones(data.data);
       }
-      const { data } = await searchBranch(branchSearch);
-      setFilteredBranches(data.data); // now filteredProducts is an array
-    };
+      setZonePagination(data.pagination);
+    } catch (error: any) {
+      console.error('Error loading organizations:', error);
+    }
+  }, []);
 
-    fetchBranches();
-  }, [branchDebouncedTerm]);
-
-  const [zoneDebouncedTerm] = useDebounce(zoneSearch || zoneDropdownSearch, 500); // 500ms delay
-  useEffect(() => {
-    const fn = async () => {
-      if (!zoneDebouncedTerm) {
-        // maybe clear results
-        return;
+  const loadAreas = useCallback(async (page: number = 1, search: string = '', append: boolean = false) => {
+    try {
+      const { data } = await getAreas(page, search);
+      if (append) {
+        setAreas((prev) => [...prev, ...data.data]);
+      } else {
+        setAreas(data.data);
       }
-      const { data } = await searchZones(zoneSearch || zoneDropdownSearch);
-      if (zoneSearch) setZones(data.data);
-      else if (zoneDropdownSearch) setFilteredZoneDropdown(data.data);
-      else return;
-    };
-    fn();
-  }, [zoneDebouncedTerm]);
+      setAreaPagination(data.pagination);
+    } catch (error: any) {
+      console.error('Error loading organizations:', error);
+    }
+  }, []);
 
+  const loadZonesDropdown = useCallback(async (page: number = 1, search: string = '', append: boolean = false) => {
+    try {
+      const { data } = await getZones(page, search);
+      if (append) {
+        setFilteredZoneDropdown((prev) => [...prev, ...data.data]);
+      } else {
+        setFilteredZoneDropdown(data.data);
+      }
+      setZonePagination(data.pagination);
+    } catch (error: any) {
+      console.error('Error loading organizations:', error);
+    }
+  }, []);
+
+  const loadBranchDropdown = useCallback(async (page: number = 1, search: string = '', append: boolean = false) => {
+    try {
+      const { data } = await getBranches(page, search);
+      if (append) {
+        setBranches((prev) => [...prev, ...data.data]);
+      } else {
+        setBranches(data.data);
+      }
+      setBranchPagination(data.pagination);
+    } catch (error: any) {
+      console.error('Error loading organizations:', error);
+    }
+  }, []);
+
+  // load initial zone
+  useEffect(() => {
+    loadZones(1, '');
+  }, [loadZones]);
+
+  // Load initial areas
+  useEffect(() => {
+    loadAreas(1, '');
+  }, [loadAreas]);
+
+  // Load initial branch-dropdown
+  useEffect(() => {
+    loadBranchDropdown(1, '');
+  }, [loadBranchDropdown]);
+
+  const [zoneListDebouncedTerm] = useDebounce(zoneSearch, 500);
+
+  // handle zone search
+  useEffect(() => {
+    if (zoneListDebouncedTerm !== undefined) {
+      loadZones(1, zoneListDebouncedTerm, false);
+    }
+  }, [zoneListDebouncedTerm, loadZones]);
+
+  // handle area search
   const [areaDebouncedTerm] = useDebounce(areaSearch, 500); // 500ms delay
   useEffect(() => {
+    if (areaDebouncedTerm !== undefined) {
+      loadAreas(1, areaDebouncedTerm, false);
+    }
+  }, [areaDebouncedTerm, loadAreas]);
+
+  // dropdown zone search
+  const [zoneDropdownDebouncedTerm] = useDebounce(zoneDropdownSearch, 500); // 500ms delay
+  useEffect(() => {
     const fn = async () => {
-      if (!areaDebouncedTerm) {
+      const { data } = await searchZones(zoneDropdownSearch);
+      if (!zoneDropdownDebouncedTerm) {
+        setFilteredZoneDropdown(data.data);
         return;
       }
-      const { data } = await searchAreas(areaSearch);
-      setAreas(data.data);
+      setFilteredZoneDropdown(data.data);
     };
     fn();
-  }, [areaDebouncedTerm]);
+  }, [zoneDropdownDebouncedTerm]);
+
+  // handle branch dropdown search
+  const [branchDebouncedTerm] = useDebounce(branchSearch, 500); // 500ms delay
+  useEffect(() => {
+    if (branchDebouncedTerm !== undefined) {
+      loadBranchDropdown(1, branchDebouncedTerm, false);
+    }
+  }, [branchDebouncedTerm, loadBranchDropdown]);
+
+  // handle Zone dropdown LoadDataOnScroll
+  const hanldeZoneLoadDataOnScroll = useCallback(() => {
+    if (!ZoneDropdownRefs.current || !zonePagination?.hasNextPage) {
+      return;
+    }
+
+    const { scrollTop, scrollHeight, clientHeight } = ZoneDropdownRefs.current;
+    if (scrollHeight - scrollTop <= clientHeight + 50) {
+      const zonePage = zonePagination?.currentPage ? zonePagination?.currentPage + 1 : 1;
+      loadZonesDropdown(zonePage, zoneDropdownSearch, true);
+    }
+  }, [zonePagination, zoneDropdownSearch, loadZones]);
+
+  // handle Branch dropdown LoadDataOnScroll
+  const hanldeBrachLoadDataOnScroll = useCallback(() => {
+    if (!BranchDropdownRefs.current || !branchPagination?.hasNextPage) {
+      return;
+    }
+
+    const { scrollTop, scrollHeight, clientHeight } = BranchDropdownRefs.current;
+    if (scrollHeight - scrollTop <= clientHeight + 50) {
+      const branchPage = branchPagination?.currentPage ? branchPagination?.currentPage + 1 : 1;
+      loadBranchDropdown(branchPage, branchSearch, true);
+    }
+  }, [branchPagination, branchSearch, loadBranchDropdown]);
 
   const handleZonePagination = async (currentPage: number) => {
     try {
@@ -481,30 +588,7 @@ const AreasZonesPage: React.FC = () => {
                 <FiChevronLeft className="mr-1" />
                 Previous
               </Button>
-              <div className="flex items-center space-x-1">
-                {/* {Array.from({ length: Math.min(5, zonePagination.totalPages) }, (_, i) => {
-                  let pageNum = i + 1;
-                  if (zonePagination.totalItems > 5) {
-                    if (zonePagination.currentPage <= 3) pageNum = i + 1;
-                    else if (zonePagination.currentPage >= zonePagination.totalPages - 2)
-                      pageNum = zonePagination.totalPages - 4 + i;
-                    else pageNum = zonePagination.currentPage - 2 + i;
-                  }
-                  return (
-                    <button
-                      key={pageNum}
-                      className={`px-3 py-1 rounded text-sm ${
-                        pageNum === zonePagination.currentPage
-                          ? 'bg-primary-600 text-white'
-                          : 'text-neutral-600 hover:bg-neutral-100'
-                      }`}
-                      onClick={() => setZonePagination((prev) => ({ ...prev!, currentPage: pageNum }))}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })} */}
-              </div>
+
               <Button
                 variant="outline"
                 size="sm"
@@ -628,29 +712,7 @@ const AreasZonesPage: React.FC = () => {
                 <FiChevronLeft className="mr-1" />
                 Previous
               </Button>
-              <div className="flex items-center space-x-1">
-                {/* {Array.from({ length: Math.min(5, totalAreaPages) }, (_, i) => {
-                  let pageNum = i + 1;
-                  if (totalAreaPages > 5) {
-                    if (currentAreaPage <= 3) pageNum = i + 1;
-                    else if (currentAreaPage >= totalAreaPages - 2) pageNum = totalAreaPages - 4 + i;
-                    else pageNum = currentAreaPage - 2 + i;
-                  }
-                  return (
-                    <button
-                      key={pageNum}
-                      className={`px-3 py-1 rounded text-sm ${
-                        pageNum === currentAreaPage
-                          ? 'bg-primary-600 text-white'
-                          : 'text-neutral-600 hover:bg-neutral-100'
-                      }`}
-                      onClick={() => setCurrentAreaPage(pageNum)}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })} */}
-              </div>
+              <div className="flex items-center space-x-1"></div>
               <Button
                 variant="outline"
                 size="sm"
@@ -767,7 +829,11 @@ const AreasZonesPage: React.FC = () => {
                     onFocus={() => setShowBranchDropdown(true)}
                   />
                   {showBranchDropdown && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border border-neutral-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    <div
+                      className="absolute z-10 w-full mt-1 bg-white border border-neutral-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+                      ref={BranchDropdownRefs}
+                      onScroll={hanldeBrachLoadDataOnScroll}
+                    >
                       {filteredBranches.map((branch) => (
                         <div
                           key={branch.id}
@@ -806,7 +872,11 @@ const AreasZonesPage: React.FC = () => {
                     onFocus={() => setShowZoneDropdown(true)}
                   />
                   {showZoneDropdown && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border border-neutral-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    <div
+                      className="absolute z-10 w-full mt-1 bg-white border border-neutral-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+                      ref={ZoneDropdownRefs}
+                      onScroll={hanldeZoneLoadDataOnScroll}
+                    >
                       {filteredZoneDropdown.map((zone) => (
                         <div
                           key={zone.id}
@@ -853,7 +923,7 @@ const AreasZonesPage: React.FC = () => {
                   label="Delivery Charge ($) *"
                   type="number"
                   step="0.01"
-                  value={newArea.deliveryCharge || 0}
+                  value={newArea.deliveryCharge || ''}
                   onChange={(e) => handleAreaFieldChange('deliveryCharge', parseFloat(e.target.value) || 0)}
                   error={areaValidationErrors.deliveryCharge}
                   min="0"

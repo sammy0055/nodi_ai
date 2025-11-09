@@ -2,7 +2,13 @@ import { createBrowserRouter, Navigate, RouterProvider } from 'react-router';
 import { RecoilRoot } from 'recoil';
 import App from '../App';
 import AuthRoutes from './AuthRoute';
-import { areaAndZoneContextLoader, branchContextLoader, tenantContextLoader } from '../contexts/TenantContext';
+import {
+  areaAndZoneContextLoader,
+  branchContextLoader,
+  inventoryContextLoader,
+  productContextLoader,
+  tenantContextLoader,
+} from '../contexts/TenantContext';
 import AdminAuthRoutes from './AdminAuthRoute';
 import {
   adminConversationLoader,
@@ -70,8 +76,8 @@ const router = createBrowserRouter([
       { path: PageRoutes.ORDERS, element: <OrdersPage /> },
       { path: PageRoutes.AreasZones, element: <AreasZonesPage />, loader: areaAndZoneContextLoader },
       { path: PageRoutes.BRANCHS, element: <BranchesPage />, loader: branchContextLoader },
-      { path: PageRoutes.PRODUCTS, element: <ProductsPage /> },
-      { path: PageRoutes.INVENTORY, element: <BranchInventoryPage /> },
+      { path: PageRoutes.PRODUCTS, element: <ProductsPage />, loader: productContextLoader },
+      { path: PageRoutes.INVENTORY, element: <BranchInventoryPage />, loader: inventoryContextLoader },
       { path: PageRoutes.CUSTOMERS, element: <CustomersPage /> },
       { path: PageRoutes.REVIEWS, element: <ReviewsPage /> },
       { path: PageRoutes.BILLING, element: <BillingPage /> },

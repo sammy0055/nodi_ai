@@ -9,14 +9,10 @@ import {
   useProductOptionSetRecoilState,
   useBranchSetRecoilState,
   useBranchInventorySetRecoilState,
-  useZoneSetRecoilState,
-  useAreaSetRecoilState,
   useSubscriptionPlanSetRecoilState,
   useSubscriptionSetRecoilState,
   useCreditUsageSetRecoilState,
   useCreditBalanceSetRecoilState,
-  useOrdersSetRecoilState,
-  // usePaginationSetRecoilState,
   useCustomersSetRecoilState,
   useReviewsSetRecoilState,
 } from '../store/authAtoms';
@@ -76,57 +72,87 @@ export const branchContextLoader = async () => {
   };
 };
 
+export const productContextLoader = async () => {
+  const { getProducts, getProductOptions } = new ProductService();
+  const [productsResult, pOptionResults] = await Promise.allSettled([getProducts(), getProductOptions()]);
+
+  const products = productsResult.status === 'fulfilled' ? productsResult.value : null;
+  const productOptons = pOptionResults.status === 'fulfilled' ? pOptionResults.value : null;
+
+  return { products: products?.data, productOptions: productOptons?.data };
+};
+
+export const inventoryContextLoader = async () => {
+  const { getInventories } = new BranchInventoryService();
+  const { getProducts } = new ProductService();
+  const { getBranches } = new BranchService();
+  const [inventoryResults, branchResults, productsResult] = await Promise.allSettled([
+    getInventories(),
+    getBranches(),
+    getProducts(),
+  ]);
+
+  const inventory = inventoryResults.status === 'fulfilled' ? inventoryResults.value : null;
+  const branches = branchResults.status === 'fulfilled' ? branchResults.value : null;
+  const products = productsResult.status === 'fulfilled' ? productsResult.value : null;
+
+  return {
+    inventory: inventory?.data,
+    braches: branches?.data,
+    products: products?.data,
+  };
+};
+
+export const ordersContextLoader = async () => {
+  const { getOrders } = new OrderService();
+  const [orderResults] = await Promise.allSettled([getOrders()]);
+  const orders = orderResults.status === 'fulfilled' ? orderResults.value : null;
+  return {
+    orders: orders?.data,
+  };
+};
+
 export async function contextLoader() {
   try {
-    const { getProducts, getProductOptions } = new ProductService();
     const { getInventories } = new BranchInventoryService();
     const { getSubscriptionPlans, getSubscription, getCrediteBalance, getCreditUsage } = new SubscriptionService();
-    const { getOrders } = new OrderService();
+
     const { getAllCustomers } = new CustomerService();
     const { getReviews } = new ReviewService();
     const [
-      productsResult,
-      pOptionResults,
       inventoryResults,
       subsriptionPlanResults,
       subscriptionResults,
       creditUsageResults,
       creditBalanceResults,
-      orderResults,
+
       customerResults,
       reviewResults,
     ] = await Promise.allSettled([
-      getProducts(),
-      getProductOptions(),
       getInventories(),
       getSubscriptionPlans(),
       getSubscription(),
       getCreditUsage(),
       getCrediteBalance(),
-      getOrders(),
       getAllCustomers(),
       getReviews(),
     ]);
-    const products = productsResult.status === 'fulfilled' ? productsResult.value : null;
-    const productOptons = pOptionResults.status === 'fulfilled' ? pOptionResults.value : null;
+
     const branchInventories = inventoryResults.status === 'fulfilled' ? inventoryResults.value : null;
     const subscriptionPlans = subsriptionPlanResults.status === 'fulfilled' ? subsriptionPlanResults.value : null;
     const subscription = subscriptionResults.status === 'fulfilled' ? subscriptionResults.value : null;
     const creditUsage = creditUsageResults.status === 'fulfilled' ? creditUsageResults.value : null;
     const creditBalance = creditBalanceResults.status === 'fulfilled' ? creditBalanceResults.value : null;
-    const orders = orderResults.status === 'fulfilled' ? orderResults.value : null;
+
     const customers = customerResults.status === 'fulfilled' ? customerResults.value : null;
     const reviews = reviewResults.status === 'fulfilled' ? reviewResults.value : null;
 
     return {
-      products: products?.data.data,
-      productOptions: productOptons?.data,
       branchInventories: branchInventories?.data.data,
       subscriptionPlans: subscriptionPlans?.data,
       subscription: subscription?.data,
       creditUsage: creditUsage?.data,
       creditBalance: creditBalance?.data,
-      orders: orders?.data.data,
       customers: { data: customers?.data.data, pagination: customers?.data.pagination },
       reviews: { data: reviews?.data.data, pagination: reviews?.data.pagination },
     };
@@ -164,35 +190,18 @@ export const RootLoaderWrapper = ({
   const setProducts = useProductsSetRecoilState();
   const setProductOptions = useProductOptionSetRecoilState();
   const setBranches = useBranchSetRecoilState();
-  const setZones = useZoneSetRecoilState();
-  const setAreas = useAreaSetRecoilState();
+
   const setBranchInventory = useBranchInventorySetRecoilState();
   const setSubscriptionPlan = useSubscriptionPlanSetRecoilState();
   const setSubscription = useSubscriptionSetRecoilState();
   const setCreditUsage = useCreditUsageSetRecoilState();
   const setCreditBalance = useCreditBalanceSetRecoilState();
-  const setOrders = useOrdersSetRecoilState();
+
   const setCustomers = useCustomersSetRecoilState();
   const setReviews = useReviewsSetRecoilState();
 
   React.useEffect(() => {
     if (!data) return;
-
-    if (data.products) {
-      setProducts(data.products);
-    }
-    if (data.productOptions) {
-      setProductOptions(data.productOptions);
-    }
-    if (data.branches) {
-      setBranches(data.branches);
-    }
-    if (data.zones) {
-      setZones(data.zones);
-    }
-    if (data.areas) {
-      setAreas(data.areas);
-    }
     if (data.branchInventories) {
       setBranchInventory(data.branchInventories);
     }
@@ -207,9 +216,6 @@ export const RootLoaderWrapper = ({
     }
     if (data.creditBalance) {
       setCreditBalance(data.creditBalance);
-    }
-    if (data.orders) {
-      setOrders(data.orders);
     }
     if (data.customers.data) {
       setCustomers(data.customers.data);

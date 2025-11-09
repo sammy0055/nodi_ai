@@ -1,5 +1,4 @@
-// src/components/pages/ProductsPage/ProductsPage.tsx
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   FiPlus,
   FiSearch,
@@ -33,8 +32,9 @@ import {
   useWhatsappValue,
 } from '../../store/authAtoms';
 import { useDebounce } from 'use-debounce';
-import { useNavigate } from 'react-router';
+import { useLoaderData, useNavigate } from 'react-router';
 import { PageRoutes } from '../../routes';
+import type { Pagination } from '../../types/customer';
 // Define types based on your schema
 const ProductStatusTypes = {
   ACTIVE: 'active',
@@ -53,7 +53,8 @@ const ProductOptionsManager: React.FC<{
   onOptionsChange: (options: ProductOption[]) => void;
 }> = ({ productId, options, onOptionsChange }) => {
   const productOptions = options.filter((opt) => opt.productId === productId);
-  const { addProductOption, addProductOptionChoice, deleteProductChoice, deleteProductOption } = new ProductService();
+  const { addProductOption, addProductOptionChoice, deleteProductChoice, deleteProductOption } =
+    new ProductService();
   const addOption = async () => {
     const newOption: ProductOption = {
       id: `opt-${Date.now()}`,
@@ -101,7 +102,6 @@ const ProductOptionsManager: React.FC<{
         productOptionId: optionId,
         label: 'New Choice',
         priceAdjustment: 0,
-        // isDefault: true,
       };
 
       const { data: newChoice } = await addProductOptionChoice(choices as any);
@@ -234,24 +234,6 @@ const ProductOptionsManager: React.FC<{
                     // size="sm"
                   />
 
-                  {/* <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name={`default-${option.id}`}
-                      checked={choice.isDefault}
-                      onChange={() => {
-                        // Set all choices in this option to not default, then set this one to default
-                        const updatedChoices = option?.choices?.map((c) => ({
-                          ...c,
-                          isDefault: c.id === choice.id,
-                        }));
-                        updateOption(option.id, { choices: updatedChoices });
-                      }}
-                      className="rounded-full border-neutral-300 text-primary-600 focus:ring-primary-500"
-                    />
-                    <span className="ml-2 text-sm text-neutral-700">Default</span>
-                  </label> */}
-
                   <Button
                     variant="outline"
                     size="sm"
@@ -272,39 +254,64 @@ const ProductOptionsManager: React.FC<{
 
 // Main Products Page Component
 const ProductsPage: React.FC = () => {
-  // const [products, setProducts] = useState<Product[]>(initialProducts);
+  const data = useLoaderData() as {
+    products: { data: Product[]; pagination: Pagination };
+    productOptions: { data: ProductOption };
+  };
   const products = useProductsValue();
   const setProducts = useProductsSetRecoilState();
   const productOptions = useProductOptionValue();
   const setProductOptions = useProductOptionSetRecoilState();
   const whatsappData = useWhatsappValue();
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
   const [showProductModal, setShowProductModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [editingProduct, setEditingProduct] = useState<Partial<Product>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   // const importFileInputRef = useRef<HTMLInputElement>(null);
-  const { addProduct, updateProduct, deleteProduct, searchProducts, updateProductOption, updateProductChoice } =
-    new ProductService();
-
-  // Filter products based on search term
-  const filteredProducts = products.filter(
-    (product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const {
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    searchProducts,
+    updateProductOption,
+    updateProductChoice,
+    getProducts,
+  } = new ProductService();
 
   // Pagination
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-  const currentProducts = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const [pagination, setPagination] = useState<Pagination>();
   const navigate = useNavigate();
   const handleCreateCatalog = () => {
     navigate(`/app/${PageRoutes.SETTINGS}`);
   };
+
+  const loadProducts = useCallback(async (page: number = 1, search: string = '', append: boolean = false) => {
+    try {
+      const response = await getProducts(page, search);
+      if (append) {
+        setProducts((prev) => [...prev, ...response.data.data]);
+      } else {
+        setProducts(response.data.data);
+      }
+      setPagination(response.data.pagination);
+    } catch (error) {
+      console.error('Error loading organizations:', error);
+    }
+  }, []);
+
+  // load initial products
+  useEffect(() => {
+    if (data) {
+      setProducts(data.products.data);
+      setPagination(data.products.pagination);
+    }
+  }, [data]);
+
+  useEffect(() => {
+    loadProducts(1, '');
+  }, [loadProducts]);
 
   const handleDeleteProduct = async (productId: string) => {
     try {
@@ -380,10 +387,6 @@ const ProductsPage: React.FC = () => {
 
   useEffect(() => {
     const searchProductFn = async () => {
-      if (!debouncedTerm) {
-        // maybe clear results
-        return;
-      }
       // call your search API
       const data = await searchProducts(searchTerm);
       setProducts(data.data.data);
@@ -400,40 +403,15 @@ const ProductsPage: React.FC = () => {
     }
   };
 
-  // const handleImportFile = (event: React.ChangeEvent<HTMLInputElement>) => {
-  //   const file = event.target.files?.[0];
-  //   if (file) {
-  //     // Simulate file processing
-  //     const reader = new FileReader();
-  //     reader.onload = (e) => {
-  //       // Parse CSV and create products (simplified)
-  //       const content = e.target?.result as string;
-  //       const lines = content.split('\n');
-  //       const importedProducts: Product[] = [];
-
-  //       lines.slice(1).forEach((line, index) => {
-  //         if (line.trim()) {
-  //           const [name, sku, price, description] = line.split(',');
-  //           importedProducts.push({
-  //             id: `imported-${Date.now()}-${index}`,
-  //             organizationId: 'org-001',
-  //             sku: sku || `IMPORT-${index}`,
-  //             status: 'draft',
-  //             name: name || `Imported Product ${index}`,
-  //             price: parseFloat(price) || 0,
-  //             description: description || '',
-  //             currency: 'USD',
-  //             metaProductId: `meta-imported-${Date.now()}-${index}`,
-  //           });
-  //         }
-  //       });
-
-  //       setProducts([...products, ...importedProducts]);
-  //       setShowImportModal(false);
-  //     };
-  //     reader.readAsText(file);
-  //   }
-  // };
+  const handlePagination = async (currentPage: number) => {
+    try {
+      const { data } = await getProducts(currentPage);
+      setProducts((prev) => [...prev, ...data.data]);
+      setPagination(data.pagination);
+    } catch (error: any) {
+      alert('something went wrong, try again');
+    }
+  };
 
   const getStatusColor = (status: any) => {
     switch (status) {
@@ -528,7 +506,7 @@ const ProductsPage: React.FC = () => {
     );
   };
 
-  if (!whatsappData?.catalogId) return <CatalogWarning />;
+  // if (!whatsappData?.catalogId) return <CatalogWarning />;
 
   return (
     <div className="space-y-6 p-4 md:p-0">
@@ -568,15 +546,6 @@ const ProductsPage: React.FC = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-
-          {/* <div className="flex space-x-3">
-            <select className="border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="draft">Draft</option>
-              <option value="archived">Archived</option>
-            </select>
-          </div> */}
         </div>
       </div>
 
@@ -591,7 +560,7 @@ const ProductsPage: React.FC = () => {
         </div>
 
         {/* Products */}
-        {currentProducts.length === 0 ? (
+        {products?.length === 0 ? (
           <div className="p-8 text-center text-neutral-500">
             <FiPackage className="mx-auto text-4xl text-neutral-300 mb-3" />
             <p>No products found{searchTerm && ` matching "${searchTerm}"`}</p>
@@ -603,63 +572,37 @@ const ProductsPage: React.FC = () => {
           </div>
         ) : (
           <div className="divide-y divide-neutral-200">
-            {currentProducts.map((product) => (
+            {products?.map((product) => (
               <ProductRow key={product.id} product={product} />
             ))}
           </div>
         )}
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {pagination?.totalPages && pagination?.totalPages > 1 && (
           <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-neutral-200 space-y-3 sm:space-y-0">
             <div className="text-sm text-neutral-500">
-              Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-              {Math.min(currentPage * itemsPerPage, filteredProducts.length)} of {filteredProducts.length} products
+              Showing {(pagination.currentPage - 1) * pagination.pageSize + 1} to{' '}
+              {Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems)} of {pagination.totalItems}{' '}
+              products
             </div>
 
             <div className="flex space-x-2">
               <Button
                 variant="outline"
                 size="sm"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(currentPage - 1)}
+                disabled={pagination?.currentPage === 1}
+                onClick={() => setPagination((prev) => ({ ...prev!, currentPage: prev!.currentPage - 1 }))}
               >
                 <FiChevronLeft className="mr-1" />
                 Previous
               </Button>
 
-              <div className="flex items-center space-x-1">
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNum;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (currentPage <= 3) {
-                    pageNum = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = currentPage - 2 + i;
-                  }
-
-                  return (
-                    <button
-                      key={pageNum}
-                      className={`px-3 py-1 rounded text-sm ${
-                        pageNum === currentPage ? 'bg-primary-600 text-white' : 'text-neutral-600 hover:bg-neutral-100'
-                      }`}
-                      onClick={() => setCurrentPage(pageNum)}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
-              </div>
-
               <Button
                 variant="outline"
                 size="sm"
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(currentPage + 1)}
+                disabled={!pagination?.hasNextPage}
+                onClick={() => handlePagination(pagination.currentPage + 1)}
               >
                 Next
                 <FiChevronRight className="ml-1" />

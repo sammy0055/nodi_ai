@@ -23,7 +23,9 @@ export interface IBranchInventory {
   costPrice?: number;
   sellingPrice: number;
   isActive: boolean;
-  product?: { id: string; currency: string }
+  isAllBranchSelected?: boolean;
+  isAllProductSelected?: boolean;
+  product?: { id: string; currency: string };
 }
 
 export interface IZone {

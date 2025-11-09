@@ -18,6 +18,7 @@ class OrganizationsModel
   declare stripeCustomerId?: string | undefined;
   declare shouldUpdateChatbotSystemPrompt?: boolean | undefined;
   declare status: 'active' | 'suspended' | 'cancelled';
+  declare languageProtectedTerms?: string | undefined;
   static associate(models: DbModels) {
     //hasMany The foreign key is on the other model (the one being linked).
     this.hasMany(models.BranchesModel, { foreignKey: 'organizationId' });
@@ -88,6 +89,7 @@ OrganizationsModel.init(
     stripeCustomerId: { type: DataTypes.STRING, allowNull: true },
     shouldUpdateChatbotSystemPrompt: { type: DataTypes.BOOLEAN, defaultValue: true },
     status: { type: DataTypes.ENUM, values: ['active', 'suspended', 'cancelled'], defaultValue: 'active' },
+    languageProtectedTerms: { type: DataTypes.STRING, defaultValue: '' },
   },
   {
     sequelize,
