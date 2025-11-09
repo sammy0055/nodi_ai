@@ -1,4 +1,3 @@
-// src/components/pages/BranchesPage/BranchesPage.tsx
 import React, { useEffect, useState } from 'react';
 import {
   FiPlus,
@@ -18,7 +17,7 @@ import {
 } from 'react-icons/fi';
 import Button from '../../components/atoms/Button/Button';
 import Input from '../../components/atoms/Input/Input';
-import type { IArea, IBranch, IZone } from '../../types/branch';
+import type { IBranch } from '../../types/branch';
 import { BranchService } from '../../services/branchService';
 import { useBranchSetRecoilState, useBranchValue } from '../../store/authAtoms';
 import { useDebounce } from 'use-debounce';
@@ -37,34 +36,40 @@ interface ValidationErrors {
 
 const BranchesPage: React.FC = () => {
   const data = useLoaderData() as {
-    branches:{data: IBranch[]; pagination: Pagination}
+    branches: { data: IBranch[]; pagination: Pagination };
   };
   const branches = useBranchValue();
   const setBranches = useBranchSetRecoilState();
+  const [pagination, setPagination] = useState<Pagination>();
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5);
   const [showBranchModal, setShowBranchModal] = useState(false);
   const [editingBranch, setEditingBranch] = useState<IBranch | null>(null);
   const [newBranch, setNewBranch] = useState<Partial<IBranch>>({
     isActive: true,
     supportsDelivery: false,
     supportsTakeAway: false,
-    deliveryTime: new Date('2023-01-01T30:00:00'),
-    takeAwayTime: new Date('2023-01-01T15:00:00'),
+    // deliveryTime: new Date(),
+    // takeAwayTime: new Date(),
   });
+
+  // set branche data on page load
+  useEffect(() => {
+    if (data) {
+      setBranches(data.branches.data);
+      setPagination(data.branches.pagination);
+    }
+  }, [data]);
 
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [deliveryTimeUnit, setDeliveryTimeUnit] = useState<'minutes' | 'hours' | 'days'>('minutes');
   const [takeAwayTimeUnit, setTakeAwayTimeUnit] = useState<'minutes' | 'hours' | 'days'>('minutes');
-  const { createBranch, updateBranch, deleteBranch, searchBranch } = new BranchService();
+  const { createBranch, updateBranch, deleteBranch, searchBranch, getBranches } = new BranchService();
   // Helper functions to convert between Date and time units
   const getTimeValue = (
     date: Date | string | number | undefined,
     unit: 'minutes' | 'hours' | 'days'
   ): number | null => {
     if (!date) return null;
-
     // normalize to Date
     const d = date instanceof Date ? date : new Date(date); // handles string or number
 
@@ -227,20 +232,7 @@ const BranchesPage: React.FC = () => {
     }
   };
 
-  // Filter branches based on search term
-  const filteredBranches = branches.filter(
-    (branch) =>
-      branch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      branch.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      branch.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      branch.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      branch.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  // Pagination
-  const totalPages = Math.ceil(filteredBranches.length / itemsPerPage);
-  const currentBranches = filteredBranches.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-  // CRUD Operations with validation
+ // CRUD Operations with validation
   const handleCreateBranch = async () => {
     try {
       if (!validateForm()) {
@@ -337,6 +329,7 @@ const BranchesPage: React.FC = () => {
       // call your search API
       const data = await searchBranch(searchTerm);
       setBranches(data.data.data);
+      setPagination(data?.data?.pagination)
     };
     searchProductFn();
   }, [debouncedTerm]);
@@ -346,8 +339,8 @@ const BranchesPage: React.FC = () => {
       isActive: true,
       supportsDelivery: false,
       supportsTakeAway: false,
-      deliveryTime: new Date('2023-01-01T30:00:00'),
-      takeAwayTime: new Date('2023-01-01T15:00:00'),
+      // deliveryTime: new Date('2023-01-01T30:00:00'),
+      // takeAwayTime: new Date('2023-01-01T15:00:00'),
     });
     setEditingBranch(null);
     setValidationErrors({});
@@ -355,6 +348,16 @@ const BranchesPage: React.FC = () => {
 
   const getStatusColor = (isActive: boolean) => {
     return isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+  };
+
+  const handleZonePagination = async (currentPage: number) => {
+    try {
+      const { data } = await getBranches(currentPage);
+      setBranches((prev) => [...prev, ...data.data]);
+      setPagination(data.pagination);
+    } catch (error: any) {
+      alert('something went wrong, try again');
+    }
   };
 
   // Branch Row Component
@@ -534,7 +537,7 @@ const BranchesPage: React.FC = () => {
         </div>
 
         {/* Branches */}
-        {currentBranches.length === 0 ? (
+        {branches?.length === 0 ? (
           <div className="p-8 text-center text-neutral-500">
             <FiMapPin className="mx-auto text-4xl text-neutral-300 mb-3" />
             <p>No branches found{searchTerm && ` matching "${searchTerm}"`}</p>
@@ -546,63 +549,37 @@ const BranchesPage: React.FC = () => {
           </div>
         ) : (
           <div className="divide-y divide-neutral-200">
-            {currentBranches.map((branch) => (
+            {branches?.map((branch) => (
               <BranchRow key={branch.id} branch={branch} />
             ))}
           </div>
         )}
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {pagination?.totalPages && pagination.totalPages > 1 && (
           <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-neutral-200 space-y-3 sm:space-y-0">
             <div className="text-sm text-neutral-500">
-              Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-              {Math.min(currentPage * itemsPerPage, filteredBranches.length)} of {filteredBranches.length} branches
+              Showing {(pagination.currentPage - 1) * pagination.pageSize + 1} to{' '}
+              {Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems)} of {pagination.totalItems}{' '}
+              branches
             </div>
 
             <div className="flex space-x-2">
               <Button
                 variant="outline"
                 size="sm"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(currentPage - 1)}
+                disabled={pagination?.currentPage === 1}
+                onClick={() => setPagination((prev) => ({ ...prev!, currentPage: prev!.currentPage - 1 }))}
               >
                 <FiChevronLeft className="mr-1" />
                 Previous
               </Button>
 
-              <div className="flex items-center space-x-1">
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNum;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (currentPage <= 3) {
-                    pageNum = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = currentPage - 2 + i;
-                  }
-
-                  return (
-                    <button
-                      key={pageNum}
-                      className={`px-3 py-1 rounded text-sm ${
-                        pageNum === currentPage ? 'bg-primary-600 text-white' : 'text-neutral-600 hover:bg-neutral-100'
-                      }`}
-                      onClick={() => setCurrentPage(pageNum)}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
-              </div>
-
               <Button
                 variant="outline"
                 size="sm"
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(currentPage + 1)}
+                disabled={!pagination?.hasNextPage}
+                onClick={() => handleZonePagination(pagination.currentPage + 1)}
               >
                 Next
                 <FiChevronRight className="ml-1" />

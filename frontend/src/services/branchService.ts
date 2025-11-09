@@ -12,8 +12,8 @@ export class BranchService {
     });
   }
 
-  async getBranches(): Promise<{ data: { data: IBranch[]; pagination: Pagination }; message: string }> {
-    return await ApiClient('GET_BRANCHES');
+  async getBranches(page?: number): Promise<{ data: { data: IBranch[]; pagination: Pagination }; message: string }> {
+    return await ApiClient('GET_BRANCHES', { queryParams: `?page=${encodeURIComponent(page || 1)}` });
   }
 
   async updateBranch(data: IBranch): Promise<{ data: IBranch; message: string }> {
