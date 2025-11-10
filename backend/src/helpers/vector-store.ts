@@ -59,7 +59,7 @@ export class ManageVectorStore {
 
   // ✅ Insert or update a product embedding
   async insertProductEmbedding(product: Pick<IProduct, 'id' | 'name' | 'description' | 'currency'>) {
-    const text = `${product.name} ${product.description} Price: ${product.currency}`;
+    const text = `${product.name} ${product.description} Currency: ${product.currency}`;
     const embedding = await generateEmbedding(text);
 
     await this.qdrant.upsert(this.collectionName, {

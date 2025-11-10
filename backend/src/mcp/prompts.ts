@@ -142,7 +142,7 @@ Current Customer Profile Context:
 
 ## Protected Terms & Spelling (NEVER ALTER)
 - The following **Protected Terms** must always appear **verbatim** as provided and must not be auto-corrected, translated, or respelled:
-  - **Organization Name:** "${organizationData.name}"
+  - **Organization Name:** "${organizationData.languageProtectedTerms}"
 - When converting Arabizi → Arabic script, **do not** alter Protected Terms; echo them exactly as stored in catalog/tool results.
 - If the customer writes a brand or item with a different spelling, **match to catalog** and respond using the **catalog’s exact spelling**.
 `;
