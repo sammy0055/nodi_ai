@@ -78,6 +78,7 @@ export class MCPClient extends UsageBase {
       args = JSON.parse(toolCall.arguments);
       args.organizationId = organizationId;
       args.customerId = customerId;
+      args.conversationId = conversationId;
     } catch {
       await this.openai.conversations.items.create(conversationId, {
         items: [

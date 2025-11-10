@@ -8,6 +8,7 @@ import { IWhatSappSettings } from '../types/whatsapp-settings';
 import { decrypt } from '../utils/crypto-utils';
 import { run } from './migration';
 import { sendVerificationEmail } from '../utils/send-email';
+import { ChatHistoryManager } from '../services/ChatHistoryManager.service';
 
 const ddd = {
   whatsappBusinessId: '1390720013053482',
@@ -133,6 +134,14 @@ const sendMessage = async () => {
   // const data = await res.
 };
 
+const summarize = async () => {
+  const { summarizeConversationById } = new ChatHistoryManager();
+ const summary = await summarizeConversationById('conv_6911be296db88194ab107139a1753b5400d0bedeb7cd8eaa');
+console.log(summary);
+
+};
+
+summarize()
 // testMcp('hello');
 // run();
 // sendMessage();

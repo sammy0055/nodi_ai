@@ -10,6 +10,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { AiChatHistoryModel } from '../models/ai-chat-history.model';
 import { Op } from 'sequelize';
 import { calculateAndSubtractCredits } from '../helpers/billing-calcuations';
+import { OrganizationsModel } from '../models/organizations.model';
+import { CustomerModel } from '../models/customer.model';
+import { createSystemPrompt } from '../mcp/prompts';
 
 export interface ChatHistoryConfig {
   maxContextTokens: number;
@@ -61,6 +64,96 @@ export class ChatHistoryManager {
       customerId: customerId,
       title: title,
     });
+  }
+
+  async summarizeConversationById(conversationId: string) {
+    if (!conversationId) throw new Error('openai conversationId is required');
+
+    const openai = new OpenAI({ apiKey: appConfig.mcpKeys.openaiKey });
+
+    const items = await openai.conversations.items.list(conversationId);
+
+    const chatHistory = items.data
+      .filter((item) => item.type === 'message')
+      .filter((msg) => msg.role === 'user' || msg.role === 'assistant') // only the two we want
+      .map((msg) => {
+        const text = (msg.content || [])
+          .filter((c) => c.type === 'input_text' || c.type === 'output_text')
+          .map((c) => c.text)
+          .join(' ')
+          .trim();
+
+        return { role: msg.role, content: text };
+      })
+      .filter((m) => m.content !== '');
+
+    const response = await openai.responses.create({
+      model: 'gpt-5',
+      input: [
+        { role: 'system', content: 'You are a helpful assistant that summarizes conversations very concisely.' },
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'input_text',
+              text: `kindly provide a very short sammary for the chathistory below.\n chatHistory: ${chatHistory}`,
+            },
+          ],
+        },
+      ],
+    });
+    
+    console.log('✅ created summary successfully');
+    return response.output_text;
+  }
+
+  async insertConversationSummary({
+    summary,
+    conversationId,
+    organizationId,
+    customerId,
+  }: {
+    summary: string;
+    conversationId: string;
+    organizationId: string;
+    customerId: string;
+  }) {
+    const orgData = await OrganizationsModel.findByPk(organizationId);
+    const customerData = await CustomerModel.findOne({ where: { organizationId: organizationId, id: customerId } });
+    const systemPrompt = createSystemPrompt({
+      organizationData: orgData!,
+      customerData: customerData!,
+      businessTone: 'formal',
+      assistantName: orgData?.AIAssistantName || 'Alex',
+    });
+    const openai = new OpenAI({ apiKey: appConfig.mcpKeys.openaiKey });
+    // get all items
+    const items = await openai.conversations.items.list(conversationId);
+    for (const item of items.data) {
+      // each item has its own id
+      if (item.id) await openai.conversations.items.delete(conversationId, item.id as any);
+    }
+
+    await openai.conversations.items.create(conversationId, {
+      items: [
+        {
+          type: 'message',
+          role: 'system',
+          content: [
+            {
+              type: 'input_text',
+              text: systemPrompt,
+            },
+          ],
+        },
+        {
+          type: 'message',
+          role: 'assistant',
+          content: summary,
+        },
+      ],
+    });
+    console.log('✅ inserted summary and system prompt successfully');
   }
 
   // Add a message with proper OpenAI structure

@@ -5,6 +5,7 @@ import { ManageVectorStore } from '../../../helpers/vector-store';
 import { models } from '../../../models';
 import { CurrencyCode } from '../../../types/product';
 import { OrderStatusTypes } from '../../../types/order';
+import { ChatHistoryManager } from '../../../services/ChatHistoryManager.service';
 
 const { BranchesModel, OrderModel, BranchInventoryModel } = models;
 // Create order with inventory check
@@ -19,9 +20,13 @@ export const createOrder = (server: McpServer) => {
         title: z.string().describe('title for the order'),
         organizationId: z.string(),
         customerId: z.string(),
+        conversationId: z.string(),
         branchId: z.string(),
         currency: z.enum(currencyCodes as any),
-        deliveryAreaId: z.string().describe('the id of the delivery area. must be present if order is delivery.').optional(),
+        deliveryAreaId: z
+          .string()
+          .describe('the id of the delivery area. must be present if order is delivery.')
+          .optional(),
         serviceType: z.enum(['delivery', 'takeaway']),
         items: z.array(
           z.object({
@@ -91,6 +96,16 @@ export const createOrder = (server: McpServer) => {
               },
             });
           }
+
+          // summarizeConversation
+          const { summarizeConversationById, insertConversationSummary } = new ChatHistoryManager();
+          const summary = await summarizeConversationById(params.conversationId);
+          await insertConversationSummary({
+            summary: summary,
+            organizationId: params.organizationId,
+            conversationId: params.conversationId,
+            customerId: params.customerId,
+          });
         }
         return {
           content: [
