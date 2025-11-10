@@ -48,13 +48,13 @@ export const createOrder = (server: McpServer) => {
           .string()
           .describe('Full delivery address: street, building, floor, apartment, landmark.')
           .optional(),
-        shippingAddressCoordinates: z
-          .object({
-            longitude: z.number(),
-            latitude: z.number(),
-            googleMapUrl: z.string(),
-          })
-          .optional(),
+        // shippingAddressCoordinates: z
+        //   .object({
+        //     longitude: z.number(),
+        //     latitude: z.number(),
+        //     googleMapUrl: z.string(),
+        //   })
+        //   .optional(),
       },
     },
     async (params) => {
