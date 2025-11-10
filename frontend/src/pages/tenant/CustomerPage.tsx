@@ -18,151 +18,16 @@ import {
 } from 'react-icons/fi';
 import Button from '../../components/atoms/Button/Button';
 import { useDebounce } from 'use-debounce';
-import type { Conversation, Customer, Message } from '../../types/customer';
-import { useCustomerValue } from '../../store/authAtoms';
-
-// Mock data (same as before)
-const mockCustomers: Customer[] = [
-  {
-    id: 'CUST-001',
-    organizationId: 'ORG-001',
-    name: 'John Smith',
-    phone: '+1 (555) 123-4567',
-    email: 'john.smith@email.com',
-    source: 'chatbot',
-    preferences: {
-      language: 'en',
-      notifications: true,
-      theme: 'light',
-    },
-    createdAt: new Date('2024-01-15'),
-    lastActive: new Date('2024-02-15'),
-    conversations: [
-      {
-        id: 'CONV-001',
-        title: 'Product Inquiry - Wireless Headphones',
-        messages: [
-          {
-            id: 'MSG-001',
-            conversation_id: 'CONV-001',
-            role: 'user',
-            content: "Hi, I'm interested in the wireless headphones. Do you have them in stock?",
-            created_at: new Date('2024-02-15T10:30:00'),
-          },
-          {
-            id: 'MSG-002',
-            conversation_id: 'CONV-001',
-            role: 'assistant',
-            content:
-              'Hello! Yes, we have the wireless headphones in stock. They are available in black, white, and blue colors.',
-            created_at: new Date('2024-02-15T10:31:00'),
-          },
-          {
-            id: 'MSG-003',
-            conversation_id: 'CONV-001',
-            role: 'user',
-            content: 'Great! What about the battery life?',
-            created_at: new Date('2024-02-15T10:32:00'),
-          },
-          {
-            id: 'MSG-004',
-            conversation_id: 'CONV-001',
-            role: 'assistant',
-            content:
-              'The battery lasts up to 30 hours on a single charge. It also supports fast charging - 15 minutes of charging gives you 5 hours of playback.',
-            created_at: new Date('2024-02-15T10:33:00'),
-          },
-          {
-            id: 'MSG-005',
-            conversation_id: 'CONV-001',
-            role: 'user',
-            content: "Perfect! I'll take the black ones.",
-            created_at: new Date('2024-02-15T10:35:00'),
-          },
-        ],
-      },
-      {
-        id: 'CONV-002',
-        title: 'Order Support - ORD-001',
-        messages: [
-          {
-            id: 'MSG-006',
-            conversation_id: 'CONV-002',
-            role: 'user',
-            content: 'I need help with my order #ORD-001. When will it be delivered?',
-            created_at: new Date('2024-02-16T14:20:00'),
-          },
-          {
-            id: 'MSG-007',
-            conversation_id: 'CONV-002',
-            role: 'assistant',
-            content:
-              'I can see your order is scheduled for delivery tomorrow between 2-4 PM. You can track it using this link: [tracking-link]',
-            created_at: new Date('2024-02-16T14:21:00'),
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'CUST-002',
-    organizationId: 'ORG-001',
-    name: 'Sarah Johnson',
-    phone: '+1 (555) 987-6543',
-    email: 'sarah.j@email.com',
-    source: 'mobile_app',
-    preferences: {
-      language: 'en',
-      notifications: false,
-      currency: 'USD',
-    },
-    createdAt: new Date('2024-01-20'),
-    lastActive: new Date('2024-02-14'),
-    conversations: [
-      {
-        id: 'CONV-003',
-        title: 'Return Request - Smart Watch',
-        messages: [
-          {
-            id: 'MSG-008',
-            conversation_id: 'CONV-003',
-            role: 'user',
-            content: 'I want to return the smart watch I purchased last week.',
-            created_at: new Date('2024-02-14T09:15:00'),
-          },
-          {
-            id: 'MSG-009',
-            conversation_id: 'CONV-003',
-            role: 'assistant',
-            content: "I'm sorry to hear that. Could you let me know the reason for the return?",
-            created_at: new Date('2024-02-14T09:16:00'),
-          },
-          {
-            id: 'MSG-010',
-            conversation_id: 'CONV-003',
-            role: 'user',
-            content: "The battery doesn't last as long as advertised.",
-            created_at: new Date('2024-02-14T09:17:00'),
-          },
-          {
-            id: 'MSG-011',
-            conversation_id: 'CONV-003',
-            role: 'assistant',
-            content:
-              "I understand. I've initiated the return process for you. You'll receive an email with the return label and instructions.",
-            created_at: new Date('2024-02-14T09:18:00'),
-          },
-        ],
-      },
-    ],
-  },
-  // ... (other mock customers remain the same)
-];
+import type { Conversation, Customer, Message, Pagination } from '../../types/customer';
+import { useCustomersSetRecoilState, useCustomerValue } from '../../store/authAtoms';
+import { useLoaderData } from 'react-router';
 
 const CustomersPage: React.FC = () => {
+  const data = useLoaderData() as { customers: { data: Customer[]; pagination: Pagination } };
   const customers = useCustomerValue();
+  const setCustomers = useCustomersSetRecoilState();
   // const [customers] = useState<Customer[]>(mockCustomers);
-  const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>(mockCustomers);
+  const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(8);
@@ -173,6 +38,12 @@ const CustomersPage: React.FC = () => {
 
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
 
+  // initial data loading
+  useEffect(() => {
+    if (data) {
+      setCustomers(data.customers.data);
+    }
+  }, [data]);
   // Filter customers when search term changes
   useEffect(() => {
     if (!debouncedSearchTerm) {
@@ -257,7 +128,7 @@ const CustomersPage: React.FC = () => {
   // Improved Chat Message Component with proper left/right alignment
   const ChatMessage: React.FC<{ message: Message }> = ({ message }) => {
     const isUser = message.role === 'user';
-    
+
     return (
       <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
         <div className={`flex max-w-[85%] ${isUser ? 'flex-row-reverse' : 'flex-row'} items-start space-x-3`}>

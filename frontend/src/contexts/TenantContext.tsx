@@ -112,12 +112,20 @@ export const ordersContextLoader = async () => {
   };
 };
 
+export const customerContextLoader = async () => {
+  const { getAllCustomers } = new CustomerService();
+  const [customerResults] = await Promise.allSettled([getAllCustomers()]);
+  const customers = customerResults.status === 'fulfilled' ? customerResults.value : null;
+  return {
+    customers: { data: customers?.data },
+  };
+};
+
 export async function contextLoader() {
   try {
     const { getInventories } = new BranchInventoryService();
     const { getSubscriptionPlans, getSubscription, getCrediteBalance, getCreditUsage } = new SubscriptionService();
 
-    const { getAllCustomers } = new CustomerService();
     const { getReviews } = new ReviewService();
     const [
       inventoryResults,
@@ -125,8 +133,6 @@ export async function contextLoader() {
       subscriptionResults,
       creditUsageResults,
       creditBalanceResults,
-
-      customerResults,
       reviewResults,
     ] = await Promise.allSettled([
       getInventories(),
@@ -134,7 +140,7 @@ export async function contextLoader() {
       getSubscription(),
       getCreditUsage(),
       getCrediteBalance(),
-      getAllCustomers(),
+
       getReviews(),
     ]);
 
@@ -144,7 +150,6 @@ export async function contextLoader() {
     const creditUsage = creditUsageResults.status === 'fulfilled' ? creditUsageResults.value : null;
     const creditBalance = creditBalanceResults.status === 'fulfilled' ? creditBalanceResults.value : null;
 
-    const customers = customerResults.status === 'fulfilled' ? customerResults.value : null;
     const reviews = reviewResults.status === 'fulfilled' ? reviewResults.value : null;
 
     return {
@@ -153,7 +158,6 @@ export async function contextLoader() {
       subscription: subscription?.data,
       creditUsage: creditUsage?.data,
       creditBalance: creditBalance?.data,
-      customers: { data: customers?.data.data, pagination: customers?.data.pagination },
       reviews: { data: reviews?.data.data, pagination: reviews?.data.pagination },
     };
   } catch (error: any) {
