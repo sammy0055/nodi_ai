@@ -37,6 +37,7 @@ export class BranchInventoryService {
           ...rest,
           branchId,
           productId: p.id,
+          sellingPrice: p.price,
           organizationId: user.organizationId,
         });
       }
@@ -62,6 +63,7 @@ export class BranchInventoryService {
             ...rest,
             branchId: b.id,
             productId: p.id,
+            sellingPrice: p.price,
             organizationId: user.organizationId,
           });
         }
