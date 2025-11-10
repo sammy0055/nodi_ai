@@ -28,7 +28,8 @@ export class BranchInventoryService {
     if (isAllProductSelected && !isAllBranchSelected) {
       const products = await ProductModel.findAll({
         where: { organizationId: user.organizationId },
-        attributes: ['id'],
+        attributes: ['id', 'price'],
+        raw: true,
       });
       if (!products.length) throw new Error('no product in organization');
 
@@ -47,11 +48,13 @@ export class BranchInventoryService {
     if (isAllProductSelected && isAllBranchSelected) {
       const products = await ProductModel.findAll({
         where: { organizationId: user.organizationId },
-        attributes: ['id'],
+        attributes: ['id', 'price'],
+        raw: true,
       });
       const branches = await BranchesModel.findAll({
         where: { organizationId: user.organizationId },
         attributes: ['id'],
+        raw: true,
       });
 
       if (!products.length) throw new Error('no product in organization');
