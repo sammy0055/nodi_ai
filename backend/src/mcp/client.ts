@@ -209,10 +209,13 @@ export class MCPChatBot extends MCPClient {
     super();
   }
 
-  public async connectToMcpServer() {
+  public async connectToMcpServer(conversationId: string) {
     this.transport = new StdioClientTransport({
       command: 'npx',
       args: ['tsx', 'src/mcp/server.ts'],
+      env: {
+        conversationId: conversationId,
+      },
     });
 
     try {

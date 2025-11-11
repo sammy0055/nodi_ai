@@ -84,7 +84,7 @@ export class ChatService extends MCPChatBot {
   public async processQuery(userMessage: string) {
     const planOrg = await this.getOrganization();
     const customer = await this.getCustomerData();
-    await this.connectToMcpServer();
+
     const systemPrompt = createSystemPrompt({
       organizationData: planOrg!,
       customerData: customer,
@@ -94,7 +94,9 @@ export class ChatService extends MCPChatBot {
     if (planOrg.shouldUpdateChatbotSystemPrompt) {
       await OrganizationsModel.update({ shouldUpdateChatbotSystemPrompt: false }, { where: { id: planOrg.id } });
     }
+    
     const conversation = await this.getAndCreateConversationIfNotExist(systemPrompt);
+    await this.connectToMcpServer(conversation.id);
     const res = await this.process({
       query: userMessage,
       systemPrompt: systemPrompt,

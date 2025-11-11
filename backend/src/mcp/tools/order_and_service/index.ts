@@ -20,7 +20,6 @@ export const createOrder = (server: McpServer) => {
         title: z.string().describe('title for the order'),
         organizationId: z.string(),
         customerId: z.string(),
-        conversationId: z.string(),
         branchId: z.string(),
         currency: z.enum(currencyCodes as any),
         deliveryAreaId: z
@@ -99,11 +98,13 @@ export const createOrder = (server: McpServer) => {
 
           // summarizeConversation
           const { summarizeConversationById, insertConversationSummary } = new ChatHistoryManager();
-          const summary = await summarizeConversationById(params.conversationId);
+          const conversationId = process.env.conversationId;
+          if (!conversationId) throw new Error('conversation id is missing');
+          const summary = await summarizeConversationById(conversationId);
           await insertConversationSummary({
             summary: summary,
             organizationId: params.organizationId,
-            conversationId: params.conversationId,
+            conversationId: conversationId,
             customerId: params.customerId,
           });
         }
