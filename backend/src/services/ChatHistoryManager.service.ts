@@ -70,6 +70,7 @@ export class ChatHistoryManager {
     if (!conversationId) throw new Error('openai conversationId is required');
 
     const openai = new OpenAI({ apiKey: appConfig.mcpKeys.openaiKey });
+    console.error('🏃🏼 processing chat summary', conversationId);
 
     const items = await openai.conversations.items.list(conversationId);
 
@@ -102,8 +103,8 @@ export class ChatHistoryManager {
         },
       ],
     });
-    
-    console.log('✅ created summary successfully');
+
+    console.error('✅ created summary successfully');
     return response.output_text;
   }
 
@@ -128,6 +129,7 @@ export class ChatHistoryManager {
     });
     const openai = new OpenAI({ apiKey: appConfig.mcpKeys.openaiKey });
     // get all items
+     console.error('🏃🏼 processing chat summary insert', conversationId);
     const items = await openai.conversations.items.list(conversationId);
     for (const item of items.data) {
       // each item has its own id
@@ -153,7 +155,7 @@ export class ChatHistoryManager {
         },
       ],
     });
-    console.log('✅ inserted summary and system prompt successfully');
+    console.error('✅ inserted summary and system prompt successfully');
   }
 
   // Add a message with proper OpenAI structure
