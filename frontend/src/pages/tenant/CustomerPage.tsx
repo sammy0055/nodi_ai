@@ -23,7 +23,7 @@ import { useCustomersSetRecoilState, useCustomerValue } from '../../store/authAt
 import { useLoaderData } from 'react-router';
 
 const CustomersPage: React.FC = () => {
-  const data = useLoaderData() as { customers: { data: Customer[]; pagination: Pagination } };
+  const data = useLoaderData() as { customers: { data: { data: Customer[]; pagination: Pagination } } };
   const customers = useCustomerValue();
   const setCustomers = useCustomersSetRecoilState();
   // const [customers] = useState<Customer[]>(mockCustomers);
@@ -41,7 +41,7 @@ const CustomersPage: React.FC = () => {
   // initial data loading
   useEffect(() => {
     if (data) {
-      setCustomers(data.customers.data);
+      setCustomers(data.customers.data.data);
     }
   }, [data]);
   // Filter customers when search term changes

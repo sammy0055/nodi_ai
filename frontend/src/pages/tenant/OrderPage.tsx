@@ -120,6 +120,8 @@ export interface IOrder {
 
 const OrdersPage: React.FC = () => {
   const data = useLoaderData() as { orders: { data: IOrder[]; pagination: Pagination } };
+
+  
   const orders = useOrdersValue();
   const setOrders = useOrdersSetRecoilState();
 

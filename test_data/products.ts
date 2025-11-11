@@ -21,50 +21,53 @@
       'Flagship Apple phone with A19 chip, 6.3-inch Super Retina XDR OLED display at 120Hz, 48MP main + 48MP ultra-wide cameras, IP68 rating. :contentReference[oaicite:1]{index=1}',
   },
   {
-    id: "tawook_sandwich",
-    name: "Tawook Sandwich",
-    category: "Sandwiches",
+    id: 'tawook_sandwich',
+    name: 'Tawook Sandwich',
+    category: 'Sandwiches',
     price_LBP: 250000,
-    ingredients: ["Grilled Chicken", "Garlic Sauce", "Pickles", "Fries", "Pita Bread"],
+    description: 'Grilled chicken wrapped with garlic sauce, pickles, and fries in soft pita bread.',
+    ingredients: ['Grilled Chicken', 'Garlic Sauce', 'Pickles', 'Fries', 'Pita Bread'],
     options: {
-      portion_size: ["Regular", "Large"],
-      bread_type: ["Pita", "Markouk"],
-      toppings_remove: ["Garlic Sauce", "Pickles", "Fries"],
+      portion_size: ['Regular', 'Large'],
+      bread_type: ['Pita', 'Markouk'],
+      toppings_remove: ['Garlic Sauce', 'Pickles', 'Fries'],
       toppings_add: [
-        { name: "Extra Chicken", price_LBP: 50000 },
-        { name: "Extra Garlic Sauce", price_LBP: 15000 },
-        { name: "Cheese Slice", price_LBP: 20000 }
-      ]
-    }
+        { name: 'Extra Chicken', price_LBP: 50000 },
+        { name: 'Extra Garlic Sauce', price_LBP: 15000 },
+        { name: 'Cheese Slice', price_LBP: 20000 },
+      ],
+    },
   },
   {
-    id: "beef_shawarma_plate",
-    name: "Beef Shawarma Plate",
-    category: "Plates",
+    id: 'beef_shawarma_plate',
+    name: 'Beef Shawarma Plate',
+    category: 'Plates',
     price_LBP: 450000,
-    ingredients: ["Beef Shawarma", "Hummus", "Pickles", "Tomato", "Onion", "Bread"],
+    description: 'Slices of seasoned beef shawarma served with hummus, fresh vegetables, and bread.',
+    ingredients: ['Beef Shawarma', 'Hummus', 'Pickles', 'Tomato', 'Onion', 'Bread'],
     options: {
-      portion_size: ["Regular", "Large"],
-      toppings_remove: ["Onion", "Tomato"],
+      portion_size: ['Regular', 'Large'],
+      toppings_remove: ['Onion', 'Tomato'],
       toppings_add: [
-        { name: "Extra Meat", price_LBP: 70000 },
-        { name: "Extra Hummus", price_LBP: 20000 },
-        { name: "Fries", price_LBP: 15000 }
-      ]
-    }
+        { name: 'Extra Meat', price_LBP: 70000 },
+        { name: 'Extra Hummus', price_LBP: 20000 },
+        { name: 'Fries', price_LBP: 15000 },
+      ],
+    },
   },
   {
-    id: "zaatar_manouche",
-    name: "Zaatar Manoushe",
-    category: "Bakery",
+    id: 'zaatar_manouche',
+    name: 'Zaatar Manoushe',
+    category: 'Bakery',
     price_LBP: 180000,
-    ingredients: ["Zaatar Mix", "Olive Oil", "Dough"],
+    description: 'Traditional manoushe topped with zaatar blend and olive oil, baked fresh.',
+    ingredients: ['Zaatar Mix', 'Olive Oil', 'Dough'],
     options: {
-      portion_size: ["Regular", "Large"],
+      portion_size: ['Regular', 'Large'],
       toppings_add: [
-        { name: "Cheese Mix", price_LBP: 30000 },
-        { name: "Vegetables Mix", price_LBP: 10000 }
-      ]
-    }
+        { name: 'Cheese Mix', price_LBP: 30000 },
+        { name: 'Vegetables Mix', price_LBP: 10000 },
+      ],
+    },
   },
 ];

@@ -5,7 +5,9 @@ import AuthRoutes from './AuthRoute';
 import {
   areaAndZoneContextLoader,
   branchContextLoader,
+  customerContextLoader,
   inventoryContextLoader,
+  ordersContextLoader,
   productContextLoader,
   tenantContextLoader,
 } from '../contexts/TenantContext';
@@ -73,12 +75,12 @@ const router = createBrowserRouter([
     loader: tenantContextLoader,
     children: [
       { index: true, element: <Navigate to={PageRoutes.ORDERS} /> },
-      { path: PageRoutes.ORDERS, element: <OrdersPage /> },
+      { path: PageRoutes.ORDERS, element: <OrdersPage />, loader: ordersContextLoader },
       { path: PageRoutes.AreasZones, element: <AreasZonesPage />, loader: areaAndZoneContextLoader },
       { path: PageRoutes.BRANCHS, element: <BranchesPage />, loader: branchContextLoader },
       { path: PageRoutes.PRODUCTS, element: <ProductsPage />, loader: productContextLoader },
       { path: PageRoutes.INVENTORY, element: <BranchInventoryPage />, loader: inventoryContextLoader },
-      { path: PageRoutes.CUSTOMERS, element: <CustomersPage /> },
+      { path: PageRoutes.CUSTOMERS, element: <CustomersPage />, loader:customerContextLoader },
       { path: PageRoutes.REVIEWS, element: <ReviewsPage /> },
       { path: PageRoutes.BILLING, element: <BillingPage /> },
       { path: PageRoutes.SETTINGS, element: <SettingsPage /> },
