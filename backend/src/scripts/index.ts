@@ -136,7 +136,7 @@ const sendMessage = async () => {
 
 const summarize = async () => {
   const { summarizeConversationById } = new ChatHistoryManager();
- const summary = await summarizeConversationById('conv_6911be296db88194ab107139a1753b5400d0bedeb7cd8eaa');
+ const summary = await summarizeConversationById('conv_6912f970677881959a019602608c41ce085b268a3a0e4eb1');
 console.log(summary);
 
 };

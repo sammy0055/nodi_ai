@@ -87,6 +87,9 @@ export class ChatHistoryManager {
         return { role: msg.role, content: text };
       })
       .filter((m) => m.content !== '');
+    console.error('====================================');
+    console.error('chatHistory', chatHistory);
+    console.error('====================================');
 
     const response = await openai.responses.create({
       model: 'gpt-5',
@@ -97,7 +100,7 @@ export class ChatHistoryManager {
           content: [
             {
               type: 'input_text',
-              text: `kindly provide a very short sammary for the chathistory below.\n chatHistory: ${chatHistory}`,
+              text: `kindly provide a very short sammary for the chathistory below.\n chatHistory: ${JSON.stringify(chatHistory)}`,
             },
           ],
         },
@@ -129,7 +132,7 @@ export class ChatHistoryManager {
     });
     const openai = new OpenAI({ apiKey: appConfig.mcpKeys.openaiKey });
     // get all items
-     console.error('🏃🏼 processing chat summary insert', conversationId);
+    console.error('🏃🏼 processing chat summary insert', conversationId);
     const items = await openai.conversations.items.list(conversationId);
     for (const item of items.data) {
       // each item has its own id
