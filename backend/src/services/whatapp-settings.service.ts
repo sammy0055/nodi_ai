@@ -49,7 +49,7 @@ export class WhatSappSettingsService {
     }
 
     const data = (await res.json()) as { access_token: string; token_type: string };
-    data.access_token = appConfig.metaBusinessToken
+    data.access_token = appConfig.metaBusinessToken;
     console.log(`✅------------accessToken successful:${data}`);
 
     const isSubscribedToWebhook = await this.subScribeWhatSappToWebHook({
@@ -85,7 +85,8 @@ export class WhatSappSettingsService {
     const payload = {
       organizationId: user.organizationId,
       whatsappBusinessId: whatsappBusinessId,
-      whatsappPhoneNumberIds: [whatsappPhoneNumberId],
+      whatsappPhoneNumberId: whatsappPhoneNumberId,
+      whatsappPhoneNumber: phoneNumberInfo.display_phone_number,
       connectionStatus: WhatSappConnectionStatus.Connected,
       accessToken: data.access_token,
       token_type: data.token_type,

@@ -13,7 +13,8 @@ class WhatSappSettingsModel
   declare id: CreationOptional<string>;
   declare organizationId: string | null;
   declare whatsappBusinessId: string;
-  declare whatsappPhoneNumberIds: string[];
+  declare whatsappPhoneNumberId: string;
+  declare whatsappPhoneNumber: string;
   declare connectionStatus: `${WhatSappConnectionStatus}`;
   declare accessToken: string | null;
   declare token_type: string | null;
@@ -44,7 +45,8 @@ WhatSappSettingsModel.init(
       onUpdate: 'CASCADE',
     },
     whatsappBusinessId: { type: DataTypes.STRING, allowNull: false },
-    whatsappPhoneNumberIds: { type: DataTypes.ARRAY(DataTypes.STRING), allowNull: false, defaultValue: [] },
+    whatsappPhoneNumberId: { type: DataTypes.STRING, allowNull: false },
+    whatsappPhoneNumber: { type: DataTypes.STRING, allowNull: false },
     connectionStatus: {
       type: DataTypes.ENUM,
       values: Object.values(WhatSappConnectionStatus),

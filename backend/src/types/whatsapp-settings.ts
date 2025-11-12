@@ -5,7 +5,8 @@ export interface IWhatSappSettings {
   id: string;
   organizationId: string | null;
   whatsappBusinessId: string;
-  whatsappPhoneNumberIds: string[];
+  whatsappPhoneNumberId: string;
+  whatsappPhoneNumber: string;
   connectionStatus: `${WhatSappConnectionStatus}`;
   accessToken: string | null;
   token_type: string | null;

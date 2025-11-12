@@ -39,7 +39,7 @@ export class ChatService extends MCPChatBot {
 
     instance.organizationId = data.organizationId!;
     instance.whatsappAccessToken = decrypt(data.accessToken!);
-    instance.WhatSappBusinessPhoneNumberId = data.whatsappPhoneNumberIds[0];
+    instance.WhatSappBusinessPhoneNumberId = data.whatsappPhoneNumberId;
     return instance;
   }
 
@@ -94,7 +94,7 @@ export class ChatService extends MCPChatBot {
     if (planOrg.shouldUpdateChatbotSystemPrompt) {
       await OrganizationsModel.update({ shouldUpdateChatbotSystemPrompt: false }, { where: { id: planOrg.id } });
     }
-    
+
     const conversation = await this.getAndCreateConversationIfNotExist(systemPrompt);
     await this.connectToMcpServer(conversation.id);
     const res = await this.process({

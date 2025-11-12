@@ -80,33 +80,12 @@ const notificationtest = async () => {
     console.log('====================================');
   }
 };
-
+const CATALOG_LINK = 'https://wa.me/c/2347046932610';
 const body = {
   messaging_product: 'whatsapp',
   to: '2348171727284',
-  type: 'interactive',
-  interactive: {
-    type: 'flow',
-    body: { text: 'Pick a delivery zone' }, // body is required for many flow sends
-    footer: { text: '' }, // optional
-    action: {
-      name: 'flow', // literal "flow"
-      parameters: {
-        flow_message_version: '3', // must be "3"
-        flow_id: '2316480805446882', // YOUR FLOW ID
-        flow_cta: 'Open form', // text on CTA button (optional)
-        flow_token: 'token-123', // optional unique token per interaction
-        flow_action: 'navigate', // or "data_exchange"
-        flow_action_payload: {
-          screen: 'ZONES', // optional: first screen name to open
-          data: {
-            // variables available as ${data.xxx}
-            organizationId: 'CUST_8842',
-            label: 'Pick a delivery zone',
-          },
-        },
-      },
-    },
+  text: {
+    body: `Here’s our catalog, check it out 👇\n${CATALOG_LINK}`,
   },
 };
 
@@ -136,12 +115,11 @@ const sendMessage = async () => {
 
 const summarize = async () => {
   const { summarizeConversationById } = new ChatHistoryManager();
- const summary = await summarizeConversationById('conv_6912f970677881959a019602608c41ce085b268a3a0e4eb1');
-console.log(summary);
-
+  const summary = await summarizeConversationById('conv_6912f970677881959a019602608c41ce085b268a3a0e4eb1');
+  console.log(summary);
 };
 
-summarize()
+// summarize()
 // testMcp('hello');
 // run();
-// sendMessage();
+sendMessage();
