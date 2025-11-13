@@ -1,4 +1,5 @@
 import type { IBranchInventory } from '../types/branch';
+import type { Pagination } from '../types/customer';
 import { API_ROUTES, ApiClient } from './apiClient';
 
 export class BranchInventoryService {
@@ -39,8 +40,13 @@ export class BranchInventoryService {
     }
   }
 
-  async getInventories(): Promise<{ data: { data: IBranchInventory[]; pagination: any }; message: string }> {
-    return await ApiClient('GET_BRANCH_INVENTORIES');
+  async getInventories(
+    page?: number,
+    searchTerm?: string
+  ): Promise<{ data: { data: IBranchInventory[]; pagination: Pagination }; message: string }> {
+    return await ApiClient('GET_BRANCH_INVENTORIES', {
+      queryParams: `?page=${encodeURIComponent(page || 1)}&search=${encodeURIComponent(searchTerm || '')}`,
+    });
   }
 
   async searchInvotory(

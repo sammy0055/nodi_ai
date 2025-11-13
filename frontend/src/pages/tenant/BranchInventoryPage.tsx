@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   FiPlus,
   FiSearch,
@@ -24,6 +24,7 @@ import { BranchInventoryService } from '../../services/branchInventory';
 import { CurrencySymbols, type CurrencyCode, type Product } from '../../types/product';
 import { useLoaderData, useNavigate } from 'react-router';
 import type { Pagination } from '../../types/customer';
+import { useClickOutside } from '../../hooks/clickOutside';
 
 // Validation interface
 interface ValidationErrors {
@@ -47,9 +48,8 @@ const BranchInventoryPage: React.FC = () => {
   const [branches, setBranches] = useState<IBranch[]>([]);
   const inventory = useBranchInventoryValue();
   const setInventory = useBranchInventorySetRecoilState();
+  const [pagination, setPagination] = useState<Pagination>();
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5);
   const [showInventoryModal, setShowInventoryModal] = useState(false);
   const [editingInventory, setEditingInventory] = useState<IBranchInventory | null>(null);
   const [newInventory, setNewInventory] = useState<Partial<IBranchInventory>>({
@@ -69,20 +69,8 @@ const BranchInventoryPage: React.FC = () => {
   const [showBranchDropdown, setShowBranchDropdown] = useState(false);
   const [showProductDropdown, setShowProductDropdown] = useState(false);
 
-  const { createInventory, updateInventory, deleteInventory, searchInvotory } = new BranchInventoryService();
-
-  // Filter inventory based on search term
-  const filteredInventory = inventory.filter((item) => {
-    const branch = branches?.find((b) => b.id === item.branchId);
-    const product = products?.find((p) => p.id === item.productId);
-
-    return (
-      branch?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      branch?.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product?.sku.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
+  const { createInventory, updateInventory, deleteInventory, searchInvotory, getInventories } =
+    new BranchInventoryService();
 
   // load initial states
   useEffect(() => {
@@ -90,54 +78,105 @@ const BranchInventoryPage: React.FC = () => {
       setProducts(data.products.data);
       setInventory(data.inventory.data);
       setBranches(data.braches.data);
+      setPagination(data.inventory.pagination);
+      setBranchPagination(data.braches.pagination);
+      setProductPagination(data.products.pagination);
     }
   }, [data]);
 
   // Pagination
-  const totalPages = Math.ceil(filteredInventory.length / itemsPerPage);
-  const currentInventory = filteredInventory.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-  const [filteredBranches, setFilteredBranches] = useState<any[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
-  // Filter branches and products for dropdowns
+
+  const [branchPagination, setBranchPagination] = useState<Pagination>();
+  const [productPagination, setProductPagination] = useState<Pagination>();
+  const ProductDropdownRefs = useRef<HTMLDivElement | null>(null);
+  const BranchDropdownRefs = useRef<HTMLDivElement | null>(null);
+
+  // close dropdown on click outside
+  useClickOutside(BranchDropdownRefs, () => {
+    setShowBranchDropdown(false);
+  });
+
+  useClickOutside(ProductDropdownRefs, () => {
+    setShowProductDropdown(false);
+  });
+
   const { getBranches } = new BranchService();
-  const [branchDebouncedTerm] = useDebounce(branchSearch, 500); // 500ms delay
+  const { getProducts } = new ProductService();
 
-  useEffect(() => {
-    const fetchBranches = async () => {
-      const { data } = await getBranches(1, branchSearch);
-      setFilteredBranches(data.data); // now filteredProducts is an array
-    };
-
-    fetchBranches();
-  }, [branchDebouncedTerm]);
-
-  const [productDebouncedTerm] = useDebounce(productSearch, 500); // 500ms delay
-  const { searchProducts } = new ProductService();
-
-  useEffect(() => {
-    setFilteredBranches(branches);
-    setFilteredProducts(products);
-  }, [products, branches]);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      if (!productDebouncedTerm) {
-        return;
+  const loadBranchDropdown = useCallback(async (page: number = 1, search: string = '', append: boolean = false) => {
+    try {
+      const { data } = await getBranches(page, search);
+      if (append) {
+        setBranches((prev) => [...prev, ...data.data]);
+      } else {
+        setBranches(data.data);
       }
-      const { data } = await searchProducts(productSearch);
+      setBranchPagination(data.pagination);
+    } catch (error: any) {
+      console.error('Error loading organizations:', error);
+    }
+  }, []);
 
-      setFilteredProducts(data.data); // now filteredProducts is an array
-    };
+  const loadProductsDropdown = useCallback(async (page: number = 1, search: string = '', append: boolean = false) => {
+    try {
+      const { data } = await getProducts(page, search);
+      if (append) {
+        setProducts((prev) => [...prev, ...data.data]);
+      } else {
+        setProducts(data.data);
+      }
+      setProductPagination(data.pagination);
+    } catch (error: any) {
+      console.error('Error loading organizations:', error);
+    }
+  }, []);
 
-    fetchProducts();
+  // handle branch dropdown search
+  const [branchDebouncedTerm] = useDebounce(branchSearch, 500); // 500ms delay
+  useEffect(() => {
+    if (branchDebouncedTerm !== undefined) {
+      loadBranchDropdown(1, branchDebouncedTerm, false);
+    }
+  }, [branchDebouncedTerm, loadBranchDropdown]);
+
+  // handle products dropdown search
+  const [productDebouncedTerm] = useDebounce(productSearch, 500); // 500ms delay
+  useEffect(() => {
+    if (productDebouncedTerm !== undefined) {
+      loadProductsDropdown(1, productDebouncedTerm, false);
+    }
   }, [productDebouncedTerm]);
 
+  // handle Branch dropdown LoadDataOnScroll
+  const hanldeBrachLoadDataOnScroll = useCallback(() => {
+    if (!BranchDropdownRefs.current || !branchPagination?.hasNextPage) {
+      return;
+    }
+
+    const { scrollTop, scrollHeight, clientHeight } = BranchDropdownRefs.current;
+    if (scrollHeight - scrollTop <= clientHeight + 50) {
+      const branchPage = branchPagination?.currentPage ? branchPagination?.currentPage + 1 : 1;
+      loadBranchDropdown(branchPage, branchSearch, true);
+    }
+  }, [branchPagination, branchSearch, loadBranchDropdown]);
+
+  // handle Branch dropdown LoadDataOnScroll
+  const hanldeProductLoadDataOnScroll = useCallback(() => {
+    if (!ProductDropdownRefs.current || !productPagination?.hasNextPage) {
+      return;
+    }
+
+    const { scrollTop, scrollHeight, clientHeight } = ProductDropdownRefs.current;
+    if (scrollHeight - scrollTop <= clientHeight + 50) {
+      const productPage = productPagination?.currentPage ? productPagination?.currentPage + 1 : 1;
+      loadProductsDropdown(productPage, productSearch, true);
+    }
+  }, [productPagination]);
+
   const [inventorySearch] = useDebounce(searchTerm, 500); // 500ms delay
+
   useEffect(() => {
     const fn = async () => {
-      if (!inventorySearch) {
-        return;
-      }
       const { data } = await searchInvotory(searchTerm);
       setInventory(data.data); // now filteredProducts is an array
     };
@@ -331,6 +370,15 @@ const BranchInventoryPage: React.FC = () => {
     return (item.quantityOnHand || 0) - (item.quantityReserved || 0);
   };
 
+  const handleInventoryPagination = async (currentPage: number) => {
+    try {
+      const { data } = await getInventories(currentPage);
+      setInventory((prev) => [...prev, ...data.data]);
+      setPagination(data.pagination);
+    } catch (error: any) {
+      alert('something went wrong, try again');
+    }
+  };
   // Inventory Row Component
   // Updated Inventory Row Component with Better Spacing
   const InventoryRow: React.FC<{ item: IBranchInventory }> = ({ item }) => (
@@ -502,23 +550,6 @@ const BranchInventoryPage: React.FC = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-
-          {/* <div className="flex space-x-3">
-            <select className="border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-
-            <select className="border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-              <option value="">All Branches</option>
-              {branches?.map((branch) => (
-                <option key={branch.id} value={branch.id}>
-                  {branch.name}
-                </option>
-              ))}
-            </select>
-          </div> */}
         </div>
       </div>
 
@@ -533,7 +564,7 @@ const BranchInventoryPage: React.FC = () => {
         </div>
 
         {/* Inventory Items */}
-        {currentInventory.length === 0 ? (
+        {inventory?.length === 0 ? (
           <div className="p-8 text-center text-neutral-500">
             <FiBox className="mx-auto text-4xl text-neutral-300 mb-3" />
             <p>No inventory items found{searchTerm && ` matching "${searchTerm}"`}</p>
@@ -545,63 +576,37 @@ const BranchInventoryPage: React.FC = () => {
           </div>
         ) : (
           <div className="divide-y divide-neutral-200">
-            {currentInventory.map((item) => (
+            {inventory.map((item) => (
               <InventoryRow key={item.id} item={item} />
             ))}
           </div>
         )}
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {pagination && pagination?.totalPages > 1 && (
           <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-neutral-200 space-y-3 sm:space-y-0">
             <div className="text-sm text-neutral-500">
-              Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-              {Math.min(currentPage * itemsPerPage, filteredInventory.length)} of {filteredInventory.length} items
+              Showing {(pagination.currentPage - 1) * pagination.pageSize + 1} to{' '}
+              {Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems)} of {pagination.totalItems}{' '}
+              items
             </div>
 
             <div className="flex space-x-2">
               <Button
                 variant="outline"
                 size="sm"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(currentPage - 1)}
+                disabled={pagination.currentPage === 1}
+                onClick={() => setPagination((prev) => ({ ...prev!, currentPage: prev!.currentPage - 1 }))}
               >
                 <FiChevronLeft className="mr-1" />
                 Previous
               </Button>
 
-              <div className="flex items-center space-x-1">
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNum;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (currentPage <= 3) {
-                    pageNum = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = currentPage - 2 + i;
-                  }
-
-                  return (
-                    <button
-                      key={pageNum}
-                      className={`px-3 py-1 rounded text-sm ${
-                        pageNum === currentPage ? 'bg-primary-600 text-white' : 'text-neutral-600 hover:bg-neutral-100'
-                      }`}
-                      onClick={() => setCurrentPage(pageNum)}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
-              </div>
-
               <Button
                 variant="outline"
                 size="sm"
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(currentPage + 1)}
+                disabled={!pagination.hasNextPage}
+                onClick={() => handleInventoryPagination(pagination.currentPage + 1)}
               >
                 Next
                 <FiChevronRight className="ml-1" />
@@ -675,8 +680,12 @@ const BranchInventoryPage: React.FC = () => {
                       onFocus={() => setShowBranchDropdown(true)}
                     />
                     {showBranchDropdown && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border border-neutral-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                        {filteredBranches.map((branch) => (
+                      <div
+                        className="absolute z-10 w-full mt-1 bg-white border border-neutral-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+                        ref={BranchDropdownRefs}
+                        onScroll={hanldeBrachLoadDataOnScroll}
+                      >
+                        {branches.map((branch) => (
                           <div
                             key={branch.id}
                             className="px-4 py-3 hover:bg-neutral-100 cursor-pointer border-b border-neutral-200 last:border-b-0"
@@ -690,7 +699,7 @@ const BranchInventoryPage: React.FC = () => {
                             <div className="text-sm text-neutral-500">{branch.code}</div>
                           </div>
                         ))}
-                        {filteredBranches.length === 0 && (
+                        {branchPagination?.totalPages === 0 && (
                           <div className="px-4 py-3 text-neutral-500">No branches found</div>
                         )}
                       </div>
@@ -728,8 +737,12 @@ const BranchInventoryPage: React.FC = () => {
                       onFocus={() => setShowProductDropdown(true)}
                     />
                     {showProductDropdown && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border border-neutral-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                        {filteredProducts.map((product) => (
+                      <div
+                        className="absolute z-10 w-full mt-1 bg-white border border-neutral-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+                        ref={ProductDropdownRefs}
+                        onScroll={hanldeProductLoadDataOnScroll}
+                      >
+                        {products.map((product) => (
                           <div
                             key={product.id}
                             className="px-4 py-3 hover:bg-neutral-100 cursor-pointer border-b border-neutral-200 last:border-b-0"
@@ -746,7 +759,7 @@ const BranchInventoryPage: React.FC = () => {
                             </div>
                           </div>
                         ))}
-                        {filteredProducts.length === 0 && (
+                        {productPagination?.totalPages === 0 && (
                           <div className="px-4 py-3 text-neutral-500">No products found</div>
                         )}
                       </div>

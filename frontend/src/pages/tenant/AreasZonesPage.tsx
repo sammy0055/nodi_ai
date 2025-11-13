@@ -571,7 +571,7 @@ const AreasZonesPage: React.FC = () => {
         </div>
 
         {/* Zone Pagination */}
-        {zonePagination?.totalPages && zonePagination.totalPages > 1 && (
+        {zonePagination && zonePagination.totalPages > 1 && (
           <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-neutral-200 space-y-3 sm:space-y-0">
             <div className="text-sm text-neutral-500">
               Showing {(zonePagination.currentPage - 1) * zonePagination.pageSize + 1} to{' '}
@@ -695,7 +695,7 @@ const AreasZonesPage: React.FC = () => {
         </div>
 
         {/* Area Pagination */}
-        {areaPagination?.totalPages && areaPagination?.totalPages > 1 && (
+        {areaPagination && areaPagination?.totalPages > 1 && (
           <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-neutral-200 space-y-3 sm:space-y-0">
             <div className="text-sm text-neutral-500">
               Showing {(areaPagination.currentPage - 1) * areaPagination.pageSize + 1} to{' '}

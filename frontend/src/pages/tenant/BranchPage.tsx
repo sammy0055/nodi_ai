@@ -538,7 +538,7 @@ const BranchesPage: React.FC = () => {
         )}
 
         {/* Pagination */}
-        {pagination?.totalPages === 0 && pagination?.totalPages > 1 && (
+        {pagination && pagination?.totalPages > 1 && (
           <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-neutral-200 space-y-3 sm:space-y-0">
             <div className="text-sm text-neutral-500">
               Showing {(pagination.currentPage - 1) * pagination.pageSize + 1} to{' '}
