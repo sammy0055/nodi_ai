@@ -77,7 +77,21 @@ chatRoute.post('/chat-webhook', async (req, res) => {
     try {
       const chat = await ChatService.init(userPhoneNumber, whatsappBusinessId);
       const response = await chat.processQuery(userMessage);
-      return await chat.sendWhatSappMessage({ recipientPhoneNumber: userPhoneNumber, message: response });
+      switch (response.type) {
+        case 'message':
+          await chat.sendWhatSappMessage({ recipientPhoneNumber: userPhoneNumber, message: response.response });
+          break;
+        case 'catalog':
+          await chat.sendWhatSappCatalogInteractiveMessage({
+            recipientPhoneNumber: userPhoneNumber,
+            catalogUrl: response.catalogUrl,
+            productUrl: response.productUrl,
+          });
+          break;
+        default:
+          console.error('admin: wrong message type from chatbot');
+          break;
+      }
     } catch (error: any) {
       console.log('webhook-chat-error', error);
       // return res.status(500).json({ error: error.message });

@@ -13,6 +13,13 @@ interface SendWhatSappMessageProps {
   message?: string;
 }
 
+interface SendWhatSappCatalogProps {
+  WhatSappBusinessPhoneNumberId?: string;
+  recipientPhoneNumber: string;
+  catalogUrl: string;
+  productUrl: string;
+}
+
 export class ChatService extends MCPChatBot {
   protected organizationId: string = '';
   protected conversationId: string = '';
@@ -20,6 +27,7 @@ export class ChatService extends MCPChatBot {
   protected organizationWhatsappId: string;
   protected whatsappAccessToken: string = '';
   protected WhatSappBusinessPhoneNumberId: string = '';
+  protected WhatSappBusinessPhoneNumber: string = '';
   constructor(userPhoneNumber: string, organizationWhatsappId: string) {
     super();
     this.organizationWhatsappId = organizationWhatsappId;
@@ -40,6 +48,7 @@ export class ChatService extends MCPChatBot {
     instance.organizationId = data.organizationId!;
     instance.whatsappAccessToken = decrypt(data.accessToken!);
     instance.WhatSappBusinessPhoneNumberId = data.whatsappPhoneNumberId;
+    instance.WhatSappBusinessPhoneNumber = data.whatsappPhoneNumber;
     return instance;
   }
 
@@ -128,6 +137,55 @@ export class ChatService extends MCPChatBot {
     }
     // const data = await res.json();
     console.log('✅ Message sent successfully:');
+  }
+
+  async sendWhatSappCatalogInteractiveMessage(args: SendWhatSappCatalogProps) {
+    const CATALOG_LINK = args.catalogUrl;
+    const INAGE_PREVIEW = args.productUrl;
+    console.log('CATALOG_LINK', CATALOG_LINK);
+    const body = {
+      messaging_product: 'whatsapp',
+      to: args.recipientPhoneNumber,
+      type: 'interactive',
+      interactive: {
+        type: 'cta_url',
+        header: {
+          type: 'image',
+          image: {
+            link: INAGE_PREVIEW,
+          },
+        },
+        body: {
+          text: 'Check out our latest products 👇',
+        },
+        action: {
+          name: 'cta_url',
+          parameters: {
+            display_text: 'view catalog',
+            url: CATALOG_LINK,
+          },
+        },
+      },
+    };
+
+    try {
+      const url = `https://graph.facebook.com/v20.0/${814512655081481}/messages`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.whatsappAccessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(`Error ${res.status}: ${errorData.error.message}`);
+      }
+    } catch (error: any) {
+      console.log('WHATSAPP-MESSAGE', error);
+    }
   }
 }
 

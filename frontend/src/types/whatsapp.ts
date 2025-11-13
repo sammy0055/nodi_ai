@@ -4,7 +4,7 @@ export interface IWhatSappSettings {
   id: string;
   organizationId: string | null;
   whatsappBusinessId: string;
-  whatsappPhoneNumberIds: string[];
+  whatsappPhoneNumberId: string;
   connectionStatus: `${WhatSappConnectionStatus}`;
   isSubscribedToWebhook: boolean;
   whatsappTemplates: string[];

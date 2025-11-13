@@ -80,12 +80,31 @@ const notificationtest = async () => {
     console.log('====================================');
   }
 };
-const CATALOG_LINK = 'https://wa.me/c/2347046932610';
+const CATALOG_LINK = 'https://wa.me/c/2348124220865';
+const INAGE_PREVIEW = "https://www.shutterstock.com/shutterstock/photos/2674932797/display_1500/stock-photo-burger-with-vegetables-on-board-in-white-background-beef-burger-in-isolated-background-2674932797.jpg"
+// https://wa.me/c/2348124220865
 const body = {
   messaging_product: 'whatsapp',
   to: '2348171727284',
-  text: {
-    body: `Here’s our catalog, check it out 👇\n${CATALOG_LINK}`,
+  type: 'interactive',
+  interactive: {
+    type: 'cta_url',
+    header: {
+      type: 'image',
+      image: {
+        link: INAGE_PREVIEW,
+      },
+    },
+    body: {
+      text: 'Check out our latest products 👇',
+    },
+    action: {
+      name: 'cta_url',
+      parameters: {
+        display_text: 'view catalog',
+        url: CATALOG_LINK,
+      },
+    },
   },
 };
 

@@ -3,6 +3,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp';
 import { ManageVectorStore } from '../../../helpers/vector-store';
 import { Op } from 'sequelize';
 import { models } from '../../../models';
+import { WhatSappSettingsModel } from '../../../models/whatsapp-settings.model';
 
 const { BranchInventoryModel, ProductModel, BranchesModel, ProductOptionModel, ProductOptionChoiceModel } = models;
 
@@ -199,6 +200,44 @@ export const getProductsByIds = (server: McpServer) => {
         console.error(`MCP-ERROR:${error.message}`);
         return {
           content: [{ type: 'text', text: 'failed to get specific products' }],
+        };
+      }
+    }
+  );
+};
+
+// generate catalog link to view products
+export const generateProductsCatalogLink = (server: McpServer) => {
+  return server.registerTool(
+    'show_product_catalog',
+    {
+      title: 'Show Product Catalog',
+      description:
+        'Generates a link to view the complete product catalog when customers request to see available products, menu, or inventory items.',
+      inputSchema: {
+        organizationId: z.string(),
+      },
+    },
+    async (param) => {
+      try {
+        const orgBusinessWhatsappData = await WhatSappSettingsModel.findOne({
+          where: { organizationId: param.organizationId },
+        });
+        if (!orgBusinessWhatsappData) throw new Error('whatsapp business data could not be retrieved');
+        const product = await ProductModel.findOne({ where: { organizationId: param.organizationId } });
+
+        const body = {
+          catalogUrl: `https://wa.me/c/${orgBusinessWhatsappData.whatsappPhoneNumber.trim()}`,
+          productUrl: product?.imageUrl || '',
+        };
+
+        return {
+          content: [{ type: 'text', text: JSON.stringify(body), mimeType: 'application/json' }],
+        };
+      } catch (error: any) {
+        console.error(`MCP-ERROR:${error.message}`);
+        return {
+          content: [{ type: 'text', text: 'Faild to get product catalog link' }],
         };
       }
     }

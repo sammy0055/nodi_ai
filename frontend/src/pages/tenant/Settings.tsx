@@ -254,7 +254,7 @@ const SettingsPage: React.FC = () => {
               ) : (
                 <div className="mt-4 space-y-2">
                   <p className="text-sm text-neutral-600">
-                    <span className="font-medium">Phone Number ID:</span> {whatsappData.whatsappPhoneNumberIds[0]}
+                    <span className="font-medium">Phone Number ID:</span> {whatsappData.whatsappPhoneNumberId}
                   </p>
                   <p className="text-sm text-neutral-600">
                     <span className="font-medium">Webhook Subscription:</span>{' '}

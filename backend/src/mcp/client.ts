@@ -5,6 +5,22 @@ import { FunctionTool } from 'openai/resources/responses/responses';
 import { appConfig } from '../config';
 import { ChatHistoryManager } from '../services/ChatHistoryManager.service';
 
+import { zodTextFormat } from 'openai/helpers/zod';
+import { z } from 'zod';
+
+const structuredResponseFormat = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('message'),
+    response: z.string(), // plain text message
+  }),
+
+  z.object({
+    type: z.literal('catalog'),
+    catalogUrl: z.string(),
+    productUrl: z.string(),
+  }),
+]);
+
 interface MCP_RESPONSE {
   content: {
     type: string;
@@ -151,11 +167,11 @@ export class MCPClient extends UsageBase {
     });
     await this.chatHistory.addMessage({ conversationId, organizationId }, { role: 'user', content: query });
     let iteration = 0;
-    let finalResponse = '';
+    let finalResponse:any = '';
     let totalTokenUsed = 0;
 
     while (iteration < this.maxIterations) {
-      const response = await this.openai.responses.create({
+      const response = await this.openai.responses.parse({
         model: this.llm_model,
         input: [
           {
@@ -167,13 +183,16 @@ export class MCPClient extends UsageBase {
         tools: this.tools,
         conversation: conversationId, // OpenAI remembers everything
         truncation: 'auto',
+        text: {
+          format: zodTextFormat(structuredResponseFormat, 'structured_response_extraction'),
+        },
       });
 
       const toolCalls = response.output.filter((item) => item.type === 'function_call');
 
       if (toolCalls.length === 0) {
         totalTokenUsed = response.usage?.total_tokens || 0;
-        finalResponse = response.output_text;
+        finalResponse = response.output_parsed;
         break;
       }
 
