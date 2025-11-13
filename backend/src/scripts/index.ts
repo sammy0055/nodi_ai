@@ -80,7 +80,7 @@ const notificationtest = async () => {
     console.log('====================================');
   }
 };
-const CATALOG_LINK = 'https://wa.me/c/2348124220865';
+const CATALOG_LINK = 'https://wa.me/c/+234 812 422 0865';
 const INAGE_PREVIEW = "https://www.shutterstock.com/shutterstock/photos/2674932797/display_1500/stock-photo-burger-with-vegetables-on-board-in-white-background-beef-burger-in-isolated-background-2674932797.jpg"
 // https://wa.me/c/2348124220865
 const body = {

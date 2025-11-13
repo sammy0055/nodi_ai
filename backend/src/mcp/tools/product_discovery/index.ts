@@ -227,7 +227,7 @@ export const generateProductsCatalogLink = (server: McpServer) => {
         const product = await ProductModel.findOne({ where: { organizationId: param.organizationId } });
 
         const body = {
-          catalogUrl: `https://wa.me/c/${orgBusinessWhatsappData.whatsappPhoneNumber.trim()}`,
+          catalogUrl: `https://wa.me/c/${orgBusinessWhatsappData.whatsappPhoneNumber.trim()}`.replace(/\s+/g, ''),
           productUrl: product?.imageUrl || '',
         };
 
