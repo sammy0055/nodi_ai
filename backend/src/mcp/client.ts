@@ -169,7 +169,7 @@ export class MCPClient extends UsageBase {
     });
     await this.chatHistory.addMessage({ conversationId, organizationId }, { role: 'user', content: query });
     let iteration = 0;
-    let finalResponse:any = '';
+    let finalResponse: any = '';
     let totalTokenUsed = 0;
 
     while (iteration < this.maxIterations) {
@@ -211,7 +211,7 @@ export class MCPClient extends UsageBase {
       { conversationId, organizationId },
       {
         role: 'assistant',
-        content: finalResponse,
+        content: JSON.stringify(finalResponse),
         token: totalTokenUsed,
       }
     );
