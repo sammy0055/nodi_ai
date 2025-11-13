@@ -8,18 +8,20 @@ import { ChatHistoryManager } from '../services/ChatHistoryManager.service';
 import { zodTextFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
 
-const structuredResponseFormat = z.discriminatedUnion('type', [
-  z.object({
-    type: z.literal('message'),
-    response: z.string(), // plain text message
-  }),
+const structuredResponseFormat = z.object({
+  data: z.discriminatedUnion('type', [
+    z.object({
+      type: z.literal('message'),
+      response: z.string(),
+    }),
 
-  z.object({
-    type: z.literal('catalog'),
-    catalogUrl: z.string(),
-    productUrl: z.string(),
-  }),
-]);
+    z.object({
+      type: z.literal('catalog'),
+      catalogUrl: z.string(),
+      productUrl: z.string(),
+    }),
+  ]),
+});
 
 interface MCP_RESPONSE {
   content: {
