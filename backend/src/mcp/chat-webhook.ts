@@ -90,6 +90,9 @@ chatRoute.post('/chat-webhook', async (req, res) => {
           });
           break;
         case 'flow':
+          console.log('=================response.zones===================');
+          console.log(response.zones);
+          console.log('====================================');
           await chat.sendWhatSappFlowInteractiveMessage({
             recipientPhoneNumber: userPhoneNumber,
             zones: response.zones,
