@@ -49,9 +49,7 @@ chatRoute.post('/chat-webhook', async (req, res) => {
   for (const entry of payload.entry || []) {
     for (const change of entry.changes || []) {
       for (const msg of change.value?.messages || []) {
-        console.log('=================response.zones===================');
-        console.log(JSON.stringify(msg, null, 2));
-        console.log('====================================');
+        
         if (isDuplicate(msg.id)) {
           continue;
         }
@@ -72,9 +70,7 @@ chatRoute.post('/chat-webhook', async (req, res) => {
           const selectedZone = await ZoneModel.findByPk(payload?.zone_id);
           const selectedArea = await AreaModel.findByPk(payload?.area_id);
           const shippingAddress = payload?.note;
-          console.log('======================payload==============');
-          console.log(selectedZone, selectedArea, shippingAddress);
-          console.log('====================================');
+          
           const newMsg = {
             ...msg,
             text: {

@@ -11,5 +11,5 @@ export interface IOrganization {
   stripeCustomerId?: string;
   shouldUpdateChatbotSystemPrompt?: boolean;
   status: 'active' | 'suspended' | 'cancelled';
-  languageProtectedTerms?:string
+  languageProtectedTerms?:string[]
 }
