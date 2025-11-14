@@ -20,6 +20,12 @@ interface SendWhatSappCatalogProps {
   productUrl: string;
 }
 
+interface SendWhatSappFlowProps {
+  WhatSappBusinessPhoneNumberId?: string;
+  recipientPhoneNumber: string;
+  zones: { id: string; title: string }[];
+}
+
 export class ChatService extends MCPChatBot {
   protected organizationId: string = '';
   protected conversationId: string = '';
@@ -169,7 +175,62 @@ export class ChatService extends MCPChatBot {
     };
 
     try {
-      const url = `https://graph.facebook.com/v20.0/${814512655081481}/messages`;
+      const url = `https://graph.facebook.com/v20.0/${this.WhatSappBusinessPhoneNumberId}/messages`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.whatsappAccessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(`Error ${res.status}: ${errorData.error.message}`);
+      }
+    } catch (error: any) {
+      console.log('WHATSAPP-MESSAGE', error);
+    }
+  }
+
+  async sendWhatSappFlowInteractiveMessage(args: SendWhatSappFlowProps) {
+    const body = {
+      messaging_product: 'whatsapp',
+      to: args.recipientPhoneNumber,
+      type: 'interactive',
+      interactive: {
+        type: 'flow',
+        header: {
+          type: 'text',
+          text: 'Delivery Details',
+        },
+        body: {
+          text: 'Tap below to choose your delivery zone and area.',
+        },
+        footer: {
+          text: 'CheeseAI Bot',
+        },
+        action: {
+          name: 'flow',
+          parameters: {
+            flow_id: '1915739722629946',
+            flow_message_version: '3',
+            flow_token: 'prod-token-001',
+            flow_cta: 'Open form',
+            mode: 'published',
+            flow_action: 'navigate',
+            flow_action_payload: {
+              screen: 'ADDRESS_SELECTION',
+              data: JSON.stringify({ status: 'active', zones: args.zones }),
+            },
+          },
+        },
+      },
+    };
+
+    try {
+      const url = `https://graph.facebook.com/v20.0/${this.WhatSappBusinessPhoneNumberId}/messages`;
       const res = await fetch(url, {
         method: 'POST',
         headers: {

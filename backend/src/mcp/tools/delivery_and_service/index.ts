@@ -143,17 +143,13 @@ export const getAllZonesAndAreas = async (server: McpServer) => {
     },
     async (params) => {
       try {
-        const zonesAndAreas = await AreaModel.findAll({
+        const zones = await ZoneModel.findAll({
           where: { organizationId: params.organizationId },
-          limit: params.maxResults || 10,
-          include: [
-            { model: ZoneModel, as: 'zone', attributes: ['id', 'name'] },
-
-            { model: BranchesModel, as: 'branch', attributes: ['id', 'name'] },
-          ],
         });
+
+        const filteredZones = zones.map((z) => ({ id: z.id, title: z.name }));
         return {
-          content: [{ type: 'text', text: JSON.stringify(zonesAndAreas), mimeType: 'application/json' }],
+          content: [{ type: 'text', text: JSON.stringify(filteredZones), mimeType: 'application/json' }],
         };
       } catch (error: any) {
         console.error(`MCP-ERROR-GETZONES-AND-AREAS: ${error.message}`);

@@ -20,6 +20,11 @@ const structuredResponseFormat = z.object({
       catalogUrl: z.string(),
       productUrl: z.string(),
     }),
+
+    z.object({
+      type: z.literal('flow'),
+      zones: z.array(z.object({ id: z.string(), title: z.string() })),
+    }),
   ]),
 });
 
