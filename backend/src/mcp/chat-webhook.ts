@@ -47,6 +47,9 @@ chatRoute.post('/chat-webhook', async (req, res) => {
   for (const entry of payload.entry || []) {
     for (const change of entry.changes || []) {
       for (const msg of change.value?.messages || []) {
+        console.log('=================response.zones===================');
+        console.log(JSON.stringify(msg, null, 2));
+        console.log('====================================');
         if (isDuplicate(msg.id)) {
           continue;
         }
@@ -90,9 +93,6 @@ chatRoute.post('/chat-webhook', async (req, res) => {
           });
           break;
         case 'flow':
-          console.log('=================response.zones===================');
-          console.log(response.zones);
-          console.log('====================================');
           await chat.sendWhatSappFlowInteractiveMessage({
             recipientPhoneNumber: userPhoneNumber,
             zones: response.zones,
