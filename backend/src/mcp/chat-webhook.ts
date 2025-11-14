@@ -2,6 +2,8 @@ import express from 'express';
 import NodeCache from 'node-cache';
 import { ChatService } from './ChatService';
 import { ProductItem, WhatsAppMessage, WhatsAppWebhookPayload } from '../types/whatsapp-webhook';
+import { ZoneModel } from '../models/zones.model';
+import { AreaModel } from '../models/area.model';
 export const chatRoute = express.Router();
 
 export interface IncomingMessageAttr {
@@ -61,6 +63,21 @@ chatRoute.post('/chat-webhook', async (req, res) => {
               body: orderMessage,
             },
           };
+
+          console.log('Got message:', msg.id, newMsg.text?.body);
+          await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
+        } else if (msg.type === 'interactive') {
+          const payload = msg.interactive?.nfm_reply.response_json;
+          const selectedZone = await ZoneModel.findByPk(payload?.zone_id, { attributes: ['id', 'name'] });
+          const selectedArea = await AreaModel.findByPk(payload?.area_id, { attributes: ['id', 'name'] });
+          const shippingAddress = payload?.note;
+          const newMsg = {
+            ...msg,
+            text: {
+              body: JSON.stringify({ selectedZone, selectedArea, shippingAddress }),
+            },
+          };
+
           console.log('Got message:', msg.id, newMsg.text?.body);
           await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
         } else {

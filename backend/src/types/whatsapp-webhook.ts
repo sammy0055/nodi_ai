@@ -40,7 +40,8 @@ export interface WhatsAppMessage {
     body: string;
   };
   order?: Order;
-  type: 'text' | 'order';
+  interactive?: Interative;
+  type: 'text' | 'order' | 'interactive';
 }
 
 export interface ProductItem {
@@ -54,4 +55,18 @@ interface Order {
   catalog_id: string;
   text: string;
   product_items: ProductItem[];
+}
+
+interface Interative {
+  type: 'nfm_reply';
+  nfm_reply: {
+    response_json: {
+      zone_id: string;
+      area_id: string;
+      note: '12 old refinery street apartment 5 near plot avenue';
+      flow_token: string;
+    };
+    body: string;
+    name: string;
+  };
 }
