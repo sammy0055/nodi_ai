@@ -8,7 +8,7 @@ export interface IOrganization {
   brandTone: string;
   businessType: `${BusinessType}`;
   AIAssistantName: string;
-  languageProtectedTerms?: string;
+  languageProtectedTerms?: string[];
 }
 
 export interface OrganizationPayload extends IOrganization {

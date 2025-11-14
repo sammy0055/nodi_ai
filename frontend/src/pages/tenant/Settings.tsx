@@ -9,6 +9,7 @@ import {
   FiExternalLink,
   FiHelpCircle,
   FiClock,
+  FiPlus,
 } from 'react-icons/fi';
 import Button from '../../components/atoms/Button/Button';
 import Input from '../../components/atoms/Input/Input';
@@ -95,6 +96,21 @@ const SettingsPage: React.FC = () => {
     };
     exchangeCode();
   }, [sessionInfo, sdkResponse]);
+
+  const handleLanguageTermChange = (index: number, value: string) => {
+    const updatedFeatures = [...(orgData.languageProtectedTerms || [])];
+    updatedFeatures[index] = value;
+    setOrgData((prev) => ({ ...prev, languageProtectedTerms: updatedFeatures }));
+  };
+
+  const addFeatureField = () => {
+    setOrgData((prev) => ({ ...prev, languageProtectedTerms: [...(prev.languageProtectedTerms || []), ''] }));
+  };
+
+  const removeFeatureField = (index: number) => {
+    const updatedFeatures = orgData.languageProtectedTerms?.filter((_, i) => i !== index) || [];
+    setOrgData((prev) => ({ ...prev, languageProtectedTerms: updatedFeatures }));
+  };
 
   const handleCatalogCreation = async () => {
     setIsLoading(true);
@@ -200,13 +216,39 @@ const SettingsPage: React.FC = () => {
               placeholder="Give your AI assistant a name"
             />
 
-            <Input
-              label="Language Protected Terms"
-              value={orgData.languageProtectedTerms}
-              onChange={(e) => handleOrgChange('languageProtectedTerms', e.target.value)}
-              disabled={!isEditing}
-              placeholder="Set The Protected Terms For Your Preferred Language"
-            />
+            {/* languageProtectedTerms */}
+            <div>
+              <label className="text-sm font-medium text-neutral-700 mb-2 block">languageProtectedTerms *</label>
+              <div className="space-y-2">
+                {orgData?.languageProtectedTerms?.map((feature, index) => (
+                  <div key={index} className="flex space-x-2">
+                    <input
+                      type="text"
+                      value={feature}
+                      disabled={!isEditing}
+                      onChange={(e) => handleLanguageTermChange(index, e.target.value)}
+                      placeholder="Add a feature (e.g., 20M AI tokens)"
+                      className="flex-1 px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    />
+                    {orgData.languageProtectedTerms && orgData.languageProtectedTerms.length > 1 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={!isEditing}
+                        onClick={() => removeFeatureField(index)}
+                        className="text-red-600 hover:bg-red-50"
+                      >
+                        <FiX />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <Button variant="outline" onClick={addFeatureField} className="mt-3">
+                <FiPlus className="mr-2" />
+                Add Feature
+              </Button>
+            </div>
           </div>
         </div>
 
