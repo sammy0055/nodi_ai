@@ -68,6 +68,9 @@ chatRoute.post('/chat-webhook', async (req, res) => {
           await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
         } else if (msg.type === 'interactive') {
           const payload = msg.interactive?.nfm_reply.response_json;
+          console.log('======================payload==============');
+          console.log(payload);
+          console.log('====================================');
           const selectedZone = await ZoneModel.findByPk(payload?.zone_id, { attributes: ['id', 'name'] });
           const selectedArea = await AreaModel.findByPk(payload?.area_id, { attributes: ['id', 'name'] });
           const shippingAddress = payload?.note;
