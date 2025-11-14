@@ -1,6 +1,6 @@
 import express from 'express';
 import crypto from 'crypto';
-import fs from 'fs';
+// import fs from 'fs';
 import { AreaModel } from '../models/area.model';
 export const whatsappFlowRoute = express.Router();
 
@@ -54,7 +54,7 @@ function decryptFlowRequest(body: any) {
   console.log('   encryptedFlowData length:', encryptedFlowData.length);
 
   // 1) Decrypt AES key using RSA-OAEP (SHA-256)
-  const PRIVATE_KEY = fs.readFileSync('../keys/private.pem', 'utf8');
+  const PRIVATE_KEY = process.env.WHATSAPPP_FLOW_AES_KEY!;
   const aesKey = crypto.privateDecrypt(
     {
       key: PRIVATE_KEY,
