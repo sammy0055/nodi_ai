@@ -81,7 +81,8 @@ const notificationtest = async () => {
   }
 };
 const CATALOG_LINK = 'https://wa.me/c/+234 812 422 0865';
-const INAGE_PREVIEW = "https://www.shutterstock.com/shutterstock/photos/2674932797/display_1500/stock-photo-burger-with-vegetables-on-board-in-white-background-beef-burger-in-isolated-background-2674932797.jpg"
+const INAGE_PREVIEW =
+  'https://www.shutterstock.com/shutterstock/photos/2674932797/display_1500/stock-photo-burger-with-vegetables-on-board-in-white-background-beef-burger-in-isolated-background-2674932797.jpg';
 // https://wa.me/c/2348124220865
 const body = {
   messaging_product: 'whatsapp',
@@ -107,6 +108,45 @@ const body = {
     },
   },
 };
+const ZONES = [
+  { id: "zone_1", title: "Zone 1" },
+  { id: "zone_2", title: "Zone 2" },
+  { id: "zone_3", title: "Zone 3" },
+  { id: "zone_4", title: "Zone 4" },
+];
+const flowbody = {
+  messaging_product: 'whatsapp',
+  to: '2348171727284',
+  type: 'interactive',
+  interactive: {
+    type: 'flow',
+    header: {
+      type: 'text',
+      text: 'Delivery Details',
+    },
+    body: {
+      text: 'Tap below to choose your delivery zone and area.',
+    },
+    footer: {
+      text: 'CheeseAI Bot',
+    },
+    action: {
+      name: 'flow',
+      parameters: {
+        flow_id: '1342115786897872',
+        flow_message_version: '3',
+        flow_token: 'prod-token-001',
+        flow_cta: 'Open form',
+        mode: 'published',
+        flow_action: 'navigate',
+        flow_action_payload: {
+          screen: 'ADDRESS_SELECTION',
+          data: JSON.stringify({ status: 'active', zones: ZONES }),
+        },
+      },
+    },
+  },
+};
 
 const sendMessage = async () => {
   try {
@@ -117,7 +157,7 @@ const sendMessage = async () => {
         Authorization: `Bearer ${process.env.META_BUSINESS_SYSTEM_TOKEN}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(flowbody),
     });
 
     if (!res.ok) {

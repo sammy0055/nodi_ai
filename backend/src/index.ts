@@ -28,6 +28,7 @@ import { reviewRoute } from './routes/review.route.js';
 import { convRoute } from './routes/conversation.route.js';
 import { NotificationRoute } from './routes/notification.route.js';
 import { adminEmailListRoute } from './routes/admin-email-list.route.js';
+import { whatsappFlowRoute } from './routes/whatsapp-flow.js';
 
 const app = express();
 
@@ -67,6 +68,9 @@ app.use('/api/app-user/organization', appUserAuthSecretValidation, organizationR
 app.use('/api/app-user/conversation', appUserAuthSecretValidation, convRoute);
 app.use('/api/app-user/notification', appUserAuthSecretValidation, NotificationRoute);
 app.use('/api/app-user/notification-email-list', appUserAuthSecretValidation, adminEmailListRoute);
+
+// whatsapp flow route
+app.use('/api/whatsappflow', whatsappFlowRoute);
 
 const vectorStore = new ManageVectorStore();
 const PORT = appConfig.port;
