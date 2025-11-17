@@ -19,18 +19,23 @@ interface selectedOptionsAttributes {
   priceAdjustment: string;
 }
 
+interface OrderFilters {
+  search: string;
+  status: string;
+}
 export class OrderService {
   static async getOrders(
     user: Pick<User, 'id' | 'organizationId'>,
     { offset, limit, page }: Pagination,
-    searchQuery: string
+    { search, status }: OrderFilters
   ) {
     const where: any = {
       organizationId: user.organizationId!,
     };
-    if (searchQuery) {
+    if (status) where.status = status;
+    if (search) {
       // escape quotes in keyword
-      const escapedKeyword = searchQuery.replace(/'/g, "''");
+      const escapedKeyword = search.replace(/'/g, "''");
       where[Op.and] = literal(`searchVector @@ plainto_tsquery('english', '${escapedKeyword}')`);
     }
     const { rows: orders, count: totalItems } = await OrderModel.findAndCountAll({

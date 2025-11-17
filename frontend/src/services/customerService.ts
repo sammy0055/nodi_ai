@@ -3,7 +3,12 @@ import { ApiClient } from './apiClient';
 
 export class CustomerService {
   constructor() {}
-  async getAllCustomers(): Promise<{ data: { data: Customer[]; pagination: Pagination }; message: string }> {
-    return await ApiClient('GET_CUSTOMERS');
+  async getAllCustomers(
+    page?: number,
+    searchQuery?: string
+  ): Promise<{ data: { data: Customer[]; pagination: Pagination }; message: string }> {
+    return await ApiClient('GET_CUSTOMERS', {
+      queryParams: `?page=${encodeURIComponent(page || 1)}&searchQuery=${encodeURIComponent(searchQuery || '')}`,
+    });
   }
 }

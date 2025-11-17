@@ -1,41 +1,13 @@
-import React from 'react';
 import { OrganizationService } from '../services/organizationService';
 import { UserService } from '../services/userService';
-import {
-  useUserSetRecoilState,
-  useOrgSetRecoilState,
-  useWhatsappSetRecoilState,
-  useProductsSetRecoilState,
-  useProductOptionSetRecoilState,
-  useBranchSetRecoilState,
-  useBranchInventorySetRecoilState,
-  useSubscriptionPlanSetRecoilState,
-  useSubscriptionSetRecoilState,
-  useCreditUsageSetRecoilState,
-  useCreditBalanceSetRecoilState,
-  useCustomersSetRecoilState,
-  useReviewsSetRecoilState,
-} from '../store/authAtoms';
-import type { User } from '../types/users';
-import type { OrganizationPayload } from '../types/organization';
 import { ProductService } from '../services/productService';
-import type { Product, ProductOption } from '../types/product';
 import { BranchService } from '../services/branchService';
-import type { IArea, IBranch, IBranchInventory, IZone } from '../types/branch';
 import { BranchInventoryService } from '../services/branchInventory';
 import { SubscriptionService } from '../services/subscriptionService';
-import type {
-  CreditBalanceAttributes,
-  ISubscription,
-  ISubscriptionPlan,
-  UsageRecordAttributes,
-} from '../types/subscription';
+
 import { OrderService } from '../services/orderService';
-import type { IOrder } from '../pages/tenant/OrderPage';
 import { CustomerService } from '../services/customerService';
-import type { Customer, Pagination } from '../types/customer';
 import { ReviewService } from '../services/reviewService';
-import type { IReview } from '../pages/tenant/ReviewPage';
 
 export const tenantContextLoader = async () => {
   const { getOrganization } = new OrganizationService();
@@ -105,7 +77,7 @@ export const inventoryContextLoader = async () => {
 
 export const ordersContextLoader = async () => {
   const { getOrders } = new OrderService();
-  const [orderResults] = await Promise.allSettled([getOrders()]);
+  const [orderResults] = await Promise.allSettled([getOrders({})]);
   const orders = orderResults.status === 'fulfilled' ? orderResults.value : null;
   return {
     orders: orders?.data,
@@ -121,115 +93,34 @@ export const customerContextLoader = async () => {
   };
 };
 
-export async function contextLoader() {
+export const reviewContextLoader = async () => {
+  const { getReviews } = new ReviewService();
+  const [reviewResults] = await Promise.allSettled([getReviews({})]);
+  const reviews = reviewResults.status === 'fulfilled' ? reviewResults.value : null;
+  return {
+    reviews: { data: reviews?.data },
+  };
+};
+
+export async function billingContextLoader() {
   try {
-    const { getInventories } = new BranchInventoryService();
     const { getSubscriptionPlans, getSubscription, getCrediteBalance, getCreditUsage } = new SubscriptionService();
 
-    const { getReviews } = new ReviewService();
-    const [
-      inventoryResults,
-      subsriptionPlanResults,
-      subscriptionResults,
-      creditUsageResults,
-      creditBalanceResults,
-      reviewResults,
-    ] = await Promise.allSettled([
-      getInventories(),
-      getSubscriptionPlans(),
-      getSubscription(),
-      getCreditUsage(),
-      getCrediteBalance(),
+    const [subsriptionPlanResults, subscriptionResults, creditUsageResults, creditBalanceResults] =
+      await Promise.allSettled([getSubscriptionPlans(), getSubscription(), getCreditUsage(), getCrediteBalance()]);
 
-      getReviews(),
-    ]);
-
-    const branchInventories = inventoryResults.status === 'fulfilled' ? inventoryResults.value : null;
     const subscriptionPlans = subsriptionPlanResults.status === 'fulfilled' ? subsriptionPlanResults.value : null;
     const subscription = subscriptionResults.status === 'fulfilled' ? subscriptionResults.value : null;
     const creditUsage = creditUsageResults.status === 'fulfilled' ? creditUsageResults.value : null;
     const creditBalance = creditBalanceResults.status === 'fulfilled' ? creditBalanceResults.value : null;
 
-    const reviews = reviewResults.status === 'fulfilled' ? reviewResults.value : null;
-
     return {
-      branchInventories: branchInventories?.data.data,
       subscriptionPlans: subscriptionPlans?.data,
       subscription: subscription?.data,
       creditUsage: creditUsage?.data,
       creditBalance: creditBalance?.data,
-      reviews: { data: reviews?.data.data, pagination: reviews?.data.pagination },
     };
   } catch (error: any) {
     console.error('error in Tenant contextLoader:', error.message);
   }
 }
-
-export const RootLoaderWrapper = ({
-  data,
-  children,
-}: {
-  data: {
-    user: User;
-    org: OrganizationPayload;
-    products: Product[];
-    productOptions: ProductOption[];
-    branches: IBranch[];
-    zones: IZone[];
-    areas: IArea[];
-    branchInventories: IBranchInventory[];
-    subscriptionPlans: ISubscriptionPlan[];
-    subscription: ISubscription;
-    creditUsage: UsageRecordAttributes[];
-    creditBalance: CreditBalanceAttributes;
-    orders: IOrder[];
-    customers: { data: Customer[]; pagination: Pagination };
-    reviews: { data: IReview[]; pagination: Pagination };
-  };
-  children: React.ReactNode;
-}) => {
-  const setUser = useUserSetRecoilState();
-  const setOrg = useOrgSetRecoilState();
-  const setWhatsapp = useWhatsappSetRecoilState();
-  const setProducts = useProductsSetRecoilState();
-  const setProductOptions = useProductOptionSetRecoilState();
-  const setBranches = useBranchSetRecoilState();
-
-  const setBranchInventory = useBranchInventorySetRecoilState();
-  const setSubscriptionPlan = useSubscriptionPlanSetRecoilState();
-  const setSubscription = useSubscriptionSetRecoilState();
-  const setCreditUsage = useCreditUsageSetRecoilState();
-  const setCreditBalance = useCreditBalanceSetRecoilState();
-
-  const setCustomers = useCustomersSetRecoilState();
-  const setReviews = useReviewsSetRecoilState();
-
-  React.useEffect(() => {
-    if (!data) return;
-    if (data.branchInventories) {
-      setBranchInventory(data.branchInventories);
-    }
-    if (data.subscriptionPlans) {
-      setSubscriptionPlan(data.subscriptionPlans);
-    }
-    if (data.subscription) {
-      setSubscription(data.subscription);
-    }
-    if (data.creditUsage) {
-      setCreditUsage(data.creditUsage);
-    }
-    if (data.creditBalance) {
-      setCreditBalance(data.creditBalance);
-    }
-    if (data.customers.data) {
-      setCustomers(data.customers.data);
-      // setPagination(data.customers.pagination);
-    }
-    if (data.reviews.data) {
-      setReviews(data.reviews.data);
-      // setReviews(data.reviews.pagination);
-    }
-  }, [data, setUser, setOrg, setProductOptions, setWhatsapp, setProducts, setBranches, setBranchInventory]);
-
-  return <>{children}</>;
-};

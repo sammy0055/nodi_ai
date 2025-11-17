@@ -2,12 +2,10 @@ import React, { useEffect, useState } from 'react';
 import {
   FiSearch,
   FiStar,
-  FiChevronLeft,
   FiChevronRight,
   FiUser,
   FiShoppingBag,
   FiMapPin,
-  FiPackage,
   FiMessageSquare,
   FiThumbsUp,
   FiThumbsDown,
@@ -16,9 +14,11 @@ import {
   FiX,
 } from 'react-icons/fi';
 import Button from '../../components/atoms/Button/Button';
-// import Input from '../../components/atoms/Input/Input';
 import { useDebounce } from 'use-debounce';
-import { useReviewValue } from '../../store/authAtoms';
+import { useReviewsSetRecoilState, useReviewValue } from '../../store/authAtoms';
+import { useLoaderData } from 'react-router';
+import type { Pagination } from '../../types/customer';
+import { ReviewService } from '../../services/reviewService';
 
 // Types based on your schema
 export interface IReview {
@@ -49,58 +49,61 @@ export interface IReview {
   createdAt?: Date;
 }
 
-
-
 const ReviewsPage: React.FC = () => {
+  const data = useLoaderData() as {
+    reviews: { data: IReview[]; pagination: Pagination };
+  };
   const reviews = useReviewValue();
-  const [filteredReviews, setFilteredReviews] = useState<IReview[]>(reviews);
+  const setReviews = useReviewsSetRecoilState();
+  const [pagination, setPagination] = useState<Pagination>();
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(6);
   const [selectedRating, setSelectedRating] = useState<number | 'all'>('all');
-  const [selectedServiceType, setSelectedServiceType] = useState<'all' | 'delivery' | 'takeaway'>('all');
-  const [selectedBranch, setSelectedBranch] = useState<string>('all');
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedReview, setSelectedReview] = useState<IReview | null>(null);
-
+  const { getReviews } = new ReviewService();
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
 
-  // Get unique branches for filter
-  const branches = Array.from(new Set(reviews.map((review) => review.order.branch.name)));
-
-  // Filter reviews when search term or filters change
   useEffect(() => {
-    let filtered = reviews;
-
-    // Filter by search term
-    if (debouncedSearchTerm) {
-      filtered = filtered.filter(
-        (review) =>
-          review.customer.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-          review.comment.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-          review.order.id.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-          review.order.branch.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
-      );
+    if (data) {
+      setReviews(data.reviews.data);
+      setPagination(data.reviews.pagination);
     }
+  }, [data]);
 
-    // Filter by rating
+  useEffect(() => {
+    const Fn = async () => {
+      const data = await getReviews({ page: 1, search: searchTerm });
+      setReviews(data.data.data);
+      setPagination(data?.data?.pagination);
+    };
+    Fn();
+  }, [debouncedSearchTerm]);
+
+  const fetchReviews = async (page: number, resetData: boolean = false) => {
+    let filters: any = { page };
     if (selectedRating !== 'all') {
-      filtered = filtered.filter((review) => review.rating === selectedRating);
+      filters.rating = selectedRating;
     }
 
-    // Filter by service type
-    if (selectedServiceType !== 'all') {
-      filtered = filtered.filter((review) => review.order.serviceType === selectedServiceType);
-    }
+    const reviews = await getReviews(filters);
 
-    // Filter by branch
-    if (selectedBranch !== 'all') {
-      filtered = filtered.filter((review) => review.order.branch.name === selectedBranch);
+    if (resetData) {
+      setReviews(reviews.data.data);
+      setPagination(reviews.data.pagination);
+    } else {
+      setReviews((prev) => [...prev, ...reviews.data?.data]);
+      setPagination(reviews.data.pagination);
     }
+  };
 
-    setFilteredReviews(filtered);
-    setCurrentPage(1);
-  }, [debouncedSearchTerm, selectedRating, selectedServiceType, selectedBranch, reviews]);
+  const handlePagination = async (page: number) => {
+    fetchReviews(page, page === 1);
+  };
+
+  // Reset to first page and refetch when filters change
+  useEffect(() => {
+    fetchReviews(1);
+  }, [selectedRating]);
 
   const handleViewReview = (review: IReview) => {
     setSelectedReview(review);
@@ -161,17 +164,13 @@ const ReviewsPage: React.FC = () => {
   };
 
   // Calculate statistics
-  const totalReviews = reviews.length;
+  const totalReviews = reviews?.length;
   const averageRating = reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
   const ratingDistribution = [5, 4, 3, 2, 1].map((rating) => ({
     rating,
     count: reviews.filter((review) => review.rating === rating).length,
     percentage: (reviews.filter((review) => review.rating === rating).length / reviews.length) * 100,
   }));
-
-  // Pagination
-  const totalPages = Math.ceil(filteredReviews.length / itemsPerPage);
-  const currentReviews = filteredReviews.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   // Review Card Component
   const ReviewCard: React.FC<{ review: IReview }> = ({ review }) => (
@@ -261,7 +260,7 @@ const ReviewsPage: React.FC = () => {
         {/* Statistics */}
         <div className="flex items-center space-x-6 text-sm">
           <div className="text-center">
-            <div className="text-2xl font-bold text-primary-600">{averageRating.toFixed(1)}</div>
+            <div className="text-2xl font-bold text-primary-600">{Number(averageRating || 0).toFixed(1)}</div>
             <div className="text-neutral-500">Average Rating</div>
           </div>
           <div className="text-center">
@@ -288,7 +287,7 @@ const ReviewsPage: React.FC = () => {
                 ></div>
               </div>
               <div className="text-sm text-neutral-600 w-16 text-right">
-                {count} ({percentage.toFixed(1)}%)
+                {count} ({Number(percentage || 0).toFixed(1)}%)
               </div>
             </div>
           ))}
@@ -332,41 +331,6 @@ const ReviewsPage: React.FC = () => {
                 <FiStar size={14} />
               </div>
             </div>
-
-            {/* Service Type Filter */}
-            <div className="relative">
-              <select
-                value={selectedServiceType}
-                onChange={(e) => setSelectedServiceType(e.target.value as any)}
-                className="border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none pr-8 w-full sm:w-auto"
-              >
-                <option value="all">All Services</option>
-                <option value="delivery">Delivery</option>
-                <option value="takeaway">Takeaway</option>
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-neutral-500">
-                <FiPackage size={14} />
-              </div>
-            </div>
-
-            {/* Branch Filter */}
-            <div className="relative">
-              <select
-                value={selectedBranch}
-                onChange={(e) => setSelectedBranch(e.target.value)}
-                className="border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none pr-8 w-full sm:w-auto"
-              >
-                <option value="all">All Branches</option>
-                {branches.map((branch) => (
-                  <option key={branch} value={branch}>
-                    {branch}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-neutral-500">
-                <FiMapPin size={14} />
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -376,7 +340,7 @@ const ReviewsPage: React.FC = () => {
         {/* Header */}
         <div className="px-6 py-4 border-b border-neutral-200 bg-neutral-50">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-neutral-900">Customer Reviews ({filteredReviews.length})</h3>
+            <h3 className="text-lg font-semibold text-neutral-900">Customer Reviews ({reviews?.length})</h3>
             {searchTerm && (
               <Button variant="outline" size="sm" onClick={() => setSearchTerm('')}>
                 Clear Search
@@ -386,7 +350,7 @@ const ReviewsPage: React.FC = () => {
         </div>
 
         {/* Reviews */}
-        {currentReviews.length === 0 ? (
+        {reviews?.length === 0 ? (
           <div className="p-8 text-center text-neutral-500">
             <FiMessageSquare className="mx-auto text-4xl text-neutral-300 mb-3" />
             <p>No reviews found{searchTerm && ` matching "${searchTerm}"`}</p>
@@ -399,66 +363,28 @@ const ReviewsPage: React.FC = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 p-6">
-              {currentReviews.map((review) => (
+              {reviews?.map((review) => (
                 <ReviewCard key={review.id} review={review} />
               ))}
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
+            {pagination && pagination.totalPages > 1 && (
               <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-neutral-200 space-y-3 sm:space-y-0">
                 <div className="text-sm text-neutral-500">
-                  Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-                  {Math.min(currentPage * itemsPerPage, filteredReviews.length)} of {filteredReviews.length} reviews
+                  Showing {(pagination.currentPage - 1) * pagination.pageSize + 1} to{' '}
+                  {Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems)} of{' '}
+                  {pagination.totalItems} reviews
                 </div>
 
                 <div className="flex space-x-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage(currentPage - 1)}
+                    disabled={!pagination.hasNextPage}
+                    onClick={() => handlePagination(pagination.currentPage + 1)}
                   >
-                    <FiChevronLeft className="mr-1" />
-                    Previous
-                  </Button>
-
-                  <div className="flex items-center space-x-1">
-                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                      let pageNum;
-                      if (totalPages <= 5) {
-                        pageNum = i + 1;
-                      } else if (currentPage <= 3) {
-                        pageNum = i + 1;
-                      } else if (currentPage >= totalPages - 2) {
-                        pageNum = totalPages - 4 + i;
-                      } else {
-                        pageNum = currentPage - 2 + i;
-                      }
-
-                      return (
-                        <button
-                          key={pageNum}
-                          className={`px-3 py-1 rounded text-sm ${
-                            pageNum === currentPage
-                              ? 'bg-primary-600 text-white'
-                              : 'text-neutral-600 hover:bg-neutral-100'
-                          }`}
-                          onClick={() => setCurrentPage(pageNum)}
-                        >
-                          {pageNum}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage(currentPage + 1)}
-                  >
-                    Next
+                    Load More
                     <FiChevronRight className="ml-1" />
                   </Button>
                 </div>

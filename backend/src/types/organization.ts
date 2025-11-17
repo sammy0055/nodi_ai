@@ -1,4 +1,5 @@
 import { BusinessType } from '../data/data-types';
+import { CurrencyCode } from './product';
 import { IWhatSappSettings } from './whatsapp-settings';
 
 export interface IOrganization {
@@ -12,4 +13,5 @@ export interface IOrganization {
   shouldUpdateChatbotSystemPrompt?: boolean;
   status: 'active' | 'suspended' | 'cancelled';
   languageProtectedTerms?:string[]
+  currency: CurrencyCode
 }

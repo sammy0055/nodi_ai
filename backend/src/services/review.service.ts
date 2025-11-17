@@ -7,17 +7,21 @@ import { Pagination } from '../types/common-types';
 import { User } from '../types/users';
 import { ProductModel } from '../models/products.model';
 
+interface GetReviewParams {
+  searchQuery?: string;
+  rating?: number;
+}
 export class ReviewService {
   static async getReviewsByOrganization(
     user: Pick<User, 'id' | 'organizationId'>,
     { offset = 0, limit = 10, page = 1 }: Pagination,
-    searchQuery: string
+    { searchQuery, rating }: GetReviewParams
   ) {
     if (!user.organizationId) throw new Error('kindly create an organization to continue');
     const where: any = {
       organizationId: user.organizationId,
     };
-
+    if (rating) where.rating = rating;
     if (searchQuery && searchQuery.trim() !== '') {
       const safeQuery = searchQuery.trim(); // prevent SQL injection
 

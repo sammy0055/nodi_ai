@@ -8,7 +8,7 @@ export const customerRoute = express.Router();
 customerRoute.get('/get-all', authMiddleware, async (req, res) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
+    const limit = parseInt(req.query.limit as string) || 7;
     const searchQuery = req.query.searchQuery || '';
 
     // calculate offset

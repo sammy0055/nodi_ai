@@ -21,16 +21,15 @@ import { useDebounce } from 'use-debounce';
 import type { Conversation, Customer, Message, Pagination } from '../../types/customer';
 import { useCustomersSetRecoilState, useCustomerValue } from '../../store/authAtoms';
 import { useLoaderData } from 'react-router';
+import { CustomerService } from '../../services/customerService';
 
 const CustomersPage: React.FC = () => {
   const data = useLoaderData() as { customers: { data: { data: Customer[]; pagination: Pagination } } };
   const customers = useCustomerValue();
   const setCustomers = useCustomersSetRecoilState();
-  // const [customers] = useState<Customer[]>(mockCustomers);
-  const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
+  const [pagination, setPagination] = useState<Pagination>();
+
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(8);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [activeTab, setActiveTab] = useState<'details' | 'conversations'>('details');
@@ -41,25 +40,21 @@ const CustomersPage: React.FC = () => {
   // initial data loading
   useEffect(() => {
     if (data) {
-      setCustomers(data.customers.data.data);
+      setCustomers(data?.customers?.data?.data);
+      setPagination(data?.customers?.data?.pagination);
     }
   }, [data]);
+
+  const { getAllCustomers } = new CustomerService();
   // Filter customers when search term changes
   useEffect(() => {
-    if (!debouncedSearchTerm) {
-      setFilteredCustomers(customers);
-    } else {
-      const filtered = customers.filter(
-        (customer) =>
-          customer.id.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-          customer.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-          customer.phone.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-          customer.email?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
-      );
-      setFilteredCustomers(filtered);
-    }
-    setCurrentPage(1);
-  }, [debouncedSearchTerm, customers]);
+    const Fn = async () => {
+      const data = await getAllCustomers(1, searchTerm);
+      setCustomers(data.data.data);
+      setPagination(data?.data?.pagination);
+    };
+    Fn();
+  }, [debouncedSearchTerm]);
 
   const getSourceIcon = (source: string) => {
     switch (source) {
@@ -123,6 +118,16 @@ const CustomersPage: React.FC = () => {
   const handleSelectConversation = (conversation: Conversation) => {
     setSelectedConversation(conversation);
     setActiveTab('conversations');
+  };
+
+  const handlePagination = async (page: number) => {
+    try {
+      const data = await getAllCustomers(page);
+      setCustomers((prev) => [...prev, ...data.data.data]);
+      setPagination(data.data.pagination);
+    } catch (error: any) {
+      alert('something went wrong, pls try again');
+    }
   };
 
   // Improved Chat Message Component with proper left/right alignment
@@ -215,10 +220,6 @@ const CustomersPage: React.FC = () => {
     </div>
   );
 
-  // Pagination
-  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
-  const currentCustomers = filteredCustomers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
   return (
     <div className="flex flex-col lg:flex-row h-full bg-white">
       {/* Customer List - Always visible on desktop, conditional on mobile */}
@@ -254,7 +255,7 @@ const CustomersPage: React.FC = () => {
         {/* Customer List */}
         <div className="flex-1 overflow-y-auto p-4">
           <div className="space-y-3">
-            {currentCustomers.length === 0 ? (
+            {customers?.length === 0 ? (
               <div className="text-center py-8 text-neutral-500">
                 <FiBox className="mx-auto text-3xl text-neutral-300 mb-2" />
                 <p className="text-sm">No customers found</p>
@@ -265,24 +266,24 @@ const CustomersPage: React.FC = () => {
                 )}
               </div>
             ) : (
-              currentCustomers.map((customer) => <CustomerCard key={customer.id} customer={customer} />)
+              customers?.map((customer) => <CustomerCard key={customer.id} customer={customer} />)
             )}
           </div>
         </div>
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {pagination && pagination.totalPages > 1 && (
           <div className="p-4 border-t border-neutral-200">
             <div className="flex items-center justify-between">
               <div className="text-xs text-neutral-500">
-                Page {currentPage} of {totalPages}
+                Page {pagination.currentPage} of {pagination.totalPages}
               </div>
               <div className="flex space-x-1">
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(currentPage - 1)}
+                  disabled={pagination.currentPage === 1}
+                  onClick={() => setPagination((prev) => ({ ...prev!, currentPage: prev!.currentPage - 1 }))}
                   className="px-2"
                 >
                   <FiChevronLeft size={14} />
@@ -290,8 +291,8 @@ const CustomersPage: React.FC = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={!pagination.hasNextPage}
+                  onClick={() => handlePagination(pagination.currentPage + 1)}
                   className="px-2"
                 >
                   <FiChevronRight size={14} />

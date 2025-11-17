@@ -25,6 +25,7 @@ import {
 } from '../../types/product';
 import { ProductService } from '../../services/productService';
 import {
+  useOrgValue,
   useProductOptionSetRecoilState,
   useProductOptionValue,
   useProductsSetRecoilState,
@@ -263,6 +264,7 @@ const ProductsPage: React.FC = () => {
   const productOptions = useProductOptionValue();
   const setProductOptions = useProductOptionSetRecoilState();
   const whatsappData = useWhatsappValue();
+  const organization = useOrgValue()
   const [searchTerm, setSearchTerm] = useState('');
   const [showProductModal, setShowProductModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
@@ -342,7 +344,7 @@ const ProductsPage: React.FC = () => {
       name: '',
       price: 0,
       description: '',
-      currency: 'USD',
+      currency: organization?.currency || 'USD',
       metaProductId: '',
       imageUrl: '',
     });
@@ -688,20 +690,6 @@ const ProductsPage: React.FC = () => {
                     <option value={ProductStatusTypes.ACTIVE}>Active</option>
                     <option value={ProductStatusTypes.INACTIVE}>Inactive</option>
                     <option value={ProductStatusTypes.DRAFT}>Draft</option>
-                  </select>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-neutral-700">Currency</label>
-                  <select
-                    className="border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    value={editingProduct.currency}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, currency: e.target.value })}
-                  >
-                    {/* <option value={ProductStatusTypes.DRAFT}>Draft</option> */}
-                    {Object.values(CurrencyCode).map((currency) => (
-                      <option value={currency}>{currency}</option>
-                    ))}
                   </select>
                 </div>
               </div>

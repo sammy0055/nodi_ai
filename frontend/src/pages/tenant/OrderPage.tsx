@@ -121,16 +121,11 @@ export interface IOrder {
 const OrdersPage: React.FC = () => {
   const data = useLoaderData() as { orders: { data: IOrder[]; pagination: Pagination } };
 
-  
   const orders = useOrdersValue();
   const setOrders = useOrdersSetRecoilState();
-
-  const [filteredOrders, setFilteredOrders] = useState<IOrder[]>([]);
+  const [pagination, setPagination] = useState<Pagination>();
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5);
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'all'>('all');
-  const [selectedSource, setSelectedSource] = useState<OrderSource | 'all'>('all');
   const [isLoading] = useState(false);
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
@@ -141,41 +136,19 @@ const OrdersPage: React.FC = () => {
 
   useEffect(() => {
     if (data) {
-      setOrders(data.orders.data);
+      setOrders(data?.orders?.data || []);
+      setPagination(data?.orders?.pagination);
     }
   }, [data]);
-  // Filter orders when search term, status, or source changes
+
   useEffect(() => {
-    filterOrders();
-  }, [debouncedSearchTerm, selectedStatus, selectedSource, orders]);
-
-  const filterOrders = () => {
-    let filtered = orders;
-
-    // Filter by search term
-    if (debouncedSearchTerm) {
-      filtered = filtered.filter(
-        (order) =>
-          order.id.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-          order.customer?.name?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-          order.customer?.phone?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-          order.branch?.name?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
-      );
-    }
-
-    // Filter by status
-    if (selectedStatus !== 'all') {
-      filtered = filtered.filter((order) => order.status === selectedStatus);
-    }
-
-    // Filter by source
-    if (selectedSource !== 'all') {
-      filtered = filtered.filter((order) => order.source === selectedSource);
-    }
-
-    setFilteredOrders(filtered);
-    setCurrentPage(1); // Reset to first page when filters change
-  };
+    const Fn = async () => {
+      const data = await getOrders({ page: 1, searchTerm });
+      setOrders(data.data.data);
+      setPagination(data?.data?.pagination);
+    };
+    Fn();
+  }, [debouncedSearchTerm]);
 
   const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
     setUpdatingOrderId(orderId);
@@ -278,9 +251,31 @@ const OrdersPage: React.FC = () => {
     }).format(amount);
   };
 
-  // Pagination
-  const totalPages = Math.ceil(filteredOrders?.length / itemsPerPage);
-  const currentOrders = filteredOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const { getOrders } = new OrderService();
+  const fetchOrders = async (page: number, resetData: boolean = false) => {
+    // Build filters for API call
+    const filters: any = { page };
+    if (selectedStatus !== 'all') filters.status = selectedStatus;
+
+    const orders = await getOrders(filters);
+
+    if (resetData) {
+      setOrders(orders.data.data);
+      setPagination(orders.data.pagination);
+    } else {
+      setOrders((prev) => [...prev, ...data?.orders?.data]);
+      setPagination(orders.data.pagination);
+    }
+  };
+
+  const handlePagination = async (page: number) => {
+    fetchOrders(page, page === 1);
+  };
+
+  // Reset to first page and refetch when filters change
+  useEffect(() => {
+    fetchOrders(1);
+  }, [selectedStatus]);
 
   // Order Row Component
   const OrderRow: React.FC<{ order: IOrder }> = ({ order }) => (
@@ -464,27 +459,6 @@ const OrdersPage: React.FC = () => {
                 <FiFilter size={14} />
               </div>
             </div>
-
-            <div className="relative">
-              <select
-                value={selectedSource}
-                onChange={(e) => setSelectedSource(e.target.value as OrderSource | 'all')}
-                className="border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none pr-8"
-              >
-                <option value="all">All Sources</option>
-                {Object.values(OrderSourceTypes).map((source) => (
-                  <option key={source} value={source}>
-                    {source
-                      .split('_')
-                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                      .join(' ')}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-neutral-500">
-                <FiShoppingCart size={14} />
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -505,7 +479,7 @@ const OrdersPage: React.FC = () => {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-3"></div>
             <p>Loading orders...</p>
           </div>
-        ) : currentOrders?.length === 0 ? (
+        ) : orders?.length === 0 ? (
           <div className="p-8 text-center text-neutral-500">
             <FiBox className="mx-auto text-4xl text-neutral-300 mb-3" />
             <p>No orders found{searchTerm && ` matching "${searchTerm}"`}</p>
@@ -517,63 +491,37 @@ const OrdersPage: React.FC = () => {
           </div>
         ) : (
           <div className="divide-y divide-neutral-200">
-            {currentOrders.map((order) => (
+            {orders.map((order) => (
               <OrderRow key={order.id} order={order} />
             ))}
           </div>
         )}
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {pagination && pagination.totalPages > 1 && (
           <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-neutral-200 space-y-3 sm:space-y-0">
             <div className="text-sm text-neutral-500">
-              Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-              {Math.min(currentPage * itemsPerPage, filteredOrders?.length)} of {filteredOrders?.length} orders
+              Showing {(pagination.currentPage - 1) * pagination.pageSize + 1} to{' '}
+              {Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems)} of {pagination.totalItems}{' '}
+              orders
             </div>
 
             <div className="flex space-x-2">
               <Button
                 variant="outline"
                 size="sm"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(currentPage - 1)}
+                disabled={pagination?.currentPage === 1}
+                onClick={() => setPagination((prev) => ({ ...prev!, currentPage: prev!.currentPage - 1 }))}
               >
                 <FiChevronLeft className="mr-1" />
                 Previous
               </Button>
 
-              <div className="flex items-center space-x-1">
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNum;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (currentPage <= 3) {
-                    pageNum = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = currentPage - 2 + i;
-                  }
-
-                  return (
-                    <button
-                      key={pageNum}
-                      className={`px-3 py-1 rounded text-sm ${
-                        pageNum === currentPage ? 'bg-primary-600 text-white' : 'text-neutral-600 hover:bg-neutral-100'
-                      }`}
-                      onClick={() => setCurrentPage(pageNum)}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
-              </div>
-
               <Button
                 variant="outline"
                 size="sm"
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(currentPage + 1)}
+                disabled={!pagination.hasNextPage}
+                onClick={() => handlePagination(pagination.currentPage + 1)}
               >
                 Next
                 <FiChevronRight className="ml-1" />

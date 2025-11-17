@@ -4,6 +4,7 @@ import { DbModels } from '.';
 import { BusinessType, supportedBusinessTypes } from '../data/data-types';
 import { ModelNames } from './model-names';
 import { IOrganization } from '../types/organization';
+import { CurrencyCode } from '../types/product';
 
 class OrganizationsModel
   extends Model<InferAttributes<OrganizationsModel>, InferCreationAttributes<OrganizationsModel>>
@@ -19,6 +20,7 @@ class OrganizationsModel
   declare shouldUpdateChatbotSystemPrompt?: boolean | undefined;
   declare status: 'active' | 'suspended' | 'cancelled';
   declare languageProtectedTerms?: string[] | undefined;
+  declare currency: CurrencyCode;
   static associate(models: DbModels) {
     //hasMany The foreign key is on the other model (the one being linked).
     this.hasMany(models.BranchesModel, { foreignKey: 'organizationId' });
@@ -90,6 +92,7 @@ OrganizationsModel.init(
     shouldUpdateChatbotSystemPrompt: { type: DataTypes.BOOLEAN, defaultValue: true },
     status: { type: DataTypes.ENUM, values: ['active', 'suspended', 'cancelled'], defaultValue: 'active' },
     languageProtectedTerms: { type: DataTypes.ARRAY(DataTypes.STRING), defaultValue: [] },
+    currency: { type: DataTypes.ENUM, values: [...Object.values(CurrencyCode)], defaultValue: CurrencyCode.LBP },
   },
   {
     sequelize,

@@ -9,6 +9,7 @@ export interface IOrganization {
   businessType: `${BusinessType}`;
   AIAssistantName: string;
   languageProtectedTerms?: string[];
+  currency: string;
 }
 
 export interface OrganizationPayload extends IOrganization {

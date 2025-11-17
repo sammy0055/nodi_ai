@@ -17,6 +17,7 @@ import { useOrgSetRecoilState, useOrgValue, useWhatsappSetRecoilState, useWhatsa
 import { OrganizationService } from '../../services/organizationService';
 import { useWhatsAppSignup } from '../../hooks/whatsapp';
 import type { BaseRequestAttributes } from '../../types/request';
+import { CurrencyCode } from '../../types/product';
 
 const SettingsPage: React.FC = () => {
   const orgData = useOrgValue();
@@ -200,13 +201,20 @@ const SettingsPage: React.FC = () => {
               <p className="text-xs text-neutral-500">Business type cannot be changed after creation</p>
             </div>
 
-            <Input
-              label="Brand Tone"
-              value={orgData?.brandTone}
-              onChange={(e) => handleOrgChange('brandTone', e.target.value)}
-              disabled={!isEditing}
-              placeholder="Describe your brand's communication style"
-            />
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-neutral-700">Currency</label>
+              <select
+                className="border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                value={orgData.currency}
+                disabled={!isEditing}
+                onChange={(e) => setOrgData((prev) => ({ ...prev, currency: e.target.value }))}
+              >
+                {/* <option value={ProductStatusTypes.DRAFT}>Draft</option> */}
+                {Object.values(CurrencyCode).map((currency) => (
+                  <option value={currency}>{currency}</option>
+                ))}
+              </select>
+            </div>
 
             <Input
               label="AI Assistant Name"
@@ -244,7 +252,7 @@ const SettingsPage: React.FC = () => {
                   </div>
                 ))}
               </div>
-              <Button variant="outline" onClick={addFeatureField} className="mt-3">
+              <Button variant="outline" onClick={addFeatureField} className="mt-3" disabled={!isEditing}>
                 <FiPlus className="mr-2" />
                 Add Feature
               </Button>

@@ -10,11 +10,12 @@ orderRoute.get('/get-all', authMiddleware, async (req, res) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
-    const searchQuery = req.query.searchQuery || '';
+    const search = req.query.search || '';
+    const status = req.query.status || '';
 
     // calculate offset
     const offset = (page - 1) * limit;
-    const data = await OrderService.getOrders(req.user!, { page, limit, offset }, searchQuery as string);
+    const data = await OrderService.getOrders(req.user!, { page, limit, offset }, { search, status } as any);
     const response: APIResponseFormat<any> = {
       message: 'order retreived successfully',
       data,

@@ -10,14 +10,14 @@ reviewRoute.get('/get-reviews', authMiddleware, async (req, res) => {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const searchQuery = req.query.searchQuery || '';
+    const rating = Number(req.query.rating || 0);
 
     // calculate offset
     const offset = (page - 1) * limit;
-    const data = await ReviewService.getReviewsByOrganization(
-      req.user!,
-      { page, limit, offset },
-      searchQuery as string
-    );
+    const data = await ReviewService.getReviewsByOrganization(req.user!, { page, limit, offset }, {
+      searchQuery,
+      rating,
+    } as any);
     const response: APIResponseFormat<any> = {
       message: 'reviews retrieved successfully',
       data,

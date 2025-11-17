@@ -2,10 +2,25 @@ import type { IReview } from '../pages/tenant/ReviewPage';
 import type { Pagination } from '../types/customer';
 import { API_ROUTES, ApiClient } from './apiClient';
 
+interface GetReviewsParams {
+  page?: number;
+  search?: string;
+  rating?: number;
+  branch?: string;
+  serviceType?: 'takeaway' | 'delivery';
+}
+
 export class ReviewService {
-  async getReviews(): Promise<{ data: { data: IReview[], pagination: Pagination }; message: string }> {
-    return await ApiClient('GET_REVIEWS');
+  async getReviews(
+    params: GetReviewsParams
+  ): Promise<{ data: { data: IReview[]; pagination: Pagination }; message: string }> {
+    return await ApiClient('GET_REVIEWS', {
+      queryParams: `?page=${encodeURIComponent(params.page || 1)}&searchQuery=${encodeURIComponent(
+        params.search || ''
+      )}&rating=${encodeURIComponent(params.rating || 0)}`,
+    });
   }
+
   async searchReviews(
     searchTerm: string
   ): Promise<{ data: { data: IReview[]; pagination: Pagination }; message: string }> {

@@ -16,12 +16,19 @@ import {
 import Button from '../../components/atoms/Button/Button';
 import Input from '../../components/atoms/Input/Input';
 import { BranchService } from '../../services/branchService';
-import { useAreaSetRecoilState, useAreaValue, useZoneSetRecoilState, useZoneValue } from '../../store/authAtoms';
+import {
+  useAreaSetRecoilState,
+  useAreaValue,
+  useOrgValue,
+  useZoneSetRecoilState,
+  useZoneValue,
+} from '../../store/authAtoms';
 import { useDebounce } from 'use-debounce';
 import { useLoaderData } from 'react-router';
 import type { Pagination } from '../../types/customer';
 import type { IBranch } from '../../types/branch';
 import { useClickOutside } from '../../hooks/clickOutside';
+import { CurrencyCode, CurrencySymbols } from '../../types/product';
 
 // Define types based on your interfaces
 export interface IZone {
@@ -49,6 +56,7 @@ const AreasZonesPage: React.FC = () => {
   // Zones state
   const zones = useZoneValue();
   const setZones = useZoneSetRecoilState();
+  const organization = useOrgValue();
   const [branches, setBranches] = useState<IBranch[]>([]);
   const [branchPagination, setBranchPagination] = useState<Pagination>();
   const [zoneSearch, setZoneSearch] = useState('');
@@ -485,6 +493,14 @@ const AreasZonesPage: React.FC = () => {
     }
   };
 
+  const getBranchName = (branchId: string) => {
+    return branches?.find((b) => b.id === branchId)?.name;
+  };
+
+  const getZoneName = (zoneId: string) => {
+    return zones?.find((z) => z.id === zoneId)?.name;
+  };
+
   return (
     <div className="space-y-8 p-4 md:p-0">
       {/* Header */}
@@ -654,14 +670,17 @@ const AreasZonesPage: React.FC = () => {
                   <div>
                     <h4 className="font-medium text-neutral-900">{area.name}</h4>
                     <div className="text-sm text-neutral-500 space-y-1">
-                      {/* <p>Branch: {getBranchName(area.branchId)}</p>
-                      <p>Zone: {getZoneName(area.zoneId)}</p> */}
+                      <p>Branch: {getBranchName(area.branchId)}</p>
+                      <p>Zone: {getZoneName(area.zoneId)}</p>
                     </div>
                   </div>
                 </div>
                 <div className="md:col-span-2 hidden md:block text-right">
                   <p className="font-medium text-neutral-900">{formatTime(area.deliveryTime)}</p>
-                  <p className="text-sm text-neutral-500">{area.deliveryCharge.toFixed(2)} charge</p>
+                  <p className="text-sm text-neutral-500">
+                    {CurrencySymbols[organization.currency as CurrencyCode]}
+                    {area.deliveryCharge.toFixed(2)} charge
+                  </p>
                 </div>
                 <div className="md:col-span-2 flex justify-end space-x-2">
                   <Button variant="outline" size="sm" onClick={() => handleEditArea(area)}>
@@ -920,7 +939,7 @@ const AreasZonesPage: React.FC = () => {
                   max="480"
                 />
                 <Input
-                  label="Delivery Charge ($) *"
+                  label={`Delivery Charge (${CurrencySymbols[organization.currency as CurrencyCode] || '$'}) *`}
                   type="number"
                   step="0.01"
                   value={newArea.deliveryCharge || ''}

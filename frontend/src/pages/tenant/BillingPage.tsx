@@ -6,24 +6,30 @@ import {
   FiArrowDown,
   FiInfo,
   FiCheckCircle,
-  FiClock,
   FiShoppingCart,
-  FiMessageSquare,
   FiBarChart2,
   FiX,
 } from 'react-icons/fi';
 import Button from '../../components/atoms/Button/Button';
 import type {
+  CreditBalanceAttributes,
+  ISubscription,
   ISubscriptionPlan,
   UsageRecordAttributes,
 } from '../../types/subscription';
 import {
+  useCreditBalanceSetRecoilState,
   useCreditBalanceValue,
+  useCreditUsageSetRecoilState,
   useCreditUsageValue,
+  useSubscriptionPlanSetRecoilState,
   useSubscriptionPlanValue,
+  useSubscriptionSetRecoilState,
   useSubscriptionValue,
 } from '../../store/authAtoms';
 import { SubscriptionService } from '../../services/subscriptionService';
+import { useLoaderData } from 'react-router';
+import type { Pagination } from '../../types/customer';
 
 // Chart data interface
 interface ChartData {
@@ -35,7 +41,7 @@ interface ChartData {
 const generateChartData = (records: UsageRecordAttributes[]): ChartData[] => {
   const dailyData: { [key: string]: { credits: number; types: { [key: string]: number } } } = {};
 
-  records.forEach((record) => {
+  records?.forEach((record) => {
     const date = new Date(record.createdAt).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -145,39 +151,50 @@ const LineChart: React.FC<{ data: ChartData[] }> = ({ data }) => {
 };
 
 const BillingPage: React.FC = () => {
+  const data = useLoaderData() as {
+    subscriptionPlans: { data: ISubscriptionPlan[]; pagination: Pagination };
+    subscription: { data: ISubscription; pagination: Pagination };
+    creditUsage: { data: UsageRecordAttributes[]; pagination: Pagination };
+    creditBalance: { data: CreditBalanceAttributes };
+  };
+  
   const plans = useSubscriptionPlanValue();
+  const setSubscriptionPlan = useSubscriptionPlanSetRecoilState();
   const currentSubscription = useSubscriptionValue();
+  const setSubscription = useSubscriptionSetRecoilState();
   const creditBalance = useCreditBalanceValue();
+  const setCreditBalance = useCreditBalanceSetRecoilState();
   const usageRecords = useCreditUsageValue();
+  const setCreditUsage = useCreditUsageSetRecoilState();
 
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<ISubscriptionPlan | null>(null);
   const [isUpgrading, setIsUpgrading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filteredRecords, setFilteredRecords] = useState<UsageRecordAttributes[]>(usageRecords);
+
   const [chartType, setChartType] = useState<'bar' | 'line'>('bar');
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
   const [btnLoading, setBtnLoading] = useState(false);
   const { createSubscription, upgradeSubscription } = new SubscriptionService();
-  const currentPlan = plans.find((plan) => plan.id === currentSubscription?.planId);
+  const currentPlan = plans?.find((plan) => plan.id === currentSubscription?.planId);
 
   // Generate chart data
   const chartData = useMemo(() => generateChartData(usageRecords), [usageRecords]);
 
-  // Filter usage records based on search term
+  // load initial data
   useEffect(() => {
-    if (!searchTerm) {
-      setFilteredRecords(usageRecords);
-    } else {
-      const filtered = usageRecords.filter(
-        (record) =>
-          record.featureName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          record.metadata?.endpoint?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          record.metadata?.type?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredRecords(filtered);
+    if (data?.subscriptionPlans) {
+      setSubscriptionPlan(data?.subscriptionPlans?.data);
     }
-  }, [searchTerm, usageRecords]);
+    if (data?.subscription) {
+      setSubscription(data?.subscription?.data);
+    }
+    if (data?.creditUsage) {
+      setCreditUsage(data?.creditUsage?.data);
+    }
+    if (data?.creditBalance) {
+      setCreditBalance(data?.creditBalance?.data);
+    }
+  }, [data]);
 
   const handleSubscribe = (plan: ISubscriptionPlan) => {
     setSelectedPlan(plan);
@@ -492,35 +509,12 @@ const BillingPage: React.FC = () => {
         <div className="p-6 border-b border-neutral-200">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
             <h3 className="text-lg font-semibold text-neutral-900">Recent Usage Records</h3>
-            <div className="relative md:w-64">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FiMessageSquare className="text-neutral-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search usage records..."
-                className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
           </div>
         </div>
 
         <div className="divide-y divide-neutral-200 max-h-96 overflow-y-auto">
-          {filteredRecords.length === 0 ? (
-            <div className="p-8 text-center text-neutral-500">
-              <FiClock className="mx-auto text-4xl text-neutral-300 mb-3" />
-              <p>No usage records found{searchTerm && ` matching "${searchTerm}"`}</p>
-              {searchTerm && (
-                <Button variant="outline" onClick={() => setSearchTerm('')} className="mt-2">
-                  Clear search
-                </Button>
-              )}
-            </div>
-          ) : (
-            filteredRecords.map((record) => <UsageRecordItem key={record.id} record={record} />)
-          )}
+          {usageRecords?.length !== 0 &&
+            usageRecords?.map((record) => <UsageRecordItem key={record.id} record={record} />)}
         </div>
       </div>
 
@@ -547,7 +541,7 @@ const BillingPage: React.FC = () => {
               {!selectedPlan ? (
                 // Plan Selection View
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {plans.map((plan) => (
+                  {plans?.map((plan) => (
                     <div
                       key={plan.id}
                       className={`border-2 rounded-lg p-6 transition-all duration-300 hover:shadow-lg ${
