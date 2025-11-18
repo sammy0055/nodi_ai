@@ -124,6 +124,25 @@ userRoute.post('/login', async (req, res) => {
   }
 });
 
+userRoute.post('/logout', (req, res) => {
+  try {
+    res.clearCookie('auth_tokens', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+    });
+
+    res.status(200).json({
+      message: 'logout successfully',
+    });
+  } catch (error: any) {
+    errorLogger(error);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+});
+
 userRoute.post('/refresh-token', async (req, res) => {
   try {
     const refreshToken = req.body.refreshToken;
