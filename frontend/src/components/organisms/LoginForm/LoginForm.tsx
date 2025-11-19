@@ -4,9 +4,11 @@ import Input from '../../atoms/Input/Input';
 import Button from '../../atoms/Button/Button';
 import GoogleButton from '../../molecules/GoogleButton/GoogleButton';
 
+import { useGoogleLogin } from '@react-oauth/google';
+
 interface LoginFormProps {
   onLogin: (email: string, password: string) => Promise<void> | void;
-  onGoogleLogin: () => void;
+  onGoogleLogin: (credentialResponse: any) => void;
   onForgotPassword: () => void;
   onSignUp: () => void;
   isLoading?: boolean;
@@ -41,6 +43,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onGoogleLogin, onForgotP
       }
     }
   };
+
+  const login = useGoogleLogin({
+    onSuccess: (codeResponse) => {
+      onGoogleLogin(codeResponse);
+    },
+    onError: () => alert('failed to signup with google, try another method'),
+    flow: 'auth-code',
+  });
 
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
@@ -105,7 +115,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onGoogleLogin, onForgotP
         </div>
       </div>
 
-      <GoogleButton onClick={onGoogleLogin} text="Sign in" />
+      <GoogleButton onClick={() => login()} text="Sign in" />
 
       <div className="text-center mt-6">
         <p className="text-neutral-600">

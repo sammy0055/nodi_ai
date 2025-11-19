@@ -452,9 +452,7 @@ export async function sendNotificationAlert(to: string, notification: {
 /**
  * Send password reset email with HTML template
  */
-export async function sendPasswordResetEmail(to: string, resetToken: string) {
-  const resetUrl = `https://app.credobyte.com/reset-password?token=${resetToken}`;
-  
+export async function sendPasswordResetEmail(to: string, resetUrl: string) {
   const html = createCredoByteEmailTemplate({
     subject: 'Reset Your Password - CredoByte',
     title: 'Password Reset Request',

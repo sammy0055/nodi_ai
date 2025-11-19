@@ -28,6 +28,8 @@ export enum EnvList {
   OPENAI_API_KEY = 'OPENAI_API_KEY',
   LOCAL_QDRANT = 'LOCAL_QDRANT',
   PROD_QDRANT = 'PROD_QDRANT',
+  LOCAL_FRONTEND_URL = 'LOCAL_FRONTEND_URL',
+  PROD_FRONTEND_URL = 'PROD_FRONTEND_URL',
 }
 
 const env = getEnv(EnvList.NODE_ENV);
@@ -37,6 +39,7 @@ export const appConfig = {
   port: getEnv(EnvList.PORT) || 5000,
   encryptionSecret: getEnv('ENCRYPTION_SECRET'),
   openaiKey: getEnv('OPENAI_API_KEY'),
+  frontendUrl: env === 'dev' ? getEnv('LOCAL_FRONTEND_URL') : getEnv('PROD_FRONTEND_URL'),
   db: {
     url: env === 'dev' ? getEnv(EnvList.LOCAL_DATABASE_URL) : getEnv(EnvList.PROD_DATABASE_URL),
     qdrant: env === 'dev' ? getEnv(EnvList.LOCAL_QDRANT) : getEnv(EnvList.PROD_QDRANT),

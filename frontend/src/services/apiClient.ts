@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:4000/api';
+const API_BASE_URL = import.meta.env.VITE_BACKEND_PROD_APP_URL;
 //  import.meta.env.VITE_ENV_PROD === 'PROD' ? import.meta.env.VITE_BACKEND_PROD_APP_URL : 'http://localhost:4000/api';
 // import.meta.env.VITE_BACKEND_PROD_APP_URL
 export const APP_USER_API_ROUTES = {
@@ -29,6 +29,10 @@ export const API_ROUTES = {
   LOGIN: `${API_BASE_URL}/user/login`,
   LOGOUT: `${API_BASE_URL}/user/logout`,
   SIGNUP: `${API_BASE_URL}/user/sign-up`,
+  SIGNUP_WITH_GOOGLE: `${API_BASE_URL}/user/exchange-google-auth-code-signup`,
+  SIGNIN_WITH_GOOGLE: `${API_BASE_URL}/user/exchange-google-auth-code-signin`,
+  CREATE_PASSWORD_RESET_LINK: `${API_BASE_URL}/user/create-reset-password-link`,
+  RESET_PASSWORD: `${API_BASE_URL}/user/reset-password`,
   CREATE_ORGANIZATION: `${API_BASE_URL}/organization/create`,
   UPDATE_ORGANIZATION: `${API_BASE_URL}/organization/update-organization`,
   GET_OGANIZATION: `${API_BASE_URL}/organization/get-organization`,

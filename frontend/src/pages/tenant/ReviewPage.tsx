@@ -51,7 +51,7 @@ export interface IReview {
 
 const ReviewsPage: React.FC = () => {
   const data = useLoaderData() as {
-    reviews: { data: IReview[]; pagination: Pagination };
+    reviews: { data: { data: IReview[]; pagination: Pagination } };
   };
   const reviews = useReviewValue();
   const setReviews = useReviewsSetRecoilState();
@@ -65,8 +65,8 @@ const ReviewsPage: React.FC = () => {
 
   useEffect(() => {
     if (data) {
-      setReviews(data.reviews.data);
-      setPagination(data.reviews.pagination);
+      setReviews(data.reviews.data.data);
+      setPagination(data.reviews.data.pagination);
     }
   }, [data]);
 
@@ -165,11 +165,11 @@ const ReviewsPage: React.FC = () => {
 
   // Calculate statistics
   const totalReviews = reviews?.length;
-  const averageRating = reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
+  const averageRating = reviews?.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
   const ratingDistribution = [5, 4, 3, 2, 1].map((rating) => ({
     rating,
-    count: reviews.filter((review) => review.rating === rating).length,
-    percentage: (reviews.filter((review) => review.rating === rating).length / reviews.length) * 100,
+    count: reviews?.filter((review) => review.rating === rating).length,
+    percentage: (reviews?.filter((review) => review.rating === rating).length / reviews.length) * 100,
   }));
 
   // Review Card Component

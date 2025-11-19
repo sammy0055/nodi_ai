@@ -15,6 +15,8 @@ class UsersModel extends Model<
   declare email: string;
   declare password: string;
   declare userType: `${UserTypes}`;
+  declare resetToken: string | null;
+  declare resetTokenExpires: Date | null;
 
   // custom method
   async comparePassword(plainPassword: string): Promise<boolean> {
@@ -55,6 +57,14 @@ UsersModel.init(
     email: { type: DataTypes.STRING, unique: true, allowNull: false },
     password: { type: DataTypes.STRING, allowNull: false },
     userType: { type: DataTypes.ENUM, values: Object.values(UserTypes), defaultValue: 'owner' },
+    resetToken: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    resetTokenExpires: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
   {
     sequelize,

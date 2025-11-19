@@ -1,4 +1,4 @@
-import { API_ROUTES } from './apiClient';
+import { API_ROUTES, ApiClient } from './apiClient';
 
 export class AuthService {
   constructor() {}
@@ -33,5 +33,27 @@ export class AuthService {
     const data = (await res.json()) as { data: any; errors: any };
     if (!res.ok) throw data;
     return data;
+  }
+
+  async signupWithGoogle(code: string) {
+    await ApiClient('SIGNUP_WITH_GOOGLE', {
+      method: 'POST',
+      body: { code },
+    });
+  }
+
+  async signinWithGoogle(code: string) {
+    await ApiClient('SIGNIN_WITH_GOOGLE', {
+      method: 'POST',
+      body: { code },
+    });
+  }
+
+  async createPasswordResetLink(email: string) {
+    await ApiClient('CREATE_PASSWORD_RESET_LINK', { method: 'POST', body: { email } });
+  }
+
+  async resetPassword(token: string, password: string) {
+    await ApiClient('RESET_PASSWORD', { method: 'POST', body: { token, newPassword: password } });
   }
 }

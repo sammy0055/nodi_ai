@@ -5,6 +5,7 @@ import { UserController } from '../controllers/user.controller';
 import { APIResponseFormat } from '../types/apiTypes';
 import { authMiddleware } from '../middleware/authentication';
 import { setAuthHeaderCookie } from '../helpers/set-auth-header';
+import { UserService } from '../services/users.service';
 
 const userRoute = express.Router();
 
@@ -153,6 +154,47 @@ userRoute.post('/refresh-token', async (req, res) => {
     };
 
     setAuthHeaderCookie(res, data, 'auth_tokens');
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
+
+userRoute.post('/create-reset-password-link', async (req, res) => {
+  try {
+    await UserService.createResetPasswordLink(req.body.email);
+    const response: APIResponseFormat<any> = {
+      message: `password reset link sent to ${req.body.email}`,
+      data: [],
+    };
+
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
+
+userRoute.post('/reset-password', async (req, res) => {
+  try {
+    const token = req.body.token;
+    const newPassword = req.body.newPassword;
+    const data = await UserService.resetPassword(token, newPassword);
+    const response: APIResponseFormat<any> = {
+      message: 'password reset successfully',
+      data,
+    };
+
+    setAuthHeaderCookie(res, data.tokens, 'auth_tokens');
     res.status(201).json(response);
   } catch (error: any) {
     const response: APIResponseFormat<null> = {

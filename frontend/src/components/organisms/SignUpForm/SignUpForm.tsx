@@ -42,6 +42,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onGoogleSignUp, onLog
     onSuccess: (codeResponse) => {
       onGoogleSignUp(codeResponse);
     },
+    onError: () => alert('failed to signup with google, try another method'),
     flow: 'auth-code',
   });
 

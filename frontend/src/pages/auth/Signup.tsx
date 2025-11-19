@@ -4,24 +4,22 @@ import AuthTemplate from '../../components/templates/AuthTemplate/AuthTemplate';
 import { PageRoutes } from '../../routes';
 import { useNavigate } from 'react-router';
 import { AuthService } from '../../services/authService';
+import type { CodeResponse } from '@react-oauth/google';
 
 const SignUpPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { signUp, signupWithGoogle } = new AuthService();
   const handleSignUp = async (email: string, password: string, name: string) => {
-    const authService = new AuthService();
-    const { data } = await authService.signUp({ email, password, name });
-    if (data) navigate("/app");
+    const { data } = await signUp({ email, password, name });
+    if (data) navigate('/app');
   };
 
-  const handleGoogleSignUp = (credentialResponse:any) => {
+  const handleGoogleSignUp = async (credentialResponse: CodeResponse) => {
     setIsLoading(true);
-    console.log('Signing up with Google', credentialResponse);
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      alert('Google sign up successful!');
-    }, 1500);
+    await signupWithGoogle(credentialResponse.code);
+    setIsLoading(true);
+    navigate('/app');
   };
   return (
     <AuthTemplate title="Create account" subtitle="Get started with AI Agents for your e-commerce">

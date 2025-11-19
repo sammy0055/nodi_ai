@@ -4,25 +4,21 @@ import AuthTemplate from '../../components/templates/AuthTemplate/AuthTemplate';
 import { useNavigate } from 'react-router';
 import { PageRoutes } from '../../routes';
 import { AuthService } from '../../services/authService';
+import type { CodeResponse } from '@react-oauth/google';
 
 const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-
+  const authService = new AuthService();
   const handleLogin = async (email: string, password: string) => {
-    const authService = new AuthService();
     const { data } = await authService.login(email, password);
     if (data) navigate('/app');
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async (credentialResponse: CodeResponse) => {
     setIsLoading(true);
-    console.log('Logging in with Google');
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      alert('Google login successful!');
-    }, 1500);
+    await authService.signinWithGoogle(credentialResponse.code);
+    navigate('/app');
   };
 
   return (

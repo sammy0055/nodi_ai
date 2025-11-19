@@ -46,6 +46,7 @@ export const PageRoutes = {
   LOGIN: 'sign-in',
   SIGNUP: 'sign-up',
   FORGOT_PASSWORD: 'forgot-password',
+  RESET_PASSWORD: 'reset-password',
   CREATE_ORGANIZATION: 'create-organization',
   APP_DASHBOARD: 'dashboard',
   ORDERS: 'orders',
