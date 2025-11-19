@@ -27,6 +27,7 @@ export const APP_USER_API_ROUTES = {
 export const API_ROUTES = {
   ...APP_USER_API_ROUTES,
   LOGIN: `${API_BASE_URL}/user/login`,
+  LOGOUT: `${API_BASE_URL}/user/logout`,
   SIGNUP: `${API_BASE_URL}/user/sign-up`,
   CREATE_ORGANIZATION: `${API_BASE_URL}/organization/create`,
   UPDATE_ORGANIZATION: `${API_BASE_URL}/organization/update-organization`,

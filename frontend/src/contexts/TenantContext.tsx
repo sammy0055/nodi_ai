@@ -12,12 +12,17 @@ import { ReviewService } from '../services/reviewService';
 export const tenantContextLoader = async () => {
   const { getOrganization } = new OrganizationService();
   const { fetchCurrentUser } = new UserService();
-  const [userResult, orgResult] = await Promise.allSettled([fetchCurrentUser(), getOrganization()]);
+   const {getSubscriptionPlans, getSubscription} = new SubscriptionService();
+  const [userResult, orgResult, subscriptionResults, subsriptionPlanResults] = await Promise.allSettled([fetchCurrentUser(), getOrganization(), getSubscription(), getSubscriptionPlans()]);
   const user = userResult.status === 'fulfilled' ? userResult.value : null;
   const org = orgResult.status === 'fulfilled' ? orgResult.value : null;
+  const subscription = subscriptionResults.status === 'fulfilled' ? subscriptionResults.value : null;
+  const subscriptionPlans = subsriptionPlanResults.status === 'fulfilled' ? subsriptionPlanResults.value : null;
   return {
     user: user?.data,
     org: org?.data,
+    subscription: subscription?.data,
+    subscriptionPlans:subscriptionPlans?.data
   };
 };
 

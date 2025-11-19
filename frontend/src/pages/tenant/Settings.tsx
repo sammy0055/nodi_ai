@@ -207,7 +207,7 @@ const SettingsPage: React.FC = () => {
                 className="border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 value={orgData.currency}
                 disabled={!isEditing}
-                onChange={(e) => setOrgData((prev) => ({ ...prev, currency: e.target.value }))}
+                onChange={(e) => setOrgData((prev) => ({ ...prev, currency: e.target.value as any }))}
               >
                 {/* <option value={ProductStatusTypes.DRAFT}>Draft</option> */}
                 {Object.values(CurrencyCode).map((currency) => (

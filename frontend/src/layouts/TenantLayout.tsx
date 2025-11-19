@@ -22,7 +22,8 @@ import {
   useUserValue,
   useWhatsappSetRecoilState,
 } from '../store/authAtoms';
-
+import { UserService } from '../services/userService';
+import type { ISubscription, ISubscriptionPlan } from '../types/subscription';
 
 export const TenantLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -31,11 +32,17 @@ export const TenantLayout = () => {
 
   const orgData = useOrgValue();
   const user = useUserValue();
-  const data = useLoaderData() as { user: any; org: any };
+  const data = useLoaderData() as {
+    user: any;
+    org: any;
+    subscription: ISubscription;
+    subscriptionPlans: ISubscriptionPlan[];
+  };
 
   const setUser = useUserSetRecoilState();
   const setOrg = useOrgSetRecoilState();
   const setWhatsapp = useWhatsappSetRecoilState();
+  const currentPlan = data?.subscriptionPlans?.find((p) => p.id === data?.subscription?.planId);
 
   useEffect(() => {
     if (!data) return;
@@ -73,10 +80,12 @@ export const TenantLayout = () => {
     { path: `/app/${PageRoutes.SETTINGS}`, label: 'Settings', icon: <FiSettings className="text-lg" /> },
   ];
 
-  const handleLogout = () => {
+  const { logout } = new UserService();
+  const handleLogout = async () => {
+    await logout();
     // Handle logout logic
     console.log('Logging out...');
-    navigate('/login');
+    navigate('/app/login');
   };
   return (
     <>
@@ -113,7 +122,7 @@ export const TenantLayout = () => {
 
                 <div>
                   <h2 className="font-semibold text-neutral-900">{orgData.name}</h2>
-                  <p className="text-xs text-primary-600">Premium Plan</p>
+                  <p className="text-xs text-primary-600">Plan: {currentPlan?.name || 'Free Plan'}</p>
                 </div>
               </div>
               <button

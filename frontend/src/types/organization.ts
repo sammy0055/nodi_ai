@@ -1,4 +1,5 @@
 import type { BusinessType } from '../data/data-types';
+import type { CurrencyCode } from './product';
 import type { User } from './users';
 import type { IWhatSappSettings } from './whatsapp';
 
@@ -9,7 +10,7 @@ export interface IOrganization {
   businessType: `${BusinessType}`;
   AIAssistantName: string;
   languageProtectedTerms?: string[];
-  currency: string;
+  currency: CurrencyCode;
 }
 
 export interface OrganizationPayload extends IOrganization {

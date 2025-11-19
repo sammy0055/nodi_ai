@@ -14,9 +14,9 @@ const SignUpPage: React.FC = () => {
     if (data) navigate("/app");
   };
 
-  const handleGoogleSignUp = () => {
+  const handleGoogleSignUp = (credentialResponse:any) => {
     setIsLoading(true);
-    console.log('Signing up with Google');
+    console.log('Signing up with Google', credentialResponse);
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
