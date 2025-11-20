@@ -49,7 +49,6 @@ chatRoute.post('/chat-webhook', async (req, res) => {
   for (const entry of payload.entry || []) {
     for (const change of entry.changes || []) {
       for (const msg of change.value?.messages || []) {
-        
         if (isDuplicate(msg.id)) {
           continue;
         }
@@ -65,12 +64,12 @@ chatRoute.post('/chat-webhook', async (req, res) => {
           console.log('Got message:', msg.id, newMsg.text?.body);
           await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
         } else if (msg.type === 'interactive') {
-          const payload = JSON.parse(msg.interactive?.nfm_reply.response_json as any)
+          const payload = JSON.parse(msg.interactive?.nfm_reply.response_json as any);
 
           const selectedZone = await ZoneModel.findByPk(payload?.zone_id);
           const selectedArea = await AreaModel.findByPk(payload?.area_id);
           const shippingAddress = payload?.note;
-          
+
           const newMsg = {
             ...msg,
             text: {
@@ -117,6 +116,11 @@ chatRoute.post('/chat-webhook', async (req, res) => {
           await chat.sendWhatSappFlowInteractiveMessage({
             recipientPhoneNumber: userPhoneNumber,
             zones: response.zones,
+            flowId: response.flowId,
+            flowName: response.flowName,
+            headingText: response.headingText,
+            bodyText: response.bodyText,
+            footerText: response.footerText,
           });
           break;
         default:

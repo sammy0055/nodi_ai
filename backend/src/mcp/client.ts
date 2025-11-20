@@ -24,6 +24,11 @@ const structuredResponseFormat = z.object({
     z.object({
       type: z.literal('flow'),
       zones: z.array(z.object({ id: z.string(), title: z.string() })),
+      flowId: z.string(),
+      flowName: z.string(),
+      headingText: z.string().describe('card heading text'),
+      bodyText: z.string().describe('card body text'),
+      footerText: z.string().describe('card footer text'),
     }),
   ]),
 });

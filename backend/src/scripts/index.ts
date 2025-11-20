@@ -9,6 +9,7 @@ import { decrypt } from '../utils/crypto-utils';
 import { run } from './migration';
 import { sendVerificationEmail } from '../utils/send-email';
 import { ChatHistoryManager } from '../services/ChatHistoryManager.service';
+import { templates } from '../data/templates';
 
 const ddd = {
   whatsappBusinessId: '1390720013053482',
@@ -109,10 +110,10 @@ const body = {
   },
 };
 const ZONES = [
-  { id: "zone_1", title: "Zone 1" },
-  { id: "zone_2", title: "Zone 2" },
-  { id: "zone_3", title: "Zone 3" },
-  { id: "zone_4", title: "Zone 4" },
+  { id: 'zone_1', title: 'Zone 1' },
+  { id: 'zone_2', title: 'Zone 2' },
+  { id: 'zone_3', title: 'Zone 3' },
+  { id: 'zone_4', title: 'Zone 4' },
 ];
 const flowbody = {
   messaging_product: 'whatsapp',
@@ -150,7 +151,7 @@ const flowbody = {
 
 const sendMessage = async () => {
   try {
-    const url = `https://graph.facebook.com/v20.0/${814512655081481}/messages`;
+    const url = `https://graph.facebook.com/v20.0/${589647264175107}/messages`;
     const res = await fetch(url, {
       method: 'POST',
       headers: {
@@ -172,6 +173,35 @@ const sendMessage = async () => {
   // const data = await res.
 };
 
+const createWhsappFlow = async () => {
+  const flowJson = {
+    name: 'My first flow In React Ja',
+    categories: ['OTHER'],
+    flow_json: JSON.stringify(templates.whatsappFlow.zoneAndAreaFlow),
+    publish: true,
+    endpoint_uri: 'https://labanon.naetechween.com/api/whatsappflow/flow-endpoint',
+  };
+  try {
+    const url = `https://graph.facebook.com/v20.0/${589647264175107}/flows`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.META_BUSINESS_SYSTEM_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(flowJson),
+    });
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(`Error ${res.status}: ${errorData.error.message}`);
+    }
+  } catch (error: any) {
+    console.log('====================================');
+    console.log(error);
+    console.log('====================================');
+  }
+};
+
 const summarize = async () => {
   const { summarizeConversationById } = new ChatHistoryManager();
   const summary = await summarizeConversationById('conv_6912f970677881959a019602608c41ce085b268a3a0e4eb1');
@@ -181,4 +211,4 @@ const summarize = async () => {
 // summarize()
 // testMcp('hello');
 // run();
-sendMessage();
+createWhsappFlow();

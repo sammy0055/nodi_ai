@@ -1,8 +1,15 @@
 import { appConfig } from '../config';
 import { WhatSappConnectionStatus } from '../data/data-types';
+import { templates } from '../data/templates';
 import { WhatSappSettingsModel } from '../models/whatsapp-settings.model';
 import { User } from '../types/users';
-import { RegisterPhoneNumberArg, WhatSappAuthPayload, WhatsAppPhoneNumberInfo } from '../types/whatsapp-settings';
+import {
+  createWhatsappFlowArgs,
+  IWhatSappSettings,
+  RegisterPhoneNumberArg,
+  WhatSappAuthPayload,
+  WhatsAppPhoneNumberInfo,
+} from '../types/whatsapp-settings';
 
 export class WhatSappSettingsService {
   private static readonly MFAPIN = '886677';
@@ -81,8 +88,18 @@ export class WhatSappSettingsService {
     });
 
     console.log(`✅------------registeredNumber successful:${JSON.stringify(registeredNumber, null, 2)}`);
+
+    const areaAndZoneFlow = await this.createWhsappFlow({
+      whatsappBusinessId,
+      accessToken: data.access_token,
+      flowJson: JSON.stringify(templates.whatsappFlow.zoneAndAreaFlow),
+      flowName: 'ZONE_AND_AREAS_FLOW',
+      flowEndpoint: 'https://labanon.naetechween.com/api/whatsappflow/flow-endpoint',
+    });
+
+    console.log(`✅------------create AreaAndZoneFlow successfully:${JSON.stringify(areaAndZoneFlow, null, 2)}`);
     if (!user.organizationId) throw new Error('you need to have an organization first');
-    const payload = {
+    const payload: IWhatSappSettings = {
       organizationId: user.organizationId,
       whatsappBusinessId: whatsappBusinessId,
       whatsappPhoneNumberId: whatsappPhoneNumberId,
@@ -91,6 +108,9 @@ export class WhatSappSettingsService {
       accessToken: data.access_token,
       token_type: data.token_type,
       isSubscribedToWebhook: isSubscribedToWebhook ? true : false,
+      whatsappTemplates: [
+        { type: 'flow', data: { flowId: areaAndZoneFlow.flowID, flowName: areaAndZoneFlow.flowName } },
+      ],
     };
 
     const whatBussinessAccountData = await WhatSappSettingsModel.create(payload);
@@ -176,6 +196,43 @@ export class WhatSappSettingsService {
     console.log(data);
     console.log('====================================');
     return data as WhatsAppPhoneNumberInfo;
+  }
+
+  static async createWhsappFlow({
+    whatsappBusinessId,
+    accessToken,
+    flowName,
+    flowJson: _flowJson,
+    flowEndpoint,
+  }: createWhatsappFlowArgs) {
+    const flowJson = {
+      name: flowName,
+      categories: ['OTHER'],
+      flow_json: _flowJson,
+      publish: true,
+      ...(flowEndpoint && { endpoint_uri: flowEndpoint }),
+    };
+
+    const url = `https://graph.facebook.com/v20.0/${whatsappBusinessId}/flows`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(flowJson),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Error ${response.status}: ${errorData.error.message}`);
+    }
+
+    const data = await response.json();
+    return {
+      flowID: data.id,
+      flowName,
+    };
   }
 
   static isPhoneNumberRegistered(phoneNumberInfo: WhatsAppPhoneNumberInfo) {

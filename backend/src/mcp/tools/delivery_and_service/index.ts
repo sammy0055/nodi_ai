@@ -5,6 +5,8 @@ import { Op } from 'sequelize';
 import dayjs from 'dayjs';
 import { IArea } from '../../../types/area';
 import { models } from '../../../models';
+import { WhatSappSettingsModel } from '../../../models/whatsapp-settings.model';
+import { WhatsappFlowNames } from '../../../types/whatsapp-settings';
 
 const { ZoneModel, BranchesModel, AreaModel } = models;
 // Get delivery options for area
@@ -148,8 +150,20 @@ export const getAllZonesAndAreas = async (server: McpServer) => {
         });
 
         const filteredZones = zones.map((z) => ({ id: z.id, title: z.name }));
+        const whatsappSettings = await WhatSappSettingsModel.findOne({
+          where: { organizationId: params.organizationId },
+        });
+
+        const flow = whatsappSettings?.whatsappTemplates.find(
+          (w) => w.type === 'flow' && w.data?.flowName === WhatsappFlowNames.ZONE_AND_AREAS_FLOW
+        );
+        const data = {
+          zones: filteredZones,
+          flowId: flow?.type === 'flow' && flow?.data.flowId,
+          flowName: flow?.type === 'flow' && flow?.data.flowName,
+        };
         return {
-          content: [{ type: 'text', text: JSON.stringify(filteredZones), mimeType: 'application/json' }],
+          content: [{ type: 'text', text: JSON.stringify(data), mimeType: 'application/json' }],
         };
       } catch (error: any) {
         console.error(`MCP-ERROR-GETZONES-AND-AREAS: ${error.message}`);

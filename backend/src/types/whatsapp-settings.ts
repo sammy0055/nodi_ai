@@ -1,8 +1,34 @@
 import { WhatSappConnectionStatus } from '../data/data-types';
 import { User } from './users';
 
+// FLOW STRUCTURE
+interface FlowData {
+  flowId: string;
+  flowName: string;
+}
+
+interface FlowTemplate {
+  type: 'flow';
+  data: FlowData;
+}
+
+// NORMAL TEMPLATE STRUCTURE
+interface TemplateData {
+  templateName: string;
+  variables?: string[];
+  components?: any[];
+}
+
+interface MessageTemplate {
+  type: 'template';
+  data: TemplateData;
+}
+
+// UNION TYPE
+export type WhatsAppTemplate = FlowTemplate | MessageTemplate;
+
 export interface IWhatSappSettings {
-  id: string;
+  id?: string;
   organizationId: string | null;
   whatsappBusinessId: string;
   whatsappPhoneNumberId: string;
@@ -11,7 +37,7 @@ export interface IWhatSappSettings {
   accessToken: string | null;
   token_type: string | null;
   isSubscribedToWebhook: boolean;
-  whatsappTemplates: string[];
+  whatsappTemplates: WhatsAppTemplate[];
   catalogId?: string;
 }
 
@@ -26,6 +52,18 @@ export interface RegisterPhoneNumberArg {
   accessToken: string;
   whatsappBusinessId: string;
   whatsappPhoneNumberId: string;
+}
+
+export enum WhatsappFlowNames {
+  ZONE_AND_AREAS_FLOW = 'ZONE_AND_AREAS_FLOW',
+  BRANCHES_FLOW = 'BRANCHES_FLOW',
+}
+export interface createWhatsappFlowArgs {
+  accessToken: string;
+  whatsappBusinessId: string;
+  flowName: `${WhatsappFlowNames}`;
+  flowJson: string;
+  flowEndpoint?: string;
 }
 
 export interface WhatsAppBusinessAccountPhoneNumber {

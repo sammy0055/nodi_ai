@@ -2,7 +2,7 @@ import { DataTypes, Model, InferAttributes, InferCreationAttributes, CreationOpt
 import { sequelize } from './db';
 import { DbModels } from '.';
 import { WhatSappConnectionStatus } from '../data/data-types';
-import { IWhatSappSettings } from '../types/whatsapp-settings';
+import { IWhatSappSettings, WhatsAppTemplate } from '../types/whatsapp-settings';
 import { encrypt } from '../utils/crypto-utils';
 import { ModelNames } from './model-names';
 
@@ -19,7 +19,7 @@ class WhatSappSettingsModel
   declare accessToken: string | null;
   declare token_type: string | null;
   declare isSubscribedToWebhook: boolean;
-  declare whatsappTemplates: CreationOptional<string[]>;
+  declare whatsappTemplates: CreationOptional<WhatsAppTemplate[]>;
   declare catalogId: CreationOptional<string>;
   static associate(models: DbModels) {
     // belongsTo → The foreign key is on this model (the one calling belongsTo).
@@ -55,7 +55,7 @@ WhatSappSettingsModel.init(
     accessToken: { type: DataTypes.TEXT, allowNull: true },
     token_type: { type: DataTypes.STRING, allowNull: true },
     isSubscribedToWebhook: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
-    whatsappTemplates: { type: DataTypes.ARRAY(DataTypes.STRING), allowNull: false, defaultValue: [] },
+    whatsappTemplates: { type: DataTypes.JSONB, allowNull: false, defaultValue: [] },
     catalogId: { type: DataTypes.STRING, defaultValue: '' },
   },
   {

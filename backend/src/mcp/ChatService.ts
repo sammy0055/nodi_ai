@@ -23,7 +23,12 @@ interface SendWhatSappCatalogProps {
 interface SendWhatSappFlowProps {
   WhatSappBusinessPhoneNumberId?: string;
   recipientPhoneNumber: string;
+  flowId: string;
+  flowName: string;
   zones: { id: string; title: string }[];
+  headingText: string;
+  bodyText: string;
+  footerText?: string;
 }
 
 export class ChatService extends MCPChatBot {
@@ -203,18 +208,18 @@ export class ChatService extends MCPChatBot {
         type: 'flow',
         header: {
           type: 'text',
-          text: 'Delivery Details',
+          text: args.headingText || 'Delivery Details',
         },
         body: {
-          text: 'Tap below to choose your delivery zone and area.',
+          text: args.bodyText || 'Tap below to choose your delivery zone and area.',
         },
         footer: {
-          text: 'CheeseAI Bot',
+          text: args.footerText || 'CheeseAI Bot',
         },
         action: {
           name: 'flow',
           parameters: {
-            flow_id: '1915739722629946',
+            flow_id: args.flowId,
             flow_message_version: '3',
             flow_token: 'prod-token-001',
             flow_cta: 'Open form',
