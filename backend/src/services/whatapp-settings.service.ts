@@ -225,6 +225,9 @@ export class WhatSappSettingsService {
 
     if (!response.ok) {
       const errorData = await response.json();
+      console.log('====================================');
+      console.log('📛', JSON.stringify(errorData, null, 2));
+      console.log('====================================');
       throw new Error(`Error ${response.status}: ${errorData.error.message}`);
     }
 
