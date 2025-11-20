@@ -89,6 +89,11 @@ export class WhatSappSettingsService {
 
     console.log(`✅------------registeredNumber successful:${JSON.stringify(registeredNumber, null, 2)}`);
 
+    await this.uploadPublicKeyToPhoneNumber({
+      whatsappPhoneNumberId,
+      whatsappBusinessId,
+      accessToken: data.access_token,
+    });
     const areaAndZoneFlow = await this.createWhsappFlow({
       whatsappBusinessId,
       accessToken: data.access_token,
@@ -196,6 +201,29 @@ export class WhatSappSettingsService {
     console.log(data);
     console.log('====================================');
     return data as WhatsAppPhoneNumberInfo;
+  }
+
+  static async uploadPublicKeyToPhoneNumber({ accessToken, whatsappPhoneNumberId }: RegisterPhoneNumberArg) {
+    const url = `'https://graph.facebook.com/v24.0/${whatsappPhoneNumberId}/whatsapp_business_encryption`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: new URLSearchParams({
+        name: 'my_flow_key',
+        public_key: process.env.WHATSAPPP_FLOW_AES_PUBLIC_KEY!,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.log('=========upload AES public key failed==========');
+      console.log('📛', JSON.stringify(errorData, null, 2));
+      console.log('====================================');
+      throw new Error(`Error ${response.status}: ${errorData.error.message}`);
+    }
   }
 
   static async createWhsappFlow({
