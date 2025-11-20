@@ -204,16 +204,15 @@ export class WhatSappSettingsService {
   }
 
   static async uploadPublicKeyToPhoneNumber({ accessToken, whatsappPhoneNumberId }: RegisterPhoneNumberArg) {
-    const url = `'https://graph.facebook.com/v24.0/${whatsappPhoneNumberId}/whatsapp_business_encryption`;
-
+    const url = `https://graph.facebook.com/v24.0/${whatsappPhoneNumberId}/whatsapp_business_encryption`;
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        name: 'my_flow_key',
-        public_key: process.env.WHATSAPPP_FLOW_AES_PUBLIC_KEY!,
+        business_public_key: process.env.WHATSAPPP_FLOW_AES_PUBLIC_KEY!,
       }),
     });
 
