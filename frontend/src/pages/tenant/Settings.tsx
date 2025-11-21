@@ -35,8 +35,13 @@ const SettingsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [catalogRequest, setCatalogRequest] = useState<any>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const { updateOrganization, exchangeCodeForAccessToken, requestCatalogCreation, getOrganizationRequest } =
-    new OrganizationService();
+  const {
+    updateOrganization,
+    exchangeCodeForAccessToken,
+    requestCatalogCreation,
+    getOrganizationRequest,
+    publishWhatsappTemplates,
+  } = new OrganizationService();
   const handleOrgChange = (field: string, value: string) => {
     setOrgData((prev) => ({ ...prev!, [field]: value }));
   };
@@ -137,6 +142,19 @@ const SettingsPage: React.FC = () => {
     }
   };
 
+  const handlePublishTemplates = async () => {
+    try {
+      setIsLoading(true);
+      const { data } = await publishWhatsappTemplates();
+      setWhatsappData(data);
+      setIsLoading(false);
+    } catch (error) {
+      alert('Publish WhatsApp failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -209,7 +227,6 @@ const SettingsPage: React.FC = () => {
                 disabled={!isEditing}
                 onChange={(e) => setOrgData((prev) => ({ ...prev, currency: e.target.value as any }))}
               >
-                {/* <option value={ProductStatusTypes.DRAFT}>Draft</option> */}
                 {Object.values(CurrencyCode).map((currency) => (
                   <option value={currency}>{currency}</option>
                 ))}
@@ -275,6 +292,8 @@ const SettingsPage: React.FC = () => {
                 className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                   whatsappData?.connectionStatus === 'connected'
                     ? 'bg-success-100 text-success-800'
+                    : whatsappData?.connectionStatus === 'pending'
+                    ? 'bg-warning-100 text-warning-600'
                     : 'bg-warning-100 text-warning-800'
                 }`}
               >
@@ -282,6 +301,15 @@ const SettingsPage: React.FC = () => {
                   <>
                     <FiCheck className="mr-1" />
                     Connected
+                  </>
+                ) : whatsappData?.connectionStatus === 'pending' ? (
+                  <>
+                    <FiClock className="mr-1" />
+                    Pending
+                    <Button onClick={handlePublishTemplates} isLoading={isLoading}>
+                      <FiMessageSquare className="mr-2" />
+                      Publish Whatsapp Template
+                    </Button>
                   </>
                 ) : (
                   <>

@@ -1,6 +1,7 @@
 import { appConfig } from '../config';
 import { WhatSappConnectionStatus } from '../data/data-types';
 import { templates } from '../data/templates';
+import { OrganizationsModel } from '../models/organizations.model';
 import { WhatSappSettingsModel } from '../models/whatsapp-settings.model';
 import { User } from '../types/users';
 import {
@@ -13,6 +14,7 @@ import {
 
 export class WhatSappSettingsService {
   private static readonly MFAPIN = '886677';
+  private static readonly MetaBaseUrl = 'https://graph.facebook.com/v20.0';
   private static readonly meta_app_id = appConfig.whatsapp.appId;
   private static readonly meta_app_secret = appConfig.whatsapp.appSecret;
   private static readonly meta_app_whatsapp_cofigId = appConfig.whatsapp.authConfig;
@@ -89,32 +91,40 @@ export class WhatSappSettingsService {
 
     console.log(`✅------------registeredNumber successful:${JSON.stringify(registeredNumber, null, 2)}`);
 
-    await this.uploadPublicKeyToPhoneNumber({
+    const uploadedPublicKeyToPhoneNumber = await this.uploadPublicKeyToPhoneNumber({
       whatsappPhoneNumberId,
       whatsappBusinessId,
       accessToken: data.access_token,
     });
+    console.log(
+      `✅------------uploadedPublicKeyToPhoneNumber successfully:${JSON.stringify(uploadedPublicKeyToPhoneNumber, null, 2)}`
+    );
+
     const areaAndZoneFlow = await this.createWhsappFlow({
       whatsappBusinessId,
       accessToken: data.access_token,
-      flowJson: JSON.stringify(templates.whatsappFlow.zoneAndAreaFlow),
       flowName: 'ZONE_AND_AREAS_FLOW',
+      flowJson: JSON.stringify(templates.whatsappFlow.zoneAndAreaFlow),
       flowEndpoint: 'https://labanon.naetechween.com/api/whatsappflow/flow-endpoint',
     });
 
-    console.log(`✅------------create AreaAndZoneFlow successfully:${JSON.stringify(areaAndZoneFlow, null, 2)}`);
+    console.log(`✅------------create AreaAndZoneFlow Draft successfully:${JSON.stringify(areaAndZoneFlow, null, 2)}`);
     if (!user.organizationId) throw new Error('you need to have an organization first');
     const payload: IWhatSappSettings = {
       organizationId: user.organizationId,
       whatsappBusinessId: whatsappBusinessId,
       whatsappPhoneNumberId: whatsappPhoneNumberId,
       whatsappPhoneNumber: phoneNumberInfo.display_phone_number,
-      connectionStatus: WhatSappConnectionStatus.Connected,
+      connectionStatus: WhatSappConnectionStatus.Pending,
       accessToken: data.access_token,
       token_type: data.token_type,
       isSubscribedToWebhook: isSubscribedToWebhook ? true : false,
       whatsappTemplates: [
-        { type: 'flow', data: { flowId: areaAndZoneFlow.flowID, flowName: areaAndZoneFlow.flowName } },
+        {
+          type: 'flow',
+          isPublished: false,
+          data: { flowId: areaAndZoneFlow.flowID, flowName: areaAndZoneFlow.flowName },
+        },
       ],
     };
 
@@ -223,6 +233,9 @@ export class WhatSappSettingsService {
       console.log('====================================');
       throw new Error(`Error ${response.status}: ${errorData.error.message}`);
     }
+
+    const data = await response.json();
+    return data;
   }
 
   static async createWhsappFlow({
@@ -236,7 +249,7 @@ export class WhatSappSettingsService {
       name: flowName,
       categories: ['OTHER'],
       flow_json: _flowJson,
-      publish: true,
+      publish: false,
       ...(flowEndpoint && { endpoint_uri: flowEndpoint }),
     };
 
@@ -263,6 +276,52 @@ export class WhatSappSettingsService {
       flowID: data.id,
       flowName,
     };
+  }
+
+  static async publishWhatsappFlows(user: Pick<User, 'organizationId'>) {
+    if (!user.organizationId) throw new Error('organization id is required to publish template flows');
+    const org = await WhatSappSettingsModel.findOne({ where: { organizationId: user.organizationId } });
+    if (!org) throw new Error('organization does not exist');
+    const templates = org.whatsappTemplates;
+    const unpublishedFlows = templates.filter((t) => t.type === 'flow' && t.isPublished === false);
+    if (unpublishedFlows.length === 0) throw new Error('no pre-built template flow to publish');
+
+    for (const flows of unpublishedFlows) {
+      if (flows.type !== 'flow') return;
+      const url = `${this.MetaBaseUrl}/${flows.data.flowId}/publish`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.META_BUSINESS_SYSTEM_TOKEN}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.log('====================================');
+        console.log('📛', JSON.stringify(errorData, null, 2));
+        console.log('====================================');
+        throw new Error(`Error ${response.status}: ${errorData.error.message}`);
+      }
+
+      templates.forEach((t) => {
+        if (t.type === 'flow') {
+          if (t.data.flowId === flows.data.flowId) {
+            t.isPublished = true;
+          }
+        }
+      });
+
+      await WhatSappSettingsModel.update(
+        { whatsappTemplates: templates },
+        { where: { organizationId: user.organizationId } }
+      );
+    }
+
+    const updatedWhatsappSettings = await WhatSappSettingsModel.findOne({
+      where: { organizationId: user.organizationId },
+    });
+    return updatedWhatsappSettings;
   }
 
   static isPhoneNumberRegistered(phoneNumberInfo: WhatsAppPhoneNumberInfo) {

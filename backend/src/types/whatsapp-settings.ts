@@ -9,6 +9,7 @@ interface FlowData {
 
 interface FlowTemplate {
   type: 'flow';
+  isPublished: boolean;
   data: FlowData;
 }
 

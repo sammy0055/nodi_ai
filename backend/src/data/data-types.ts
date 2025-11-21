@@ -29,6 +29,7 @@ export enum WhatSappConnectionStatus {
   Connected = 'connected',
   NotConnected = 'not-connected',
   Disconnected = 'disconnected',
+  Pending = "pending"
 }
 
 export enum UserTypes {

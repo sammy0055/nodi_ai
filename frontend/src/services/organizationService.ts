@@ -61,4 +61,8 @@ export class OrganizationService {
       body: data,
     });
   }
+
+  async publishWhatsappTemplates(): Promise<{ data: any; message: string }> {
+    return await ApiClient('PUBLISH_WHATSAPP_TEMPLATE', { method: 'POST' });
+  }
 }

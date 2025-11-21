@@ -39,6 +39,7 @@ export const API_ROUTES = {
   CURRENT_USER: `${API_BASE_URL}/user/current-user`,
   WHATSAPP_AUTH: `${API_BASE_URL}/whatsapp-settings/get-whatsapp-auth-url`,
   EXCHANGE_WABA_CODE: `${API_BASE_URL}/whatsapp-settings/exchange-whatsapp-code-for-access-token`,
+  PUBLISH_WHATSAPP_TEMPLATE:  `${API_BASE_URL}/whatsapp-settings/publish-pre-built-templates-flows`,
   GET_REQUST: `${API_BASE_URL}/organization/request/get-request`,
   ADD_PRODUCT: `${API_BASE_URL}/organization/product/create-product`,
   GET_PRODUCTS: `${API_BASE_URL}/organization/product/products`,
