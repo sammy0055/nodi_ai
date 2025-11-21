@@ -4,6 +4,7 @@ import { User } from './users';
 // FLOW STRUCTURE
 interface FlowData {
   flowId: string;
+  flowLabel: `${WhatsappFlowLabel}`;
   flowName: string;
 }
 
@@ -55,14 +56,15 @@ export interface RegisterPhoneNumberArg {
   whatsappPhoneNumberId: string;
 }
 
-export enum WhatsappFlowNames {
+export enum WhatsappFlowLabel {
   ZONE_AND_AREAS_FLOW = 'ZONE_AND_AREAS_FLOW',
   BRANCHES_FLOW = 'BRANCHES_FLOW',
 }
 export interface createWhatsappFlowArgs {
   accessToken: string;
   whatsappBusinessId: string;
-  flowName: `${WhatsappFlowNames}`;
+  flowLabel: `${WhatsappFlowLabel}`;
+  flowName: string;
   flowJson: string;
   flowEndpoint?: string;
 }

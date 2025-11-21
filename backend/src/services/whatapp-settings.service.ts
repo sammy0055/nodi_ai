@@ -1,7 +1,7 @@
+import { randomUUID } from 'crypto';
 import { appConfig } from '../config';
 import { WhatSappConnectionStatus } from '../data/data-types';
 import { templates } from '../data/templates';
-import { OrganizationsModel } from '../models/organizations.model';
 import { WhatSappSettingsModel } from '../models/whatsapp-settings.model';
 import { User } from '../types/users';
 import {
@@ -103,7 +103,8 @@ export class WhatSappSettingsService {
     const areaAndZoneFlow = await this.createWhsappFlow({
       whatsappBusinessId,
       accessToken: data.access_token,
-      flowName: 'ZONE_AND_AREAS_FLOW',
+      flowLabel: 'ZONE_AND_AREAS_FLOW',
+      flowName: randomUUID(),
       flowJson: JSON.stringify(templates.whatsappFlow.zoneAndAreaFlow),
       flowEndpoint: 'https://labanon.naetechween.com/api/whatsappflow/flow-endpoint',
     });
@@ -123,7 +124,7 @@ export class WhatSappSettingsService {
         {
           type: 'flow',
           isPublished: false,
-          data: { flowId: areaAndZoneFlow.flowID, flowName: areaAndZoneFlow.flowName },
+          data: { flowId: areaAndZoneFlow.flowID, flowName: areaAndZoneFlow.flowName, flowLabel: areaAndZoneFlow.flowLabel },
         },
       ],
     };
@@ -242,6 +243,7 @@ export class WhatSappSettingsService {
     whatsappBusinessId,
     accessToken,
     flowName,
+    flowLabel,
     flowJson: _flowJson,
     flowEndpoint,
   }: createWhatsappFlowArgs) {
@@ -275,6 +277,7 @@ export class WhatSappSettingsService {
     return {
       flowID: data.id,
       flowName,
+      flowLabel,
     };
   }
 

@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 import { IArea } from '../../../types/area';
 import { models } from '../../../models';
 import { WhatSappSettingsModel } from '../../../models/whatsapp-settings.model';
-import { WhatsappFlowNames } from '../../../types/whatsapp-settings';
+import { WhatsappFlowLabel } from '../../../types/whatsapp-settings';
 
 const { ZoneModel, BranchesModel, AreaModel } = models;
 // Get delivery options for area
@@ -155,7 +155,7 @@ export const getAllZonesAndAreas = async (server: McpServer) => {
         });
 
         const flow = whatsappSettings?.whatsappTemplates.find(
-          (w) => w.type === 'flow' && w.data?.flowName === WhatsappFlowNames.ZONE_AND_AREAS_FLOW
+          (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.ZONE_AND_AREAS_FLOW
         );
         const data = {
           zones: filteredZones,
