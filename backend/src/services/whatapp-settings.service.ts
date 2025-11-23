@@ -124,7 +124,11 @@ export class WhatSappSettingsService {
         {
           type: 'flow',
           isPublished: false,
-          data: { flowId: areaAndZoneFlow.flowID, flowName: areaAndZoneFlow.flowName, flowLabel: areaAndZoneFlow.flowLabel },
+          data: {
+            flowId: areaAndZoneFlow.flowID,
+            flowName: areaAndZoneFlow.flowName,
+            flowLabel: areaAndZoneFlow.flowLabel,
+          },
         },
       ],
     };
@@ -314,11 +318,9 @@ export class WhatSappSettingsService {
           }
         }
       });
-console.log('====================================');
-console.log(templates);
-console.log('====================================');
+     
       await WhatSappSettingsModel.update(
-        { whatsappTemplates: templates },
+        { whatsappTemplates: templates, connectionStatus: 'connected' },
         { where: { organizationId: user.organizationId } }
       );
     }
