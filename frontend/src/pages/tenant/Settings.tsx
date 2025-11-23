@@ -69,6 +69,7 @@ const SettingsPage: React.FC = () => {
   useEffect(() => {
     const fn = async () => {
       const { data } = await getOrganizationRequest('CatalogRequest');
+      if (!data) return;
       setCatalogRequest({
         title: data.title,
         description: data.description,
@@ -154,7 +155,9 @@ const SettingsPage: React.FC = () => {
       setIsLoading(false);
     }
   };
-
+  console.log('====================================');
+  console.log(whatsappData);
+  console.log('====================================');
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -306,10 +309,6 @@ const SettingsPage: React.FC = () => {
                   <>
                     <FiClock className="mr-1" />
                     Pending
-                    <Button onClick={handlePublishTemplates} isLoading={isLoading}>
-                      <FiMessageSquare className="mr-2" />
-                      Publish Whatsapp Template
-                    </Button>
                   </>
                 ) : (
                   <>
@@ -319,7 +318,7 @@ const SettingsPage: React.FC = () => {
                 )}
               </div>
 
-              {whatsappData?.connectionStatus !== 'connected' ? (
+              {whatsappData?.connectionStatus === 'not-connected' ? (
                 <div className="mt-4">
                   <p className="text-sm text-neutral-600 mb-3">
                     Connect your WhatsApp Business Account to start using AI agents for customer interactions.
@@ -329,10 +328,18 @@ const SettingsPage: React.FC = () => {
                     Connect WhatsApp Business
                   </Button>
                 </div>
-              ) : (
+              ) : whatsappData?.connectionStatus === 'pending' ? (
+                <div className="mt-4">
+                  <p className="text-sm text-neutral-600 mb-3">Publish Pre-Built Templates To Use Our AI Agent</p>
+                  <Button onClick={handlePublishTemplates} isLoading={isLoading}>
+                    <FiMessageSquare className="mr-2" />
+                    Publish Templates
+                  </Button>
+                </div>
+              ) : whatsappData?.connectionStatus === 'connected' ? (
                 <div className="mt-4 space-y-2">
                   <p className="text-sm text-neutral-600">
-                    <span className="font-medium">Phone Number ID:</span> {whatsappData.whatsappPhoneNumberId}
+                    <span className="font-medium">Phone Number ID:</span> {whatsappData?.whatsappPhoneNumberId}
                   </p>
                   <p className="text-sm text-neutral-600">
                     <span className="font-medium">Webhook Subscription:</span>{' '}
@@ -341,6 +348,16 @@ const SettingsPage: React.FC = () => {
                   <p className="text-sm text-neutral-600">
                     <span className="font-medium">Templates:</span> {whatsappData.whatsappTemplates.length} approved
                   </p>
+                </div>
+              ) : (
+                <div className="mt-4">
+                  <p className="text-sm text-neutral-600 mb-3">
+                    Connect your WhatsApp Business Account to start using AI agents for customer interactions.
+                  </p>
+                  <Button onClick={handleWhatsappOnboarding} isLoading={isLoading}>
+                    <FiMessageSquare className="mr-2" />
+                    Connect WhatsApp Business
+                  </Button>
                 </div>
               )}
             </div>
