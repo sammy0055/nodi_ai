@@ -314,7 +314,9 @@ export class WhatSappSettingsService {
           }
         }
       });
-
+console.log('====================================');
+console.log(templates);
+console.log('====================================');
       await WhatSappSettingsModel.update(
         { whatsappTemplates: templates },
         { where: { organizationId: user.organizationId } }

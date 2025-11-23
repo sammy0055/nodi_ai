@@ -147,6 +147,9 @@ const SettingsPage: React.FC = () => {
     try {
       setIsLoading(true);
       const { data } = await publishWhatsappTemplates();
+      console.log('===================publishWhatsappTemplates=================');
+      console.log(data);
+      console.log('====================================');
       setWhatsappData(data);
       setIsLoading(false);
     } catch (error) {
