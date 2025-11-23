@@ -19,6 +19,8 @@ const structuredResponseFormat = z.object({
       type: z.literal('catalog'),
       catalogUrl: z.string(),
       productUrl: z.string(),
+      bodyText: z.string().describe('short descriptive message that appears inside the card body'),
+      buttonText: z.string().describe('short action label for the card button, like “view catalog”'),
     }),
 
     z.object({
@@ -26,9 +28,9 @@ const structuredResponseFormat = z.object({
       zones: z.array(z.object({ id: z.string(), title: z.string() })),
       flowId: z.string(),
       flowName: z.string(),
-      headingText: z.string().describe('card heading text'),
-      bodyText: z.string().describe('card body text'),
-      footerText: z.string().describe('card footer text'),
+      headingText: z.string().describe('short descriptive message that appears inside the card heading'),
+      bodyText: z.string().describe('short descriptive message that appears inside the card body'),
+      footerText: z.string().describe('short descriptive message that appears inside the card footer'),
     }),
   ]),
 });

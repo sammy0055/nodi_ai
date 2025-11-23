@@ -18,6 +18,8 @@ interface SendWhatSappCatalogProps {
   recipientPhoneNumber: string;
   catalogUrl: string;
   productUrl: string;
+  buttonText: string;
+  bodyText: string;
 }
 
 interface SendWhatSappFlowProps {
@@ -153,7 +155,6 @@ export class ChatService extends MCPChatBot {
   async sendWhatSappCatalogInteractiveMessage(args: SendWhatSappCatalogProps) {
     const CATALOG_LINK = args.catalogUrl;
     const INAGE_PREVIEW = args.productUrl;
-    console.log('CATALOG_LINK', CATALOG_LINK);
     const body = {
       messaging_product: 'whatsapp',
       to: args.recipientPhoneNumber,
@@ -167,12 +168,12 @@ export class ChatService extends MCPChatBot {
           },
         },
         body: {
-          text: 'Check out our latest products 👇',
+          text: args.bodyText || 'Check out our latest products 👇',
         },
         action: {
           name: 'cta_url',
           parameters: {
-            display_text: 'view catalog',
+            display_text: args.buttonText || 'view catalog',
             url: CATALOG_LINK,
           },
         },

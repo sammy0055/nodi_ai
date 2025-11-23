@@ -110,6 +110,8 @@ chatRoute.post('/chat-webhook', async (req, res) => {
             recipientPhoneNumber: userPhoneNumber,
             catalogUrl: response.catalogUrl,
             productUrl: response.productUrl,
+            bodyText: response.bodyText,
+            buttonText: response.buttonText,
           });
           break;
         case 'flow':

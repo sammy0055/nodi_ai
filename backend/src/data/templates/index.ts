@@ -88,8 +88,66 @@ const prebuiltFlowJson = {
     ADDRESS_SELECTION: [],
   },
 };
+
+const prebuiltBranchesFlowJson = {
+  version: '7.2',
+  screens: [
+    {
+      id: 'BRANCH_SELECTION',
+      title: 'Branch Selection',
+      terminal: true,
+      success: true,
+      data: {
+        branches: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              title: { type: 'string' },
+            },
+          },
+          __example__: [
+            { id: '1', title: 'branche a' },
+            { id: '2', title: 'branche b' },
+          ],
+        },
+      },
+      layout: {
+        type: 'SingleColumnLayout',
+        children: [
+          {
+            type: 'Form',
+            name: 'address_form',
+            children: [
+              {
+                type: 'Dropdown',
+                name: 'branch_id',
+                label: 'Brnach',
+                required: true,
+                'data-source': '${data.branches}',
+              },
+              {
+                type: 'Footer',
+                label: 'Complete',
+                'on-click-action': {
+                  name: 'complete',
+                  payload: {
+                    branch_id: '${form.branch_id}',
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+};
+
 export const templates = Object.freeze({
   whatsappFlow: {
     zoneAndAreaFlow: prebuiltFlowJson,
+    branchesFlow: prebuiltBranchesFlowJson,
   },
 });

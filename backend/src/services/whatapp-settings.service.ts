@@ -109,7 +109,17 @@ export class WhatSappSettingsService {
       flowEndpoint: 'https://labanon.naetechween.com/api/whatsappflow/flow-endpoint',
     });
 
+    const branchesFlow = await this.createWhsappFlow({
+      whatsappBusinessId,
+      accessToken: data.access_token,
+      flowLabel: 'BRANCHES_FLOW',
+      flowName: randomUUID(),
+      flowJson: JSON.stringify(templates.whatsappFlow.branchesFlow),
+    });
+
     console.log(`✅------------create AreaAndZoneFlow Draft successfully:${JSON.stringify(areaAndZoneFlow, null, 2)}`);
+    console.log(`✅------------create branchesFlow Draft successfully:${JSON.stringify(branchesFlow, null, 2)}`);
+    
     if (!user.organizationId) throw new Error('you need to have an organization first');
     const payload: IWhatSappSettings = {
       organizationId: user.organizationId,
@@ -128,6 +138,15 @@ export class WhatSappSettingsService {
             flowId: areaAndZoneFlow.flowID,
             flowName: areaAndZoneFlow.flowName,
             flowLabel: areaAndZoneFlow.flowLabel,
+          },
+        },
+        {
+          type: 'flow',
+          isPublished: false,
+          data: {
+            flowId: branchesFlow.flowID,
+            flowName: branchesFlow.flowName,
+            flowLabel: branchesFlow.flowLabel,
           },
         },
       ],
@@ -318,7 +337,7 @@ export class WhatSappSettingsService {
           }
         }
       });
-     
+
       await WhatSappSettingsModel.update(
         { whatsappTemplates: templates, connectionStatus: 'connected' },
         { where: { organizationId: user.organizationId } }
