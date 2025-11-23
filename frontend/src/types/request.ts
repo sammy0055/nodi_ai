@@ -12,5 +12,17 @@ export interface BaseRequestAttributes {
   rejectedAt?: Date | null;
   createdAt?: Date;
   updatedAt?: Date;
-  data?: Record<string, any>;
+  data?: {
+    whatsappBusinessId: string;
+    organizationId: string;
+    organizationName: string;
+  };
+}
+
+export interface IWhatsAppDetails {
+  id?: string;
+  whatsappBusinessId: string;
+  organizationId: string;
+  organizationName: string;
+  catalogId: string;
 }

@@ -1,6 +1,5 @@
 import { AdminUserService } from '../services/admin/AdminUserService';
 import type { AdminUser } from '../types/users';
-import type { BaseRequestAttributes } from '../types/request';
 import { AdminSubscriptionPlanService } from '../services/admin/AdminSubscriptionPlanService';
 import { AdminOrganziationService } from '../services/admin/AdminOrganizationService';
 
@@ -18,10 +17,10 @@ export const adminLayoutLoader = async () => {
 export const adminRequestLoader = async () => {
   try {
     const { getRequests } = new AdminUserService();
-    const [requests] = await Promise.allSettled([getRequests()]);
+    const [requests] = await Promise.allSettled([getRequests({})]);
 
     const req = requests.status === 'fulfilled' ? requests.value : null;
-    return { requests: req?.data } as { requests: BaseRequestAttributes[] };
+    return { requests: req?.data };
   } catch (error: any) {
     console.error('error in Admin contextLoader:', error.message);
   }

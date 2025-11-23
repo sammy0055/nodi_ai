@@ -163,7 +163,7 @@ const ConversationLogsPage: React.FC = () => {
             <div
               className={`rounded-2xl px-4 py-3 ${
                 isUser
-                  ? 'bg-primary-500 text-white rounded-br-md'
+                  ? 'bg-primary-100 text-primary-900 rounded-br-md border border-primary-200'
                   : 'bg-white text-neutral-800 border border-neutral-200 rounded-bl-md shadow-sm'
               }`}
             >

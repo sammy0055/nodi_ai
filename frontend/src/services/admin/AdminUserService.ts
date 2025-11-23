@@ -1,3 +1,4 @@
+import type { Pagination } from '../../types/customer';
 import type { BaseRequestAttributes } from '../../types/request';
 import type { AdminUser } from '../../types/users';
 import { AdminApiClient, API_ROUTES } from '../apiClient';
@@ -26,8 +27,21 @@ export class AdminUserService {
     return await AdminApiClient('CURRENT_ADMIN_USER');
   }
 
-  async getRequests(): Promise<Promise<{ data: BaseRequestAttributes[]; message: string }>> {
-    return await AdminApiClient('ADMIN_GET_REQUESTS');
+  async getRequests({
+    page,
+    searchTerm,
+    status,
+  }: {
+    page?: number;
+    searchTerm?: string;
+    status?: string;
+  }): Promise<Promise<{ data: { data: BaseRequestAttributes[]; pagination: Pagination }; message: string }>> {
+    return await AdminApiClient('ADMIN_GET_REQUESTS', {
+      method: 'GET',
+      queryParams: `?page=${encodeURIComponent(page || 1)}&status=${encodeURIComponent(
+        status || ''
+      )}&search=${encodeURIComponent(searchTerm || '')}`,
+    });
   }
 
   async updateOrganizationWABA(data: any) {

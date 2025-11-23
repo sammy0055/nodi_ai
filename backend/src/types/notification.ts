@@ -37,6 +37,8 @@ export interface BaseRequestAttributes {
 
 export interface CatalogRequestData {
   whatsappBusinessId: string;
+  organizationId: string;
+  organizationName: string;
 }
 
 export interface CatalogRequestAttributes extends BaseRequestAttributes {

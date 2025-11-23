@@ -65,7 +65,13 @@ requestRoute.post('/update-waba', adminAuthMiddleware, async (req, res) => {
 
 requestRoute.get('/get-requests', adminAuthMiddleware, async (req, res) => {
   try {
-    const data = await RequestController.getRequests();
+    const page = Number(req.query.page as string) || 1;
+    const limit = Number(req.query.limit as string) || 5;
+    const status: any = req.query.status || '';
+
+    // calculate offset
+    const offset = (page - 1) * limit;
+    const data = await RequestController.getRequests({ status }, { offset, limit, page });
     const response: APIResponseFormat<any> = {
       message: 'request retreived successfully',
       data,

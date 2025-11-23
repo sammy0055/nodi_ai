@@ -6,18 +6,19 @@ import {
   FiChevronDown,
   FiChevronUp,
   FiFilter,
-  FiSearch,
   FiUser,
   FiCalendar,
   FiTag,
+  FiChevronRight,
 } from 'react-icons/fi';
 import Button from '../../components/atoms/Button/Button';
 import { useAdminUserValue, useRequestSetRecoilState, useRequestValue } from '../../store/admin/authAtoms';
 import { AdminUserService } from '../../services/admin/AdminUserService';
-import type { BaseRequestAttributes } from '../../types/request';
+import type { BaseRequestAttributes, IWhatsAppDetails } from '../../types/request';
 import { useLoaderData } from 'react-router';
+import WhatsAppDetailsModal from '../../components/organisms/WhatsAppDetailsModal/WhatsAppDetailsModal';
+import type { Pagination } from '../../types/customer';
 
-// Define types based on your interface
 // Define types based on your interface
 const RequestStatus = {
   PENDING: 'pending',
@@ -25,34 +26,445 @@ const RequestStatus = {
   REJECTED: 'rejected',
 };
 
+// Mock data - replace with actual data from your API
+const existingWhatsAppDetails: IWhatsAppDetails = {
+  id: 'whatsapp-001',
+  whatsappBusinessId: '1234567890',
+  organizationId: 'org-001',
+  organizationName: 'mike tent',
+  catalogId: 'catalog_12345',
+};
+
+export const mockRequests: BaseRequestAttributes[] = [
+  {
+    id: 'req-001',
+    organizationId: 'org-1',
+    requesterUserId: 'user-1',
+    title: 'Add New Catalog',
+    description: 'Request to create a new product catalog.',
+    status: 'pending',
+    requestType: 'CatalogRequest',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    data: {
+      whatsappBusinessId: 'waba-100',
+      organizationId: 'org-1',
+      organizationName: 'BlueMart',
+    },
+  },
+  {
+    id: 'req-002',
+    organizationId: 'org-2',
+    requesterUserId: 'user-6',
+    title: 'New Product Listing',
+    description: 'Add new summer collection items.',
+    status: 'approved',
+    requestType: 'ProductRequest',
+    approvedByUserId: 'admin-1',
+    approvalNotes: 'Looks good.',
+    approvedAt: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    data: {
+      whatsappBusinessId: 'waba-200',
+      organizationId: 'org-2',
+      organizationName: 'UrbanStyle',
+    },
+  },
+  {
+    id: 'req-003',
+    organizationId: 'org-3',
+    requesterUserId: 'user-4',
+    title: 'Bulk Order Update',
+    description: 'Modify order quantities.',
+    status: 'rejected',
+    requestType: 'OrderRequest',
+    rejectedAt: new Date(),
+    approvalNotes: 'Incorrect order details.',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    data: {
+      whatsappBusinessId: 'waba-300',
+      organizationId: 'org-3',
+      organizationName: 'PrimeWholesale',
+    },
+  },
+  {
+    id: 'req-004',
+    organizationId: 'org-1',
+    requesterUserId: 'user-2',
+    title: 'Update Catalog Description',
+    description: 'Revamp product descriptions.',
+    status: 'pending',
+    requestType: 'CatalogRequest',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    data: {
+      whatsappBusinessId: 'waba-100',
+      organizationId: 'org-1',
+      organizationName: 'BlueMart',
+    },
+  },
+  {
+    id: 'req-005',
+    organizationId: 'org-4',
+    requesterUserId: 'user-10',
+    title: 'Add New Product Variant',
+    description: 'Request to add color variants.',
+    status: 'approved',
+    requestType: 'ProductRequest',
+    approvedByUserId: 'admin-2',
+    approvalNotes: 'Approved for launch.',
+    approvedAt: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    data: {
+      whatsappBusinessId: 'waba-400',
+      organizationId: 'org-4',
+      organizationName: 'FashionHub',
+    },
+  },
+  {
+    id: 'req-006',
+    organizationId: 'org-2',
+    requesterUserId: 'user-3',
+    title: 'Cancel Order',
+    description: 'Customer requested cancellation.',
+    status: 'pending',
+    requestType: 'OrderRequest',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    data: {
+      whatsappBusinessId: 'waba-200',
+      organizationId: 'org-2',
+      organizationName: 'UrbanStyle',
+    },
+  },
+  {
+    id: 'req-007',
+    organizationId: 'org-5',
+    requesterUserId: 'user-8',
+    title: 'New Product Category',
+    description: 'Create electronics category.',
+    status: 'approved',
+    requestType: 'CatalogRequest',
+    approvedByUserId: 'admin-3',
+    approvalNotes: 'Category added.',
+    approvedAt: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    data: {
+      whatsappBusinessId: 'waba-500',
+      organizationId: 'org-5',
+      organizationName: 'TechVille',
+    },
+  },
+  {
+    id: 'req-008',
+    organizationId: 'org-3',
+    requesterUserId: 'user-1',
+    title: 'Update Order Address',
+    description: 'Fix wrong delivery address.',
+    status: 'rejected',
+    requestType: 'OrderRequest',
+    rejectedAt: new Date(),
+    approvalNotes: 'Customer provided invalid address.',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    data: {
+      whatsappBusinessId: 'waba-300',
+      organizationId: 'org-3',
+      organizationName: 'PrimeWholesale',
+    },
+  },
+  {
+    id: 'req-009',
+    organizationId: 'org-6',
+    requesterUserId: 'user-9',
+    title: 'Add Seasonal Catalog',
+    description: 'Christmas edition catalog.',
+    status: 'pending',
+    requestType: 'CatalogRequest',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    data: {
+      whatsappBusinessId: 'waba-600',
+      organizationId: 'org-6',
+      organizationName: 'HolidayStore',
+    },
+  },
+  {
+    id: 'req-010',
+    organizationId: 'org-5',
+    requesterUserId: 'user-7',
+    title: 'Add Mobile Phones',
+    description: 'Request to add new mobile phone models.',
+    status: 'approved',
+    requestType: 'ProductRequest',
+    approvedByUserId: 'admin-1',
+    approvalNotes: 'Approved for listing.',
+    approvedAt: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    data: {
+      whatsappBusinessId: 'waba-500',
+      organizationId: 'org-5',
+      organizationName: 'TechVille',
+    },
+  },
+  {
+    id: 'req-011',
+    organizationId: 'org-4',
+    requesterUserId: 'user-6',
+    title: 'Refund Request',
+    description: 'Customer asking for refund.',
+    status: 'pending',
+    requestType: 'OrderRequest',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    data: {
+      whatsappBusinessId: 'waba-400',
+      organizationId: 'org-4',
+      organizationName: 'FashionHub',
+    },
+  },
+  {
+    id: 'req-012',
+    organizationId: 'org-7',
+    requesterUserId: 'user-2',
+    title: 'New Product Type',
+    description: 'Add home appliances category.',
+    status: 'rejected',
+    requestType: 'CatalogRequest',
+    rejectedAt: new Date(),
+    approvalNotes: 'Category not needed now.',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    data: {
+      whatsappBusinessId: 'waba-700',
+      organizationId: 'org-7',
+      organizationName: 'HomeEase',
+    },
+  },
+  {
+    id: 'req-013',
+    organizationId: 'org-6',
+    requesterUserId: 'user-4',
+    title: 'Product Restock',
+    description: 'Restock winter jackets.',
+    status: 'approved',
+    requestType: 'ProductRequest',
+    approvedByUserId: 'admin-3',
+    approvalNotes: 'Restock confirmed.',
+    approvedAt: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    data: {
+      whatsappBusinessId: 'waba-600',
+      organizationId: 'org-6',
+      organizationName: 'HolidayStore',
+    },
+  },
+  {
+    id: 'req-014',
+    organizationId: 'org-3',
+    requesterUserId: 'user-5',
+    title: 'Fix Wrong Order',
+    description: 'Incorrect item shipped.',
+    status: 'pending',
+    requestType: 'OrderRequest',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    data: {
+      whatsappBusinessId: 'waba-300',
+      organizationId: 'org-3',
+      organizationName: 'PrimeWholesale',
+    },
+  },
+  {
+    id: 'req-015',
+    organizationId: 'org-8',
+    requesterUserId: 'user-9',
+    title: 'Add Beauty Products',
+    description: 'Add skincare products.',
+    status: 'approved',
+    requestType: 'ProductRequest',
+    approvedByUserId: 'admin-5',
+    approvalNotes: 'Approved.',
+    approvedAt: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    data: {
+      whatsappBusinessId: 'waba-800',
+      organizationId: 'org-8',
+      organizationName: 'GlowStore',
+    },
+  },
+  {
+    id: 'req-016',
+    organizationId: 'org-9',
+    requesterUserId: 'user-11',
+    title: 'Create New Catalog',
+    description: 'Sports equipment catalog.',
+    status: 'pending',
+    requestType: 'CatalogRequest',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    data: {
+      whatsappBusinessId: 'waba-900',
+      organizationId: 'org-9',
+      organizationName: 'SportsMax',
+    },
+  },
+  {
+    id: 'req-017',
+    organizationId: 'org-8',
+    requesterUserId: 'user-12',
+    title: 'Cancel Order',
+    description: 'Customer no longer needs order.',
+    status: 'rejected',
+    requestType: 'OrderRequest',
+    rejectedAt: new Date(),
+    approvalNotes: 'Already processed.',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    data: {
+      whatsappBusinessId: 'waba-800',
+      organizationId: 'org-8',
+      organizationName: 'GlowStore',
+    },
+  },
+  {
+    id: 'req-018',
+    organizationId: 'org-1',
+    requesterUserId: 'user-13',
+    title: 'Add Product Images',
+    description: 'Upload new product photos.',
+    status: 'approved',
+    requestType: 'ProductRequest',
+    approvedByUserId: 'admin-1',
+    approvalNotes: 'Images accepted.',
+    approvedAt: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    data: {
+      whatsappBusinessId: 'waba-100',
+      organizationId: 'org-1',
+      organizationName: 'BlueMart',
+    },
+  },
+  {
+    id: 'req-019',
+    organizationId: 'org-10',
+    requesterUserId: 'user-14',
+    title: 'Create Furniture Catalog',
+    description: 'Indoor furniture catalog.',
+    status: 'pending',
+    requestType: 'CatalogRequest',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    data: {
+      whatsappBusinessId: 'waba-1000',
+      organizationId: 'org-10',
+      organizationName: 'FurniFlex',
+    },
+  },
+  {
+    id: 'req-020',
+    organizationId: 'org-7',
+    requesterUserId: 'user-3',
+    title: 'Fix Order Pricing',
+    description: 'Wrong amount calculated.',
+    status: 'approved',
+    requestType: 'OrderRequest',
+    approvedByUserId: 'admin-2',
+    approvalNotes: 'Corrected price.',
+    approvedAt: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    data: {
+      whatsappBusinessId: 'waba-700',
+      organizationId: 'org-7',
+      organizationName: 'HomeEase',
+    },
+  },
+];
+
 const RequestRoutePage: React.FC = () => {
   const adminUser = useAdminUserValue();
   const requests = useRequestValue();
   const setRequests = useRequestSetRecoilState();
   const [expandedRequest, setExpandedRequest] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<any | 'all'>('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const data = useLoaderData() as { requests: BaseRequestAttributes[] };
-  const { approveRequest } = new AdminUserService();
+  // const [searchTerm, setSearchTerm] = useState('');
+  const [whatsappDetails, setWhatsappDetails] = useState<IWhatsAppDetails>(existingWhatsAppDetails);
+  const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
+  const [pagination, setPagination] = useState<Pagination>();
+  const data = useLoaderData() as { requests: { data: BaseRequestAttributes[]; pagination: Pagination } };
+  const { approveRequest, updateOrganizationWABA, getRequests } = new AdminUserService();
 
   useEffect(() => {
     if (!data.requests) return;
-    setRequests(data.requests);
+    setRequests(data.requests.data);
   }, [data.requests]);
+
+  const fetchRquests = async (page: number, resetData: boolean = false) => {
+    // Build filters for API call
+    const filters: any = { page };
+
+    if (filterStatus !== 'all') {
+      filters.status = filterStatus;
+    }
+
+    try {
+      const { data: responseData } = await getRequests({ ...filters });
+
+      if (resetData) {
+        // Replace responseData when filters change or first page
+        setRequests(responseData.data);
+      } else {
+        // Append responseData when loading more pages
+        setRequests((prev) => [...prev, ...responseData.data]);
+      }
+
+      setPagination(responseData.pagination);
+    } catch (error: any) {
+      alert('Something went wrong, try again later');
+    }
+  };
+
+  // Handle pagination
+  const handlePagination = async (page: number) => {
+    await fetchRquests(page, page === 1);
+  };
+
+  // Reset to first page and refetch when filters change
+  useEffect(() => {
+    handlePagination(1);
+  }, [filterStatus]);
+
   const handleApprove = async (requestId: string) => {
+    const req = requests.find((r) => r.id === requestId);
+    setWhatsappDetails({ ...req?.data!, catalogId: '', id: req?.id });
+    setIsWhatsAppModalOpen(true);
+  };
+
+  const handleSaveWhatsAppDetails = async (details: IWhatsAppDetails) => {
     try {
       const aprovedData: any = {
-        id: requestId,
+        id: details.id,
         status: 'approved',
         approvedAt: new Date(),
         approvedByUserId: adminUser?.id!,
         approvalNotes: 'Request approved',
       };
 
+      await updateOrganizationWABA(details);
       await approveRequest(aprovedData);
+
       setRequests((prevState) => {
         const updatedRequest = prevState.map((req) => {
-          return req.id === requestId
+          return req.id === details.id
             ? {
                 ...req,
                 ...aprovedData,
@@ -61,6 +473,7 @@ const RequestRoutePage: React.FC = () => {
         });
         return updatedRequest;
       });
+      setIsWhatsAppModalOpen(false);
     } catch (error: any) {
       alert('something went wrong');
       console.error(error.message);
@@ -87,14 +500,6 @@ const RequestRoutePage: React.FC = () => {
   const toggleExpand = (requestId: string) => {
     setExpandedRequest(expandedRequest === requestId ? null : requestId);
   };
-
-  const filteredRequests = requests.filter((request) => {
-    const matchesStatus = filterStatus === 'all' || request.status === filterStatus;
-    const matchesSearch =
-      request.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.description.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesStatus && matchesSearch;
-  });
 
   const getStatusColor = (status: any) => {
     switch (status) {
@@ -149,19 +554,6 @@ const RequestRoutePage: React.FC = () => {
 
         {/* Search and Filter - Stack vertically on mobile */}
         <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
-          {/* Search */}
-          <div className="relative flex-1 min-w-0">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <FiSearch className="text-neutral-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search requests..."
-              className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm md:text-base"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
 
           {/* Filter */}
           <div className="flex items-center space-x-2">
@@ -182,11 +574,11 @@ const RequestRoutePage: React.FC = () => {
 
       {/* Requests List */}
       <div className="bg-white rounded-lg shadow-medium overflow-hidden">
-        {filteredRequests.length === 0 ? (
+        {requests.length === 0 ? (
           <div className="p-8 text-center text-neutral-500">No requests found matching your criteria.</div>
         ) : (
           <div className="divide-y divide-neutral-200">
-            {filteredRequests.map((request) => (
+            {requests.map((request) => (
               <div key={request.id} className="p-4 md:p-6">
                 {/* Mobile Layout - Stacked */}
                 <div className="md:hidden space-y-3">
@@ -381,6 +773,39 @@ const RequestRoutePage: React.FC = () => {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Pagination - Using OrganizationsPage style */}
+      {pagination && pagination?.totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-neutral-200 space-y-3 sm:space-y-0">
+          <div className="text-sm text-neutral-500">
+            Showing {(pagination.currentPage - 1) * pagination.pageSize + 1} to{' '}
+            {Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems)} of {pagination.totalItems}{' '}
+            notifications
+          </div>
+
+          <div className="flex space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!pagination.hasNextPage}
+              onClick={() => handlePagination(pagination.currentPage + 1)}
+            >
+              load more
+              <FiChevronRight className="ml-1" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <div>
+        {/* WhatsApp Details Modal */}
+        <WhatsAppDetailsModal
+          isOpen={isWhatsAppModalOpen}
+          onClose={() => setIsWhatsAppModalOpen(false)}
+          onSave={async (details) => await handleSaveWhatsAppDetails(details)}
+          initialData={whatsappDetails}
+        />
       </div>
     </div>
   );
