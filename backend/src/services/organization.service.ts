@@ -10,7 +10,6 @@ import { Pagination } from '../types/common-types';
 import { SubscriptionsModel } from '../models/subscriptions.model';
 import { SubscriptionPlanModel } from '../models/subscription-plan.model';
 import { CreditBalanceModel } from '../models/creditBalance.model';
-import { ModelNames } from '../models/model-names';
 
 export class OrganizationService {
   constructor() {}
@@ -132,5 +131,10 @@ export class OrganizationService {
         hasPrevPage: page > 1,
       },
     };
+  }
+
+  static async updateOrganizationStatusForAdmin(org: Pick<IOrganization, 'status' | 'id'>) {
+    if (!org.id || !org.status) throw new Error('payload is missing');
+    await OrganizationsModel.update({ status: org.status }, { where: { id: org.id } });
   }
 }

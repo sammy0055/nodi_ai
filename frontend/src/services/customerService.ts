@@ -11,4 +11,8 @@ export class CustomerService {
       queryParams: `?page=${encodeURIComponent(page || 1)}&searchQuery=${encodeURIComponent(searchQuery || '')}`,
     });
   }
+
+  async updateCustomerStatus(customer: Pick<Customer, 'status'>) {
+    return await ApiClient('UPDATE_CUSTOMER_STATUS', { method: 'POST', body: customer });
+  }
 }

@@ -155,9 +155,11 @@ const SettingsPage: React.FC = () => {
       setIsLoading(false);
     }
   };
+
   console.log('====================================');
   console.log(whatsappData);
   console.log('====================================');
+  
   return (
     <div className="space-y-6">
       {/* Header */}

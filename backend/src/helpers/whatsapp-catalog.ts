@@ -1,7 +1,7 @@
 import { appConfig } from '../config';
 import { IWhatSappSettings } from '../types/whatsapp-settings';
 const accessToken = appConfig.metaBusinessToken;
-export function priceToMetaFormat(price: any, currency:string) {
+export function priceToMetaFormat(price: any, currency: string) {
   currency = currency.toUpperCase();
   if (['USD', 'EUR', 'GBP', 'CAD', 'AUD'].includes(currency)) {
     return `${parseFloat(price).toFixed(2)} ${currency}`;
@@ -73,7 +73,7 @@ export class WhatsappCatalogHelper {
   }
 
   static async updateMetaCatalogItem(
-    { itemId, name, description, price, currency = 'USD', imageUrl }: CatalogItemTypes,
+    { itemId, name, description, price, currency = 'USD', imageUrl }: Partial<CatalogItemTypes>,
     whatsappSettings: IWhatSappSettings
   ) {
     const url = `https://graph.facebook.com/v23.0/${whatsappSettings.catalogId}/items_batch`;
@@ -120,7 +120,7 @@ export class WhatsappCatalogHelper {
     return await response.json();
   }
 
-  static async deleteMetaCatalogItem({ itemId }: CatalogItemTypes, whatsappSettings: IWhatSappSettings) {
+  static async deleteMetaCatalogItem({ itemId }: Pick<CatalogItemTypes, "itemId">, whatsappSettings: IWhatSappSettings) {
     const url = `https://graph.facebook.com/v23.0/${whatsappSettings.catalogId}/items_batch`;
     const headers = { Authorization: `Bearer ${whatsappSettings.accessToken}` };
 

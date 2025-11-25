@@ -82,6 +82,7 @@ export class ChatService extends MCPChatBot {
         phone: this.userPhoneNumber,
         organizationId: this.organizationId,
         source: 'chatbot',
+        status: 'active',
       });
       return data.get({ plain: true });
     }
@@ -106,7 +107,14 @@ export class ChatService extends MCPChatBot {
   public async processQuery(userMessage: string) {
     const planOrg = await this.getOrganization();
     const customer = await this.getCustomerData();
+    if (customer.status !== 'active') {
+      return {
+        type: 'message',
+        response: `you have been blocked from sending message to ${planOrg.name}`,
+      };
+    }
 
+    if (planOrg.status !== 'active') throw new Error(`${planOrg.name}, is not active`);
     const systemPrompt = createSystemPrompt({
       organizationData: planOrg!,
       customerData: customer,

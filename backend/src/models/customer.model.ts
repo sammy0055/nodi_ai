@@ -16,6 +16,7 @@ class CustomerModel
   declare phone: string;
   declare preferences?: Record<string, any> | undefined;
   declare source: 'chatbot' | 'website' | 'mobile_app' | 'api';
+  declare status: 'suspended' | 'active' | 'inactive';
 
   static associate(models: DbModels) {
     this.belongsTo(models.OrganizationsModel, {
@@ -24,9 +25,9 @@ class CustomerModel
     });
 
     this.hasMany(models.Conversation, {
-      foreignKey:"customerId",
-      as:"conversations"
-    })
+      foreignKey: 'customerId',
+      as: 'conversations',
+    });
   }
 }
 
@@ -51,6 +52,7 @@ CustomerModel.init(
       defaultValue: CustomerSourceTypes.CHATBOT,
     },
     preferences: { type: DataTypes.JSONB, allowNull: true },
+    status: { type: DataTypes.ENUM('suspended', 'active', 'inactive'), defaultValue: 'active' },
   },
   {
     sequelize,

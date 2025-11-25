@@ -595,7 +595,7 @@ const AreasZonesPage: React.FC = () => {
               {zonePagination.totalItems} zones
             </div>
             <div className="flex space-x-2">
-              <Button
+              {/* <Button
                 variant="outline"
                 size="sm"
                 disabled={zonePagination.currentPage === 1}
@@ -603,7 +603,7 @@ const AreasZonesPage: React.FC = () => {
               >
                 <FiChevronLeft className="mr-1" />
                 Previous
-              </Button>
+              </Button> */}
 
               <Button
                 variant="outline"
@@ -611,7 +611,7 @@ const AreasZonesPage: React.FC = () => {
                 disabled={!zonePagination.hasNextPage}
                 onClick={() => handleZonePagination(zonePagination.currentPage + 1)}
               >
-                Next
+                load more
                 <FiChevronRight className="ml-1" />
               </Button>
             </div>
@@ -722,7 +722,7 @@ const AreasZonesPage: React.FC = () => {
               {areaPagination.totalItems} areas
             </div>
             <div className="flex space-x-2">
-              <Button
+              {/* <Button
                 variant="outline"
                 size="sm"
                 disabled={areaPagination.currentPage === 1}
@@ -730,7 +730,7 @@ const AreasZonesPage: React.FC = () => {
               >
                 <FiChevronLeft className="mr-1" />
                 Previous
-              </Button>
+              </Button> */}
               <div className="flex items-center space-x-1"></div>
               <Button
                 variant="outline"
@@ -738,7 +738,7 @@ const AreasZonesPage: React.FC = () => {
                 disabled={!areaPagination.hasNextPage}
                 onClick={() => handleAreaPagination(areaPagination.currentPage + 1)}
               >
-                Next
+                load more
                 <FiChevronRight className="ml-1" />
               </Button>
             </div>

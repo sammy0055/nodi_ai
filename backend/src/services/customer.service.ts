@@ -4,6 +4,7 @@ import { Pagination } from '../types/common-types';
 import { CustomerModel } from '../models/customer.model';
 import { Conversation } from '../models/conversation.model';
 import { ChatMessage } from '../models/chat-messages.model';
+import { ICustomer } from '../types/customers';
 
 class CustomerService {
   static async getCustomers(
@@ -65,6 +66,16 @@ class CustomerService {
         hasPrevPage: page > 1,
       },
     };
+  }
+
+  static async changeCustomerStatus(customer: Pick<ICustomer, 'status'>, user: Pick<User, 'organizationId'>) {
+    const [_, updatedRows] = await CustomerModel.update(
+      { status: customer.status },
+      { where: { organizationId: user.organizationId! }, returning: true }
+    );
+
+    const updatedCustomer = updatedRows[0].get({ plain: true }); // plain JS object
+    return updatedCustomer;
   }
 }
 

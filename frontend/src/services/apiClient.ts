@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_BACKEND_PROD_APP_URL;
+const API_BASE_URL = 'http://localhost:4000/api';
 //  import.meta.env.VITE_ENV_PROD === 'PROD' ? import.meta.env.VITE_BACKEND_PROD_APP_URL : 'http://localhost:4000/api';
 // import.meta.env.VITE_BACKEND_PROD_APP_URL
 export const APP_USER_API_ROUTES = {
@@ -14,6 +14,7 @@ export const APP_USER_API_ROUTES = {
   GET_ORG_STATISTICS: `${API_BASE_URL}/app-user/organization/organization-statistics`,
   GET_SUB_PLAN_STATISTISTICS: `${API_BASE_URL}/app-user/subscription/get-subscription-statistics`,
   ADMIN_GET_ORGANIZATIONS: `${API_BASE_URL}/app-user/organization/get-organizations-for-admin`,
+  ADMIN_UPDATE_ORG_STATUS: `${API_BASE_URL}/app-user/organization/update-organization-status-for-admin`,
   ADMIN_GET_CONVERSATIONS: `${API_BASE_URL}/app-user/conversation/get-conversation-by-orgId`,
   ADMIN_GET_NOTIFICATIONS: `${API_BASE_URL}/app-user/notification/get-notifications`,
   ADMIN_MARK_NOTIFICATION_AS_READ: `${API_BASE_URL}/app-user/notification/mark-notification-as-read`,
@@ -78,6 +79,7 @@ export const API_ROUTES = {
   GET_ORDERS: `${API_BASE_URL}/organization/order/get-all`,
   UPDATE_ORDER_STATUS: `${API_BASE_URL}/organization/order/update-order-status`,
   GET_CUSTOMERS: `${API_BASE_URL}/organization/customers/get-all`,
+  UPDATE_CUSTOMER_STATUS: `${API_BASE_URL}/organization/customers/update-customer-status`,
   GET_REVIEWS: `${API_BASE_URL}/organization/review/get-reviews`,
 } as const;
 

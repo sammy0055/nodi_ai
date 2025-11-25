@@ -25,7 +25,7 @@ export class ProductService {
     });
 
     const { imgUrl, path } = await manageImageFile.uploadImage(file);
-    const whatsappCatalogItem = await WhatsappCatalogHelper.createMetaCatalogItem(
+    await WhatsappCatalogHelper.createMetaCatalogItem(
       {
         itemId: createdProduct.id,
         name: createdProduct.name,
@@ -61,11 +61,33 @@ export class ProductService {
         { ...productWithOutId, filePath: path, imageUrl: imgUrl },
         { where: { id: id }, returning: true }
       );
+
+      await WhatsappCatalogHelper.updateMetaCatalogItem(
+        {
+          itemId: product.id,
+          ...(product.name && { name: product.name }),
+          ...(product.description && { description: product.description }),
+          ...(product.price && { price: product.price }),
+          ...(product.currency && { currency: product.currency! }),
+          imageUrl: imgUrl,
+        },
+        whatsappData
+      );
       const updatedProduct = updatedRows[0].get({ plain: true }); // plain JS object
       return updatedProduct;
     }
     const [_, updatedRows] = await ProductModel.update(productWithOutId, { where: { id: id }, returning: true });
     const updatedProduct = updatedRows[0].get({ plain: true }); // plain JS object
+    await WhatsappCatalogHelper.updateMetaCatalogItem(
+      {
+        itemId: product.id,
+        ...(product.name && { name: product.name }),
+        ...(product.description && { description: product.description }),
+        ...(product.price && { price: product.price }),
+        ...(product.currency && { currency: product.currency! }),
+      },
+      whatsappData
+    );
     return updatedProduct;
   }
 
@@ -77,7 +99,9 @@ export class ProductService {
     if (!oldProduct) throw new Error('product not found');
     const manageImageFile = new ImageUploadHelper();
     await manageImageFile.deleteImageFile([oldProduct.filePath]);
-    return await ProductModel.destroy({ where: { id: productId } });
+    const data = await ProductModel.destroy({ where: { id: productId } });
+    await WhatsappCatalogHelper.deleteMetaCatalogItem({ itemId: productId }, whatsappData);
+    return data;
   }
 
   static async getProduct(productId: string, user: Pick<User, 'id' | 'organizationId'>) {

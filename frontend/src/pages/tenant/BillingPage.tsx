@@ -29,7 +29,6 @@ import {
 } from '../../store/authAtoms';
 import { SubscriptionService } from '../../services/subscriptionService';
 import { useLoaderData } from 'react-router';
-import type { Pagination } from '../../types/customer';
 
 // Chart data interface
 interface ChartData {
@@ -152,12 +151,12 @@ const LineChart: React.FC<{ data: ChartData[] }> = ({ data }) => {
 
 const BillingPage: React.FC = () => {
   const data = useLoaderData() as {
-    subscriptionPlans: { data: ISubscriptionPlan[]; pagination: Pagination };
-    subscription: { data: ISubscription; pagination: Pagination };
-    creditUsage: { data: UsageRecordAttributes[]; pagination: Pagination };
-    creditBalance: { data: CreditBalanceAttributes };
+    subscriptionPlans: ISubscriptionPlan[];
+    subscription: ISubscription;
+    creditUsage: UsageRecordAttributes[];
+    creditBalance: CreditBalanceAttributes;
   };
-  
+
   const plans = useSubscriptionPlanValue();
   const setSubscriptionPlan = useSubscriptionPlanSetRecoilState();
   const currentSubscription = useSubscriptionValue();
@@ -183,16 +182,16 @@ const BillingPage: React.FC = () => {
   // load initial data
   useEffect(() => {
     if (data?.subscriptionPlans) {
-      setSubscriptionPlan(data?.subscriptionPlans?.data);
+      setSubscriptionPlan(data?.subscriptionPlans);
     }
     if (data?.subscription) {
-      setSubscription(data?.subscription?.data);
+      setSubscription(data?.subscription);
     }
     if (data?.creditUsage) {
-      setCreditUsage(data?.creditUsage?.data);
+      setCreditUsage(data?.creditUsage);
     }
     if (data?.creditBalance) {
-      setCreditBalance(data?.creditBalance?.data);
+      setCreditBalance(data?.creditBalance);
     }
   }, [data]);
 

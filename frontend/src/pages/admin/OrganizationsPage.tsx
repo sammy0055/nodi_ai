@@ -88,7 +88,8 @@ const OrganizationsPage: React.FC = () => {
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
 
   // Filter organizations when search term changes
-  const { adminGetPaginatedOrganizations, adminSearchOrganizations } = new AdminOrganziationService();
+  const { adminGetPaginatedOrganizations, adminSearchOrganizations, updateOrganizationStatus } =
+    new AdminOrganziationService();
   useEffect(() => {
     (async () => {
       if (!debouncedSearchTerm) {
@@ -134,20 +135,20 @@ const OrganizationsPage: React.FC = () => {
 
     try {
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
       let updatedOrg = { ...selectedOrganization };
 
       switch (actionType) {
         case 'suspend':
           updatedOrg.status = 'suspended';
-
+          await updateOrganizationStatus({ status: 'suspended', id: updatedOrg.id });
           break;
         case 'cancel':
           updatedOrg.status = 'cancelled';
+          await updateOrganizationStatus({ status: 'cancelled', id: updatedOrg.id });
           break;
         case 'reactivate':
           updatedOrg.status = 'active';
+          await updateOrganizationStatus({ status: 'active', id: updatedOrg.id });
           break;
         case 'suspend-subscription':
           if (updatedOrg.subscription) updatedOrg.subscription.status = 'suspended';
@@ -162,7 +163,7 @@ const OrganizationsPage: React.FC = () => {
       setSelectedOrganization(null);
       setActionType(null);
     } catch (error) {
-      console.error('Failed to update organization:', error);
+      alert('Failed to update organization');
     } finally {
       setIsLoading(false);
     }

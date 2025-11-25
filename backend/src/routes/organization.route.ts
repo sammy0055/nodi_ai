@@ -4,11 +4,11 @@ import { OrganizationController } from '../controllers/organization.controller';
 import { APIResponseFormat } from '../types/apiTypes';
 import { IOrganization } from '../types/organization';
 import { errorLogger } from '../helpers/logger';
-import { adminAuthMiddleware, authMiddleware, TokenPayload } from '../middleware/authentication';
-import { UserController } from '../controllers/user.controller';
+import { adminAuthMiddleware, authMiddleware } from '../middleware/authentication';
 import { UsersModel } from '../models/users.model';
 import { generateTokens } from '../utils/jwt';
 import { setAuthHeaderCookie } from '../helpers/set-auth-header';
+import { OrganizationService } from '../services/organization.service';
 
 const organizationRoute = express.Router();
 
@@ -126,6 +126,27 @@ organizationRoute.get('/get-organizations-for-admin', adminAuthMiddleware, async
     const response: APIResponseFormat<any> = {
       message: 'request successfully',
       data,
+    };
+
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
+
+organizationRoute.post('/update-organization-status-for-admin', adminAuthMiddleware, async (req, res) => {
+  try {
+    const status = req.body.status;
+    const id = req.body.id;
+    await OrganizationService.updateOrganizationStatusForAdmin({ status, id });
+    const response: APIResponseFormat<any> = {
+      message: 'request successfully',
+      data: null,
     };
 
     res.status(201).json(response);

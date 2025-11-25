@@ -11,6 +11,7 @@ export interface IOrganization {
   AIAssistantName: string;
   languageProtectedTerms?: string[];
   currency: CurrencyCode;
+  status: 'active' | 'suspended' | 'cancelled';
 }
 
 export interface OrganizationPayload extends IOrganization {

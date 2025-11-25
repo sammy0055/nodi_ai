@@ -20,6 +20,7 @@ export interface Customer {
   phone: string;
   preferences?: Record<string, any> | undefined;
   source: 'chatbot' | 'website' | 'mobile_app' | 'api';
+  status: 'suspended' | 'active' | 'inactive';
   conversations: Conversation[];
   email?: string;
   createdAt?: Date;

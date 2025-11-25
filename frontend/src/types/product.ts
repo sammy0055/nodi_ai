@@ -9,7 +9,8 @@ export interface Product {
   currency: string;
   metaProductId: string;
   imageUrl?: string;
-  file?:File
+  file?: File;
+  options?: ProductOption[];
 }
 
 export interface ProductOptionChoice {
@@ -30,7 +31,6 @@ export interface ProductOption {
   maxSelection?: number;
   choices?: ProductOptionChoice[];
 }
-
 
 export const CurrencyCode = {
   USD: 'USD',
@@ -61,7 +61,7 @@ export const CurrencyCode = {
   LBP: 'LBP',
 } as const;
 
-export type CurrencyCode = typeof CurrencyCode[keyof typeof CurrencyCode];
+export type CurrencyCode = (typeof CurrencyCode)[keyof typeof CurrencyCode];
 export const CurrencySymbols: Record<CurrencyCode, string> = {
   [CurrencyCode.USD]: '$',
   [CurrencyCode.EUR]: '€',

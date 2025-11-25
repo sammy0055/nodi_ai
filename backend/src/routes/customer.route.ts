@@ -30,3 +30,23 @@ customerRoute.get('/get-all', authMiddleware, async (req, res) => {
   }
 });
 
+customerRoute.post('/update-customer-status', authMiddleware, async (req, res) => {
+  try {
+    const customer = req.body;
+    const data = await CustomerService.changeCustomerStatus(customer as any, req.user!);
+    const response: APIResponseFormat<any> = {
+      message: 'customer updated successfully',
+      data,
+    };
+
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});

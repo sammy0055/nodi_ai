@@ -109,6 +109,10 @@ export class AdminOrganziationService {
       queryParams: `?emailId=${emailId}`,
     });
   }
+
+  async updateOrganizationStatus(org: Pick<IOrganization, 'id' | 'status'>) {
+    await AdminApiClient('ADMIN_UPDATE_ORG_STATUS', { method: 'POST', body: org });
+  }
 }
 
 interface NotificationAttr {

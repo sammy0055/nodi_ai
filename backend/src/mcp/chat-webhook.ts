@@ -117,12 +117,12 @@ chatRoute.post('/chat-webhook', async (req, res) => {
         case 'flow':
           await chat.sendWhatSappFlowInteractiveMessage({
             recipientPhoneNumber: userPhoneNumber,
-            zones: response.zones,
-            flowId: response.flowId,
-            flowName: response.flowName,
-            headingText: response.headingText,
-            bodyText: response.bodyText,
-            footerText: response.footerText,
+            zones: response?.zones,
+            flowId: response?.flowId,
+            flowName: response?.flowName,
+            headingText: response?.headingText,
+            bodyText: response?.bodyText,
+            footerText: response?.footerText,
           });
           break;
         default:

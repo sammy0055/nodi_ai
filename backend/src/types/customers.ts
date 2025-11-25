@@ -13,4 +13,5 @@ export interface ICustomer {
   source: `${CustomerSourceTypes}`;
   totalOrders?: number;
   preferences?: Record<string, any>;
+  status: 'suspended' | 'active' | 'inactive';
 }

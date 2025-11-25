@@ -257,7 +257,7 @@ const ProductOptionsManager: React.FC<{
 const ProductsPage: React.FC = () => {
   const data = useLoaderData() as {
     products: { data: Product[]; pagination: Pagination };
-    productOptions: { data: ProductOption };
+    productOptions: ProductOption[]
   };
   const products = useProductsValue();
   const setProducts = useProductsSetRecoilState();
@@ -307,6 +307,7 @@ const ProductsPage: React.FC = () => {
   useEffect(() => {
     if (data) {
       setProducts(data.products.data);
+      setProductOptions(data.productOptions)
       setPagination(data.products.pagination);
     }
   }, [data]);
@@ -581,7 +582,7 @@ const ProductsPage: React.FC = () => {
         )}
 
         {/* Pagination */}
-        {pagination?.totalPages && pagination?.totalPages > 1 && (
+        {pagination && pagination?.totalPages > 1 && (
           <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-neutral-200 space-y-3 sm:space-y-0">
             <div className="text-sm text-neutral-500">
               Showing {(pagination.currentPage - 1) * pagination.pageSize + 1} to{' '}
@@ -590,7 +591,7 @@ const ProductsPage: React.FC = () => {
             </div>
 
             <div className="flex space-x-2">
-              <Button
+              {/* <Button
                 variant="outline"
                 size="sm"
                 disabled={pagination?.currentPage === 1}
@@ -598,7 +599,7 @@ const ProductsPage: React.FC = () => {
               >
                 <FiChevronLeft className="mr-1" />
                 Previous
-              </Button>
+              </Button> */}
 
               <Button
                 variant="outline"
@@ -606,7 +607,7 @@ const ProductsPage: React.FC = () => {
                 disabled={!pagination?.hasNextPage}
                 onClick={() => handlePagination(pagination.currentPage + 1)}
               >
-                Next
+                load more
                 <FiChevronRight className="ml-1" />
               </Button>
             </div>
