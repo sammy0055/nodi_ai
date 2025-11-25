@@ -29,7 +29,8 @@ export const orgAtom = atom<IOrganization>({
     brandTone: '',
     businessType: 'bakery',
     AIAssistantName: '',
-    currency:"LBP"
+    currency: 'LBP',
+    status: 'active',
   },
 });
 

@@ -5,7 +5,6 @@ import {
   FiEdit,
   FiTrash2,
   FiUpload,
-  FiChevronLeft,
   FiChevronRight,
   FiPackage,
   FiAlertCircle,

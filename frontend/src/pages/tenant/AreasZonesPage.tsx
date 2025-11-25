@@ -4,7 +4,6 @@ import {
   FiSearch,
   FiEdit,
   FiTrash2,
-  FiChevronLeft,
   FiChevronRight,
   FiMapPin,
   FiSave,
