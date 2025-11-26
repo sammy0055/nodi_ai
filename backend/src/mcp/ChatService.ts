@@ -109,8 +109,10 @@ export class ChatService extends MCPChatBot {
     const customer = await this.getCustomerData();
     if (customer.status !== 'active') {
       return {
-        type: 'message',
-        response: `you have been blocked from sending message to ${planOrg.name}`,
+        data: {
+          type: 'message',
+          response: `you have been blocked from sending message to ${planOrg.name}`,
+        },
       };
     }
 
