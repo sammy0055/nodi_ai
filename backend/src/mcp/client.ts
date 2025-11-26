@@ -24,8 +24,18 @@ const structuredResponseFormat = z.object({
     }),
 
     z.object({
-      type: z.literal('flow'),
+      type: z.literal('area-and-zone-flow'),
       zones: z.array(z.object({ id: z.string(), title: z.string() })),
+      flowId: z.string(),
+      flowName: z.string(),
+      headingText: z.string().describe('short descriptive message that appears inside the card heading'),
+      bodyText: z.string().describe('short descriptive message that appears inside the card body'),
+      footerText: z.string().describe('short descriptive message that appears inside the card footer'),
+    }),
+
+      z.object({
+      type: z.literal('branch-flow'),
+      branches: z.array(z.object({ id: z.string(), title: z.string() })),
       flowId: z.string(),
       flowName: z.string(),
       headingText: z.string().describe('short descriptive message that appears inside the card heading'),

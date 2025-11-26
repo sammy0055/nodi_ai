@@ -6,7 +6,7 @@ import {
   getProductWithAvailability,
   searchProducts,
 } from './tools/product_discovery';
-import { checkRealTimeAvailability, findBranchesWithProduct } from './tools/location_and_inventory';
+import { checkRealTimeAvailability, findBranchesWithProduct, getBranches } from './tools/location_and_inventory';
 import { calculateDelivery, getAllZonesAndAreas, getDeliveryOptions } from './tools/delivery_and_service';
 import { getRecommendations, suggestAlternatives } from './tools/smart_recommendation';
 import { cancelOrder, createOrder, getBranchInfo, getOrderDetails } from './tools/order_and_service';
@@ -31,6 +31,7 @@ generateProductsCatalogLink(server);
 // location and inventory tools
 findBranchesWithProduct(server);
 checkRealTimeAvailability(server);
+getBranches(server);
 
 // delivery and services
 getDeliveryOptions(server);

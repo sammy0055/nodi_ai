@@ -114,7 +114,7 @@ chatRoute.post('/chat-webhook', async (req, res) => {
             buttonText: response.buttonText,
           });
           break;
-        case 'flow':
+        case 'area-and-zone-flow':
           await chat.sendWhatSappFlowInteractiveMessage({
             recipientPhoneNumber: userPhoneNumber,
             zones: response?.zones,

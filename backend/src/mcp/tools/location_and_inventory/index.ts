@@ -5,6 +5,8 @@ import { IArea } from '../../../types/area';
 import { BranchesModel } from '../../../models/branches.model';
 import { Op } from 'sequelize';
 import { models } from '../../../models';
+import { WhatSappSettingsModel } from '../../../models/whatsapp-settings.model';
+import { WhatsappFlowLabel } from '../../../types/whatsapp-settings';
 
 const { ProductModel, BranchInventoryModel } = models;
 
@@ -34,6 +36,7 @@ export const findBranchesWithProduct = (server: McpServer) => {
         if (areas && areas.length === 0) {
           return { content: [{ type: 'text', text: 'This product is not available in your area' }] };
         }
+
         const branches = areas.map((area) => area?.branchId);
         const productInventory = await BranchInventoryModel.findAll({
           where: {
@@ -58,7 +61,6 @@ export const findBranchesWithProduct = (server: McpServer) => {
             },
           ],
         };
-
       } catch (error: any) {
         return {
           content: [
@@ -108,6 +110,54 @@ export const checkRealTimeAvailability = (server: McpServer) => {
       } catch (error: any) {
         return {
           content: [{ type: 'text', text: 'Failed to find products available at specific branch with quantity' }],
+        };
+      }
+    }
+  );
+};
+
+// get all branches
+export const getBranches = (server: McpServer) => {
+  return server.registerTool(
+    'get_all_branches',
+    {
+      title: 'Get All Branches',
+      description: 'Return a full list of all branches from the organization.',
+      inputSchema: {
+        organizationId: z.string(),
+      },
+    },
+    async (params) => {
+      try {
+        const branches = await BranchesModel.findAll({ where: { organizationId: params.organizationId } });
+
+        if (branches?.length === 0) {
+          return {
+            content: [{ type: 'text', text: 'No branch was found for this organization' }],
+          };
+        }
+
+        const filteredBranches = branches.map((z) => ({ id: z.id, title: z.name }));
+        const whatsappSettings = await WhatSappSettingsModel.findOne({
+          where: { organizationId: params.organizationId },
+        });
+
+        const flow = whatsappSettings?.whatsappTemplates?.find(
+          (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.BRANCHES_FLOW
+        );
+
+        const data = {
+          branches: filteredBranches,
+          flowId: flow?.type === 'flow' && flow?.data.flowId,
+          flowName: flow?.type === 'flow' && flow?.data.flowName,
+        };
+
+        return {
+          content: [{ type: 'text', text: JSON.stringify(data), mimeType: 'application/json' }],
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: 'Failed to get branches' }],
         };
       }
     }
