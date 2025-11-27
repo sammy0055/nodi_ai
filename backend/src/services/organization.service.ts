@@ -24,6 +24,7 @@ export class OrganizationService {
   static async updateOrganization(organizationId: string, data: IOrganization) {
     const [affectedCount, updatedRows] = await OrganizationsModel.update(data as any, {
       where: { id: organizationId },
+      individualHooks: true,
       returning: true,
     });
     return updatedRows[0];
