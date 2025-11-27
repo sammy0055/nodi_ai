@@ -134,7 +134,7 @@ const flowbody = {
     action: {
       name: 'flow',
       parameters: {
-        flow_id: '1915739722629946',
+        flow_id: '906997378318320',
         flow_message_version: '3',
         flow_token: 'prod-token-001',
         flow_cta: 'Open form',
@@ -149,16 +149,49 @@ const flowbody = {
   },
 };
 
+const bodys = {
+  messaging_product: 'whatsapp',
+  to: '2348171727284',
+  type: 'interactive',
+  interactive: {
+    type: 'flow',
+    header: {
+      type: 'text',
+      text: 'Branch Details',
+    },
+    body: {
+      text: 'Tap below to choose branch.',
+    },
+    footer: {
+      text: 'CheeseAI Bot',
+    },
+    action: {
+      name: 'flow',
+      parameters: {
+        flow_id: '2306750766466909',
+        flow_message_version: '3',
+        flow_cta: 'Open form',
+        mode: 'published',
+        flow_action: 'navigate',
+        flow_action_payload: {
+          screen: 'BRANCH_SELECTION',
+          data: JSON.stringify({ status: 'active', branches: ZONES }),
+        },
+      },
+    },
+  },
+};
+
 const sendMessage = async () => {
   try {
-    const url = `https://graph.facebook.com/v20.0/${589647264175107}/messages`;
+    const url = `https://graph.facebook.com/v20.0/${860816193789515}/messages`;
     const res = await fetch(url, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${process.env.META_BUSINESS_SYSTEM_TOKEN}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(flowbody),
+      body: JSON.stringify(bodys),
     });
 
     if (!res.ok) {
@@ -208,7 +241,8 @@ const summarize = async () => {
   console.log(summary);
 };
 
-summarize()
+// summarize();
 // testMcp('hello');
 // run();
-// createWhsappFlow(); 
+// createWhsappFlow();
+// sendMessage()

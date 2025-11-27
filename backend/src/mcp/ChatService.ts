@@ -300,10 +300,9 @@ export class ChatService extends MCPChatBot {
           parameters: {
             flow_id: args.flowId,
             flow_message_version: '3',
-            flow_token: 'prod-token-001',
             flow_cta: args.buttonText || 'Open form',
             mode: 'published',
-            flow_action: 'data_exchange',
+            flow_action: 'navigate',
             flow_action_payload: {
               screen: 'BRANCH_SELECTION',
               data: JSON.stringify({ status: 'active', branches: args.branches }),
