@@ -4,7 +4,7 @@ import { ChatService } from './ChatService';
 import { ProductItem, WhatsAppMessage, WhatsAppWebhookPayload } from '../types/whatsapp-webhook';
 import { ZoneModel } from '../models/zones.model';
 import { AreaModel } from '../models/area.model';
-import { BranchInventoryModel } from '../models/branch-inventory.model';
+import { BranchesModel } from '../models/branches.model';
 export const chatRoute = express.Router();
 
 export interface IncomingMessageAttr {
@@ -50,9 +50,6 @@ chatRoute.post('/chat-webhook', async (req, res) => {
   for (const entry of payload.entry || []) {
     for (const change of entry.changes || []) {
       for (const msg of change.value?.messages || []) {
-        console.log('====================================');
-        console.log(JSON.stringify(msg, null, 2));
-        console.log('====================================');
         if (isDuplicate(msg.id)) {
           continue;
         }
@@ -89,7 +86,7 @@ chatRoute.post('/chat-webhook', async (req, res) => {
             console.log('Got message:', msg.id, newMsg.text?.body);
             await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
           } else if (payload?.branch_id) {
-            const selectedBranch = await BranchInventoryModel.findByPk(payload?.branch_id);
+            const selectedBranch = await BranchesModel.findByPk(payload?.branch_id);
 
             const newMsg = {
               ...msg,
