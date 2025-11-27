@@ -11,6 +11,7 @@ interface ConversationAttributes {
   customerId: string;
   title?: string;
   tokenCount?: number;
+  systemMessageId: string;
   is_active: boolean;
   created_at: Date;
   updated_at: Date;
@@ -28,6 +29,7 @@ class Conversation
   public customerId!: string;
   public title?: string;
   public is_active!: boolean;
+  public systemMessageId!: string;
   public tokenCount!: number;
   public created_at!: Date;
   public updated_at!: Date;
@@ -80,6 +82,10 @@ Conversation.init(
     title: {
       type: DataTypes.STRING(500),
       allowNull: true,
+    },
+    systemMessageId: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     is_active: {
       type: DataTypes.BOOLEAN,

@@ -5,6 +5,9 @@ import { BusinessType, supportedBusinessTypes } from '../data/data-types';
 import { ModelNames } from './model-names';
 import { IOrganization } from '../types/organization';
 import { CurrencyCode } from '../types/product';
+import { ChatHistoryManager } from '../services/ChatHistoryManager.service';
+import { Conversation } from './conversation.model';
+import { createSystemPrompt } from '../mcp/prompts';
 
 class OrganizationsModel
   extends Model<InferAttributes<OrganizationsModel>, InferCreationAttributes<OrganizationsModel>>
@@ -102,23 +105,32 @@ OrganizationsModel.init(
       {
         fields: ['stripeCustomerId'],
       },
-      // ✅ new full-text search index
-      // {
-      //   name: 'organizations_text_search_idx',
-      //   using: 'GIN',
-      //   fields: [
-      //     sequelize.literal(`
-      //       to_tsvector(
-      //         'english',
-      //         coalesce("id"::text, '') || ' ' ||
-      //         coalesce("name", '') || ' ' ||
-      //     `),
-      //   ],
-      // },
     ],
     hooks: {
-      beforeUpdate: async (org: IOrganization) => {
+      async beforeUpdate(org: any) {
+        console.log('==================org==================');
+        console.log(org);
+        console.log('====================================');
         org.shouldUpdateChatbotSystemPrompt = true;
+        if (org.changed('AIAssistantName') || org.changed('languageProtectedTerms') || org.changed('name')) {
+          const conv = await Conversation.findOne({ where: { organizationId: org.id } });
+          if (conv) {
+            const { deleteConversationItem, insertConverationItem } = new ChatHistoryManager();
+            await deleteConversationItem(conv.id, conv.systemMessageId as any);
+
+            const systemPrompt = createSystemPrompt({
+              organizationData: org!,
+              customerData: {} as any,
+              businessTone: 'formal',
+              assistantName: org?.AIAssistantName || 'Alex',
+            });
+
+            await insertConverationItem(conv.id, systemPrompt);
+            console.log('====================================');
+            console.log(systemPrompt);
+            console.log('====================================');
+          }
+        }
       },
     },
   }

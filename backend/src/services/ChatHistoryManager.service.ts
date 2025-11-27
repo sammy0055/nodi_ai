@@ -13,6 +13,7 @@ import { calculateAndSubtractCredits } from '../helpers/billing-calcuations';
 import { OrganizationsModel } from '../models/organizations.model';
 import { CustomerModel } from '../models/customer.model';
 import { createSystemPrompt } from '../mcp/prompts';
+import { ItemDeleteParams } from 'openai/resources/conversations/items';
 
 export interface ChatHistoryConfig {
   maxContextTokens: number;
@@ -58,11 +59,14 @@ export class ChatHistoryManager {
     const conversation = await openai.conversations.create(
       systemPrompt ? { items: [{ role: 'system', content: systemPrompt }] } : {}
     );
+    const items = await openai.conversations.items.list(conversation.id);
+    const systemMessage = items.data.find((i: any) => i.role === 'system');
     return await Conversation.create({
       id: conversation.id,
       organizationId: organizationId,
       customerId: customerId,
       title: title,
+      systemMessageId: systemMessage?.id!,
     });
   }
 
@@ -159,6 +163,26 @@ export class ChatHistoryManager {
       ],
     });
     console.error('✅ inserted summary and system prompt successfully');
+  }
+
+  // get conversations and update syetem prompt
+  async deleteConversationItem(convId: string, msgId: ItemDeleteParams) {
+    const openai = new OpenAI({ apiKey: appConfig.mcpKeys.openaiKey });
+    const conversation = await openai.conversations.items.delete(convId, msgId);
+    return conversation;
+  }
+
+  async insertConverationItem(convId: string, item: string) {
+    const openai = new OpenAI({ apiKey: appConfig.mcpKeys.openaiKey });
+    await openai.conversations.items.create(convId, {
+      items: [
+        {
+          type: 'message',
+          role: 'system',
+          content: item,
+        },
+      ],
+    });
   }
 
   // Add a message with proper OpenAI structure

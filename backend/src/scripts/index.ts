@@ -204,11 +204,11 @@ const createWhsappFlow = async () => {
 
 const summarize = async () => {
   const { summarizeConversationById } = new ChatHistoryManager();
-  const summary = await summarizeConversationById('conv_6912f970677881959a019602608c41ce085b268a3a0e4eb1');
+  const summary = await summarizeConversationById('conv_6926ce4f0d5c8197ae42ec29689de984036cc7ca7044cece');
   console.log(summary);
 };
 
-// summarize()
+summarize()
 // testMcp('hello');
 // run();
-createWhsappFlow();
+// createWhsappFlow(); 
