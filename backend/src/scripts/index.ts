@@ -10,6 +10,7 @@ import { run } from './migration';
 import { sendVerificationEmail } from '../utils/send-email';
 import { ChatHistoryManager } from '../services/ChatHistoryManager.service';
 import { templates } from '../data/templates';
+import { priceToMetaFormat } from '../helpers/whatsapp-catalog';
 
 const ddd = {
   whatsappBusinessId: '1390720013053482',
@@ -239,6 +240,64 @@ const summarize = async () => {
   const { summarizeConversationById } = new ChatHistoryManager();
   const summary = await summarizeConversationById('conv_6926ce4f0d5c8197ae42ec29689de984036cc7ca7044cece');
   console.log(summary);
+};
+
+const p = {
+  itemId: '44rr4455tt',
+  name: 'piza',
+  description: 'best piza in the world',
+  imageUrl:
+    'https://media.istockphoto.com/id/2226435721/photo/using-phone-for-mobile-banking.jpg?s=1024x1024&w=is&k=20&c=0J5rVLquYvHtQfswHOPcAfAVNV-VqufT0DkVAm89lts=',
+};
+
+const catalogMag = async (
+  { itemId, name, description, price, currency = 'USD', imageUrl }: Partial<any>,
+  whatsappSettings: IWhatSappSettings
+) => {
+  try {
+    const url = `https://graph.facebook.com/v23.0/${whatsappSettings.catalogId}/items_batch`;
+    const headers = { Authorization: `Bearer ${process.env.META_BUSINESS_SYSTEM_TOKEN}` };
+
+    const payload = {
+      item_type: 'PRODUCT_ITEM',
+      requests: JSON.stringify([
+        {
+          method: 'CREATE',
+          data: {
+            id: `item_${itemId}`,
+            title: name,
+            description,
+            price: priceToMetaFormat(price, currency),
+            image_link: imageUrl,
+            link: 'https://cot.credobyte.ai/',
+            availability: 'in stock',
+            condition: 'new',
+          },
+        },
+      ]),
+    };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: {
+        ...headers,
+      },
+    });
+
+    if (!response.ok) {
+      let errorMessage = `${response.status} ${response.statusText}`;
+
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch {
+        throw new Error(errorMessage);
+      }
+    }
+
+    return await response.json();
+  } catch (error: any) {}
 };
 
 // summarize();

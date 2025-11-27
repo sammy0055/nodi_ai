@@ -85,7 +85,7 @@ export class WhatsappCatalogHelper {
         {
           method: 'UPDATE',
           data: {
-            id: `item_${itemId}`,
+            id: itemId,
             title: name,
             description,
             price: priceToMetaFormat(price, currency),
@@ -129,7 +129,7 @@ export class WhatsappCatalogHelper {
       requests: JSON.stringify([
         {
           method: 'DELETE',
-          data: { id: `item_${itemId}` },
+          data: { id: itemId },
         },
       ]),
     };
