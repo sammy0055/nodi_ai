@@ -83,7 +83,7 @@ export class WhatsappCatalogHelper {
       item_type: 'PRODUCT_ITEM',
       requests: JSON.stringify([
         {
-          method: 'CREATE',
+          method: 'UPDATE',
           data: {
             id: itemId,
             title: name,
