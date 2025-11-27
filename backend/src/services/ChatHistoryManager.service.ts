@@ -166,9 +166,9 @@ export class ChatHistoryManager {
   }
 
   // get conversations and update syetem prompt
-  async deleteConversationItem(convId: string, msgId: ItemDeleteParams) {
+  async deleteConversationItem({ msgId, conv }: { msgId: string; conv: ItemDeleteParams }) {
     const openai = new OpenAI({ apiKey: appConfig.mcpKeys.openaiKey });
-    const conversation = await openai.conversations.items.delete(convId, msgId);
+    const conversation = await openai.conversations.items.delete(msgId, conv);
     return conversation;
   }
 

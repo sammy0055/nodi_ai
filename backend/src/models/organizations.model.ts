@@ -116,7 +116,7 @@ OrganizationsModel.init(
           const conv = await Conversation.findOne({ where: { organizationId: org.id } });
           if (conv) {
             const { deleteConversationItem, insertConverationItem } = new ChatHistoryManager();
-            await deleteConversationItem(conv.id, conv.systemMessageId as any);
+            await deleteConversationItem({ msgId: conv.systemMessageId, conv: { conversation_id: conv.id } });
 
             const systemPrompt = createSystemPrompt({
               organizationData: org!,
