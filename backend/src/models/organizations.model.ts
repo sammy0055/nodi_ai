@@ -119,7 +119,7 @@ OrganizationsModel.init(
             await deleteConversationItem({ msgId: conv.systemMessageId, conv: { conversation_id: conv.id } });
 
             const systemPrompt = createSystemPrompt({
-              organizationData: org!,
+              organizationData: await org.get()!,
               customerData: {} as any,
               businessTone: 'formal',
               assistantName: org?.AIAssistantName || 'Alex',
