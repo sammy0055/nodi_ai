@@ -65,10 +65,10 @@ export class ProductService {
       await WhatsappCatalogHelper.updateMetaCatalogItem(
         {
           itemId: product.id,
-          ...(product.name && { name: product.name }),
-          ...(product.description && { description: product.description }),
-          ...(product.price && { price: product.price }),
-          ...(product.currency && { currency: product.currency! }),
+          name: product.name,
+          description: product.description,
+          price: product.price,
+          currency: product.currency!,
           imageUrl: imgUrl,
         },
         whatsappData
@@ -81,10 +81,10 @@ export class ProductService {
     await WhatsappCatalogHelper.updateMetaCatalogItem(
       {
         itemId: product.id,
-        ...(product.name && { name: product.name }),
-        ...(product.description && { description: product.description }),
-        ...(product.price && { price: product.price }),
-        ...(product.currency && { currency: product.currency! }),
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        currency: product.currency!,
       },
       whatsappData
     );
