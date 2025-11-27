@@ -113,6 +113,7 @@ export class WhatsappCatalogHelper {
       try {
         const errorData = await response.json();
         errorMessage = errorData.message || errorMessage;
+        return errorData;
       } catch {
         throw new Error(errorMessage);
       }
@@ -153,6 +154,7 @@ export class WhatsappCatalogHelper {
       try {
         const errorData = await response.json();
         errorMessage = errorData.message || errorMessage;
+        return errorData;
       } catch {
         throw new Error(errorMessage);
       }

@@ -291,7 +291,6 @@ const catalogMag = async (product: Partial<any>) => {
     try {
       const errorData = await response.json();
       errorMessage = errorData.message || errorMessage;
-      return errorData;
     } catch {
       throw new Error(errorMessage);
     }
