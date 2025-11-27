@@ -56,17 +56,8 @@ export class WhatsappCatalogHelper {
     });
 
     if (!response.ok) {
-      let errorMessage = `${response.status} ${response.statusText}`;
-
-      try {
-        const errorData = await response.json();
-        console.log('====================================');
-        console.log(errorData);
-        console.log('====================================');
-        errorMessage = errorData.message || errorMessage;
-      } catch {
-        throw new Error(errorMessage);
-      }
+      const errorData = await response.json();
+      throw new Error(`Error ${response.status}: ${errorData.error.message}`);
     }
 
     return await response.json();
@@ -108,15 +99,8 @@ export class WhatsappCatalogHelper {
     });
 
     if (!response.ok) {
-      let errorMessage = `${response.status} ${response.statusText}`;
-
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.message || errorMessage;
-        return errorData;
-      } catch {
-        throw new Error(errorMessage);
-      }
+      const errorData = await response.json();
+      throw new Error(`Error ${response.status}: ${errorData.error.message}`);
     }
 
     return await response.json();
@@ -149,15 +133,8 @@ export class WhatsappCatalogHelper {
     });
 
     if (!response.ok) {
-      let errorMessage = `${response.status} ${response.statusText}`;
-
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.message || errorMessage;
-        return errorData;
-      } catch {
-        throw new Error(errorMessage);
-      }
+      const errorData = await response.json();
+      throw new Error(`Error ${response.status}: ${errorData.error.message}`);
     }
 
     return await response.json();
