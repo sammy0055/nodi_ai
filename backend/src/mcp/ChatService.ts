@@ -30,6 +30,19 @@ interface SendWhatSappFlowProps {
   zones: { id: string; title: string }[];
   headingText: string;
   bodyText: string;
+  buttonText: string;
+  footerText?: string;
+}
+
+interface SendWhatSappBranchFlowProps {
+  WhatSappBusinessPhoneNumberId?: string;
+  recipientPhoneNumber: string;
+  flowId: string;
+  flowName: string;
+  branches: { id: string; title: string }[];
+  headingText: string;
+  bodyText: string;
+  buttonText: string;
   footerText?: string;
 }
 
@@ -233,12 +246,67 @@ export class ChatService extends MCPChatBot {
             flow_id: args.flowId,
             flow_message_version: '3',
             flow_token: 'prod-token-001',
-            flow_cta: 'Open form',
+            flow_cta: args.buttonText || 'Open form',
             mode: 'published',
             flow_action: 'navigate',
             flow_action_payload: {
               screen: 'ADDRESS_SELECTION',
               data: JSON.stringify({ status: 'active', zones: args.zones }),
+            },
+          },
+        },
+      },
+    };
+
+    try {
+      const url = `https://graph.facebook.com/v20.0/${this.WhatSappBusinessPhoneNumberId}/messages`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.whatsappAccessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(`Error ${res.status}: ${errorData.error.message}`);
+      }
+    } catch (error: any) {
+      console.log('WHATSAPP-MESSAGE', error);
+    }
+  }
+
+  async sendWhatSappBranchFlowInteractiveMessage(args: SendWhatSappBranchFlowProps) {
+    const body = {
+      messaging_product: 'whatsapp',
+      to: args.recipientPhoneNumber,
+      type: 'interactive',
+      interactive: {
+        type: 'flow',
+        header: {
+          type: 'text',
+          text: args.headingText || 'Branch Details',
+        },
+        body: {
+          text: args.bodyText || 'Tap below to choose branch.',
+        },
+        footer: {
+          text: args.footerText || 'CheeseAI Bot',
+        },
+        action: {
+          name: 'flow',
+          parameters: {
+            flow_id: args.flowId,
+            flow_message_version: '3',
+            flow_token: 'prod-token-001',
+            flow_cta: args.buttonText || 'Open form',
+            mode: 'published',
+            flow_action: 'data_exchange',
+            flow_action_payload: {
+              screen: 'BRANCH_SELECTION',
+              data: JSON.stringify({ status: 'active', branches: args.branches }),
             },
           },
         },

@@ -122,6 +122,19 @@ chatRoute.post('/chat-webhook', async (req, res) => {
             flowName: response?.flowName,
             headingText: response?.headingText,
             bodyText: response?.bodyText,
+            buttonText: response.buttonText,
+            footerText: response?.footerText,
+          });
+          break;
+        case 'branch-flow':
+          await chat.sendWhatSappBranchFlowInteractiveMessage({
+            recipientPhoneNumber: userPhoneNumber,
+            branches: response?.branches,
+            flowId: response?.flowId,
+            flowName: response?.flowName,
+            headingText: response?.headingText,
+            bodyText: response?.bodyText,
+            buttonText: response.buttonText,
             footerText: response?.footerText,
           });
           break;
