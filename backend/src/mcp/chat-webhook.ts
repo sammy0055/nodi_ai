@@ -4,6 +4,7 @@ import { ChatService } from './ChatService';
 import { ProductItem, WhatsAppMessage, WhatsAppWebhookPayload } from '../types/whatsapp-webhook';
 import { ZoneModel } from '../models/zones.model';
 import { AreaModel } from '../models/area.model';
+import { BranchInventoryModel } from '../models/branch-inventory.model';
 export const chatRoute = express.Router();
 
 export interface IncomingMessageAttr {
@@ -69,23 +70,42 @@ chatRoute.post('/chat-webhook', async (req, res) => {
         } else if (msg.type === 'interactive') {
           const payload = JSON.parse(msg.interactive?.nfm_reply.response_json as any);
 
-          const selectedZone = await ZoneModel.findByPk(payload?.zone_id);
-          const selectedArea = await AreaModel.findByPk(payload?.area_id);
-          const shippingAddress = payload?.note;
+          if (payload?.zone_id || payload?.area_id) {
+            const selectedZone = await ZoneModel.findByPk(payload?.zone_id);
+            const selectedArea = await AreaModel.findByPk(payload?.area_id);
+            const shippingAddress = payload?.note;
 
-          const newMsg = {
-            ...msg,
-            text: {
-              body: JSON.stringify({
-                selectedZone: selectedZone,
-                selectedArea: selectedArea,
-                shippingAddress: shippingAddress,
-              }),
-            },
-          };
+            const newMsg = {
+              ...msg,
+              text: {
+                body: JSON.stringify({
+                  selectedZone: selectedZone,
+                  selectedArea: selectedArea,
+                  shippingAddress: shippingAddress,
+                }),
+              },
+            };
 
-          console.log('Got message:', msg.id, newMsg.text?.body);
-          await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
+            console.log('Got message:', msg.id, newMsg.text?.body);
+            await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
+          } else if (payload?.branch_id) {
+            const selectedBranch = await BranchInventoryModel.findByPk(payload?.branch_id);
+
+            const newMsg = {
+              ...msg,
+              text: {
+                body: JSON.stringify({
+                  selectedBranch: selectedBranch,
+                }),
+              },
+            };
+
+            console.log('Got message:', msg.id, newMsg.text?.body);
+            await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
+          } else {
+            console.log('Got message:', msg.id, msg);
+            await handleIncomingMessage({ whatsappBusinessId: entry.id, msg, processMessages });
+          }
         } else {
           console.log('Got message:', msg.id, msg.text?.body);
           // process each message independently
