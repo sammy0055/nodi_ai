@@ -243,61 +243,74 @@ const summarize = async () => {
 };
 
 const p = {
-  itemId: '44rr4455tt',
-  name: 'piza',
-  description: 'best piza in the world',
+  itemId: '734c51c4-8e3e-47b3-91e4-62c7fdbda671',
+  name: 'jelof rice',
+  description: 'hot jelof rice for the christma season',
+  price: 100,
+  currency: 'USD',
   imageUrl:
-    'https://media.istockphoto.com/id/2226435721/photo/using-phone-for-mobile-banking.jpg?s=1024x1024&w=is&k=20&c=0J5rVLquYvHtQfswHOPcAfAVNV-VqufT0DkVAm89lts=',
+    'https://amfqqtpfqniuzvzdowzq.supabase.co/storage/v1/object/public/nodi_product_images/1a9328d8-3aec-4706-b09f-1dc1685538b7.png',
 };
 
-const catalogMag = async (
-  { itemId, name, description, price, currency = 'USD', imageUrl }: Partial<any>,
-  whatsappSettings: IWhatSappSettings
-) => {
-  try {
-    const url = `https://graph.facebook.com/v23.0/${whatsappSettings.catalogId}/items_batch`;
-    const headers = { Authorization: `Bearer ${process.env.META_BUSINESS_SYSTEM_TOKEN}` };
+const catalogMag = async (product: Partial<any>) => {
+  const url = `https://graph.facebook.com/v23.0/1513654516497165/items_batch`;
+  const headers = { Authorization: `Bearer ${process.env.META_BUSINESS_SYSTEM_TOKEN}` };
 
-    const payload = {
-      item_type: 'PRODUCT_ITEM',
-      requests: JSON.stringify([
-        {
-          method: 'CREATE',
-          data: {
-            id: `item_${itemId}`,
-            title: name,
-            description,
-            price: priceToMetaFormat(price, currency),
-            image_link: imageUrl,
-            link: 'https://cot.credobyte.ai/',
-            availability: 'in stock',
-            condition: 'new',
-          },
+  const { itemId, name, description, price, currency = 'USD', imageUrl } = p;
+  const payload = {
+    item_type: 'PRODUCT_ITEM',
+    requests: JSON.stringify([
+      {
+        method: 'UPDATE',
+        data: {
+          id: itemId,
+          title: name,
+          description,
+          price: priceToMetaFormat(price, currency),
+          image_link: imageUrl || 'https://example.com/placeholder.png',
+          link: 'https://cot.credobyte.ai/',
+          availability: 'in stock',
+          condition: 'new',
         },
-      ]),
-    };
-
-    const response = await fetch(url, {
-      method: 'POST',
-      body: JSON.stringify(payload),
-      headers: {
-        ...headers,
       },
-    });
+    ]),
+  };
 
-    if (!response.ok) {
-      let errorMessage = `${response.status} ${response.statusText}`;
+  const response = await fetch(url, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+    headers: {
+      ...headers,
+      'Content-Type': 'application/json',
+    },
+  });
 
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.message || errorMessage;
-      } catch {
-        throw new Error(errorMessage);
-      }
+  if (!response.ok) {
+    let errorMessage = `${response.status} ${response.statusText}`;
+
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData.message || errorMessage;
+      return errorData;
+    } catch {
+      throw new Error(errorMessage);
     }
+  }
 
-    return await response.json();
-  } catch (error: any) {}
+  return await response.json();
+};
+
+const createCatalogItem = async () => {
+  try {
+    const res = await catalogMag(p);
+    console.log('==================res==================');
+    console.log(res);
+    console.log('====================================');
+  } catch (error: any) {
+    console.log('====================================');
+    console.log(error);
+    console.log('====================================');
+  }
 };
 
 // summarize();
@@ -305,3 +318,4 @@ const catalogMag = async (
 // run();
 // createWhsappFlow();
 // sendMessage()
+createCatalogItem();

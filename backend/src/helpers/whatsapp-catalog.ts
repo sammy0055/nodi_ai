@@ -83,13 +83,13 @@ export class WhatsappCatalogHelper {
       item_type: 'PRODUCT_ITEM',
       requests: JSON.stringify([
         {
-          method: 'UPDATE',
+          method: 'CREATE',
           data: {
             id: itemId,
             title: name,
             description,
             price: priceToMetaFormat(price, currency),
-            image_link: imageUrl,
+            image_link: imageUrl || 'https://example.com/placeholder.png',
             link: 'https://cot.credobyte.ai/',
             availability: 'in stock',
             condition: 'new',
@@ -103,6 +103,7 @@ export class WhatsappCatalogHelper {
       body: JSON.stringify(payload),
       headers: {
         ...headers,
+        'Content-Type': 'application/json',
       },
     });
 
@@ -120,7 +121,10 @@ export class WhatsappCatalogHelper {
     return await response.json();
   }
 
-  static async deleteMetaCatalogItem({ itemId }: Pick<CatalogItemTypes, "itemId">, whatsappSettings: IWhatSappSettings) {
+  static async deleteMetaCatalogItem(
+    { itemId }: Pick<CatalogItemTypes, 'itemId'>,
+    whatsappSettings: IWhatSappSettings
+  ) {
     const url = `https://graph.facebook.com/v23.0/${whatsappSettings.catalogId}/items_batch`;
     const headers = { Authorization: `Bearer ${whatsappSettings.accessToken}` };
 
@@ -139,6 +143,7 @@ export class WhatsappCatalogHelper {
       body: JSON.stringify(payload),
       headers: {
         ...headers,
+        'Content-Type': 'application/json',
       },
     });
 
