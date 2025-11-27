@@ -125,7 +125,14 @@ OrganizationsModel.init(
               assistantName: org?.AIAssistantName || 'Alex',
             });
 
-            await insertConverationItem(conv.id, systemPrompt);
+            const items = await insertConverationItem(conv.id, systemPrompt);
+
+            const systemMessage = items.data.find((i: any) => i.role === 'system');
+            await Conversation.update(
+              { systemMessageId: systemMessage?.id },
+              { where: { organizationId: org.id, id: conv.id } }
+            );
+
             console.log('====================================');
             console.log(systemPrompt);
             console.log('====================================');

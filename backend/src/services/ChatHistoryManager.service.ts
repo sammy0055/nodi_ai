@@ -174,7 +174,7 @@ export class ChatHistoryManager {
 
   async insertConverationItem(convId: string, item: string) {
     const openai = new OpenAI({ apiKey: appConfig.mcpKeys.openaiKey });
-    await openai.conversations.items.create(convId, {
+   return await openai.conversations.items.create(convId, {
       items: [
         {
           type: 'message',
