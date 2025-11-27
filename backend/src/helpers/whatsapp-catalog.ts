@@ -68,7 +68,7 @@ export class WhatsappCatalogHelper {
     whatsappSettings: IWhatSappSettings
   ) {
     const url = `https://graph.facebook.com/v23.0/${whatsappSettings.catalogId}/items_batch`;
-    const headers = { Authorization: `Bearer ${whatsappSettings.accessToken}` };
+    const headers = { Authorization: `Bearer ${accessToken}` };
 
     const payload = {
       item_type: 'PRODUCT_ITEM',
@@ -111,7 +111,7 @@ export class WhatsappCatalogHelper {
     whatsappSettings: IWhatSappSettings
   ) {
     const url = `https://graph.facebook.com/v23.0/${whatsappSettings.catalogId}/items_batch`;
-    const headers = { Authorization: `Bearer ${whatsappSettings.accessToken}` };
+    const headers = { Authorization: `Bearer ${accessToken}` };
 
     const payload = {
       item_type: 'PRODUCT_ITEM',
