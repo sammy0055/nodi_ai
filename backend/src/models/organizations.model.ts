@@ -5,9 +5,6 @@ import { BusinessType, supportedBusinessTypes } from '../data/data-types';
 import { ModelNames } from './model-names';
 import { IOrganization } from '../types/organization';
 import { CurrencyCode } from '../types/product';
-import { ChatHistoryManager } from '../services/ChatHistoryManager.service';
-import { Conversation } from './conversation.model';
-import { createSystemPrompt } from '../mcp/prompts';
 
 class OrganizationsModel
   extends Model<InferAttributes<OrganizationsModel>, InferCreationAttributes<OrganizationsModel>>
@@ -92,7 +89,7 @@ OrganizationsModel.init(
     brandTone: { type: DataTypes.STRING, defaultValue: '' },
     AIAssistantName: { type: DataTypes.STRING, allowNull: true },
     stripeCustomerId: { type: DataTypes.STRING, allowNull: true },
-    shouldUpdateChatbotSystemPrompt: { type: DataTypes.BOOLEAN, defaultValue: true },
+    shouldUpdateChatbotSystemPrompt: { type: DataTypes.BOOLEAN, defaultValue: false },
     status: { type: DataTypes.ENUM, values: ['active', 'suspended', 'cancelled'], defaultValue: 'active' },
     languageProtectedTerms: { type: DataTypes.ARRAY(DataTypes.STRING), defaultValue: [] },
     currency: { type: DataTypes.ENUM, values: [...Object.values(CurrencyCode)], defaultValue: CurrencyCode.LBP },
@@ -108,35 +105,8 @@ OrganizationsModel.init(
     ],
     hooks: {
       async beforeUpdate(org: any) {
-        console.log('==================org==================');
-        console.log(org);
-        console.log('====================================');
-        org.shouldUpdateChatbotSystemPrompt = true;
         if (org.changed('AIAssistantName') || org.changed('languageProtectedTerms') || org.changed('name')) {
-          const conv = await Conversation.findOne({ where: { organizationId: org.id } });
-          if (conv) {
-            const { deleteConversationItem, insertConverationItem } = new ChatHistoryManager();
-            await deleteConversationItem({ msgId: conv.systemMessageId, conv: { conversation_id: conv.id } });
-
-            const systemPrompt = createSystemPrompt({
-              organizationData: await org.get()!,
-              customerData: {} as any,
-              businessTone: 'formal',
-              assistantName: org?.AIAssistantName || 'Alex',
-            });
-
-            const items = await insertConverationItem(conv.id, systemPrompt);
-
-            const systemMessage = items.data.find((i: any) => i.role === 'system');
-            await Conversation.update(
-              { systemMessageId: systemMessage?.id },
-              { where: { organizationId: org.id, id: conv.id } }
-            );
-
-            console.log('====================================');
-            console.log(systemPrompt);
-            console.log('====================================');
-          }
+          org.shouldUpdateChatbotSystemPrompt = true;
         }
       },
     },
