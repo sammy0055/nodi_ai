@@ -4,8 +4,6 @@ import {
   FiUser,
   FiPhone,
   FiMessageCircle,
-  FiChevronLeft,
-  FiChevronRight,
   FiBox,
   FiMail,
   FiCalendar,
@@ -60,134 +58,134 @@ import { CustomerService } from '../../services/customerService';
 //       },
 //     ],
 //   },
-//     {
-//     id: "cust_006",
-//     organizationId: "org_003",
-//     name: "Kelvin Mark",
-//     phone: "+2347019988776",
-//     email: "kelvin@example.com",
-//     source: "website",
-//     status: "active",
-//     createdAt: new Date("2025-02-05T09:10:00Z"),
-//     lastActive: new Date("2025-02-10T11:30:00Z"),
+//   {
+//     id: 'cust_006',
+//     organizationId: 'org_003',
+//     name: 'Kelvin Mark',
+//     phone: '+2347019988776',
+//     email: 'kelvin@example.com',
+//     source: 'website',
+//     status: 'active',
+//     createdAt: new Date('2025-02-05T09:10:00Z'),
+//     lastActive: new Date('2025-02-10T11:30:00Z'),
 //     conversations: [],
 //   },
 
 //   {
-//     id: "cust_007",
-//     organizationId: "org_001",
-//     name: "Grace Ojo",
-//     phone: "+2348034567890",
-//     email: "grace.ojo@example.com",
-//     source: "mobile_app",
-//     status: "inactive",
+//     id: 'cust_007',
+//     organizationId: 'org_001',
+//     name: 'Grace Ojo',
+//     phone: '+2348034567890',
+//     email: 'grace.ojo@example.com',
+//     source: 'mobile_app',
+//     status: 'inactive',
 //     preferences: { notifications: false },
-//     createdAt: new Date("2025-01-28T15:15:00Z"),
-//     lastActive: new Date("2025-02-02T12:00:00Z"),
+//     createdAt: new Date('2025-01-28T15:15:00Z'),
+//     lastActive: new Date('2025-02-02T12:00:00Z'),
 //     conversations: [],
 //   },
 
 //   {
-//     id: "cust_008",
-//     organizationId: "org_002",
-//     name: "Emmanuel Chike",
-//     phone: "+2348094433221",
-//     email: "emma@example.com",
-//     source: "chatbot",
-//     status: "suspended",
-//     createdAt: new Date("2025-02-01T10:45:00Z"),
-//     lastActive: new Date("2025-02-01T10:45:00Z"),
+//     id: 'cust_008',
+//     organizationId: 'org_002',
+//     name: 'Emmanuel Chike',
+//     phone: '+2348094433221',
+//     email: 'emma@example.com',
+//     source: 'chatbot',
+//     status: 'suspended',
+//     createdAt: new Date('2025-02-01T10:45:00Z'),
+//     lastActive: new Date('2025-02-01T10:45:00Z'),
 //     conversations: [],
 //   },
 
 //   {
-//     id: "cust_009",
-//     organizationId: "org_004",
-//     name: "Rita Johnson",
-//     phone: "+2348146677889",
-//     source: "api",
-//     status: "active",
-//     email: "rita.j@example.com",
-//     preferences: { language: "en", timezone: "WAT" },
-//     createdAt: new Date("2025-01-10T08:00:00Z"),
-//     lastActive: new Date("2025-02-12T14:25:00Z"),
+//     id: 'cust_009',
+//     organizationId: 'org_004',
+//     name: 'Rita Johnson',
+//     phone: '+2348146677889',
+//     source: 'api',
+//     status: 'active',
+//     email: 'rita.j@example.com',
+//     preferences: { language: 'en', timezone: 'WAT' },
+//     createdAt: new Date('2025-01-10T08:00:00Z'),
+//     lastActive: new Date('2025-02-12T14:25:00Z'),
 //     conversations: [],
 //   },
 
 //   {
-//     id: "cust_010",
-//     organizationId: "org_003",
-//     name: "David Ola",
-//     phone: "+2348022334455",
-//     source: "website",
-//     status: "inactive",
-//     createdAt: new Date("2025-02-12T13:00:00Z"),
-//     lastActive: new Date("2025-02-14T09:30:00Z"),
+//     id: 'cust_010',
+//     organizationId: 'org_003',
+//     name: 'David Ola',
+//     phone: '+2348022334455',
+//     source: 'website',
+//     status: 'inactive',
+//     createdAt: new Date('2025-02-12T13:00:00Z'),
+//     lastActive: new Date('2025-02-14T09:30:00Z'),
 //     conversations: [],
 //   },
 
 //   {
-//     id: "cust_011",
-//     organizationId: "org_002",
-//     name: "Blessing Amos",
-//     phone: "+2348067788990",
-//     source: "chatbot",
-//     status: "active",
-//     email: "blessing@example.com",
-//     createdAt: new Date("2025-01-25T11:00:00Z"),
-//     lastActive: new Date("2025-02-10T16:45:00Z"),
+//     id: 'cust_011',
+//     organizationId: 'org_002',
+//     name: 'Blessing Amos',
+//     phone: '+2348067788990',
+//     source: 'chatbot',
+//     status: 'active',
+//     email: 'blessing@example.com',
+//     createdAt: new Date('2025-01-25T11:00:00Z'),
+//     lastActive: new Date('2025-02-10T16:45:00Z'),
 //     conversations: [],
 //   },
 
 //   {
-//     id: "cust_012",
-//     organizationId: "org_001",
-//     name: "Hassan Bello",
-//     phone: "+2348076543211",
-//     source: "mobile_app",
-//     status: "suspended",
-//     preferences: { theme: "light" },
-//     createdAt: new Date("2025-01-14T09:20:00Z"),
-//     lastActive: new Date("2025-01-14T09:20:00Z"),
+//     id: 'cust_012',
+//     organizationId: 'org_001',
+//     name: 'Hassan Bello',
+//     phone: '+2348076543211',
+//     source: 'mobile_app',
+//     status: 'suspended',
+//     preferences: { theme: 'light' },
+//     createdAt: new Date('2025-01-14T09:20:00Z'),
+//     lastActive: new Date('2025-01-14T09:20:00Z'),
 //     conversations: [],
 //   },
 
 //   {
-//     id: "cust_013",
-//     organizationId: "org_004",
-//     name: "Mariam Sule",
-//     phone: "+2348103344556",
-//     source: "api",
-//     status: "active",
-//     email: "mariam@example.com",
-//     createdAt: new Date("2025-02-03T10:00:00Z"),
-//     lastActive: new Date("2025-02-15T15:10:00Z"),
+//     id: 'cust_013',
+//     organizationId: 'org_004',
+//     name: 'Mariam Sule',
+//     phone: '+2348103344556',
+//     source: 'api',
+//     status: 'active',
+//     email: 'mariam@example.com',
+//     createdAt: new Date('2025-02-03T10:00:00Z'),
+//     lastActive: new Date('2025-02-15T15:10:00Z'),
 //     conversations: [],
 //   },
 
 //   {
-//     id: "cust_014",
-//     organizationId: "org_002",
-//     name: "Patrick Ndu",
-//     phone: "+2348129988776",
-//     source: "website",
-//     status: "inactive",
-//     createdAt: new Date("2025-01-18T08:40:00Z"),
-//     lastActive: new Date("2025-01-22T10:00:00Z"),
+//     id: 'cust_014',
+//     organizationId: 'org_002',
+//     name: 'Patrick Ndu',
+//     phone: '+2348129988776',
+//     source: 'website',
+//     status: 'inactive',
+//     createdAt: new Date('2025-01-18T08:40:00Z'),
+//     lastActive: new Date('2025-01-22T10:00:00Z'),
 //     conversations: [],
 //   },
 
 //   {
-//     id: "cust_015",
-//     organizationId: "org_003",
-//     name: "Linda Okafor",
-//     phone: "+2348026655443",
-//     source: "chatbot",
-//     status: "active",
-//     email: "linda@example.com",
-//     preferences: { preferredContact: "whatsapp" },
-//     createdAt: new Date("2025-02-11T14:00:00Z"),
-//     lastActive: new Date("2025-02-12T08:30:00Z"),
+//     id: 'cust_015',
+//     organizationId: 'org_003',
+//     name: 'Linda Okafor',
+//     phone: '+2348026655443',
+//     source: 'chatbot',
+//     status: 'active',
+//     email: 'linda@example.com',
+//     preferences: { preferredContact: 'whatsapp' },
+//     createdAt: new Date('2025-02-11T14:00:00Z'),
+//     lastActive: new Date('2025-02-12T08:30:00Z'),
 //     conversations: [],
 //   },
 //   // ... rest of your customer data
@@ -198,7 +196,9 @@ const CustomersPage: React.FC = () => {
   const customers = useCustomerValue();
   const setCustomers = useCustomersSetRecoilState();
   const [pagination, setPagination] = useState<Pagination>();
-
+  console.log('============pagination==============');
+  console.log(pagination);
+  console.log('====================================');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
@@ -472,20 +472,11 @@ const CustomersPage: React.FC = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={pagination.currentPage === 1}
-                  onClick={() => setPagination((prev) => ({ ...prev!, currentPage: prev!.currentPage - 1 }))}
-                  className="px-2"
-                >
-                  <FiChevronLeft size={14} />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
                   disabled={!pagination.hasNextPage}
                   onClick={() => handlePagination(pagination.currentPage + 1)}
                   className="px-2"
                 >
-                  <FiChevronRight size={14} />
+                  load more
                 </Button>
               </div>
             </div>

@@ -169,9 +169,6 @@ export class ChatService extends MCPChatBot {
 
         await OrganizationsModel.update({ shouldUpdateChatbotSystemPrompt: false }, { where: { id: planOrg.id } });
 
-        console.log('====================================');
-        console.log(systemPrompt);
-        console.log('====================================');
       }
     }
     await this.connectToMcpServer(conversation.id);
@@ -320,20 +317,20 @@ export class ChatService extends MCPChatBot {
         type: 'flow',
         header: {
           type: 'text',
-          text: args.headingText || 'Branch Details',
+          text: args?.headingText || 'Branch Details',
         },
         body: {
-          text: args.bodyText || 'Tap below to choose branch.',
+          text: args?.bodyText || 'Tap below to choose branch.',
         },
         footer: {
-          text: args.footerText || 'CheeseAI Bot',
+          text: args?.footerText || 'CheeseAI Bot',
         },
         action: {
           name: 'flow',
           parameters: {
             flow_id: args.flowId,
             flow_message_version: '3',
-            flow_cta: args.buttonText || 'Open form',
+            flow_cta: args?.buttonText || 'Open form',
             mode: 'published',
             flow_action: 'navigate',
             flow_action_payload: {
@@ -366,34 +363,3 @@ export class ChatService extends MCPChatBot {
   }
 }
 
-// body: JSON.stringify({
-//       messaging_product: 'whatsapp',
-//       to: recipientPhoneNumber,
-//       type: 'template',
-//       template: {
-//         name: 'address_update',
-//         language: { code: 'en_US' },
-//         components: [
-//           {
-//             type: 'body',
-//             parameters: [
-//               {
-//                 type: 'text',
-//                 parameter_name: '1',
-//                 text: 'first man',
-//               },
-//               {
-//                 type: 'text',
-//                 parameter_name: '2',
-//                 text: 'we da here with you',
-//               },
-//               {
-//                 type: 'text',
-//                 parameter_name: '3',
-//                 text: 'da nice',
-//               },
-//             ],
-//           },
-//         ],
-//       },
-//     }),

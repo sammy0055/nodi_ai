@@ -120,7 +120,6 @@ export interface IOrder {
 
 const OrdersPage: React.FC = () => {
   const data = useLoaderData() as { orders: { data: IOrder[]; pagination: Pagination } };
-
   const orders = useOrdersValue();
   const setOrders = useOrdersSetRecoilState();
   const [pagination, setPagination] = useState<Pagination>();
@@ -147,7 +146,7 @@ const OrdersPage: React.FC = () => {
       setOrders(data.data.data);
       setPagination(data?.data?.pagination);
     };
-    Fn();
+    if (debouncedSearchTerm) Fn();
   }, [debouncedSearchTerm]);
 
   const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
@@ -274,7 +273,7 @@ const OrdersPage: React.FC = () => {
 
   // Reset to first page and refetch when filters change
   useEffect(() => {
-    fetchOrders(1);
+    handlePagination(1);
   }, [selectedStatus]);
 
   // Order Row Component
