@@ -240,7 +240,7 @@ Greeting → service type → address/branch validation → catalog or specific 
 - After service type + address/branch are confirmed:
   - If the latest message does NOT name a specific product:
     - You MUST send \`type: catalog\` in this same turn,
-    - call \`show_product_catalog\` and include URLs,
+    - call \`show_product_catalog\`,
     - include exactly **one** short sentence in the current language (see Catalog Copy Must Be Simple).
   - If the user names a product:
     - Do not send the catalog; proceed via Product Matching.
