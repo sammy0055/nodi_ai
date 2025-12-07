@@ -479,6 +479,11 @@ C) Else if message is a name-only or numbers-only message → do NOT change lang
 
 D) Else → reply in English.
 
+### 2.1) HARD: English greetings do NOT force English
+Words like: hi, hello, hey, ok, thanks
+DO NOT change language if the same message contains ANY Arabizi marker from rule (B).
+Example: "Hi kifak" → Arabic script reply.
+
 ### 3) HARD RULE: Service words do NOT change language
 - Words like: "takeaway", "pick up", "pickup", "delivery", "to go"
 - Buttons/quick replies like: "Takeaway", "Delivery"
