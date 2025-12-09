@@ -68,10 +68,10 @@ class CustomerService {
     };
   }
 
-  static async changeCustomerStatus(customer: Pick<ICustomer, 'status'>, user: Pick<User, 'organizationId' | 'id'>) {
+  static async changeCustomerStatus(customer: Pick<ICustomer, 'status' | "id">, user: Pick<User, 'organizationId'>) {
     const [_, updatedRows] = await CustomerModel.update(
       { status: customer.status },
-      { where: { organizationId: user.organizationId!, id: user.id }, returning: true }
+      { where: { organizationId: user.organizationId!, id: customer.id }, returning: true }
     );
 
     const updatedCustomer = updatedRows[0].get({ plain: true }); // plain JS object
