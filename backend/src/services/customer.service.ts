@@ -31,6 +31,7 @@ class CustomerService {
       where,
       offset,
       limit,
+      distinct: true, // ✅ important
       order: searchQuery
         ? [
             [
@@ -68,7 +69,7 @@ class CustomerService {
     };
   }
 
-  static async changeCustomerStatus(customer: Pick<ICustomer, 'status' | "id">, user: Pick<User, 'organizationId'>) {
+  static async changeCustomerStatus(customer: Pick<ICustomer, 'status' | 'id'>, user: Pick<User, 'organizationId'>) {
     const [_, updatedRows] = await CustomerModel.update(
       { status: customer.status },
       { where: { organizationId: user.organizationId!, id: customer.id }, returning: true }
