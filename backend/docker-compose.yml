@@ -38,11 +38,6 @@ services:
       - qdrant_data:/qdrant/storage
     networks:
       - app_network
-    healthcheck:
-      test: ['CMD-SHELL', 'curl -f http://localhost:6333/collections || exit 1']
-      interval: 5s
-      timeout: 5s
-      retries: 5
 
   rabbitmq:
     image: rabbitmq:4.1.6-management-alpine
@@ -58,6 +53,11 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
       - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:6333/collections || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:

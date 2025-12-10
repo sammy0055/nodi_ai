@@ -30,6 +30,8 @@ export enum EnvList {
   PROD_QDRANT = 'PROD_QDRANT',
   LOCAL_FRONTEND_URL = 'LOCAL_FRONTEND_URL',
   PROD_FRONTEND_URL = 'PROD_FRONTEND_URL',
+  LOCAL_RABBITMQ = 'LOCAL_RABBITMQ',
+  PROD_RABBITMQ = 'PROD_RABBITMQ',
 }
 
 const env = getEnv(EnvList.NODE_ENV);
@@ -44,6 +46,7 @@ export const appConfig = {
     url: env === 'dev' ? getEnv(EnvList.LOCAL_DATABASE_URL) : getEnv(EnvList.PROD_DATABASE_URL),
     qdrant: env === 'dev' ? getEnv(EnvList.LOCAL_QDRANT) : getEnv(EnvList.PROD_QDRANT),
   },
+  rabbitmq: env === 'dev' ? getEnv(EnvList.LOCAL_RABBITMQ) : getEnv(EnvList.PROD_RABBITMQ),
   stripe: {
     publicKey: getEnv(EnvList.STRIPE_PUBLIC_KEY),
     secretKey: getEnv(EnvList.STRIPE_SECRET_KEY),
