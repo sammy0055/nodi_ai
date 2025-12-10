@@ -47,7 +47,8 @@ export const queueConsumer = async () => {
           console.log('====================================');
 
           // nack the message so RabbitMQ can handle retry / DLQ
-          channel.nack(message, false, false);
+          //   channel.nack(message, false, false);
+          channel.ack(message);
         }
       },
       {
