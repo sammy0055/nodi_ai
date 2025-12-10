@@ -1,3 +1,5 @@
+version: '3.9'
+
 services:
   db:
     image: postgres:16
@@ -17,10 +19,13 @@ services:
       - 'max_connections=200'
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      # - ./pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
-      # - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
     networks:
       - app_network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   qdrant:
     image: qdrant/qdrant
@@ -33,6 +38,26 @@ services:
       - qdrant_data:/qdrant/storage
     networks:
       - app_network
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -f http://localhost:6333/collections || exit 1']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:4.1.6-management-alpine
+    container_name: nodi_ai_rabbitmq
+    restart: always
+    ports:
+      - '4011:5672' # AMQP
+      - '4012:15672' # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: nodi_ai_admin
+      RABBITMQ_DEFAULT_PASS: nodi_ai_passkey10
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - app_network
 
   backend:
     build:
@@ -43,8 +68,12 @@ services:
     ports:
       - '4000:4000'
     depends_on:
-      - db
-      - qdrant
+      db:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
     networks:
       - app_network
 
@@ -54,3 +83,4 @@ networks:
 volumes:
   postgres_data:
   qdrant_data:
+  rabbitmq_data:

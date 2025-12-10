@@ -29,6 +29,7 @@ import { convRoute } from './routes/conversation.route.js';
 import { NotificationRoute } from './routes/notification.route.js';
 import { adminEmailListRoute } from './routes/admin-email-list.route.js';
 import { whatsappFlowRoute } from './routes/whatsapp-flow.js';
+import { queueConsumer } from './helpers/rabbitmq/index.js';
 
 const app = express();
 
@@ -76,5 +77,6 @@ const vectorStore = new ManageVectorStore();
 const PORT = appConfig.port;
 app.listen(PORT, async () => {
   await connectDB();
+  queueConsumer();
   await vectorStore.initCollection();
 });

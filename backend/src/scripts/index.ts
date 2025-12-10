@@ -11,6 +11,7 @@ import { sendVerificationEmail } from '../utils/send-email';
 import { ChatHistoryManager } from '../services/ChatHistoryManager.service';
 import { templates } from '../data/templates';
 import { priceToMetaFormat } from '../helpers/whatsapp-catalog';
+import { queueProducer } from './rabbitmq';
 
 const ddd = {
   whatsappBusinessId: '1390720013053482',
@@ -317,5 +318,6 @@ const createCatalogItem = async () => {
 // testMcp('hello');
 // run();
 // createWhsappFlow();
-sendMessage()
+// sendMessage()
 // createCatalogItem();
+queueProducer({ data: { hel: { d: '', dfsaf: ['dwee'] } } });

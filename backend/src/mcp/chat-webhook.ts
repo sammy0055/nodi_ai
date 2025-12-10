@@ -5,6 +5,7 @@ import { ProductItem, WhatsAppMessage, WhatsAppWebhookPayload } from '../types/w
 import { ZoneModel } from '../models/zones.model';
 import { AreaModel } from '../models/area.model';
 import { BranchesModel } from '../models/branches.model';
+import { queueProducer } from '../helpers/rabbitmq';
 export const chatRoute = express.Router();
 
 export interface IncomingMessageAttr {
@@ -112,113 +113,114 @@ chatRoute.post('/chat-webhook', async (req, res) => {
       }
     }
   }
-
-  async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) {
-    const userPhoneNumber = msg.from;
-    const userMessage = msg.text?.body || '';
-
-    try {
-      const chat = await ChatService.init(userPhoneNumber, whatsappBusinessId);
-      const res = await chat.processQuery(userMessage);
-      const response = res.data;
-      console.log('================res.data====================');
-      console.log(response);
-      console.log('====================================');
-      switch (response.type) {
-        case 'message':
-          await chat.sendWhatSappMessage({ recipientPhoneNumber: userPhoneNumber, message: response.response });
-          break;
-        case 'catalog':
-          await chat.sendWhatSappCatalogInteractiveMessage({
-            recipientPhoneNumber: userPhoneNumber,
-            catalogUrl: response.catalogUrl,
-            productUrl: response.productUrl,
-            bodyText: response.bodyText,
-            buttonText: response.buttonText,
-          });
-          break;
-        case 'area-and-zone-flow':
-          await chat.sendWhatSappFlowInteractiveMessage({
-            recipientPhoneNumber: userPhoneNumber,
-            zones: response?.zones,
-            flowId: response?.flowId,
-            flowName: response?.flowName,
-            headingText: response?.headingText,
-            bodyText: response?.bodyText,
-            buttonText: response.buttonText,
-            footerText: response?.footerText,
-          });
-          break;
-        case 'branch-flow':
-          await chat.sendWhatSappBranchFlowInteractiveMessage({
-            recipientPhoneNumber: userPhoneNumber,
-            branches: response?.branches,
-            flowId: response?.flowId,
-            flowName: response?.flowName,
-            headingText: response?.headingText,
-            bodyText: response?.bodyText,
-            buttonText: response.buttonText,
-            footerText: response?.footerText,
-          });
-          break;
-        default:
-          console.error('admin: wrong message type from chatbot');
-          break;
-      }
-    } catch (error: any) {
-      console.log('webhook-chat-error', error);
-      // return res.status(500).json({ error: error.message });
-    }
-  }
-
-  async function handleIncomingMessage({ whatsappBusinessId, msg, processMessages }: IncomingMessageAttr) {
-    const userPhoneNumber = msg.from;
-    const userMessage = msg.text?.body || '';
-
-    if (!userQueues.has(userPhoneNumber)) {
-      userQueues.set(userPhoneNumber, { messages: [], processing: false });
-    }
-
-    const queue = userQueues.get(userPhoneNumber);
-    queue.messages.push(userMessage);
-
-    // if already processing, just queue and exit
-    if (queue.processing) return;
-
-    queue.processing = true;
-
-    // wait a bit to collect more messages (2s window)
-    await new Promise((r) => setTimeout(r, 2000));
-
-    while (queue.messages.length > 0) {
-      // collect all messages (handles spam bursts)
-      const batch = [...queue.messages].join('\n');
-      queue.messages.length = 0; // clear buffer
-      if (msg.text?.body) msg.text.body = batch;
-      try {
-        await processMessages(whatsappBusinessId, msg);
-      } catch (err) {
-        console.error('Error processing user messages:', err);
-      }
-    }
-
-    // cleanup to free memory
-    queue.processing = false;
-    userQueues.delete(userPhoneNumber);
-  }
-
-  async function processMessages(whatsappBusinessId: string, msg: WhatsAppMessage) {
-    const userPhoneNumber = msg.from;
-    console.log(`Processing for ${userPhoneNumber}:`, msg.text?.body);
-
-    // your chatbot logic here
-    await handleMessages(whatsappBusinessId, msg);
-  }
-
-  function formatCatalogMessage(items: ProductItem[]): string {
-    const products = items.map((i) => ({ id: i.product_retailer_id, quantity: i.quantity }));
-    const stringifiedProducts = JSON.stringify(products);
-    const prompt = `here is a an array of products ids and quantity a customer has selected, retrieve this products and complete the order process.\n product_ids:${stringifiedProducts}`;
-    return prompt;
-  }
 });
+
+async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) {
+  const userPhoneNumber = msg.from;
+  const userMessage = msg.text?.body || '';
+
+  try {
+    const chat = await ChatService.init(userPhoneNumber, whatsappBusinessId);
+    const res = await chat.processQuery(userMessage);
+    const response = res.data;
+    console.log('================res.data====================');
+    console.log(response);
+    console.log('====================================');
+    switch (response.type) {
+      case 'message':
+        await chat.sendWhatSappMessage({ recipientPhoneNumber: userPhoneNumber, message: response.response });
+        break;
+      case 'catalog':
+        await chat.sendWhatSappCatalogInteractiveMessage({
+          recipientPhoneNumber: userPhoneNumber,
+          catalogUrl: response.catalogUrl,
+          productUrl: response.productUrl,
+          bodyText: response.bodyText,
+          buttonText: response.buttonText,
+        });
+        break;
+      case 'area-and-zone-flow':
+        await chat.sendWhatSappFlowInteractiveMessage({
+          recipientPhoneNumber: userPhoneNumber,
+          zones: response?.zones,
+          flowId: response?.flowId,
+          flowName: response?.flowName,
+          headingText: response?.headingText,
+          bodyText: response?.bodyText,
+          buttonText: response.buttonText,
+          footerText: response?.footerText,
+        });
+        break;
+      case 'branch-flow':
+        await chat.sendWhatSappBranchFlowInteractiveMessage({
+          recipientPhoneNumber: userPhoneNumber,
+          branches: response?.branches,
+          flowId: response?.flowId,
+          flowName: response?.flowName,
+          headingText: response?.headingText,
+          bodyText: response?.bodyText,
+          buttonText: response.buttonText,
+          footerText: response?.footerText,
+        });
+        break;
+      default:
+        console.error('admin: wrong message type from chatbot');
+        break;
+    }
+  } catch (error: any) {
+    console.log('webhook-chat-error', error);
+    // return res.status(500).json({ error: error.message });
+  }
+}
+
+async function handleIncomingMessage({ whatsappBusinessId, msg, processMessages }: IncomingMessageAttr) {
+  const userPhoneNumber = msg.from;
+  const userMessage = msg.text?.body || '';
+
+  if (!userQueues.has(userPhoneNumber)) {
+    userQueues.set(userPhoneNumber, { messages: [], processing: false });
+  }
+
+  const queue = userQueues.get(userPhoneNumber);
+  queue.messages.push(userMessage);
+
+  // if already processing, just queue and exit
+  if (queue.processing) return;
+
+  queue.processing = true;
+
+  // wait a bit to collect more messages (2s window)
+  await new Promise((r) => setTimeout(r, 2000));
+
+  while (queue.messages.length > 0) {
+    // collect all messages (handles spam bursts)
+    const batch = [...queue.messages].join('\n');
+    queue.messages.length = 0; // clear buffer
+    if (msg.text?.body) msg.text.body = batch;
+    try {
+      // await processMessages(whatsappBusinessId, msg);
+      await queueProducer({ whatsappBusinessId, msg });
+    } catch (err) {
+      console.error('Error processing user messages:', err);
+    }
+  }
+
+  // cleanup to free memory
+  queue.processing = false;
+  userQueues.delete(userPhoneNumber);
+}
+
+export async function processMessages(whatsappBusinessId: string, msg: WhatsAppMessage) {
+  const userPhoneNumber = msg.from;
+  console.log(`Processing for ${userPhoneNumber}:`, msg.text?.body);
+
+  // your chatbot logic here
+  await handleMessages(whatsappBusinessId, msg);
+}
+
+function formatCatalogMessage(items: ProductItem[]): string {
+  const products = items.map((i) => ({ id: i.product_retailer_id, quantity: i.quantity }));
+  const stringifiedProducts = JSON.stringify(products);
+  const prompt = `here is a an array of products ids and quantity a customer has selected, retrieve this products and complete the order process.\n product_ids:${stringifiedProducts}`;
+  return prompt;
+}
