@@ -22,6 +22,7 @@ import { useCustomersSetRecoilState, useCustomerValue } from '../../store/authAt
 import { useLoaderData } from 'react-router';
 import { CustomerService } from '../../services/customerService';
 
+
 // export const customerss: Customer[] = [
 //   // ... your existing customer data remains the same
 //   {
@@ -196,9 +197,6 @@ const CustomersPage: React.FC = () => {
   const customers = useCustomerValue();
   const setCustomers = useCustomersSetRecoilState();
   const [pagination, setPagination] = useState<Pagination>();
-  console.log('============pagination==============');
-  console.log(pagination);
-  console.log('====================================');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
@@ -322,7 +320,7 @@ const CustomersPage: React.FC = () => {
               className={`rounded-2xl px-4 py-3 ${
                 isUser
                   ? 'bg-primary-100 text-primary-900 rounded-br-md border border-primary-200'
-                  : 'bg-white text-neutral-800 border border-neutral-200 rounded-bl-md shadow-sm'
+                  : 'bg-white text-neutral-800 border-neutral-200 shadow-sm'
               }`}
             >
               <p className="text-sm leading-relaxed">{message.content}</p>
@@ -400,7 +398,7 @@ const CustomersPage: React.FC = () => {
     );
     setSelectedCustomer((prev) => ({ ...prev!, status: status }));
     try {
-      await updateCustomerStatus({ status });
+      await updateCustomerStatus({ status, id });
     } catch (error) {
       alert('failed to change customer status');
     }
@@ -753,7 +751,7 @@ const CustomersPage: React.FC = () => {
                           </div>
 
                           {/* Messages */}
-                          <div className="flex-1 overflow-y-auto p-4">
+                          <div className="h-full overflow-auto p-4">
                             <div className="max-w-4xl mx-auto">
                               {selectedConversation.messages.map((message) => (
                                 <ChatMessage key={message.id} message={message} />

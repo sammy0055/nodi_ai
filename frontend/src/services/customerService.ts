@@ -12,7 +12,7 @@ export class CustomerService {
     });
   }
 
-  async updateCustomerStatus(customer: Pick<Customer, 'status'>) {
+  async updateCustomerStatus(customer: Pick<Customer, 'status' | 'id'>) {
     return await ApiClient('UPDATE_CUSTOMER_STATUS', { method: 'POST', body: customer });
   }
 }
