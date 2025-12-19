@@ -1,4 +1,3 @@
-import { UserTypes } from '../data/data-types';
 
 export interface ISignUp {
   id: string; // uuid
@@ -6,7 +5,6 @@ export interface ISignUp {
   email: string;
   password: string;
   bussinessName: string;
-  userType: `${UserTypes}`;
   authType: any;
 }
 
@@ -16,7 +14,6 @@ export interface User {
   name: string;
   email: string;
   password: string;
-  userType: `${UserTypes}`;
 }
 
 export interface AdminUser {

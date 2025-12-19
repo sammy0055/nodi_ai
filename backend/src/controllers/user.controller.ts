@@ -2,13 +2,19 @@ import { UserService } from '../services/users.service';
 import { ISignUp, User } from '../types/users';
 
 export class UserController {
+  static async createUser(data: Omit<ISignUp, 'id'>, user: Pick<User, 'id' | 'organizationId'>) {
+    return await UserService.createUser(data, user);
+  }
+  static async deleteUser(userToBeRemoveId: string, user: Pick<User, 'id' | 'organizationId'>) {
+    return await UserService.deleteUser(userToBeRemoveId, user);
+  }
   static async signUp(data: Omit<ISignUp, 'id'>) {
     return await UserService.signUp(data);
   }
   static async signUpWithGoogle() {
     return await UserService.authenticateWithGoogle();
   }
-    static async signInWithGoogle() {
+  static async signInWithGoogle() {
     return await UserService.authenticateWithGoogle();
   }
   static async exchangeGoogleAuthCodeForSignUp(code: string) {

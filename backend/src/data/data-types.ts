@@ -33,10 +33,16 @@ export enum WhatSappConnectionStatus {
 }
 
 export enum UserTypes {
-  Owner = 'owner',
+  SuperAdmin = 'super-admin',
   Admin = 'admin', // Full system control
   Manager = 'manager', // Manages branches/employees
   Staff = 'staff', // Regular employee
+}
+
+export enum OrderPermissions {
+  CREATE = 'order.create',
+  ASSIGN_SELF = 'order.assign.self',
+  PROCESS = 'order.process',
 }
 
 export enum ProductStatusTypes {
