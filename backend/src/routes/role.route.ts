@@ -1,5 +1,5 @@
 import express from 'express';
-import { adminAuthMiddleware } from '../middleware/authentication';
+import { adminAuthMiddleware, authMiddleware } from '../middleware/authentication';
 import { roleService } from '../services/role.service';
 import { errorLogger } from '../helpers/logger';
 import { APIResponseFormat } from '../types/apiTypes';
@@ -27,7 +27,60 @@ userRoleRoute.post('/create-role', adminAuthMiddleware, validateRoleSchema(), as
   }
 });
 
+userRoleRoute.post('/update-role', adminAuthMiddleware, async (req, res) => {
+  try {
+    const data = await roleService.updateRole(req.body);
+    const response: APIResponseFormat<any> = {
+      message: 'role updated successfully',
+      data,
+    };
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
+
+userRoleRoute.post('/set-role-permissions', authMiddleware, async (req, res) => {
+  try {
+    const data = await roleService.addPermissionsToRole(req.body, req.user!);
+    const response: APIResponseFormat<any> = {
+      message: 'role updated successfully',
+      data,
+    };
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
 userRoleRoute.get('/get-roles', adminAuthMiddleware, async (req, res) => {
+  try {
+    const data = await roleService.getRoles();
+    const response: APIResponseFormat<any> = {
+      message: 'roles retrieved successfully',
+      data,
+    };
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
+
+userRoleRoute.get('/org-get-roles', authMiddleware, async (req, res) => {
   try {
     const data = await roleService.getRoles();
     const response: APIResponseFormat<any> = {
@@ -62,4 +115,3 @@ userRoleRoute.delete('/delete-role', adminAuthMiddleware, async (req, res) => {
     res.status(500).json(response);
   }
 });
-

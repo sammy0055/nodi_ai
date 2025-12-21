@@ -11,6 +11,7 @@ import { sendPasswordResetEmail, sendUserInviteMail } from '../utils/send-email'
 import { UserRoleModel } from '../models/role.model';
 import { UserPermissionsModel } from '../models/permission.model';
 import { OrganizationsModel } from '../models/organizations.model';
+import { Op } from 'sequelize';
 
 export class UserService {
   constructor() {}
@@ -20,8 +21,11 @@ export class UserService {
     'postmessage'
   );
 
-  static async createUser(data: Omit<ISignUp, 'id'>, user: Pick<User, 'id' | 'organizationId'>) {
+  static async createUser(data: User, user: Pick<User, 'id' | 'organizationId'>) {
     if (!user.id) throw new Error('user is not authenticated');
+    if (data.roles?.length === 0) throw new Error('role is required');
+    const roles = await UserRoleModel.findAll({ where: { id: data.roles?.map((r) => r.id) } });
+    if (!roles) throw new Error('user role does not exist');
     const _user = await UsersModel.findByPk(user.id, {
       include: [
         {
@@ -52,8 +56,35 @@ export class UserService {
       userName: data.name,
       btnUrl: `${appConfig.frontendUrl}`,
     });
-    const otherUser = await UsersModel.create({ ...data, organizationId: user.organizationId });
-    return otherUser;
+
+    const payload = {
+      name: data.name,
+      email: data.email,
+      password: 'password',
+    };
+
+    const otherUser = await UsersModel.create({ ...payload, organizationId: user.organizationId });
+    await otherUser.setRoles(roles);
+    return await UsersModel.findByPk(otherUser.id, { include: { model: UserRoleModel, as: 'roles' } });
+  }
+
+  static async updateUser(user: User, _user: Pick<User, 'id' | 'organizationId'>) {
+    if (!user.id) throw new Error('user id is required to update a user');
+    const oldUser = await UsersModel.findByPk(user.id);
+    if (!oldUser) throw new Error('user does not exist');
+    const admin = await UsersModel.findByPk(_user.id, { include: { model: UserRoleModel, as: 'roles' } });
+    const planAdmin = admin?.get({ plain: true }) as any;
+    const isSupperAdmin = planAdmin?.roles?.find((r: any) => r.name === UserTypes.SuperAdmin);
+    if (!isSupperAdmin) throw new Error("you don't have permission to perform this action");
+    const [_, updatedUser] = await UsersModel.update(user, {
+      where: { id: user.id, organizationId: _user.organizationId },
+      returning: true,
+    });
+    if (user.roles) {
+      const userRoles = await UserRoleModel.findAll({ where: { id: user.roles?.map((u) => u.id) } });
+      await oldUser.setRoles(userRoles);
+    }
+    return updatedUser[0].get({ plain: true }); // plain JS object
   }
 
   static async deleteUser(userToBeRemoveId: string, user: Pick<User, 'id' | 'organizationId'>) {
@@ -80,6 +111,25 @@ export class UserService {
     const isSupperAdmin = plainUser?.roles.find((r: any) => r.name === UserTypes.SuperAdmin);
     if (!isSupperAdmin) throw new Error("you don't have permission to perform this action");
     await UsersModel.destroy({ where: { id: userToBeRemoveId } });
+  }
+
+  static async getUsers(user: Pick<User, 'id' | 'organizationId'>) {
+    const users = await UsersModel.findAll({
+      where: { organizationId: user.organizationId },
+      include: [
+        {
+          model: UserRoleModel,
+          as: 'roles',
+          where: {
+            name: {
+              [Op.ne]: 'super-admin',
+            },
+          },
+          required: false,
+        },
+      ],
+    });
+    return users;
   }
 
   static async signUp(data: Omit<ISignUp, 'id'>) {

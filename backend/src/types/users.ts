@@ -1,4 +1,3 @@
-
 export interface ISignUp {
   id: string; // uuid
   name: string;
@@ -14,6 +13,7 @@ export interface User {
   name: string;
   email: string;
   password: string;
+  roles?: { id: string; name: string }[];
 }
 
 export interface AdminUser {

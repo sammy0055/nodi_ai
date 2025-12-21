@@ -12,8 +12,13 @@ import { ReviewService } from '../services/reviewService';
 export const tenantContextLoader = async () => {
   const { getOrganization } = new OrganizationService();
   const { fetchCurrentUser } = new UserService();
-   const {getSubscriptionPlans, getSubscription} = new SubscriptionService();
-  const [userResult, orgResult, subscriptionResults, subsriptionPlanResults] = await Promise.allSettled([fetchCurrentUser(), getOrganization(), getSubscription(), getSubscriptionPlans()]);
+  const { getSubscriptionPlans, getSubscription } = new SubscriptionService();
+  const [userResult, orgResult, subscriptionResults, subsriptionPlanResults] = await Promise.allSettled([
+    fetchCurrentUser(),
+    getOrganization(),
+    getSubscription(),
+    getSubscriptionPlans(),
+  ]);
   const user = userResult.status === 'fulfilled' ? userResult.value : null;
   const org = orgResult.status === 'fulfilled' ? orgResult.value : null;
   const subscription = subscriptionResults.status === 'fulfilled' ? subscriptionResults.value : null;
@@ -22,7 +27,7 @@ export const tenantContextLoader = async () => {
     user: user?.data,
     org: org?.data,
     subscription: subscription?.data,
-    subscriptionPlans:subscriptionPlans?.data
+    subscriptionPlans: subscriptionPlans?.data,
   };
 };
 
@@ -128,4 +133,22 @@ export async function billingContextLoader() {
   } catch (error: any) {
     console.error('error in Tenant contextLoader:', error.message);
   }
+}
+
+export async function settingsContextLoader() {
+  const { getUsers, getRoles, getPermissions } = new UserService();
+  const [usersResults, rolesResults, permissionsResult] = await Promise.allSettled([
+    getUsers(),
+    getRoles(),
+    getPermissions(),
+  ]);
+
+  const users = usersResults.status === 'fulfilled' ? usersResults.value : null;
+  const roles = rolesResults.status === 'fulfilled' ? rolesResults.value : null;
+  const permissions = permissionsResult.status === 'fulfilled' ? permissionsResult.value : null;
+  return {
+    users: users?.data,
+    roles: roles?.data,
+    permissions: permissions?.data,
+  };
 }

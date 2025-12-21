@@ -8,6 +8,9 @@ export class UserController {
   static async deleteUser(userToBeRemoveId: string, user: Pick<User, 'id' | 'organizationId'>) {
     return await UserService.deleteUser(userToBeRemoveId, user);
   }
+  static async getUsers(user: Pick<User, 'id' | 'organizationId'>) {
+    return await UserService.getUsers(user);
+  }
   static async signUp(data: Omit<ISignUp, 'id'>) {
     return await UserService.signUp(data);
   }

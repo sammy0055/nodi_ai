@@ -1,4 +1,15 @@
-import type { UserTypes } from '../data/data-types';
+export type Role = {
+  id: string;
+  name: string;
+  description: string;
+  permissions?:Permission[]
+};
+
+export type Permission = {
+  id: string;
+  key: string;
+  description: string;
+};
 
 export interface User {
   id: string;
@@ -6,7 +17,7 @@ export interface User {
   name: string;
   email: string;
   password: string;
-  userType: UserTypes;
+  roles: Role[];
 }
 
 export interface AdminUser {

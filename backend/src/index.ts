@@ -61,6 +61,8 @@ app.use('/api/organization/subscription-plan', subscriptionPlanRoute);
 app.use('/api/organization/order', orderRoute);
 app.use('/api/organization/customers', customerRoute);
 app.use('/api/organization/review', reviewRoute);
+app.use('/api/organization/role', userRoleRoute);
+app.use('/api/organization/permissions', userPermissionRoute);
 
 // app-user routes
 app.use('/api/app-user/subscription-plan', appUserAuthSecretValidation, subscriptionPlanRoute);

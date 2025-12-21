@@ -1,11 +1,12 @@
 import { z } from 'zod';
 import { Request, Response, NextFunction } from 'express';
-import { OrderPermissions } from '../../data/data-types';
+import { permissions } from '../../data/data-types';
 
-const permissionsType = Object.values(OrderPermissions);
+const permissionsType = permissions.map((perm) => perm.key);
 const permissionSchema = z.array(
   z.object({
     key: z.enum(permissionsType as any),
+    description: z.string(),
   })
 );
 
