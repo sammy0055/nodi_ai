@@ -10,15 +10,37 @@ import { Pagination } from '../types/common-types';
 import { SubscriptionsModel } from '../models/subscriptions.model';
 import { SubscriptionPlanModel } from '../models/subscription-plan.model';
 import { CreditBalanceModel } from '../models/creditBalance.model';
+import { roleService } from './role.service';
+import { UserTypes } from '../data/data-types';
+import { sequelize } from '../models/db';
 
 export class OrganizationService {
   constructor() {}
   static async createOrganization(data: Omit<IOrganization, 'id'>, user: Pick<User, 'id'>) {
-    const isOrganizationExist = await OrganizationsModel.findOne({ where: { ownerId: user.id } });
-    if (isOrganizationExist) throw new Error('user already has an organization');
-    const organization = await OrganizationsModel.create({ ...data, ownerId: user.id } as any);
-    await UsersModel.update({ organizationId: organization.id }, { where: { id: user.id } });
-    return organization;
+    return await sequelize.transaction(async (t) => {
+      const isOrganizationExist = await OrganizationsModel.findOne({
+        where: { ownerId: user.id },
+        transaction: t,
+      });
+
+      if (isOrganizationExist) throw new Error('user already has an organization');
+      const organization = await OrganizationsModel.create({ ...data, ownerId: user.id } as any, { transaction: t });
+
+      const adminUser = await UsersModel.findByPk(user.id, { transaction: t });
+      if (!adminUser) throw new Error('the user does not exist');
+
+      await adminUser.update({ organizationId: organization.id }, { transaction: t });
+      const createdRoles = await roleService.createBulkRole(
+        organization.id,
+        t // pass transaction down
+      );
+
+      const adminRole = createdRoles.find((r) => r.name === UserTypes.SuperAdmin);
+      if (!adminRole) throw new Error('super admin role needs to exist');
+
+      await adminUser.setRoles([adminRole], { transaction: t });
+      return organization;
+    });
   }
 
   static async updateOrganization(organizationId: string, data: IOrganization) {

@@ -10,7 +10,8 @@ export const userRoleRoute = express.Router();
 userRoleRoute.post('/create-role', adminAuthMiddleware, validateRoleSchema(), async (req, res) => {
   try {
     const role = req.body.role;
-    const data = await roleService.createRole(role);
+    const organizationId = req.body.organizationId;
+    const data = await roleService.createRole(role, { organizationId: organizationId } as any);
 
     const response: APIResponseFormat<any> = {
       message: 'role created successfully',
@@ -29,7 +30,7 @@ userRoleRoute.post('/create-role', adminAuthMiddleware, validateRoleSchema(), as
 
 userRoleRoute.post('/update-role', adminAuthMiddleware, async (req, res) => {
   try {
-    const data = await roleService.updateRole(req.body);
+    const data = await roleService.updateRole(req.body, { organizationId: req.body.organizationId } as any);
     const response: APIResponseFormat<any> = {
       message: 'role updated successfully',
       data,
@@ -64,7 +65,7 @@ userRoleRoute.post('/set-role-permissions', authMiddleware, async (req, res) => 
 });
 userRoleRoute.get('/get-roles', adminAuthMiddleware, async (req, res) => {
   try {
-    const data = await roleService.getRoles();
+    const data = await roleService.getRoles(req.body);
     const response: APIResponseFormat<any> = {
       message: 'roles retrieved successfully',
       data,
@@ -82,7 +83,7 @@ userRoleRoute.get('/get-roles', adminAuthMiddleware, async (req, res) => {
 
 userRoleRoute.get('/org-get-roles', authMiddleware, async (req, res) => {
   try {
-    const data = await roleService.getRoles();
+    const data = await roleService.getRoles(req.user!);
     const response: APIResponseFormat<any> = {
       message: 'roles retrieved successfully',
       data,
@@ -100,7 +101,7 @@ userRoleRoute.get('/org-get-roles', authMiddleware, async (req, res) => {
 
 userRoleRoute.delete('/delete-role', adminAuthMiddleware, async (req, res) => {
   try {
-    await roleService.removeRole(req.body.roleId);
+    await roleService.removeRole(req.body.roleId, { organizationId: req.body.organizationId } as any);
     const response: APIResponseFormat<any> = {
       message: 'roles deleted successfully',
       data: null,

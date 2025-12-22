@@ -16,6 +16,7 @@ class UserRoleModel extends Model {
   public id!: string;
   public name!: string;
   public description!: string;
+  public organizationId!: string;
 
   declare setPermissions: BelongsToManySetAssociationsMixin<UserPermissionsModel, string>;
   declare addPermissions: BelongsToManyAddAssociationsMixin<UserPermissionsModel, string>;
@@ -43,14 +44,24 @@ class UserRoleModel extends Model {
 UserRoleModel.init(
   {
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-    name: { type: DataTypes.STRING, unique: true },
+    name: { type: DataTypes.STRING, allowNull: false },
     description: DataTypes.STRING,
+    organizationId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+    },
   },
   {
     sequelize,
     modelName: ModelNames.UserRole,
     tableName: ModelNames.UserRole,
     timestamps: true,
+    indexes: [
+      {
+        unique: true,
+        fields: ['organizationId', 'name'],
+      },
+    ],
   }
 );
 

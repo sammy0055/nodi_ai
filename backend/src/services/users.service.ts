@@ -133,12 +133,7 @@ export class UserService {
   }
 
   static async signUp(data: Omit<ISignUp, 'id'>) {
-    const roles = await UserRoleModel.findAll();
-    const superAdmin = roles.find((r) => r.name === UserTypes.SuperAdmin);
-    if (!superAdmin) throw new Error('superAdmin role needs to exist before creating a user');
-
     const user = await UsersModel.create(data);
-    await user.setRoles([superAdmin]);
 
     // JWT payload
     const payload = {
@@ -227,12 +222,7 @@ export class UserService {
       };
     }
 
-    const roles = await UserRoleModel.findAll();
-    const superAdmin = roles.find((r) => r.name === UserTypes.SuperAdmin);
-    if (!superAdmin) throw new Error('superAdmin role needs to exist before creating a user');
-
     const user = await UsersModel.create(userInfo);
-    await user.setRoles([superAdmin]);
 
     // JWT payload
     const userPayload = {
