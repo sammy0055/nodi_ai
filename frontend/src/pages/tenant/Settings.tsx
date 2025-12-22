@@ -55,9 +55,9 @@ const SettingsPage: React.FC = () => {
   useEffect(() => {
     if (data) {
       setUsers(data.users);
-      setRoles(data.roles);
-      if (data.roles.length !== 0) {
-        setSelectedRoleId(data.roles[0].id);
+      setRoles(data?.roles || []);
+      if (data?.roles?.length !== 0) {
+        setSelectedRoleId(data?.roles[0].id);
         if (data?.roles[0]?.permissions) setRolePermissions(new Set(data?.roles[0]?.permissions?.map((p) => p.id)));
       }
       setPermissions(data.permissions);

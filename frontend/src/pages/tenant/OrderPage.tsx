@@ -4,8 +4,6 @@ import {
   FiFilter,
   FiEdit,
   FiEye,
-  FiChevronLeft,
-  FiChevronRight,
   FiBox,
   FiShoppingCart,
   FiTruck,
@@ -22,7 +20,16 @@ import {
   FiMessageCircle,
   FiGlobe,
   FiClock,
-  FiPhone,
+  FiUsers,
+  FiUserCheck,
+  FiUserPlus,
+  FiAlertCircle,
+  FiTrendingUp,
+  FiBarChart2,
+  FiDownload,
+  FiActivity,
+  FiZap,
+  FiPlus,
 } from 'react-icons/fi';
 import Button from '../../components/atoms/Button/Button';
 import { useDebounce } from 'use-debounce';
@@ -30,6 +37,27 @@ import { useOrdersSetRecoilState, useOrdersValue } from '../../store/authAtoms';
 import { OrderService } from '../../services/orderService';
 import { useLoaderData } from 'react-router';
 import type { Pagination } from '../../types/customer';
+
+// Extended User interface with additional fields for order management
+interface User {
+  id: string;
+  organizationId?: string | null;
+  name: string;
+  email: string;
+  roles: Role[];
+  activeOrderCount?: number;
+  maxConcurrentOrders?: number;
+  isActive?: boolean;
+  avatar?: string;
+  role?: string;
+  lastActive?: Date;
+}
+
+interface Role {
+  id: string;
+  name: string;
+  description: string;
+}
 
 // Order status object
 export const OrderStatusTypes = {
@@ -41,6 +69,7 @@ export const OrderStatusTypes = {
   CANCELLED: 'cancelled',
   RETURNED: 'returned',
   REFUNDED: 'refunded',
+  ON_HOLD: 'on_hold',
 } as const;
 
 // Order source object
@@ -49,11 +78,20 @@ export const OrderSourceTypes = {
   WEBSITE: 'website',
   MOBILE_APP: 'mobile_app',
   API: 'api',
+  WALK_IN: 'walk_in',
 } as const;
 
-// Optional: types derived from objects
+// Order priority levels
+export const OrderPriorityTypes = {
+  LOW: 'low',
+  MEDIUM: 'medium',
+  HIGH: 'high',
+  URGENT: 'urgent',
+} as const;
+
 export type OrderStatus = (typeof OrderStatusTypes)[keyof typeof OrderStatusTypes];
 export type OrderSource = (typeof OrderSourceTypes)[keyof typeof OrderSourceTypes];
+export type OrderPriority = (typeof OrderPriorityTypes)[keyof typeof OrderPriorityTypes];
 
 export interface OrderItemOption {
   optionId: string;
@@ -79,6 +117,7 @@ export interface OrderItem {
 
 export interface IOrder {
   id: string;
+  orderNumber: string;
   title: string;
   customerId: string;
   organizationId: string;
@@ -90,23 +129,35 @@ export interface IOrder {
   deliveryCharge: number;
   totalAmount: number;
   currency: string;
-  deliveryAreaId: string; // to be checked
+  deliveryAreaId: string;
   deliveryAreaName?: string;
   deliveryTime?: Date;
   shippingAddress?: string;
-  serviceType: 'delivery' | 'takeaway';
+  serviceType: 'delivery' | 'takeaway' | 'dine_in';
   createdAt: Date;
   updatedAt: Date;
+
+  // New fields for assignment and timing
+  assignedUserId?: string;
+  assignedUserName?: string;
+  assignedAt?: Date;
+  processingTime?: number;
+  estimatedCompletionTime?: number;
+  priority: OrderPriority;
+  notes?: string;
+  customerNotes?: string;
+
   branch: {
-    // populated values
     id: string;
     name: string;
+    address?: string;
   };
   customer: {
-    // populated values
     id: string;
     name: string;
     phone: string;
+    email?: string;
+    avatar?: string;
   };
   area: {
     id: string;
@@ -125,20 +176,180 @@ const OrdersPage: React.FC = () => {
   const [pagination, setPagination] = useState<Pagination>();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'all'>('all');
-  const [isLoading] = useState(false);
+  const [selectedPriority, setSelectedPriority] = useState<OrderPriority | 'all'>('all');
+  const [selectedTab, setSelectedTab] = useState<
+    'all' | 'assigned' | 'processing' | 'completed' | 'cancelled' | 'refunded' | 'pending'
+  >('all');
+
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
+  const [showAssignmentModal, setShowAssignmentModal] = useState(false);
+  const [orderToAssign, setOrderToAssign] = useState<IOrder | null>(null);
+  const [assignToUserId, setAssignToUserId] = useState<string>('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [timer, setTimer] = useState(0);
 
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
   const { updateOrderStatus } = new OrderService();
 
-  useEffect(() => {
-    if (data) {
-      setOrders(data?.orders?.data || []);
-      setPagination(data?.orders?.pagination);
+  // Mock users data with enhanced fields
+  const [users, setUsers] = useState<User[]>([
+    {
+      id: '1',
+      name: 'John Doe',
+      email: 'john@example.com',
+      roles: [{ id: '1', name: 'Admin', description: 'Full access' }],
+      activeOrderCount: 2,
+      maxConcurrentOrders: 5,
+      isActive: true,
+      role: 'Team Lead',
+      lastActive: new Date(Date.now() - 5 * 60000),
+    },
+    {
+      id: '2',
+      name: 'Jane Smith',
+      email: 'jane@example.com',
+      roles: [{ id: '2', name: 'Support', description: 'Customer support' }],
+      activeOrderCount: 1,
+      maxConcurrentOrders: 3,
+      isActive: true,
+      role: 'Order Specialist',
+      lastActive: new Date(Date.now() - 2 * 60000),
+    },
+    {
+      id: '3',
+      name: 'Bob Johnson',
+      email: 'bob@example.com',
+      roles: [{ id: '3', name: 'Agent', description: 'Order processing' }],
+      activeOrderCount: 0,
+      maxConcurrentOrders: 4,
+      isActive: true,
+      role: 'Processing Agent',
+      lastActive: new Date(Date.now() - 10 * 60000),
+    },
+    {
+      id: '4',
+      name: 'Alice Brown',
+      email: 'alice@example.com',
+      roles: [{ id: '4', name: 'Manager', description: 'Team management' }],
+      activeOrderCount: 3,
+      maxConcurrentOrders: 6,
+      isActive: true,
+      role: 'Operations Manager',
+      lastActive: new Date(Date.now() - 60000),
+    },
+    {
+      id: '5',
+      name: 'Mike Wilson',
+      email: 'mike@example.com',
+      roles: [{ id: '5', name: 'Support', description: 'Customer support' }],
+      activeOrderCount: 1,
+      maxConcurrentOrders: 4,
+      isActive: true,
+      role: 'Support Agent',
+      lastActive: new Date(Date.now() - 3 * 60000),
+    },
+  ]);
+
+  // Current user (mock - in real app, get from auth context)
+  const currentUser = users[0];
+
+  // Generate mock orders data
+  const generateMockOrders = (count: number): IOrder[] => {
+    const statuses = Object.values(OrderStatusTypes);
+    const sources = Object.values(OrderSourceTypes);
+    const priorities = Object.values(OrderPriorityTypes);
+    const serviceTypes = ['delivery', 'takeaway', 'dine_in'] as const;
+
+    const mockOrders: IOrder[] = [];
+
+    for (let i = 0; i < count; i++) {
+      const status = statuses[Math.floor(Math.random() * statuses.length)];
+      const assignedUser = status === 'processing' ? users[Math.floor(Math.random() * users.length)] : undefined;
+      const estimatedTime = Math.floor(Math.random() * 120) + 10; // 10-130 minutes
+
+      const order: IOrder = {
+        id: `order-${1000 + i}`,
+        orderNumber: `ORD${1000 + i}`,
+        title: `Order #${1000 + i}`,
+        customerId: `cust-${i}`,
+        organizationId: 'org-1',
+        branchId: 'branch-1',
+        status,
+        source: sources[Math.floor(Math.random() * sources.length)],
+        items: [
+          {
+            productId: `prod-${i}`,
+            inventoryId: `inv-${i}`,
+            quantity: Math.floor(Math.random() * 5) + 1,
+            totalPrice: `$${(Math.random() * 100 + 10).toFixed(2)}`,
+            product: {
+              name: `Product ${i + 1}`,
+              price: Math.floor(Math.random() * 50) + 10,
+              currency: 'USD',
+              options: [],
+            },
+          },
+        ],
+        subtotal: Math.floor(Math.random() * 100) + 20,
+        deliveryCharge: Math.floor(Math.random() * 10) + 5,
+        totalAmount: Math.floor(Math.random() * 150) + 25,
+        currency: 'USD',
+        deliveryAreaId: `area-${i}`,
+        serviceType: serviceTypes[Math.floor(Math.random() * serviceTypes.length)],
+        createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
+        updatedAt: new Date(),
+        priority: priorities[Math.floor(Math.random() * priorities.length)],
+        estimatedCompletionTime: estimatedTime,
+        branch: {
+          id: 'branch-1',
+          name: ['Downtown', 'Uptown', 'Midtown', 'Westside'][Math.floor(Math.random() * 4)],
+        },
+        customer: {
+          id: `cust-${i}`,
+          name: ['Alex Johnson', 'Maria Garcia', 'David Smith', 'Sarah Wilson', 'James Brown'][
+            Math.floor(Math.random() * 5)
+          ],
+          phone: `+1${Math.floor(Math.random() * 900000000) + 100000000}`,
+          email: `customer${i}@example.com`,
+        },
+        area: {
+          id: `area-${i}`,
+          name: ['Zone A', 'Zone B', 'Zone C'][Math.floor(Math.random() * 3)],
+          zone: {
+            id: `zone-${i}`,
+            name: ['North', 'South', 'East', 'West'][Math.floor(Math.random() * 4)],
+          },
+        },
+      };
+
+      if (assignedUser) {
+        order.assignedUserId = assignedUser.id;
+        order.assignedUserName = assignedUser.name;
+        order.assignedAt = new Date(Date.now() - Math.random() * 60 * 60 * 1000);
+        order.processingTime = Math.floor(Math.random() * 3600); // 0-60 minutes in seconds
+      }
+
+      mockOrders.push(order);
     }
-  }, [data]);
+
+    return mockOrders;
+  };
+
+  useEffect(() => {
+    const mockOrders = generateMockOrders(25);
+    setOrders(mockOrders);
+    setPagination({
+      currentPage: 1,
+      pageSize: 10,
+      totalItems: mockOrders.length,
+      totalPages: Math.ceil(mockOrders.length / 10),
+      hasNextPage: false,
+      hasPrevPage: false,
+    });
+  }, []);
 
   useEffect(() => {
     const Fn = async () => {
@@ -149,15 +360,74 @@ const OrdersPage: React.FC = () => {
     if (debouncedSearchTerm) Fn();
   }, [debouncedSearchTerm]);
 
+  useEffect(() => {
+    handlePagination(1);
+  }, [selectedStatus, selectedTab, selectedPriority]);
+
+  // Timer for processing orders
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimer((prev) => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Update processing times
+  useEffect(() => {
+    setOrders((prevOrders) =>
+      prevOrders.map((order) => {
+        if (
+          order.status === OrderStatusTypes.PROCESSING &&
+          order.assignedUserId &&
+          order.processingTime !== undefined
+        ) {
+          return {
+            ...order,
+            processingTime: (order.processingTime || 0) + 1,
+          };
+        }
+        return order;
+      })
+    );
+  }, [timer]);
+
   const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
     setUpdatingOrderId(orderId);
     try {
-      // Call API to update status
       await updateOrderStatus({ orderId, status: newStatus });
 
-      // Update state immutably
       setOrders((prevOrders) =>
-        prevOrders.map((order) => (order.id === orderId ? { ...order, status: newStatus } : order))
+        prevOrders.map((order) => {
+          if (order.id === orderId) {
+            const updatedOrder = { ...order, status: newStatus };
+
+            if (
+              newStatus === OrderStatusTypes.DELIVERED ||
+              newStatus === OrderStatusTypes.CANCELLED ||
+              newStatus === OrderStatusTypes.REFUNDED
+            ) {
+              const assignedUserId = order.assignedUserId;
+              if (assignedUserId) {
+                setUsers((prevUsers) =>
+                  prevUsers.map((u) =>
+                    u.id === assignedUserId ? { ...u, activeOrderCount: Math.max(0, (u.activeOrderCount || 1) - 1) } : u
+                  )
+                );
+              }
+
+              return {
+                ...updatedOrder,
+                processingTime: undefined,
+                assignedUserId: undefined,
+                assignedUserName: undefined,
+              };
+            }
+
+            return updatedOrder;
+          }
+          return order;
+        })
       );
     } catch (error) {
       console.error('Error updating order status:', error);
@@ -167,31 +437,106 @@ const OrdersPage: React.FC = () => {
     }
   };
 
+  const handleAssignOrder = async (order: IOrder, userId: string) => {
+    if (!userId) return;
+
+    const user = users.find((u) => u.id === userId);
+    if (!user) return;
+
+    if (user.activeOrderCount && user.maxConcurrentOrders && user.activeOrderCount >= user.maxConcurrentOrders) {
+      alert(`${user.name} has reached maximum concurrent orders (${user.maxConcurrentOrders})`);
+      return;
+    }
+
+    try {
+      const updatedOrder: IOrder = {
+        ...order,
+        status: OrderStatusTypes.PROCESSING,
+        assignedUserId: userId,
+        assignedUserName: user.name,
+        assignedAt: new Date(),
+        processingTime: 0,
+      };
+
+      setOrders((prevOrders) => prevOrders.map((o) => (o.id === order.id ? updatedOrder : o)));
+
+      setUsers((prevUsers) =>
+        prevUsers.map((u) =>
+          u.id === userId ? { ...u, activeOrderCount: (u.activeOrderCount || 0) + 1, lastActive: new Date() } : u
+        )
+      );
+
+      setShowAssignmentModal(false);
+      setOrderToAssign(null);
+      setAssignToUserId('');
+    } catch (error) {
+      console.error('Error assigning order:', error);
+      alert('Failed to assign order. Please try again.');
+    }
+  };
+
+  const handleUnassignOrder = async (order: IOrder) => {
+    if (!order.assignedUserId) return;
+
+    try {
+      const updatedOrder: IOrder = {
+        ...order,
+        status: OrderStatusTypes.CONFIRMED,
+        assignedUserId: undefined,
+        assignedUserName: undefined,
+        assignedAt: undefined,
+        processingTime: undefined,
+      };
+
+      setOrders((prevOrders) => prevOrders.map((o) => (o.id === order.id ? updatedOrder : o)));
+
+      setUsers((prevUsers) =>
+        prevUsers.map((u) =>
+          u.id === order.assignedUserId ? { ...u, activeOrderCount: Math.max(0, (u.activeOrderCount || 1) - 1) } : u
+        )
+      );
+    } catch (error) {
+      console.error('Error unassigning order:', error);
+      alert('Failed to unassign order. Please try again.');
+    }
+  };
+
+  const handleAssignToSelf = async (order: IOrder) => {
+    await handleAssignOrder(order, currentUser.id);
+  };
+
   const handleViewOrder = (order: IOrder) => {
     setSelectedOrder(order);
     setShowOrderModal(true);
   };
 
+  const handleOpenAssignmentModal = (order: IOrder) => {
+    setOrderToAssign(order);
+    setShowAssignmentModal(true);
+  };
+
   const getStatusColor = (status: OrderStatus) => {
     switch (status) {
       case OrderStatusTypes.PENDING:
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200';
       case OrderStatusTypes.CONFIRMED:
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-50 text-blue-700 border-blue-200';
       case OrderStatusTypes.PROCESSING:
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-purple-50 text-purple-700 border-purple-200';
       case OrderStatusTypes.SHIPPED:
-        return 'bg-indigo-100 text-indigo-800';
+        return 'bg-indigo-50 text-indigo-700 border-indigo-200';
       case OrderStatusTypes.DELIVERED:
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-50 text-green-700 border-green-200';
       case OrderStatusTypes.CANCELLED:
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-50 text-red-700 border-red-200';
       case OrderStatusTypes.RETURNED:
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-orange-50 text-orange-700 border-orange-200';
       case OrderStatusTypes.REFUNDED:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-50 text-gray-700 border-gray-200';
+      case OrderStatusTypes.ON_HOLD:
+        return 'bg-pink-50 text-pink-700 border-pink-200';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
 
@@ -213,6 +558,8 @@ const OrdersPage: React.FC = () => {
         return <FiRefreshCw className="text-orange-600" />;
       case OrderStatusTypes.REFUNDED:
         return <FiDollarSign className="text-gray-600" />;
+      case OrderStatusTypes.ON_HOLD:
+        return <FiAlertCircle className="text-pink-600" />;
       default:
         return <FiBox className="text-gray-600" />;
     }
@@ -228,14 +575,30 @@ const OrdersPage: React.FC = () => {
         return <FiMessageCircle className="text-purple-500" />;
       case OrderSourceTypes.API:
         return <FiShoppingBag className="text-orange-500" />;
+      case OrderSourceTypes.WALK_IN:
+        return <FiUser className="text-teal-500" />;
       default:
         return <FiShoppingCart className="text-gray-500" />;
     }
   };
 
+  const getPriorityColor = (priority: OrderPriority) => {
+    switch (priority) {
+      case 'urgent':
+        return 'bg-red-100 text-red-800 border-red-300';
+      case 'high':
+        return 'bg-orange-100 text-orange-800 border-orange-300';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      case 'low':
+        return 'bg-green-100 text-green-800 border-green-300';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-300';
+    }
+  };
+
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
@@ -243,501 +606,1092 @@ const OrdersPage: React.FC = () => {
     }).format(new Date(date));
   };
 
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${secs}s`;
+    } else {
+      return `${secs}s`;
+    }
+  };
+
   const formatCurrency = (amount: number, currency: string = 'USD') => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(amount);
   };
 
   const { getOrders } = new OrderService();
-  const fetchOrders = async (page: number, resetData: boolean = false) => {
-    // Build filters for API call
-    const filters: any = { page };
-    if (selectedStatus !== 'all') filters.status = selectedStatus;
-
-    const orders = await getOrders(filters);
-
-    if (resetData) {
-      setOrders(orders.data.data);
-      setPagination(orders.data.pagination);
-    } else {
-      setOrders((prev) => [...prev, ...data?.orders?.data]);
-      setPagination(orders.data.pagination);
-    }
-  };
 
   const handlePagination = async (page: number) => {
-    fetchOrders(page, page === 1);
+    // In real app, fetch from API
+    console.log('Fetching page:', page);
   };
 
-  // Reset to first page and refetch when filters change
-  useEffect(() => {
-    handlePagination(1);
-  }, [selectedStatus]);
+  // Calculate stats for the dashboard
+  const calculateStats = () => {
+    const allOrders = orders;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const todayOrders = allOrders.filter((o) => new Date(o.createdAt) >= today);
+    const processingOrders = allOrders.filter((o) => o.status === OrderStatusTypes.PROCESSING);
+    const pendingOrders = allOrders.filter((o) => o.status === OrderStatusTypes.PENDING);
+    const highPriorityOrders = allOrders.filter((o) => o.priority === 'urgent' || o.priority === 'high');
+
+    const totalRevenue = allOrders
+      .filter((o) => o.status === OrderStatusTypes.DELIVERED)
+      .reduce((sum, o) => sum + o.totalAmount, 0);
+
+    const todayRevenue = todayOrders
+      .filter((o) => o.status === OrderStatusTypes.DELIVERED)
+      .reduce((sum, o) => sum + o.totalAmount, 0);
+
+    const avgProcessingTime =
+      processingOrders.length > 0
+        ? processingOrders.reduce((sum, o) => sum + (o.processingTime || 0), 0) / processingOrders.length
+        : 0;
+
+    return {
+      totalOrders: allOrders.length,
+      todayOrders: todayOrders.length,
+      processingOrders: processingOrders.length,
+      pendingOrders: pendingOrders.length,
+      totalRevenue,
+      todayRevenue,
+      avgProcessingTime,
+      highPriorityOrders: highPriorityOrders.length,
+    };
+  };
+
+  const stats = calculateStats();
+
+  // Filter orders based on selected tab and filters
+  const filteredOrders = orders.filter((order) => {
+    // Tab filter
+    let tabFilter = true;
+    switch (selectedTab) {
+      case 'all':
+        tabFilter = true;
+        break;
+      case 'assigned':
+        tabFilter = !!order.assignedUserId;
+        break;
+      case 'processing':
+        tabFilter = order.status === OrderStatusTypes.PROCESSING;
+        break;
+      case 'completed':
+        tabFilter = order.status === OrderStatusTypes.DELIVERED;
+        break;
+      case 'cancelled':
+        tabFilter = order.status === OrderStatusTypes.CANCELLED;
+        break;
+      case 'refunded':
+        tabFilter = order.status === OrderStatusTypes.REFUNDED;
+        break;
+      case 'pending':
+        tabFilter = order.status === OrderStatusTypes.PENDING;
+        break;
+    }
+
+    // Status filter
+    const statusFilter = selectedStatus === 'all' || order.status === selectedStatus;
+
+    // Priority filter
+    const priorityFilter = selectedPriority === 'all' || order.priority === selectedPriority;
+
+    // Search filter
+    const searchFilter =
+      !searchTerm ||
+      order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.branch.name.toLowerCase().includes(searchTerm.toLowerCase());
+
+    return tabFilter && statusFilter && priorityFilter && searchFilter;
+  });
 
   // Order Row Component
   const OrderRow: React.FC<{ order: IOrder }> = ({ order }) => (
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center p-4 border-b border-neutral-200 hover:bg-neutral-50">
-      {/* Order Info - 4 columns */}
-      <div className="md:col-span-4 flex items-center space-x-3">
-        <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
-          {getSourceIcon(order.source)}
+    <div className="group bg-white hover:bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3 transition-all duration-200">
+      <div className="flex flex-col md:flex-row md:items-center justify-between">
+        {/* Left Section */}
+        <div className="flex-1">
+          <div className="flex items-start space-x-3">
+            <div className="flex-shrink-0">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
+                {getSourceIcon(order.source)}
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center space-x-2 mb-2">
+                <h3 className="text-sm font-semibold text-gray-900 truncate">{order.orderNumber}</h3>
+                <div className="flex items-center space-x-1">
+                  <span
+                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+                      order.status
+                    )}`}
+                  >
+                    {getStatusIcon(order.status)}
+                    <span className="ml-1 capitalize">{order.status.replace('_', ' ')}</span>
+                  </span>
+                  <span
+                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(
+                      order.priority
+                    )}`}
+                  >
+                    <FiZap className="mr-1" size={10} />
+                    {order.priority}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                <div className="flex items-center text-gray-600">
+                  <FiUser className="mr-2 text-gray-400" size={14} />
+                  <span className="truncate">{order.customer.name}</span>
+                </div>
+                <div className="flex items-center text-gray-600">
+                  <FiMapPin className="mr-2 text-gray-400" size={14} />
+                  <span className="truncate">{order.branch.name}</span>
+                </div>
+                <div className="flex items-center text-gray-600">
+                  <FiCalendar className="mr-2 text-gray-400" size={14} />
+                  <span>{formatDate(order.createdAt)}</span>
+                </div>
+                <div className="flex items-center text-gray-600">
+                  <FiShoppingCart className="mr-2 text-gray-400" size={14} />
+                  <span>
+                    {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+              </div>
+
+              {order.assignedUserName && (
+                <div className="mt-3 flex items-center">
+                  <div className="flex items-center px-3 py-1.5 bg-blue-50 rounded-lg">
+                    <FiUserCheck className="text-blue-600 mr-2" size={14} />
+                    <span className="text-sm font-medium text-blue-800">{order.assignedUserName}</span>
+                    {order.processingTime !== undefined && (
+                      <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                        {formatTime(order.processingTime)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center space-x-2 mb-1">
-            <h4 className="font-medium text-neutral-900 truncate">{order.title || order.id}</h4>
-            <span
-              className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                order.status
-              )}`}
+
+        {/* Right Section */}
+        <div className="mt-4 md:mt-0 md:ml-4 flex flex-col items-end">
+          <div className="text-right mb-3">
+            <p className="text-xl font-bold text-gray-900">{formatCurrency(order.totalAmount, order.currency)}</p>
+            {order.estimatedCompletionTime && (
+              <p className="text-xs text-gray-500 mt-1">Est: {order.estimatedCompletionTime} min</p>
+            )}
+          </div>
+
+          <div className="flex space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleViewOrder(order)}
+              className="border-gray-300 hover:border-gray-400"
             >
-              {getStatusIcon(order.status)}
-              <span className="ml-1 hidden sm:inline">
-                {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-              </span>
-            </span>
-          </div>
-          <p className="text-sm text-neutral-500 truncate flex items-center">
-            <FiUser className="mr-1 text-neutral-400" size={12} />
-            {order.customer.name}
-          </p>
-          <p className="text-xs text-neutral-400 truncate flex items-center">
-            <FiPhone className="mr-1 text-neutral-400" size={12} />
-            {order.customer.phone}
-          </p>
-        </div>
-      </div>
+              <FiEye className="mr-1" />
+              View
+            </Button>
 
-      {/* Order Details - 3 columns */}
-      <div className="md:col-span-3 hidden md:block">
-        <div className="space-y-1 text-sm">
-          <div className="flex items-center text-neutral-500">
-            <FiMapPin className="mr-1" size={12} />
-            <span className="truncate">{order.branch.name}</span>
-          </div>
-          <div className="flex items-center text-neutral-500">
-            <FiCalendar className="mr-1" size={12} />
-            <span>{formatDate(order.createdAt)}</span>
-          </div>
-          <div className="text-neutral-500">
-            {order.items?.length} item{order.items?.length !== 1 ? 's' : ''}
-          </div>
-        </div>
-      </div>
-
-      {/* Amount - 2 columns */}
-      <div className="md:col-span-2 hidden md:block">
-        <div className="text-right">
-          <p className="text-lg font-bold text-neutral-900">{formatCurrency(order.totalAmount, order.currency)}</p>
-        </div>
-      </div>
-
-      {/* Actions - 3 columns */}
-      <div className="md:col-span-3 flex justify-end space-x-2">
-        <Button variant="outline" size="sm" onClick={() => handleViewOrder(order)} className="min-w-[80px]">
-          <FiEye className="md:mr-1" />
-          <span className="hidden md:inline">View</span>
-        </Button>
-
-        {/* Status Update Dropdown */}
-        <div className="relative">
-          <select
-            value={order.status}
-            onChange={(e) => handleStatusUpdate(order.id, e.target.value as OrderStatus)}
-            disabled={updatingOrderId === order.id}
-            className={`appearance-none bg-white border border-neutral-300 rounded-lg px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-              updatingOrderId === order.id ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-            }`}
-          >
-            {Object.values(OrderStatusTypes).map((status) => (
-              <option key={status} value={status}>
-                {status.charAt(0).toUpperCase() + status.slice(1)}
-              </option>
-            ))}
-          </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-neutral-500">
-            {updatingOrderId === order.id ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+            {!order.assignedUserId ? (
+              <div className="flex space-x-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleAssignToSelf(order)}
+                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                >
+                  <FiUserCheck className="mr-1" />
+                  Self
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleOpenAssignmentModal(order)}
+                  className="text-green-600 border-green-200 hover:bg-green-50"
+                >
+                  <FiUsers className="mr-1" />
+                  Assign
+                </Button>
+              </div>
             ) : (
-              <FiEdit size={14} />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleUnassignOrder(order)}
+                className="text-red-600 border-red-200 hover:bg-red-50"
+              >
+                <FiUserCheck className="mr-1" />
+                Unassign
+              </Button>
+            )}
+
+            <div className="relative">
+              <select
+                value={order.status}
+                onChange={(e) => handleStatusUpdate(order.id, e.target.value as OrderStatus)}
+                disabled={updatingOrderId === order.id}
+                className={`appearance-none bg-white border border-gray-300 rounded-lg px-3 py-1.5 pr-8 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  updatingOrderId === order.id
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'cursor-pointer hover:border-gray-400'
+                }`}
+              >
+                {Object.values(OrderStatusTypes).map((status) => (
+                  <option key={status} value={status}>
+                    {status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                {updatingOrderId === order.id ? (
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+                ) : (
+                  <FiEdit size={12} />
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Order Grid Card Component
+  const OrderCard: React.FC<{ order: IOrder }> = ({ order }) => (
+    <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-lg transition-all duration-200 group">
+      {/* Card Header */}
+      <div className="flex justify-between items-start mb-4">
+        <div>
+          <div className="flex items-center space-x-2 mb-1">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
+              {getSourceIcon(order.source)}
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900">{order.orderNumber}</h3>
+              <p className="text-xs text-gray-500">{formatDate(order.createdAt)}</p>
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-col items-end space-y-1">
+          <span
+            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+              order.status
+            )}`}
+          >
+            {getStatusIcon(order.status)}
+            <span className="ml-1 capitalize">{order.status.replace('_', ' ')}</span>
+          </span>
+          <span
+            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(
+              order.priority
+            )}`}
+          >
+            <FiZap size={10} className="mr-1" />
+            {order.priority}
+          </span>
+        </div>
+      </div>
+
+      {/* Customer Info */}
+      <div className="mb-4">
+        <div className="flex items-center mb-2">
+          <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center mr-2">
+            <FiUser size={12} className="text-gray-600" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-900">{order.customer.name}</p>
+            <p className="text-xs text-gray-500">{order.customer.phone}</p>
+          </div>
+        </div>
+        <div className="flex items-center text-sm text-gray-600">
+          <FiMapPin className="mr-1" size={12} />
+          <span className="truncate">{order.branch.name}</span>
+        </div>
+      </div>
+
+      {/* Assigned User */}
+      {order.assignedUserName && (
+        <div className="mb-4 p-2 bg-blue-50 rounded-lg">
+          <div className="flex items-center">
+            <FiUserCheck className="text-blue-600 mr-2" size={14} />
+            <span className="text-sm font-medium text-blue-800">{order.assignedUserName}</span>
+            {order.processingTime !== undefined && (
+              <span className="ml-auto text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                {formatTime(order.processingTime)}
+              </span>
             )}
           </div>
         </div>
+      )}
+
+      {/* Order Details */}
+      <div className="mb-4 grid grid-cols-2 gap-2 text-sm">
+        <div>
+          <p className="text-gray-500 text-xs">Items</p>
+          <p className="font-medium">{order.items.length}</p>
+        </div>
+        <div>
+          <p className="text-gray-500 text-xs">Est. Time</p>
+          <p className="font-medium">{order.estimatedCompletionTime || 'N/A'} min</p>
+        </div>
       </div>
 
-      {/* Mobile details */}
-      <div className="md:hidden col-span-1 space-y-3">
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <p className="text-neutral-500">Branch</p>
-            <p className="font-medium">{order.branch.name}</p>
-          </div>
-          <div>
-            <p className="text-neutral-500">Items</p>
-            <p className="font-medium">{order.items?.length}</p>
-          </div>
-          <div>
-            <p className="text-neutral-500">Date</p>
-            <p className="font-medium">{formatDate(order.createdAt)}</p>
-          </div>
-          <div>
-            <p className="text-neutral-500">Total</p>
-            <p className="font-medium">{formatCurrency(order.totalAmount, order.currency)}</p>
-          </div>
+      {/* Footer */}
+      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+        <div>
+          <p className="text-lg font-bold text-gray-900">{formatCurrency(order.totalAmount, order.currency)}</p>
         </div>
-
-        <div className="flex justify-between items-center">
-          <Button variant="outline" size="sm" onClick={() => handleViewOrder(order)}>
-            <FiEye className="mr-1" />
-            View Details
+        <div className="flex space-x-1">
+          <Button variant="outline" size="sm" onClick={() => handleViewOrder(order)} className="!p-1.5">
+            <FiEye size={14} />
           </Button>
-
-          <div className="relative">
-            <select
-              value={order.status}
-              onChange={(e) => handleStatusUpdate(order.id, e.target.value as OrderStatus)}
-              disabled={updatingOrderId === order.id}
-              className={`appearance-none bg-white border border-neutral-300 rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-                updatingOrderId === order.id ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-              }`}
+          {!order.assignedUserId ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleAssignToSelf(order)}
+              className="!p-1.5 text-blue-600 border-blue-200 hover:bg-blue-50"
             >
-              {Object.values(OrderStatusTypes).map((status) => (
-                <option key={status} value={status}>
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
-                </option>
-              ))}
-            </select>
-          </div>
+              <FiUserCheck size={14} />
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleUnassignOrder(order)}
+              className="!p-1.5 text-red-600 border-red-200 hover:bg-red-50"
+            >
+              <FiUserCheck size={14} />
+            </Button>
+          )}
         </div>
       </div>
     </div>
   );
 
   return (
-    <div className="space-y-6 p-4 md:p-0">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
-        <div>
-          <h2 className="text-2xl font-bold text-neutral-900">Orders Management</h2>
-          <p className="text-neutral-600 mt-1">Manage and track customer orders</p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Order Management</h1>
+            <p className="text-gray-600 mt-1">Track and process customer orders in real-time</p>
+          </div>
+          <div className="flex items-center space-x-3 mt-4 lg:mt-0">
+            <Button variant="outline" className="border-gray-300">
+              <FiDownload className="mr-2" />
+              Export
+            </Button>
+            <Button>
+              <FiPlus className="mr-2" />
+              New Order
+            </Button>
+          </div>
         </div>
-      </div>
 
-      {/* Search and Filters */}
-      <div className="bg-white rounded-lg shadow-medium p-4">
-        <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4">
-          <div className="flex-1 relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <FiSearch className="text-neutral-400" />
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Orders</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">{stats.totalOrders}</p>
+              </div>
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
+                <FiShoppingBag className="text-blue-600" size={24} />
+              </div>
             </div>
-            <input
-              type="text"
-              placeholder="Search orders by ID, customer name, email, or branch..."
-              className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            <div className="mt-3 flex items-center text-sm">
+              <FiTrendingUp className="text-green-500 mr-1" />
+              <span className="text-green-600 font-medium">{stats.todayOrders} today</span>
+            </div>
           </div>
 
-          <div className="flex space-x-3">
-            <div className="relative">
-              <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value as OrderStatus | 'all')}
-                className="border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none pr-8"
-              >
-                <option value="all">All Status</option>
-                {Object.values(OrderStatusTypes).map((status) => (
-                  <option key={status} value={status}>
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-neutral-500">
-                <FiFilter size={14} />
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Processing</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">{stats.processingOrders}</p>
+              </div>
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center">
+                <FiRefreshCw className="text-purple-600" size={24} />
+              </div>
+            </div>
+            <div className="mt-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600">Avg. Time</span>
+                <span className="font-medium text-gray-900">{formatTime(stats.avgProcessingTime)}</span>
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Orders List */}
-      <div className="bg-white rounded-lg shadow-medium overflow-hidden">
-        {/* Header Row - Hidden on mobile */}
-        <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-neutral-50 border-b border-neutral-200 text-sm font-medium text-neutral-700">
-          <div className="col-span-4">Order & Customer</div>
-          <div className="col-span-3">Details</div>
-          <div className="col-span-2 text-right">Amount</div>
-          <div className="col-span-3 text-right">Actions</div>
-        </div>
-
-        {/* Orders Items */}
-        {isLoading ? (
-          <div className="p-8 text-center text-neutral-500">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-3"></div>
-            <p>Loading orders...</p>
-          </div>
-        ) : orders?.length === 0 ? (
-          <div className="p-8 text-center text-neutral-500">
-            <FiBox className="mx-auto text-4xl text-neutral-300 mb-3" />
-            <p>No orders found{searchTerm && ` matching "${searchTerm}"`}</p>
-            {searchTerm && (
-              <Button variant="outline" onClick={() => setSearchTerm('')} className="mt-2">
-                Clear search
-              </Button>
-            )}
-          </div>
-        ) : (
-          <div className="divide-y divide-neutral-200">
-            {orders.map((order) => (
-              <OrderRow key={order.id} order={order} />
-            ))}
-          </div>
-        )}
-
-        {/* Pagination */}
-        {pagination && pagination.totalPages > 1 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-neutral-200 space-y-3 sm:space-y-0">
-            <div className="text-sm text-neutral-500">
-              Showing {(pagination.currentPage - 1) * pagination.pageSize + 1} to{' '}
-              {Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems)} of {pagination.totalItems}{' '}
-              orders
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Revenue</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(stats.totalRevenue)}</p>
+              </div>
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center">
+                <FiDollarSign className="text-green-600" size={24} />
+              </div>
             </div>
-
-            <div className="flex space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={pagination?.currentPage === 1}
-                onClick={() => setPagination((prev) => ({ ...prev!, currentPage: prev!.currentPage - 1 }))}
-              >
-                <FiChevronLeft className="mr-1" />
-                Previous
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={!pagination.hasNextPage}
-                onClick={() => handlePagination(pagination.currentPage + 1)}
-              >
-                Next
-                <FiChevronRight className="ml-1" />
-              </Button>
+            <div className="mt-3 flex items-center text-sm">
+              <span className="text-gray-600">Today: </span>
+              <span className="font-medium text-green-600 ml-2">{formatCurrency(stats.todayRevenue)}</span>
             </div>
           </div>
-        )}
-      </div>
 
-      {/* Order Details Modal */}
-      {showOrderModal && selectedOrder && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-neutral-200 flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-neutral-900">Order Details - {selectedOrder.id}</h3>
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">High Priority</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">{stats.highPriorityOrders}</p>
+              </div>
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center">
+                <FiAlertCircle className="text-orange-600" size={24} />
+              </div>
+            </div>
+            <div className="mt-3 flex items-center text-sm">
+              <FiClock className="text-gray-400 mr-1" />
+              <span className="text-gray-600">{stats.pendingOrders} pending</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          {/* Tabs Navigation */}
+          <div className="border-b border-gray-200">
+            <div className="flex overflow-x-auto">
               <button
-                onClick={() => {
-                  setShowOrderModal(false);
-                  setSelectedOrder(null);
-                }}
-                className="text-neutral-400 hover:text-neutral-600"
+                onClick={() => setSelectedTab('all')}
+                className={`px-6 py-4 font-medium text-sm whitespace-nowrap flex items-center border-b-2 transition-all ${
+                  selectedTab === 'all'
+                    ? 'border-blue-600 text-blue-600 bg-blue-50'
+                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
               >
-                <FiXCircle size={24} />
+                <FiBox className="mr-2" />
+                All Orders
+                <span className="ml-2 bg-gray-100 text-gray-600 rounded-full px-2 py-0.5 text-xs">{orders.length}</span>
+              </button>
+
+              <button
+                onClick={() => setSelectedTab('pending')}
+                className={`px-6 py-4 font-medium text-sm whitespace-nowrap flex items-center border-b-2 transition-all ${
+                  selectedTab === 'pending'
+                    ? 'border-yellow-600 text-yellow-600 bg-yellow-50'
+                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                <FiClock className="mr-2" />
+                Pending
+                <span className="ml-2 bg-yellow-100 text-yellow-800 rounded-full px-2 py-0.5 text-xs">
+                  {orders.filter((o) => o.status === OrderStatusTypes.PENDING).length}
+                </span>
+              </button>
+
+              <button
+                onClick={() => setSelectedTab('assigned')}
+                className={`px-6 py-4 font-medium text-sm whitespace-nowrap flex items-center border-b-2 transition-all ${
+                  selectedTab === 'assigned'
+                    ? 'border-blue-600 text-blue-600 bg-blue-50'
+                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                <FiUserCheck className="mr-2" />
+                Assigned
+                <span className="ml-2 bg-blue-100 text-blue-800 rounded-full px-2 py-0.5 text-xs">
+                  {orders.filter((o) => o.assignedUserId).length}
+                </span>
+              </button>
+
+              <button
+                onClick={() => setSelectedTab('processing')}
+                className={`px-6 py-4 font-medium text-sm whitespace-nowrap flex items-center border-b-2 transition-all ${
+                  selectedTab === 'processing'
+                    ? 'border-purple-600 text-purple-600 bg-purple-50'
+                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                <FiRefreshCw className="mr-2" />
+                Processing
+                <span className="ml-2 bg-purple-100 text-purple-800 rounded-full px-2 py-0.5 text-xs">
+                  {orders.filter((o) => o.status === OrderStatusTypes.PROCESSING).length}
+                </span>
+              </button>
+
+              <button
+                onClick={() => setSelectedTab('completed')}
+                className={`px-6 py-4 font-medium text-sm whitespace-nowrap flex items-center border-b-2 transition-all ${
+                  selectedTab === 'completed'
+                    ? 'border-green-600 text-green-600 bg-green-50'
+                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                <FiCheckCircle className="mr-2" />
+                Completed
+                <span className="ml-2 bg-green-100 text-green-800 rounded-full px-2 py-0.5 text-xs">
+                  {orders.filter((o) => o.status === OrderStatusTypes.DELIVERED).length}
+                </span>
+              </button>
+
+              <button
+                onClick={() => setSelectedTab('cancelled')}
+                className={`px-6 py-4 font-medium text-sm whitespace-nowrap flex items-center border-b-2 transition-all ${
+                  selectedTab === 'cancelled'
+                    ? 'border-red-600 text-red-600 bg-red-50'
+                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                <FiXCircle className="mr-2" />
+                Cancelled
+                <span className="ml-2 bg-red-100 text-red-800 rounded-full px-2 py-0.5 text-xs">
+                  {orders.filter((o) => o.status === OrderStatusTypes.CANCELLED).length}
+                </span>
               </button>
             </div>
+          </div>
 
-            <div className="p-6 space-y-6">
-              {/* Order Summary */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-medium text-neutral-900 mb-2">Customer Information</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-neutral-500">Name:</span>
-                        <span className="font-medium">{selectedOrder.customer.name}</span>
-                      </div>
-                      {/* <div className="flex justify-between">
-                        <span className="text-neutral-500">Email:</span>
-                        <span className="font-medium">{selectedOrder.customerEmail}</span>
-                      </div> */}
-                      <div className="flex justify-between">
-                        <span className="text-neutral-500">Phone:</span>
-                        <span className="font-medium">{selectedOrder.customer.phone}</span>
-                      </div>
-                    </div>
+          {/* Toolbar */}
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between space-y-4 lg:space-y-0">
+              <div className="flex-1">
+                <div className="relative max-w-md">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiSearch className="text-gray-400" />
                   </div>
-
-                  <div>
-                    <h4 className="font-medium text-neutral-900 mb-2">
-                      {selectedOrder.serviceType === 'delivery' ? 'Delivery Information' : 'Pickup Information'}
-                    </h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-neutral-500">Branch:</span>
-                        <span className="font-medium">{selectedOrder.branch.name}</span>
-                      </div>
-
-                      {selectedOrder?.area && (
-                        <>
-                          <div className="flex justify-between">
-                            <span className="text-neutral-500">Delivery Zone:</span>
-                            <span className="font-medium">{selectedOrder.area.zone?.name}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-neutral-500">Delivery Area:</span>
-                            <span className="font-medium">{selectedOrder.area.name}</span>
-                          </div>
-                        </>
-                      )}
-
-                      {selectedOrder.serviceType === 'delivery' && (
-                        <div className="flex justify-between">
-                          <span className="text-neutral-500">Shipping Address:</span>
-                          <span className="font-medium">{selectedOrder.shippingAddress}</span>
-                        </div>
-                      )}
-                      {selectedOrder.deliveryTime && (
-                        <div className="flex justify-between">
-                          <span className="text-neutral-500">Scheduled Delivery:</span>
-                          <span className="font-medium">{formatDate(selectedOrder.deliveryTime)}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-medium text-neutral-900 mb-2">Order Information</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-neutral-500">Status:</span>
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                            selectedOrder.status
-                          )}`}
-                        >
-                          {getStatusIcon(selectedOrder.status)}
-                          <span className="ml-1">
-                            {selectedOrder.status.charAt(0).toUpperCase() + selectedOrder.status.slice(1)}
-                          </span>
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-neutral-500">Source:</span>
-                        <span className="font-medium flex items-center">
-                          {getSourceIcon(selectedOrder.source)}
-                          <span className="ml-1">
-                            {selectedOrder.source
-                              .split('_')
-                              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                              .join(' ')}
-                          </span>
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-neutral-500">Created:</span>
-                        <span className="font-medium">{formatDate(selectedOrder.createdAt)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-neutral-500">Last Updated:</span>
-                        <span className="font-medium">{formatDate(selectedOrder.updatedAt)}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="font-medium text-neutral-900 mb-2">Payment Summary</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-neutral-500">Subtotal:</span>
-                        <span className="font-medium">
-                          {formatCurrency(selectedOrder.subtotal, selectedOrder.currency)}
-                        </span>
-                      </div>
-
-                      <div className="flex justify-between">
-                        <span className="text-neutral-500">Delivery Charge:</span>
-                        <span className="font-medium">
-                          {formatCurrency(selectedOrder.deliveryCharge, selectedOrder.currency)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between border-t border-neutral-200 pt-2">
-                        <span className="text-neutral-900 font-semibold">Total:</span>
-                        <span className="text-lg font-bold text-primary-600">
-                          {formatCurrency(selectedOrder.totalAmount, selectedOrder.currency)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search orders, customers, or phone..."
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
                 </div>
               </div>
 
-              {/* Order Items */}
-              <div>
-                <h4 className="font-medium text-neutral-900 mb-4">Order Items</h4>
-                <div className="space-y-3">
-                  {selectedOrder.items.map((item, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 border border-neutral-200 rounded-lg"
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant={viewMode === 'list' ? 'primary' : 'outline'}
+                    size="sm"
+                    onClick={() => setViewMode('list')}
+                    className={viewMode === 'list' ? 'bg-blue-100 text-blue-700 border-blue-200' : ''}
+                  >
+                    <FiBarChart2 size={16} />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'grid' ? 'primary' : 'outline'}
+                    size="sm"
+                    onClick={() => setViewMode('grid')}
+                    className={viewMode === 'grid' ? 'bg-blue-100 text-blue-700 border-blue-200' : ''}
+                  >
+                    <FiGrid size={16} />
+                  </Button>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={showFilters ? 'bg-gray-100' : ''}
+                >
+                  <FiFilter className="mr-2" />
+                  Filters
+                  {(selectedStatus !== 'all' || selectedPriority !== 'all') && (
+                    <span className="ml-2 bg-blue-100 text-blue-800 rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                      {(selectedStatus !== 'all' ? 1 : 0) + (selectedPriority !== 'all' ? 1 : 0)}
+                    </span>
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {/* Advanced Filters */}
+            {showFilters && (
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <select
+                      value={selectedStatus}
+                      onChange={(e) => setSelectedStatus(e.target.value as OrderStatus | 'all')}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-                            <FiPackage className="text-primary-600" />
-                          </div>
-                          <div>
-                            <h5 className="font-medium text-neutral-900">{item.product?.name}</h5>
-                            <p className="text-sm text-neutral-500">Qty: {item.quantity}</p>
-                            {item?.product?.options?.length > 0 && (
-                              <div className="text-xs text-neutral-500 mt-1">
-                                {item?.product.options?.map((opt) => `${opt?.name}: ${opt.choice.label}`).join(', ')}
-                              </div>
-                            )}
-                          </div>
-                        </div>
+                      <option value="all">All Statuses</option>
+                      {Object.values(OrderStatusTypes).map((status) => (
+                        <option key={status} value={status}>
+                          {status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+                    <select
+                      value={selectedPriority}
+                      onChange={(e) => setSelectedPriority(e.target.value as OrderPriority | 'all')}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="all">All Priorities</option>
+                      {Object.values(OrderPriorityTypes).map((priority) => (
+                        <option key={priority} value={priority}>
+                          {priority.charAt(0).toUpperCase() + priority.slice(1)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                      <option>Newest First</option>
+                      <option>Oldest First</option>
+                      <option>Highest Amount</option>
+                      <option>Lowest Amount</option>
+                      <option>Highest Priority</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Users Status Bar */}
+          <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <FiUsers className="text-gray-500 mr-2" />
+                <span className="text-sm font-medium text-gray-700">Active Team:</span>
+              </div>
+              <div className="flex space-x-4 overflow-x-auto">
+                {users
+                  .filter((user) => user.isActive)
+                  .map((user) => (
+                    <div key={user.id} className="flex items-center space-x-2 text-sm">
+                      <div className="flex items-center">
+                        <div
+                          className={`w-2 h-2 rounded-full mr-2 ${
+                            user.activeOrderCount ? 'bg-green-500 animate-pulse' : 'bg-gray-300'
+                          }`}
+                        />
+                        <span className="font-medium text-gray-900">{user.name.split(' ')[0]}</span>
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-neutral-900">{item.totalPrice}</p>
-                        {item?.product.options?.some((opt) => parseInt(opt.choice.priceAdjustment) > 0) && (
-                          <p className="text-xs text-neutral-500">
-                            +
-                            {formatCurrency(
-                              item.product?.options?.reduce(
-                                (sum, opt) => sum + parseInt(opt.choice.priceAdjustment),
-                                0
-                              ),
-                              selectedOrder.currency
-                            )}{' '}
-                            options
-                          </p>
-                        )}
+                      <div className="flex items-center bg-gray-100 rounded-full px-2 py-0.5">
+                        <FiBox className="text-gray-500 mr-1" size={10} />
+                        <span className="text-xs font-medium">
+                          {user.activeOrderCount || 0}/{user.maxConcurrentOrders || 5}
+                        </span>
                       </div>
                     </div>
                   ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Orders Content */}
+          <div className="p-4">
+            {filteredOrders.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FiSearch className="text-gray-400" size={24} />
                 </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No orders found</h3>
+                <p className="text-gray-600 max-w-md mx-auto">
+                  {searchTerm
+                    ? `No orders match "${searchTerm}". Try a different search term or clear filters.`
+                    : `No orders in the "${selectedTab}" category. Try selecting a different tab.`}
+                </p>
+                {(searchTerm || selectedStatus !== 'all' || selectedPriority !== 'all') && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSearchTerm('');
+                      setSelectedStatus('all');
+                      setSelectedPriority('all');
+                    }}
+                    className="mt-4"
+                  >
+                    Clear all filters
+                  </Button>
+                )}
+              </div>
+            ) : viewMode === 'list' ? (
+              <div className="space-y-3">
+                {filteredOrders.map((order) => (
+                  <OrderRow key={order.id} order={order} />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {filteredOrders.map((order) => (
+                  <OrderCard key={order.id} order={order} />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Order Assignment Modal */}
+        {showAssignmentModal && orderToAssign && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+              <div className="p-6 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900">Assign Order</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Order {orderToAssign.orderNumber} - {orderToAssign.customer.name}
+                </p>
               </div>
 
-              <div className="flex justify-end space-x-3 pt-4 border-t border-neutral-200">
-                <Button
-                  variant="outline"
+              <div className="p-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Select Team Member</label>
+                    <select
+                      value={assignToUserId}
+                      onChange={(e) => setAssignToUserId(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">Choose a team member...</option>
+                      {users
+                        .filter((user) => user.isActive)
+                        .map((user) => (
+                          <option key={user.id} value={user.id}>
+                            {user.name} ({user.role}) - {user.activeOrderCount || 0}/{user.maxConcurrentOrders || 5}{' '}
+                            orders
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+
+                  {assignToUserId && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <div className="flex items-center">
+                        <FiAlertCircle className="text-blue-600 mr-2" />
+                        <span className="text-sm font-medium text-blue-800">Assignment Note</span>
+                      </div>
+                      <p className="text-xs text-blue-700 mt-1">
+                        The timer will start immediately upon assignment. Order status will change to "Processing".
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowAssignmentModal(false);
+                      setOrderToAssign(null);
+                      setAssignToUserId('');
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => handleAssignOrder(orderToAssign, assignToUserId)}
+                    disabled={!assignToUserId}
+                    className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                  >
+                    <FiUserPlus className="mr-2" />
+                    Assign Order
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Order Details Modal */}
+        {showOrderModal && selectedOrder && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Order {selectedOrder.orderNumber}</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {selectedOrder.customer.name} • {selectedOrder.customer.phone}
+                  </p>
+                </div>
+                <button
                   onClick={() => {
                     setShowOrderModal(false);
                     setSelectedOrder(null);
                   }}
+                  className="text-gray-400 hover:text-gray-600 transition"
                 >
-                  Close
-                </Button>
+                  <FiXCircle size={24} />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Order Summary */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="space-y-4">
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                        <FiUser className="mr-2" />
+                        Customer Information
+                      </h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Name:</span>
+                          <span className="font-medium">{selectedOrder.customer.name}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Phone:</span>
+                          <span className="font-medium">{selectedOrder.customer.phone}</span>
+                        </div>
+                        {selectedOrder.customer.email && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Email:</span>
+                            <span className="font-medium">{selectedOrder.customer.email}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                        {selectedOrder.serviceType === 'delivery' ? (
+                          <FiTruck className="mr-2" />
+                        ) : (
+                          <FiPackage className="mr-2" />
+                        )}
+                        {selectedOrder.serviceType === 'delivery' ? 'Delivery Information' : 'Pickup Information'}
+                      </h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Branch:</span>
+                          <span className="font-medium">{selectedOrder.branch.name}</span>
+                        </div>
+                        {selectedOrder.area && (
+                          <>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Zone:</span>
+                              <span className="font-medium">{selectedOrder.area.zone.name}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Area:</span>
+                              <span className="font-medium">{selectedOrder.area.name}</span>
+                            </div>
+                          </>
+                        )}
+                        {selectedOrder.serviceType === 'delivery' && selectedOrder.shippingAddress && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Address:</span>
+                            <span className="font-medium">{selectedOrder.shippingAddress}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                        <FiActivity className="mr-2" />
+                        Order Status
+                      </h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">Status:</span>
+                          <span
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+                              selectedOrder.status
+                            )}`}
+                          >
+                            {getStatusIcon(selectedOrder.status)}
+                            <span className="ml-1 capitalize">{selectedOrder.status.replace('_', ' ')}</span>
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Priority:</span>
+                          <span
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getPriorityColor(
+                              selectedOrder.priority
+                            )}`}
+                          >
+                            {selectedOrder.priority}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Source:</span>
+                          <span className="font-medium flex items-center">
+                            {getSourceIcon(selectedOrder.source)}
+                            <span className="ml-1 capitalize">{selectedOrder.source.replace('_', ' ')}</span>
+                          </span>
+                        </div>
+                        {selectedOrder.assignedUserName && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Assigned to:</span>
+                            <span className="font-medium flex items-center">
+                              <FiUserCheck className="mr-1" />
+                              {selectedOrder.assignedUserName}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                        <FiCalendar className="mr-2" />
+                        Timeline
+                      </h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Created:</span>
+                          <span className="font-medium">{formatDate(selectedOrder.createdAt)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Updated:</span>
+                          <span className="font-medium">{formatDate(selectedOrder.updatedAt)}</span>
+                        </div>
+                        {selectedOrder.assignedAt && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Assigned:</span>
+                            <span className="font-medium">{formatDate(selectedOrder.assignedAt)}</span>
+                          </div>
+                        )}
+                        {selectedOrder.processingTime && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Processing Time:</span>
+                            <span className="font-medium">{formatTime(selectedOrder.processingTime)}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                        <FiDollarSign className="mr-2" />
+                        Payment Summary
+                      </h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Subtotal:</span>
+                          <span className="font-medium">
+                            {formatCurrency(selectedOrder.subtotal, selectedOrder.currency)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Delivery:</span>
+                          <span className="font-medium">
+                            {formatCurrency(selectedOrder.deliveryCharge, selectedOrder.currency)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between border-t border-gray-200 pt-2">
+                          <span className="text-gray-900 font-semibold">Total:</span>
+                          <span className="text-lg font-bold text-gray-900">
+                            {formatCurrency(selectedOrder.totalAmount, selectedOrder.currency)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h4 className="font-medium text-gray-900 mb-3">Quick Actions</h4>
+                      <div className="space-y-2">
+                        {!selectedOrder.assignedUserId ? (
+                          <Button onClick={() => handleAssignToSelf(selectedOrder)} className="w-full">
+                            <FiUserCheck className="mr-2" />
+                            Assign to Myself
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            onClick={() => handleUnassignOrder(selectedOrder)}
+                            className="w-full"
+                          >
+                            <FiUserCheck className="mr-2" />
+                            Unassign Order
+                          </Button>
+                        )}
+                        <div className="relative">
+                          <select
+                            value={selectedOrder.status}
+                            onChange={(e) => handleStatusUpdate(selectedOrder.id, e.target.value as OrderStatus)}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          >
+                            {Object.values(OrderStatusTypes).map((status) => (
+                              <option key={status} value={status}>
+                                {status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Order Items */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-medium text-gray-900 mb-4">Order Items ({selectedOrder.items.length})</h4>
+                  <div className="space-y-3">
+                    {selectedOrder.items.map((item, index) => (
+                      <div key={index} className="bg-white rounded-lg border border-gray-200 p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                              <FiPackage className="text-blue-600" />
+                            </div>
+                            <div>
+                              <h5 className="font-medium text-gray-900">{item.product?.name}</h5>
+                              <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-gray-900">{item.totalPrice}</p>
+                            <p className="text-xs text-gray-500">
+                              Unit: {formatCurrency(item.product?.price || 0, selectedOrder.currency)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
+
+// Helper component for grid icon
+const FiGrid: React.FC<{ size?: number }> = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" fill="currentColor">
+    <path d="M1 1h5v5H1V1zm0 7h5v5H1V8zm7-7h5v5H8V1zm0 7h5v5H8V8z" fillRule="evenodd" clipRule="evenodd" />
+  </svg>
+);
 
 export default OrdersPage;
