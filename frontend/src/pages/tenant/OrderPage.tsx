@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, memo, type ReactElement } from 'react';
 import {
   FiSearch,
   FiFilter,
@@ -169,6 +169,370 @@ export interface IOrder {
   };
 }
 
+// Status Select Component - Memoized to prevent unnecessary re-renders
+const StatusSelect = memo(
+  ({
+    order,
+    updatingOrderId,
+    onStatusUpdate,
+  }: {
+    order: IOrder;
+    updatingOrderId: string | null;
+    onStatusUpdate: (orderId: string, status: OrderStatus) => void;
+  }) => {
+    const handleChange = useCallback(
+      (e: React.ChangeEvent<HTMLSelectElement>) => {
+        onStatusUpdate(order.id, e.target.value as OrderStatus);
+      },
+      [order.id, onStatusUpdate]
+    );
+
+    return (
+      <div className="relative">
+        <select
+          value={order.status}
+          onChange={handleChange}
+          disabled={updatingOrderId === order.id}
+          className={`appearance-none bg-white border border-gray-300 rounded-lg px-3 py-1.5 pr-8 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+            updatingOrderId === order.id ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-gray-400'
+          }`}
+        >
+          {Object.values(OrderStatusTypes).map((status) => (
+            <option key={status} value={status}>
+              {status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}
+            </option>
+          ))}
+        </select>
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+          {updatingOrderId === order.id ? (
+            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+          ) : (
+            <FiEdit size={12} />
+          )}
+        </div>
+      </div>
+    );
+  }
+);
+
+StatusSelect.displayName = 'StatusSelect';
+
+// Memoized OrderRow component
+const OrderRow = memo(
+  ({
+    order,
+    updatingOrderId,
+    onStatusUpdate,
+    onViewOrder,
+    onAssignToSelf,
+    onOpenAssignmentModal,
+    onUnassignOrder,
+    getStatusColor,
+    getStatusIcon,
+    getPriorityColor,
+    getSourceIcon,
+    formatDate,
+    formatTime,
+    formatCurrency,
+  }: {
+    order: IOrder;
+    updatingOrderId: string | null;
+    onStatusUpdate: (orderId: string, status: OrderStatus) => void;
+    onViewOrder: (order: IOrder) => void;
+    onAssignToSelf: (order: IOrder) => void;
+    onOpenAssignmentModal: (order: IOrder) => void;
+    onUnassignOrder: (order: IOrder) => void;
+    getStatusColor: (status: OrderStatus) => string;
+    getStatusIcon: (status: OrderStatus) => ReactElement;
+    getPriorityColor: (priority: OrderPriority) => string;
+    getSourceIcon: (source: OrderSource) => ReactElement;
+    formatDate: (date: Date) => string;
+    formatTime: (seconds: number) => string;
+    formatCurrency: (amount: number, currency?: string) => string;
+  }) => {
+    return (
+      <div className="group bg-white hover:bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3 transition-all duration-200">
+        <div className="flex flex-col md:flex-row md:items-center justify-between">
+          {/* Left Section */}
+          <div className="flex-1">
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
+                  {getSourceIcon(order.source)}
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center space-x-2 mb-2">
+                  <h3 className="text-sm font-semibold text-gray-900 truncate">{order.orderNumber}</h3>
+                  <div className="flex items-center space-x-1">
+                    <span
+                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+                        order.status
+                      )}`}
+                    >
+                      {getStatusIcon(order.status)}
+                      <span className="ml-1 capitalize">{order.status.replace('_', ' ')}</span>
+                    </span>
+                    <span
+                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(
+                        order.priority
+                      )}`}
+                    >
+                      <FiZap className="mr-1" size={10} />
+                      {order.priority}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                  <div className="flex items-center text-gray-600">
+                    <FiUser className="mr-2 text-gray-400" size={14} />
+                    <span className="truncate">{order.customer.name}</span>
+                  </div>
+                  <div className="flex items-center text-gray-600">
+                    <FiMapPin className="mr-2 text-gray-400" size={14} />
+                    <span className="truncate">{order.branch.name}</span>
+                  </div>
+                  <div className="flex items-center text-gray-600">
+                    <FiCalendar className="mr-2 text-gray-400" size={14} />
+                    <span>{formatDate(order.createdAt)}</span>
+                  </div>
+                  <div className="flex items-center text-gray-600">
+                    <FiShoppingCart className="mr-2 text-gray-400" size={14} />
+                    <span>
+                      {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                </div>
+
+                {order.assignedUserName && (
+                  <div className="mt-3 flex items-center">
+                    <div className="flex items-center px-3 py-1.5 bg-blue-50 rounded-lg">
+                      <FiUserCheck className="text-blue-600 mr-2" size={14} />
+                      <span className="text-sm font-medium text-blue-800">{order.assignedUserName}</span>
+                      {order.processingTime !== undefined && (
+                        <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                          {formatTime(order.processingTime)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Section */}
+          <div className="mt-4 md:mt-0 md:ml-4 flex flex-col items-end">
+            <div className="text-right mb-3">
+              <p className="text-xl font-bold text-gray-900">{formatCurrency(order.totalAmount, order.currency)}</p>
+              {order.estimatedCompletionTime && (
+                <p className="text-xs text-gray-500 mt-1">Est: {order.estimatedCompletionTime} min</p>
+              )}
+            </div>
+
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onViewOrder(order)}
+                className="border-gray-300 hover:border-gray-400"
+              >
+                <FiEye className="mr-1" />
+                View
+              </Button>
+
+              {!order.assignedUserId ? (
+                <div className="flex space-x-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onAssignToSelf(order)}
+                    className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                  >
+                    <FiUserCheck className="mr-1" />
+                    Self
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onOpenAssignmentModal(order)}
+                    className="text-green-600 border-green-200 hover:bg-green-50"
+                  >
+                    <FiUsers className="mr-1" />
+                    Assign
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onUnassignOrder(order)}
+                  className="text-red-600 border-red-200 hover:bg-red-50"
+                >
+                  <FiUserCheck className="mr-1" />
+                  Unassign
+                </Button>
+              )}
+
+              <StatusSelect order={order} updatingOrderId={updatingOrderId} onStatusUpdate={onStatusUpdate} />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+);
+
+OrderRow.displayName = 'OrderRow';
+
+// Memoized OrderCard component
+const OrderCard = memo(
+  ({
+    order,
+    updatingOrderId,
+    onStatusUpdate,
+    onViewOrder,
+    onAssignToSelf,
+    onUnassignOrder,
+    getStatusColor,
+    getStatusIcon,
+    getPriorityColor,
+    getSourceIcon,
+    formatDate,
+    formatTime,
+    formatCurrency,
+  }: {
+    order: IOrder;
+    updatingOrderId: string | null;
+    onStatusUpdate: (orderId: string, status: OrderStatus) => void;
+    onViewOrder: (order: IOrder) => void;
+    onAssignToSelf: (order: IOrder) => void;
+    onUnassignOrder: (order: IOrder) => void;
+    getStatusColor: (status: OrderStatus) => string;
+    getStatusIcon: (status: OrderStatus) => ReactElement;
+    getPriorityColor: (priority: OrderPriority) => string;
+    getSourceIcon: (source: OrderSource) => ReactElement;
+    formatDate: (date: Date) => string;
+    formatTime: (seconds: number) => string;
+    formatCurrency: (amount: number, currency?: string) => string;
+  }) => {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-lg transition-all duration-200 group">
+        {/* Card Header */}
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <div className="flex items-center space-x-2 mb-1">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
+                {getSourceIcon(order.source)}
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">{order.orderNumber}</h3>
+                <p className="text-xs text-gray-500">{formatDate(order.createdAt)}</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col items-end space-y-1">
+            <span
+              className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+                order.status
+              )}`}
+            >
+              {getStatusIcon(order.status)}
+              <span className="ml-1 capitalize">{order.status.replace('_', ' ')}</span>
+            </span>
+            <span
+              className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(
+                order.priority
+              )}`}
+            >
+              <FiZap size={10} className="mr-1" />
+              {order.priority}
+            </span>
+          </div>
+        </div>
+
+        {/* Customer Info */}
+        <div className="mb-4">
+          <div className="flex items-center mb-2">
+            <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center mr-2">
+              <FiUser size={12} className="text-gray-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900">{order.customer.name}</p>
+              <p className="text-xs text-gray-500">{order.customer.phone}</p>
+            </div>
+          </div>
+          <div className="flex items-center text-sm text-gray-600">
+            <FiMapPin className="mr-1" size={12} />
+            <span className="truncate">{order.branch.name}</span>
+          </div>
+        </div>
+
+        {/* Assigned User */}
+        {order.assignedUserName && (
+          <div className="mb-4 p-2 bg-blue-50 rounded-lg">
+            <div className="flex items-center">
+              <FiUserCheck className="text-blue-600 mr-2" size={14} />
+              <span className="text-sm font-medium text-blue-800">{order.assignedUserName}</span>
+              {order.processingTime !== undefined && (
+                <span className="ml-auto text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                  {formatTime(order.processingTime)}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Order Details */}
+        <div className="mb-4 grid grid-cols-2 gap-2 text-sm">
+          <div>
+            <p className="text-gray-500 text-xs">Items</p>
+            <p className="font-medium">{order.items.length}</p>
+          </div>
+          <div>
+            <p className="text-gray-500 text-xs">Est. Time</p>
+            <p className="font-medium">{order.estimatedCompletionTime || 'N/A'} min</p>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+          <div>
+            <p className="text-lg font-bold text-gray-900">{formatCurrency(order.totalAmount, order.currency)}</p>
+          </div>
+          <div className="flex space-x-1">
+            <Button variant="outline" size="sm" onClick={() => onViewOrder(order)} className="!p-1.5">
+              <FiEye size={14} />
+            </Button>
+            {!order.assignedUserId ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onAssignToSelf(order)}
+                className="!p-1.5 text-blue-600 border-blue-200 hover:bg-blue-50"
+              >
+                <FiUserCheck size={14} />
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onUnassignOrder(order)}
+                className="!p-1.5 text-red-600 border-red-200 hover:bg-red-50"
+              >
+                <FiUserCheck size={14} />
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+);
+
+OrderCard.displayName = 'OrderCard';
+
 const OrdersPage: React.FC = () => {
   const data = useLoaderData() as { orders: { data: IOrder[]; pagination: Pagination } };
   const orders = useOrdersValue();
@@ -192,7 +556,7 @@ const OrdersPage: React.FC = () => {
   const [timer, setTimer] = useState(0);
 
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
-  const { updateOrderStatus } = new OrderService();
+  const { updateOrderStatus } = useMemo(() => new OrderService(), []);
 
   // Mock users data with enhanced fields
   const [users, setUsers] = useState<User[]>([
@@ -254,89 +618,101 @@ const OrdersPage: React.FC = () => {
   ]);
 
   // Current user (mock - in real app, get from auth context)
-  const currentUser = users[0];
+  const currentUser = useMemo(() => users[0], [users]);
 
   // Generate mock orders data
-  const generateMockOrders = (count: number): IOrder[] => {
-    const statuses = Object.values(OrderStatusTypes);
-    const sources = Object.values(OrderSourceTypes);
-    const priorities = Object.values(OrderPriorityTypes);
-    const serviceTypes = ['delivery', 'takeaway', 'dine_in'] as const;
+  const generateMockOrders = useCallback(
+    (count: number): IOrder[] => {
+      const statuses = Object.values(OrderStatusTypes);
+      const sources = Object.values(OrderSourceTypes);
+      const priorities = Object.values(OrderPriorityTypes);
+      const serviceTypes = ['delivery', 'takeaway'] as const;
 
-    const mockOrders: IOrder[] = [];
+      const mockOrders: IOrder[] = [];
 
-    for (let i = 0; i < count; i++) {
-      const status = statuses[Math.floor(Math.random() * statuses.length)];
-      const assignedUser = status === 'processing' ? users[Math.floor(Math.random() * users.length)] : undefined;
-      const estimatedTime = Math.floor(Math.random() * 120) + 10; // 10-130 minutes
+      for (let i = 0; i < count; i++) {
+        const status = statuses[Math.floor(Math.random() * statuses.length)];
+        const assignedUser = status === 'processing' ? users[Math.floor(Math.random() * users.length)] : undefined;
+        const estimatedTime = Math.floor(Math.random() * 120) + 10; // 10-130 minutes
 
-      const order: IOrder = {
-        id: `order-${1000 + i}`,
-        orderNumber: `ORD${1000 + i}`,
-        title: `Order #${1000 + i}`,
-        customerId: `cust-${i}`,
-        organizationId: 'org-1',
-        branchId: 'branch-1',
-        status,
-        source: sources[Math.floor(Math.random() * sources.length)],
-        items: [
-          {
-            productId: `prod-${i}`,
-            inventoryId: `inv-${i}`,
-            quantity: Math.floor(Math.random() * 5) + 1,
-            totalPrice: `$${(Math.random() * 100 + 10).toFixed(2)}`,
-            product: {
-              name: `Product ${i + 1}`,
-              price: Math.floor(Math.random() * 50) + 10,
-              currency: 'USD',
-              options: [],
+        const order: IOrder = {
+          id: `order-${1000 + i}`,
+          orderNumber: `ORD${1000 + i}`,
+          title: `Order #${1000 + i}`,
+          customerId: `cust-${i}`,
+          organizationId: 'org-1',
+          branchId: 'branch-1',
+          status,
+          source: sources[Math.floor(Math.random() * sources.length)],
+          items: [
+            {
+              productId: `prod-${i}`,
+              inventoryId: `inv-${i}`,
+              quantity: Math.floor(Math.random() * 5) + 1,
+              totalPrice: `$${(Math.random() * 100 + 10).toFixed(2)}`,
+              product: {
+                name: `Product ${i + 1}`,
+                price: Math.floor(Math.random() * 50) + 10,
+                currency: 'USD',
+                options: [
+                  {
+                    id: 'dde3',
+                    name: 'small fries',
+                    choice: { id: '434', label: 'we', priceAdjustment: '10' },
+                    choiceId: '',
+                    optionId: 'dwerwf',
+                    priceAdjustment: 10,
+                  },
+                ],
+              },
+            },
+          ],
+          subtotal: Math.floor(Math.random() * 100) + 20,
+          deliveryCharge: Math.floor(Math.random() * 10) + 5,
+          totalAmount: Math.floor(Math.random() * 150) + 25,
+          currency: 'USD',
+          deliveryAreaId: `area-${i}`,
+          serviceType: serviceTypes[Math.floor(Math.random() * serviceTypes.length)],
+          createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
+          updatedAt: new Date(),
+          priority: priorities[Math.floor(Math.random() * priorities.length)],
+          estimatedCompletionTime: estimatedTime,
+          branch: {
+            id: 'branch-1',
+            name: ['Downtown', 'Uptown', 'Midtown', 'Westside'][Math.floor(Math.random() * 4)],
+          },
+          customer: {
+            id: `cust-${i}`,
+            name: ['Alex Johnson', 'Maria Garcia', 'David Smith', 'Sarah Wilson', 'James Brown'][
+              Math.floor(Math.random() * 5)
+            ],
+            phone: `+1${Math.floor(Math.random() * 900000000) + 100000000}`,
+            email: `customer${i}@example.com`,
+          },
+          area: {
+            id: `area-${i}`,
+            name: ['Zone A', 'Zone B', 'Zone C'][Math.floor(Math.random() * 3)],
+            zone: {
+              id: `zone-${i}`,
+              name: ['North', 'South', 'East', 'West'][Math.floor(Math.random() * 4)],
             },
           },
-        ],
-        subtotal: Math.floor(Math.random() * 100) + 20,
-        deliveryCharge: Math.floor(Math.random() * 10) + 5,
-        totalAmount: Math.floor(Math.random() * 150) + 25,
-        currency: 'USD',
-        deliveryAreaId: `area-${i}`,
-        serviceType: serviceTypes[Math.floor(Math.random() * serviceTypes.length)],
-        createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
-        updatedAt: new Date(),
-        priority: priorities[Math.floor(Math.random() * priorities.length)],
-        estimatedCompletionTime: estimatedTime,
-        branch: {
-          id: 'branch-1',
-          name: ['Downtown', 'Uptown', 'Midtown', 'Westside'][Math.floor(Math.random() * 4)],
-        },
-        customer: {
-          id: `cust-${i}`,
-          name: ['Alex Johnson', 'Maria Garcia', 'David Smith', 'Sarah Wilson', 'James Brown'][
-            Math.floor(Math.random() * 5)
-          ],
-          phone: `+1${Math.floor(Math.random() * 900000000) + 100000000}`,
-          email: `customer${i}@example.com`,
-        },
-        area: {
-          id: `area-${i}`,
-          name: ['Zone A', 'Zone B', 'Zone C'][Math.floor(Math.random() * 3)],
-          zone: {
-            id: `zone-${i}`,
-            name: ['North', 'South', 'East', 'West'][Math.floor(Math.random() * 4)],
-          },
-        },
-      };
+        };
 
-      if (assignedUser) {
-        order.assignedUserId = assignedUser.id;
-        order.assignedUserName = assignedUser.name;
-        order.assignedAt = new Date(Date.now() - Math.random() * 60 * 60 * 1000);
-        order.processingTime = Math.floor(Math.random() * 3600); // 0-60 minutes in seconds
+        if (assignedUser) {
+          order.assignedUserId = assignedUser.id;
+          order.assignedUserName = assignedUser.name;
+          order.assignedAt = new Date(Date.now() - Math.random() * 60 * 60 * 1000);
+          order.processingTime = Math.floor(Math.random() * 3600); // 0-60 minutes in seconds
+        }
+
+        mockOrders.push(order);
       }
 
-      mockOrders.push(order);
-    }
-
-    return mockOrders;
-  };
+      return mockOrders;
+    },
+    [users]
+  );
 
   useEffect(() => {
     const mockOrders = generateMockOrders(25);
@@ -349,7 +725,7 @@ const OrdersPage: React.FC = () => {
       hasNextPage: false,
       hasPrevPage: false,
     });
-  }, []);
+  }, [generateMockOrders, setOrders]);
 
   useEffect(() => {
     const Fn = async () => {
@@ -364,7 +740,7 @@ const OrdersPage: React.FC = () => {
     handlePagination(1);
   }, [selectedStatus, selectedTab, selectedPriority]);
 
-  // Timer for processing orders
+  // Timer for processing orders - Optimized to update less frequently
   useEffect(() => {
     const interval = setInterval(() => {
       setTimer((prev) => prev + 1);
@@ -373,149 +749,166 @@ const OrdersPage: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Update processing times
+  // Update processing times - Optimized to not cause full re-renders
   useEffect(() => {
-    setOrders((prevOrders) =>
-      prevOrders.map((order) => {
-        if (
-          order.status === OrderStatusTypes.PROCESSING &&
-          order.assignedUserId &&
-          order.processingTime !== undefined
-        ) {
-          return {
-            ...order,
-            processingTime: (order.processingTime || 0) + 1,
-          };
-        }
-        return order;
-      })
-    );
-  }, [timer]);
-
-  const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
-    setUpdatingOrderId(orderId);
-    try {
-      await updateOrderStatus({ orderId, status: newStatus });
-
+    if (timer % 5 === 0) {
+      // Update only every 5 seconds instead of every second
       setOrders((prevOrders) =>
         prevOrders.map((order) => {
-          if (order.id === orderId) {
-            const updatedOrder = { ...order, status: newStatus };
-
-            if (
-              newStatus === OrderStatusTypes.DELIVERED ||
-              newStatus === OrderStatusTypes.CANCELLED ||
-              newStatus === OrderStatusTypes.REFUNDED
-            ) {
-              const assignedUserId = order.assignedUserId;
-              if (assignedUserId) {
-                setUsers((prevUsers) =>
-                  prevUsers.map((u) =>
-                    u.id === assignedUserId ? { ...u, activeOrderCount: Math.max(0, (u.activeOrderCount || 1) - 1) } : u
-                  )
-                );
-              }
-
-              return {
-                ...updatedOrder,
-                processingTime: undefined,
-                assignedUserId: undefined,
-                assignedUserName: undefined,
-              };
-            }
-
-            return updatedOrder;
+          if (
+            order.status === OrderStatusTypes.PROCESSING &&
+            order.assignedUserId &&
+            order.processingTime !== undefined
+          ) {
+            return {
+              ...order,
+              processingTime: (order.processingTime || 0) + 5,
+            };
           }
           return order;
         })
       );
-    } catch (error) {
-      console.error('Error updating order status:', error);
-      alert('Failed to update order status. Please try again.');
-    } finally {
-      setUpdatingOrderId(null);
     }
-  };
+  }, [timer, setOrders]);
 
-  const handleAssignOrder = async (order: IOrder, userId: string) => {
-    if (!userId) return;
+  const handleStatusUpdate = useCallback(
+    async (orderId: string, newStatus: OrderStatus) => {
+      setUpdatingOrderId(orderId);
+      try {
+        await updateOrderStatus({ orderId, status: newStatus });
 
-    const user = users.find((u) => u.id === userId);
-    if (!user) return;
+        setOrders((prevOrders) =>
+          prevOrders.map((order) => {
+            if (order.id === orderId) {
+              const updatedOrder = { ...order, status: newStatus };
 
-    if (user.activeOrderCount && user.maxConcurrentOrders && user.activeOrderCount >= user.maxConcurrentOrders) {
-      alert(`${user.name} has reached maximum concurrent orders (${user.maxConcurrentOrders})`);
-      return;
-    }
+              if (
+                newStatus === OrderStatusTypes.DELIVERED ||
+                newStatus === OrderStatusTypes.CANCELLED ||
+                newStatus === OrderStatusTypes.REFUNDED
+              ) {
+                const assignedUserId = order.assignedUserId;
+                if (assignedUserId) {
+                  setUsers((prevUsers) =>
+                    prevUsers.map((u) =>
+                      u.id === assignedUserId
+                        ? { ...u, activeOrderCount: Math.max(0, (u.activeOrderCount || 1) - 1) }
+                        : u
+                    )
+                  );
+                }
 
-    try {
-      const updatedOrder: IOrder = {
-        ...order,
-        status: OrderStatusTypes.PROCESSING,
-        assignedUserId: userId,
-        assignedUserName: user.name,
-        assignedAt: new Date(),
-        processingTime: 0,
-      };
+                return {
+                  ...updatedOrder,
+                  processingTime: undefined,
+                  assignedUserId: undefined,
+                  assignedUserName: undefined,
+                };
+              }
 
-      setOrders((prevOrders) => prevOrders.map((o) => (o.id === order.id ? updatedOrder : o)));
+              return updatedOrder;
+            }
+            return order;
+          })
+        );
+      } catch (error) {
+        console.error('Error updating order status:', error);
+        alert('Failed to update order status. Please try again.');
+      } finally {
+        setUpdatingOrderId(null);
+      }
+    },
+    [updateOrderStatus, setOrders, setUsers]
+  );
 
-      setUsers((prevUsers) =>
-        prevUsers.map((u) =>
-          u.id === userId ? { ...u, activeOrderCount: (u.activeOrderCount || 0) + 1, lastActive: new Date() } : u
-        )
-      );
+  const handleAssignOrder = useCallback(
+    async (order: IOrder, userId: string) => {
+      if (!userId) return;
 
-      setShowAssignmentModal(false);
-      setOrderToAssign(null);
-      setAssignToUserId('');
-    } catch (error) {
-      console.error('Error assigning order:', error);
-      alert('Failed to assign order. Please try again.');
-    }
-  };
+      const user = users.find((u) => u.id === userId);
+      if (!user) return;
 
-  const handleUnassignOrder = async (order: IOrder) => {
-    if (!order.assignedUserId) return;
+      if (user.activeOrderCount && user.maxConcurrentOrders && user.activeOrderCount >= user.maxConcurrentOrders) {
+        alert(`${user.name} has reached maximum concurrent orders (${user.maxConcurrentOrders})`);
+        return;
+      }
 
-    try {
-      const updatedOrder: IOrder = {
-        ...order,
-        status: OrderStatusTypes.CONFIRMED,
-        assignedUserId: undefined,
-        assignedUserName: undefined,
-        assignedAt: undefined,
-        processingTime: undefined,
-      };
+      try {
+        const updatedOrder: IOrder = {
+          ...order,
+          status: OrderStatusTypes.PROCESSING,
+          assignedUserId: userId,
+          assignedUserName: user.name,
+          assignedAt: new Date(),
+          processingTime: 0,
+        };
 
-      setOrders((prevOrders) => prevOrders.map((o) => (o.id === order.id ? updatedOrder : o)));
+        setOrders((prevOrders) => prevOrders.map((o) => (o.id === order.id ? updatedOrder : o)));
 
-      setUsers((prevUsers) =>
-        prevUsers.map((u) =>
-          u.id === order.assignedUserId ? { ...u, activeOrderCount: Math.max(0, (u.activeOrderCount || 1) - 1) } : u
-        )
-      );
-    } catch (error) {
-      console.error('Error unassigning order:', error);
-      alert('Failed to unassign order. Please try again.');
-    }
-  };
+        setUsers((prevUsers) =>
+          prevUsers.map((u) =>
+            u.id === userId ? { ...u, activeOrderCount: (u.activeOrderCount || 0) + 1, lastActive: new Date() } : u
+          )
+        );
 
-  const handleAssignToSelf = async (order: IOrder) => {
-    await handleAssignOrder(order, currentUser.id);
-  };
+        setShowAssignmentModal(false);
+        setOrderToAssign(null);
+        setAssignToUserId('');
+      } catch (error) {
+        console.error('Error assigning order:', error);
+        alert('Failed to assign order. Please try again.');
+      }
+    },
+    [users, setOrders, setUsers]
+  );
 
-  const handleViewOrder = (order: IOrder) => {
+  const handleUnassignOrder = useCallback(
+    async (order: IOrder) => {
+      if (!order.assignedUserId) return;
+
+      try {
+        const updatedOrder: IOrder = {
+          ...order,
+          status: OrderStatusTypes.CONFIRMED,
+          assignedUserId: undefined,
+          assignedUserName: undefined,
+          assignedAt: undefined,
+          processingTime: undefined,
+        };
+
+        setOrders((prevOrders) => prevOrders.map((o) => (o.id === order.id ? updatedOrder : o)));
+
+        setUsers((prevUsers) =>
+          prevUsers.map((u) =>
+            u.id === order.assignedUserId ? { ...u, activeOrderCount: Math.max(0, (u.activeOrderCount || 1) - 1) } : u
+          )
+        );
+      } catch (error) {
+        console.error('Error unassigning order:', error);
+        alert('Failed to unassign order. Please try again.');
+      }
+    },
+    [setOrders, setUsers]
+  );
+
+  const handleAssignToSelf = useCallback(
+    async (order: IOrder) => {
+      await handleAssignOrder(order, currentUser.id);
+    },
+    [currentUser.id, handleAssignOrder]
+  );
+
+  const handleViewOrder = useCallback((order: IOrder) => {
     setSelectedOrder(order);
     setShowOrderModal(true);
-  };
+  }, []);
 
-  const handleOpenAssignmentModal = (order: IOrder) => {
+  const handleOpenAssignmentModal = useCallback((order: IOrder) => {
     setOrderToAssign(order);
     setShowAssignmentModal(true);
-  };
+  }, []);
 
-  const getStatusColor = (status: OrderStatus) => {
+  const getStatusColor = useCallback((status: OrderStatus) => {
     switch (status) {
       case OrderStatusTypes.PENDING:
         return 'bg-yellow-50 text-yellow-700 border-yellow-200';
@@ -538,9 +931,9 @@ const OrdersPage: React.FC = () => {
       default:
         return 'bg-gray-50 text-gray-700 border-gray-200';
     }
-  };
+  }, []);
 
-  const getStatusIcon = (status: OrderStatus) => {
+  const getStatusIcon = useCallback((status: OrderStatus) => {
     switch (status) {
       case OrderStatusTypes.PENDING:
         return <FiClock className="text-yellow-600" />;
@@ -563,9 +956,9 @@ const OrdersPage: React.FC = () => {
       default:
         return <FiBox className="text-gray-600" />;
     }
-  };
+  }, []);
 
-  const getSourceIcon = (source: OrderSource) => {
+  const getSourceIcon = useCallback((source: OrderSource) => {
     switch (source) {
       case OrderSourceTypes.WEBSITE:
         return <FiGlobe className="text-blue-500" />;
@@ -580,9 +973,9 @@ const OrdersPage: React.FC = () => {
       default:
         return <FiShoppingCart className="text-gray-500" />;
     }
-  };
+  }, []);
 
-  const getPriorityColor = (priority: OrderPriority) => {
+  const getPriorityColor = useCallback((priority: OrderPriority) => {
     switch (priority) {
       case 'urgent':
         return 'bg-red-100 text-red-800 border-red-300';
@@ -595,18 +988,18 @@ const OrdersPage: React.FC = () => {
       default:
         return 'bg-gray-100 text-gray-800 border-gray-300';
     }
-  };
+  }, []);
 
-  const formatDate = (date: Date) => {
+  const formatDate = useCallback((date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
     }).format(new Date(date));
-  };
+  }, []);
 
-  const formatTime = (seconds: number) => {
+  const formatTime = useCallback((seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
@@ -618,26 +1011,26 @@ const OrdersPage: React.FC = () => {
     } else {
       return `${secs}s`;
     }
-  };
+  }, []);
 
-  const formatCurrency = (amount: number, currency: string = 'USD') => {
+  const formatCurrency = useCallback((amount: number, currency: string = 'USD') => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currency,
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
-  };
+  }, []);
 
-  const { getOrders } = new OrderService();
+  const { getOrders } = useMemo(() => new OrderService(), []);
 
-  const handlePagination = async (page: number) => {
+  const handlePagination = useCallback(async (page: number) => {
     // In real app, fetch from API
     console.log('Fetching page:', page);
-  };
+  }, []);
 
   // Calculate stats for the dashboard
-  const calculateStats = () => {
+  const stats = useMemo(() => {
     const allOrders = orders;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -670,323 +1063,55 @@ const OrdersPage: React.FC = () => {
       avgProcessingTime,
       highPriorityOrders: highPriorityOrders.length,
     };
-  };
-
-  const stats = calculateStats();
+  }, [orders]);
 
   // Filter orders based on selected tab and filters
-  const filteredOrders = orders.filter((order) => {
-    // Tab filter
-    let tabFilter = true;
-    switch (selectedTab) {
-      case 'all':
-        tabFilter = true;
-        break;
-      case 'assigned':
-        tabFilter = !!order.assignedUserId;
-        break;
-      case 'processing':
-        tabFilter = order.status === OrderStatusTypes.PROCESSING;
-        break;
-      case 'completed':
-        tabFilter = order.status === OrderStatusTypes.DELIVERED;
-        break;
-      case 'cancelled':
-        tabFilter = order.status === OrderStatusTypes.CANCELLED;
-        break;
-      case 'refunded':
-        tabFilter = order.status === OrderStatusTypes.REFUNDED;
-        break;
-      case 'pending':
-        tabFilter = order.status === OrderStatusTypes.PENDING;
-        break;
-    }
+  const filteredOrders = useMemo(
+    () =>
+      orders.filter((order) => {
+        // Tab filter
+        let tabFilter = true;
+        switch (selectedTab) {
+          case 'all':
+            tabFilter = true;
+            break;
+          case 'assigned':
+            tabFilter = !!order.assignedUserId;
+            break;
+          case 'processing':
+            tabFilter = order.status === OrderStatusTypes.PROCESSING;
+            break;
+          case 'completed':
+            tabFilter = order.status === OrderStatusTypes.DELIVERED;
+            break;
+          case 'cancelled':
+            tabFilter = order.status === OrderStatusTypes.CANCELLED;
+            break;
+          case 'refunded':
+            tabFilter = order.status === OrderStatusTypes.REFUNDED;
+            break;
+          case 'pending':
+            tabFilter = order.status === OrderStatusTypes.PENDING;
+            break;
+        }
 
-    // Status filter
-    const statusFilter = selectedStatus === 'all' || order.status === selectedStatus;
+        // Status filter
+        const statusFilter = selectedStatus === 'all' || order.status === selectedStatus;
 
-    // Priority filter
-    const priorityFilter = selectedPriority === 'all' || order.priority === selectedPriority;
+        // Priority filter
+        const priorityFilter = selectedPriority === 'all' || order.priority === selectedPriority;
 
-    // Search filter
-    const searchFilter =
-      !searchTerm ||
-      order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.branch.name.toLowerCase().includes(searchTerm.toLowerCase());
+        // Search filter
+        const searchFilter =
+          !searchTerm ||
+          order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          order.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          order.customer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          order.branch.name.toLowerCase().includes(searchTerm.toLowerCase());
 
-    return tabFilter && statusFilter && priorityFilter && searchFilter;
-  });
-
-  // Order Row Component
-  const OrderRow: React.FC<{ order: IOrder }> = ({ order }) => (
-    <div className="group bg-white hover:bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3 transition-all duration-200">
-      <div className="flex flex-col md:flex-row md:items-center justify-between">
-        {/* Left Section */}
-        <div className="flex-1">
-          <div className="flex items-start space-x-3">
-            <div className="flex-shrink-0">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
-                {getSourceIcon(order.source)}
-              </div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center space-x-2 mb-2">
-                <h3 className="text-sm font-semibold text-gray-900 truncate">{order.orderNumber}</h3>
-                <div className="flex items-center space-x-1">
-                  <span
-                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                      order.status
-                    )}`}
-                  >
-                    {getStatusIcon(order.status)}
-                    <span className="ml-1 capitalize">{order.status.replace('_', ' ')}</span>
-                  </span>
-                  <span
-                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(
-                      order.priority
-                    )}`}
-                  >
-                    <FiZap className="mr-1" size={10} />
-                    {order.priority}
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-                <div className="flex items-center text-gray-600">
-                  <FiUser className="mr-2 text-gray-400" size={14} />
-                  <span className="truncate">{order.customer.name}</span>
-                </div>
-                <div className="flex items-center text-gray-600">
-                  <FiMapPin className="mr-2 text-gray-400" size={14} />
-                  <span className="truncate">{order.branch.name}</span>
-                </div>
-                <div className="flex items-center text-gray-600">
-                  <FiCalendar className="mr-2 text-gray-400" size={14} />
-                  <span>{formatDate(order.createdAt)}</span>
-                </div>
-                <div className="flex items-center text-gray-600">
-                  <FiShoppingCart className="mr-2 text-gray-400" size={14} />
-                  <span>
-                    {order.items.length} item{order.items.length !== 1 ? 's' : ''}
-                  </span>
-                </div>
-              </div>
-
-              {order.assignedUserName && (
-                <div className="mt-3 flex items-center">
-                  <div className="flex items-center px-3 py-1.5 bg-blue-50 rounded-lg">
-                    <FiUserCheck className="text-blue-600 mr-2" size={14} />
-                    <span className="text-sm font-medium text-blue-800">{order.assignedUserName}</span>
-                    {order.processingTime !== undefined && (
-                      <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                        {formatTime(order.processingTime)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Right Section */}
-        <div className="mt-4 md:mt-0 md:ml-4 flex flex-col items-end">
-          <div className="text-right mb-3">
-            <p className="text-xl font-bold text-gray-900">{formatCurrency(order.totalAmount, order.currency)}</p>
-            {order.estimatedCompletionTime && (
-              <p className="text-xs text-gray-500 mt-1">Est: {order.estimatedCompletionTime} min</p>
-            )}
-          </div>
-
-          <div className="flex space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleViewOrder(order)}
-              className="border-gray-300 hover:border-gray-400"
-            >
-              <FiEye className="mr-1" />
-              View
-            </Button>
-
-            {!order.assignedUserId ? (
-              <div className="flex space-x-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleAssignToSelf(order)}
-                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                >
-                  <FiUserCheck className="mr-1" />
-                  Self
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleOpenAssignmentModal(order)}
-                  className="text-green-600 border-green-200 hover:bg-green-50"
-                >
-                  <FiUsers className="mr-1" />
-                  Assign
-                </Button>
-              </div>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleUnassignOrder(order)}
-                className="text-red-600 border-red-200 hover:bg-red-50"
-              >
-                <FiUserCheck className="mr-1" />
-                Unassign
-              </Button>
-            )}
-
-            <div className="relative">
-              <select
-                value={order.status}
-                onChange={(e) => handleStatusUpdate(order.id, e.target.value as OrderStatus)}
-                disabled={updatingOrderId === order.id}
-                className={`appearance-none bg-white border border-gray-300 rounded-lg px-3 py-1.5 pr-8 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  updatingOrderId === order.id
-                    ? 'opacity-50 cursor-not-allowed'
-                    : 'cursor-pointer hover:border-gray-400'
-                }`}
-              >
-                {Object.values(OrderStatusTypes).map((status) => (
-                  <option key={status} value={status}>
-                    {status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                {updatingOrderId === order.id ? (
-                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
-                ) : (
-                  <FiEdit size={12} />
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Order Grid Card Component
-  const OrderCard: React.FC<{ order: IOrder }> = ({ order }) => (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-lg transition-all duration-200 group">
-      {/* Card Header */}
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <div className="flex items-center space-x-2 mb-1">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
-              {getSourceIcon(order.source)}
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">{order.orderNumber}</h3>
-              <p className="text-xs text-gray-500">{formatDate(order.createdAt)}</p>
-            </div>
-          </div>
-        </div>
-        <div className="flex flex-col items-end space-y-1">
-          <span
-            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-              order.status
-            )}`}
-          >
-            {getStatusIcon(order.status)}
-            <span className="ml-1 capitalize">{order.status.replace('_', ' ')}</span>
-          </span>
-          <span
-            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(
-              order.priority
-            )}`}
-          >
-            <FiZap size={10} className="mr-1" />
-            {order.priority}
-          </span>
-        </div>
-      </div>
-
-      {/* Customer Info */}
-      <div className="mb-4">
-        <div className="flex items-center mb-2">
-          <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center mr-2">
-            <FiUser size={12} className="text-gray-600" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-900">{order.customer.name}</p>
-            <p className="text-xs text-gray-500">{order.customer.phone}</p>
-          </div>
-        </div>
-        <div className="flex items-center text-sm text-gray-600">
-          <FiMapPin className="mr-1" size={12} />
-          <span className="truncate">{order.branch.name}</span>
-        </div>
-      </div>
-
-      {/* Assigned User */}
-      {order.assignedUserName && (
-        <div className="mb-4 p-2 bg-blue-50 rounded-lg">
-          <div className="flex items-center">
-            <FiUserCheck className="text-blue-600 mr-2" size={14} />
-            <span className="text-sm font-medium text-blue-800">{order.assignedUserName}</span>
-            {order.processingTime !== undefined && (
-              <span className="ml-auto text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                {formatTime(order.processingTime)}
-              </span>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Order Details */}
-      <div className="mb-4 grid grid-cols-2 gap-2 text-sm">
-        <div>
-          <p className="text-gray-500 text-xs">Items</p>
-          <p className="font-medium">{order.items.length}</p>
-        </div>
-        <div>
-          <p className="text-gray-500 text-xs">Est. Time</p>
-          <p className="font-medium">{order.estimatedCompletionTime || 'N/A'} min</p>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-        <div>
-          <p className="text-lg font-bold text-gray-900">{formatCurrency(order.totalAmount, order.currency)}</p>
-        </div>
-        <div className="flex space-x-1">
-          <Button variant="outline" size="sm" onClick={() => handleViewOrder(order)} className="!p-1.5">
-            <FiEye size={14} />
-          </Button>
-          {!order.assignedUserId ? (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleAssignToSelf(order)}
-              className="!p-1.5 text-blue-600 border-blue-200 hover:bg-blue-50"
-            >
-              <FiUserCheck size={14} />
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleUnassignOrder(order)}
-              className="!p-1.5 text-red-600 border-red-200 hover:bg-red-50"
-            >
-              <FiUserCheck size={14} />
-            </Button>
-          )}
-        </div>
-      </div>
-    </div>
+        return tabFilter && statusFilter && priorityFilter && searchFilter;
+      }),
+    [orders, selectedTab, selectedStatus, selectedPriority, searchTerm]
   );
 
   return (
@@ -1342,13 +1467,44 @@ const OrdersPage: React.FC = () => {
             ) : viewMode === 'list' ? (
               <div className="space-y-3">
                 {filteredOrders.map((order) => (
-                  <OrderRow key={order.id} order={order} />
+                  <OrderRow
+                    key={order.id}
+                    order={order}
+                    updatingOrderId={updatingOrderId}
+                    onStatusUpdate={handleStatusUpdate}
+                    onViewOrder={handleViewOrder}
+                    onAssignToSelf={handleAssignToSelf}
+                    onOpenAssignmentModal={handleOpenAssignmentModal}
+                    onUnassignOrder={handleUnassignOrder}
+                    getStatusColor={getStatusColor}
+                    getStatusIcon={getStatusIcon}
+                    getPriorityColor={getPriorityColor}
+                    getSourceIcon={getSourceIcon}
+                    formatDate={formatDate}
+                    formatTime={formatTime}
+                    formatCurrency={formatCurrency}
+                  />
                 ))}
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {filteredOrders.map((order) => (
-                  <OrderCard key={order.id} order={order} />
+                  <OrderCard
+                    key={order.id}
+                    order={order}
+                    updatingOrderId={updatingOrderId}
+                    onStatusUpdate={handleStatusUpdate}
+                    onViewOrder={handleViewOrder}
+                    onAssignToSelf={handleAssignToSelf}
+                    onUnassignOrder={handleUnassignOrder}
+                    getStatusColor={getStatusColor}
+                    getStatusIcon={getStatusIcon}
+                    getPriorityColor={getPriorityColor}
+                    getSourceIcon={getSourceIcon}
+                    formatDate={formatDate}
+                    formatTime={formatTime}
+                    formatCurrency={formatCurrency}
+                  />
                 ))}
               </div>
             )}
