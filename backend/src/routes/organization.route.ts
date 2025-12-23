@@ -32,7 +32,6 @@ organizationRoute.post(
         id: realUser!.id,
         organizationId: realUser!.organizationId || '',
         email: realUser!.email,
-        userType: realUser!.userType,
       };
 
       // Generate tokens

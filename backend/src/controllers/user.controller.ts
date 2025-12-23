@@ -2,7 +2,7 @@ import { UserService } from '../services/users.service';
 import { ISignUp, User } from '../types/users';
 
 export class UserController {
-  static async createUser(data: Omit<ISignUp, 'id'>, user: Pick<User, 'id' | 'organizationId'>) {
+  static async createUser(data: ISignUp, user: Pick<User, 'id' | 'organizationId'>) {
     return await UserService.createUser(data, user);
   }
   static async deleteUser(userToBeRemoveId: string, user: Pick<User, 'id' | 'organizationId'>) {
