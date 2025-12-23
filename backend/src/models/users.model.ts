@@ -27,6 +27,10 @@ class UsersModel extends Model<
   declare resetToken: string | null;
   declare resetTokenExpires: Date | null;
   declare status?: 'active' | 'suspended';
+  activeOrderCount?: number;
+  maxConcurrentOrders?: number;
+  isActive?: boolean;
+  lastActive?: Date;
 
   declare addRole: BelongsToManyAddAssociationsMixin<UserRoleModel, string>;
   declare setRoles: BelongsToManySetAssociationsMixin<UserRoleModel, string>;
@@ -79,6 +83,10 @@ UsersModel.init(
     email: { type: DataTypes.STRING, unique: true, allowNull: false },
     password: { type: DataTypes.STRING, allowNull: false },
     status: { type: DataTypes.STRING, allowNull: true, defaultValue: 'active' },
+    activeOrderCount: { type: DataTypes.INTEGER, defaultValue: 0 },
+    maxConcurrentOrders: { type: DataTypes.INTEGER, defaultValue: 100 },
+    isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
+    lastActive: { type: DataTypes.DATE, defaultValue: Date.now() },
     resetToken: {
       type: DataTypes.STRING,
       allowNull: true,
