@@ -374,7 +374,23 @@ export class UserService {
   }
 
   static async getCurrentUser(user: User) {
-    const currentUser = await UsersModel.findByPk(user.id);
+    const currentUser = await UsersModel.findByPk(user.id, {
+      include: [
+        {
+          model: UserRoleModel,
+          as: 'roles',
+          where: { organizationId: user.organizationId },
+          required: false, // keep users without roles
+          include: [
+            {
+              model: UserPermissionsModel,
+              as: 'permissions',
+              through: { attributes: [] }, // hide join table
+            },
+          ],
+        },
+      ],
+    });
     if (!currentUser) throw new Error('User not found');
     return currentUser;
   }

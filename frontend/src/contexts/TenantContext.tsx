@@ -87,10 +87,15 @@ export const inventoryContextLoader = async () => {
 
 export const ordersContextLoader = async () => {
   const { getOrders } = new OrderService();
-  const [orderResults] = await Promise.allSettled([getOrders({})]);
+  const { getUsers, fetchCurrentUser } = new UserService();
+  const [orderResults, usersResults, currentUserResult] = await Promise.allSettled([getOrders({}), getUsers(), fetchCurrentUser()]);
   const orders = orderResults.status === 'fulfilled' ? orderResults.value : null;
+  const users = usersResults.status === 'fulfilled' ? usersResults.value : null;
+   const currentUser = currentUserResult.status === 'fulfilled' ? currentUserResult.value : null;
   return {
     orders: orders?.data,
+    users: users?.data,
+    currentUser: currentUser?.data,
   };
 };
 

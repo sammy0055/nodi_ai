@@ -33,29 +33,13 @@ import {
 } from 'react-icons/fi';
 import Button from '../../components/atoms/Button/Button';
 import { useDebounce } from 'use-debounce';
-import { useOrdersSetRecoilState, useOrdersValue } from '../../store/authAtoms';
+import { useOrdersSetRecoilState, useOrdersValue, useUserSetRecoilState, useUserValue } from '../../store/authAtoms';
 import { OrderService } from '../../services/orderService';
 import { useLoaderData } from 'react-router';
 import type { Pagination } from '../../types/customer';
+import type { User } from '../../types/users';
 
 // Extended User interface with additional fields for order management
-interface User {
-  id: string;
-  organizationId?: string | null;
-  name: string;
-  email: string;
-  roles: Role[];
-  activeOrderCount?: number;
-  maxConcurrentOrders?: number;
-  isActive?: boolean;
-  lastActive?: Date;
-}
-
-interface Role {
-  id: string;
-  name: string;
-  description: string;
-}
 
 // Order status object
 export const OrderStatusTypes = {
@@ -388,8 +372,8 @@ OrderRow.displayName = 'OrderRow';
 const OrderCard = memo(
   ({
     order,
-    updatingOrderId,
-    onStatusUpdate,
+    // updatingOrderId,
+    // onStatusUpdate,
     onViewOrder,
     onAssignToSelf,
     onUnassignOrder,
@@ -532,10 +516,16 @@ const OrderCard = memo(
 OrderCard.displayName = 'OrderCard';
 
 const OrdersPage: React.FC = () => {
-  const data = useLoaderData() as { orders: { data: IOrder[]; pagination: Pagination } };
+  const data = useLoaderData() as {
+    orders: { data: IOrder[]; pagination: Pagination };
+    users: User[];
+    currentUser: User;
+  };
   const orders = useOrdersValue();
+  const currentUser = useUserValue();
+  const setCurrentUser = useUserSetRecoilState();
   const setOrders = useOrdersSetRecoilState();
-  const [pagination, setPagination] = useState<Pagination>();
+  const [_, setPagination] = useState<Pagination>();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'all'>('all');
   const [selectedPriority, setSelectedPriority] = useState<OrderPriority | 'all'>('all');
@@ -557,168 +547,22 @@ const OrdersPage: React.FC = () => {
   const { updateOrderStatus } = useMemo(() => new OrderService(), []);
 
   // Mock users data with enhanced fields
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: '1',
-      name: 'John Doe',
-      email: 'john@example.com',
-      roles: [{ id: '1', name: 'Admin', description: 'Full access' }],
-      activeOrderCount: 2,
-      maxConcurrentOrders: 5,
-      isActive: true,
-      lastActive: new Date(Date.now() - 5 * 60000),
-    },
-    {
-      id: '2',
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      roles: [{ id: '2', name: 'Support', description: 'Customer support' }],
-      activeOrderCount: 1,
-      maxConcurrentOrders: 3,
-      isActive: true,
-      lastActive: new Date(Date.now() - 2 * 60000),
-    },
-    {
-      id: '3',
-      name: 'Bob Johnson',
-      email: 'bob@example.com',
-      roles: [{ id: '3', name: 'Agent', description: 'Order processing' }],
-      activeOrderCount: 0,
-      maxConcurrentOrders: 4,
-      isActive: true,
-      lastActive: new Date(Date.now() - 10 * 60000),
-    },
-    {
-      id: '4',
-      name: 'Alice Brown',
-      email: 'alice@example.com',
-      roles: [{ id: '4', name: 'Manager', description: 'Team management' }],
-      activeOrderCount: 3,
-      maxConcurrentOrders: 6,
-      isActive: true,
-      lastActive: new Date(Date.now() - 60000),
-    },
-    {
-      id: '5',
-      name: 'Mike Wilson',
-      email: 'mike@example.com',
-      roles: [{ id: '5', name: 'Support', description: 'Customer support' }],
-      activeOrderCount: 1,
-      maxConcurrentOrders: 4,
-      isActive: true,
-      lastActive: new Date(Date.now() - 3 * 60000),
-    },
-  ]);
+  const [users, setUsers] = useState<User[]>([]);
 
   // Current user (mock - in real app, get from auth context)
-  const currentUser = useMemo(() => users[0], [users]);
-
-  // Generate mock orders data
-  const generateMockOrders = useCallback(
-    (count: number): IOrder[] => {
-      const statuses = Object.values(OrderStatusTypes);
-      const sources = Object.values(OrderSourceTypes);
-      const priorities = Object.values(OrderPriorityTypes);
-      const serviceTypes = ['delivery', 'takeaway'] as const;
-
-      const mockOrders: IOrder[] = [];
-
-      for (let i = 0; i < count; i++) {
-        const status = statuses[Math.floor(Math.random() * statuses.length)];
-        const assignedUser = status === 'processing' ? users[Math.floor(Math.random() * users.length)] : undefined;
-        const estimatedTime = Math.floor(Math.random() * 120) + 10; // 10-130 minutes
-
-        const order: IOrder = {
-          id: `order-${1000 + i}`,
-          orderNumber: `ORD${1000 + i}`,
-          title: `Order #${1000 + i}`,
-          customerId: `cust-${i}`,
-          organizationId: 'org-1',
-          branchId: 'branch-1',
-          status,
-          source: sources[Math.floor(Math.random() * sources.length)],
-          items: [
-            {
-              productId: `prod-${i}`,
-              inventoryId: `inv-${i}`,
-              quantity: Math.floor(Math.random() * 5) + 1,
-              totalPrice: `$${(Math.random() * 100 + 10).toFixed(2)}`,
-              product: {
-                name: `Product ${i + 1}`,
-                price: Math.floor(Math.random() * 50) + 10,
-                currency: 'USD',
-                options: [
-                  {
-                    id: 'dde3',
-                    name: 'small fries',
-                    choice: { id: '434', label: 'we', priceAdjustment: '10' },
-                    choiceId: '',
-                    optionId: 'dwerwf',
-                    priceAdjustment: 10,
-                  },
-                ],
-              },
-            },
-          ],
-          subtotal: Math.floor(Math.random() * 100) + 20,
-          deliveryCharge: Math.floor(Math.random() * 10) + 5,
-          totalAmount: Math.floor(Math.random() * 150) + 25,
-          currency: 'USD',
-          deliveryAreaId: `area-${i}`,
-          serviceType: serviceTypes[Math.floor(Math.random() * serviceTypes.length)],
-          createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
-          updatedAt: new Date(),
-          priority: priorities[Math.floor(Math.random() * priorities.length)],
-          estimatedCompletionTime: estimatedTime,
-          branch: {
-            id: 'branch-1',
-            name: ['Downtown', 'Uptown', 'Midtown', 'Westside'][Math.floor(Math.random() * 4)],
-          },
-          customer: {
-            id: `cust-${i}`,
-            name: ['Alex Johnson', 'Maria Garcia', 'David Smith', 'Sarah Wilson', 'James Brown'][
-              Math.floor(Math.random() * 5)
-            ],
-            phone: `+1${Math.floor(Math.random() * 900000000) + 100000000}`,
-            email: `customer${i}@example.com`,
-          },
-          area: {
-            id: `area-${i}`,
-            name: ['Zone A', 'Zone B', 'Zone C'][Math.floor(Math.random() * 3)],
-            zone: {
-              id: `zone-${i}`,
-              name: ['North', 'South', 'East', 'West'][Math.floor(Math.random() * 4)],
-            },
-          },
-        };
-
-        if (assignedUser) {
-          order.assignedUserId = assignedUser.id;
-          order.assignedUserName = assignedUser.name;
-          order.assignedAt = new Date(Date.now() - Math.random() * 60 * 60 * 1000);
-          order.processingTime = Math.floor(Math.random() * 3600); // 0-60 minutes in seconds
-        }
-
-        mockOrders.push(order);
-      }
-
-      return mockOrders;
-    },
-    [users]
-  );
+  // const currentUser = useMemo(() => users[0], [users]);
 
   useEffect(() => {
-    const mockOrders = generateMockOrders(25);
-    setOrders(mockOrders);
-    setPagination({
-      currentPage: 1,
-      pageSize: 10,
-      totalItems: mockOrders.length,
-      totalPages: Math.ceil(mockOrders.length / 10),
-      hasNextPage: false,
-      hasPrevPage: false,
-    });
-  }, [generateMockOrders, setOrders]);
+    if (data) {
+      setOrders(data.orders.data);
+      setPagination(data.orders.pagination);
+      setUsers(data.users);
+      setCurrentUser(data.currentUser);
+    }
+    console.log('================data====================');
+    console.log(data);
+    console.log('====================================');
+  }, [data, setOrders]);
 
   useEffect(() => {
     const Fn = async () => {
@@ -886,9 +730,13 @@ const OrdersPage: React.FC = () => {
 
   const handleAssignToSelf = useCallback(
     async (order: IOrder) => {
-      await handleAssignOrder(order, currentUser.id);
+      if (!currentUser?.id) {
+        alert('kindly login');
+        return;
+      }
+      await handleAssignOrder(order, currentUser?.id);
     },
-    [currentUser.id, handleAssignOrder]
+    [currentUser?.id, handleAssignOrder]
   );
 
   const handleViewOrder = useCallback((order: IOrder) => {
@@ -1020,6 +868,7 @@ const OrdersPage: React.FC = () => {
   const handlePagination = useCallback(async (page: number) => {
     // In real app, fetch from API
     console.log('Fetching page:', page);
+    // alert('get new page' + page);
   }, []);
 
   // Calculate stats for the dashboard
@@ -1526,11 +1375,11 @@ const OrdersPage: React.FC = () => {
                     >
                       <option value="">Choose a team member...</option>
                       {users
-                        .filter((user) => user.isActive)
+                        .filter((user) => user.isActive && user?.roles?.length !== 0)
                         .map((user) => (
                           <option key={user.id} value={user.id}>
-                            {user.name} ({user.roles[0].name}) - {user.activeOrderCount || 0}/{user.maxConcurrentOrders || 5}{' '}
-                            orders
+                            {user.name} ({user.roles[0].name}) - {user.activeOrderCount || 0}/
+                            {user.maxConcurrentOrders || 5} orders
                           </option>
                         ))}
                     </select>

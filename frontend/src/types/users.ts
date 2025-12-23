@@ -18,6 +18,10 @@ export interface User {
   email: string;
   password: string;
   roles: Role[];
+  activeOrderCount?: number;
+  maxConcurrentOrders?: number;
+  isActive?: boolean;
+  lastActive?: Date;
 }
 
 export interface AdminUser {
