@@ -9,6 +9,78 @@ import { UserService } from '../services/users.service';
 
 const userRoute = express.Router();
 
+userRoute.post('/create-user', authMiddleware, async (req, res) => {
+  try {
+    const data = await UserController.createUser(req.body, req.user!);
+    const response: APIResponseFormat<any> = {
+      message: 'user created successfully',
+      data,
+    };
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
+
+userRoute.post('/update-user', authMiddleware, async (req, res) => {
+  try {
+    const data = await UserService.updateUser(req.body, req.user!);
+    const response: APIResponseFormat<any> = {
+      message: 'user updated successfully',
+      data,
+    };
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
+
+userRoute.delete('/delete-user', authMiddleware, async (req, res) => {
+  try {
+    await UserController.deleteUser(req.body.userId, req.user!);
+    const response: APIResponseFormat<any> = {
+      message: 'user deleted successfully',
+      data: null,
+    };
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
+
+userRoute.get('/get-users', authMiddleware, async (req, res) => {
+  try {
+    const data = await UserController.getUsers(req.user!);
+    const response: APIResponseFormat<any> = {
+      message: 'user retrieved successfully',
+      data,
+    };
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
+
 userRoute.post('/sign-up', validateSignUpSchema(), async (req, res) => {
   try {
     const data = await UserController.signUp(req.body);

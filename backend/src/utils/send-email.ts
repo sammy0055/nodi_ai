@@ -257,19 +257,27 @@ export const createCredoByteEmailTemplate = (options: {
                     ${content.replace(/\n/g, '<br>')}
                 </div>
                 
-                ${button ? `
+                ${
+                  button
+                    ? `
                 <div class="button-container">
                     <a href="${button.url}" class="button" target="_blank">
                         ${button.text}
                     </a>
                 </div>
-                ` : ''}
+                `
+                    : ''
+                }
                 
-                ${footerNote ? `
+                ${
+                  footerNote
+                    ? `
                 <div class="info-box">
                     <div class="info-text">${footerNote}</div>
                 </div>
-                ` : ''}
+                `
+                    : ''
+                }
             </div>
             
             <!-- Footer -->
@@ -320,9 +328,7 @@ export async function sendEmail({
 
     // Add HTML if provided
     if (html) {
-      messageConfig.attachment = [
-        { data: html, alternative: true }
-      ];
+      messageConfig.attachment = [{ data: html, alternative: true }];
     }
 
     const message = await client.sendAsync(messageConfig);
@@ -367,7 +373,7 @@ export async function sendVerificationEmail(to: string, code: string) {
       If you didn't request this verification, please ignore this email.
     `,
     footerNote: 'For security reasons, this code will expire in 30 minutes.',
-    previewText: `Your verification code is ${code}`
+    previewText: `Your verification code is ${code}`,
   });
 
   return sendEmail({
@@ -395,9 +401,9 @@ export async function sendWelcomeEmail(to: string, name: string) {
     `,
     button: {
       text: 'Go to Dashboard',
-      url: 'https://app.credobyte.com/dashboard'
+      url: 'https://app.credobyte.com/dashboard',
     },
-    footerNote: 'Need help? Contact our support team at support@credobyte.com'
+    footerNote: 'Need help? Contact our support team at support@credobyte.com',
   });
 
   return sendEmail({
@@ -411,34 +417,43 @@ export async function sendWelcomeEmail(to: string, name: string) {
 /**
  * Send notification alert with HTML template
  */
-export async function sendNotificationAlert(to: string, notification: {
-  title: string;
-  message: string;
-  details?: string;
-  type?: 'info' | 'warning' | 'alert' | 'success';
-  actionUrl?: string;
-}) {
+export async function sendNotificationAlert(
+  to: string,
+  notification: {
+    title: string;
+    message: string;
+    details?: string;
+    type?: 'info' | 'warning' | 'alert' | 'success';
+    actionUrl?: string;
+  }
+) {
   const infoBoxClass = notification.type || 'alert';
-  
+
   const html = createCredoByteEmailTemplate({
     subject: notification.title,
     title: notification.title,
     content: `
       ${notification.message}
       
-      ${notification.details ? `
+      ${
+        notification.details
+          ? `
       <div class="info-box ${infoBoxClass}">
         <div class="info-text"><strong>Details:</strong> ${notification.details}</div>
       </div>
-      ` : ''}
+      `
+          : ''
+      }
       
       Please review this notification and take appropriate action if needed.
     `,
-    button: notification.actionUrl ? {
-      text: 'View Details',
-      url: notification.actionUrl
-    } : undefined,
-    footerNote: 'This is an automated notification from CredoByte.'
+    button: notification.actionUrl
+      ? {
+          text: 'View Details',
+          url: notification.actionUrl,
+        }
+      : undefined,
+    footerNote: 'This is an automated notification from CredoByte.',
   });
 
   return sendEmail({
@@ -466,10 +481,10 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string) {
     `,
     button: {
       text: 'Reset Password',
-      url: resetUrl
+      url: resetUrl,
     },
     footerNote: 'For security reasons, this link will expire in 1 hour.',
-    previewText: 'Reset your CredoByte password'
+    previewText: 'Reset your CredoByte password',
   });
 
   return sendEmail({
@@ -496,7 +511,7 @@ export async function sendCredoByteEmail(options: {
   previewText?: string;
 }) {
   const html = createCredoByteEmailTemplate(options);
-  
+
   return sendEmail({
     to: options.to,
     subject: options.subject,
@@ -504,6 +519,35 @@ export async function sendCredoByteEmail(options: {
     html,
   });
 }
+
+export const sendUserInviteMail = (
+  to: string,
+  { userName, orgName, btnUrl }: { userName: string; orgName: string; btnUrl: string }
+) => {
+  const html = createCredoByteEmailTemplate({
+    subject: `You’re Invited to Join ${orgName} on CredoByte!`,
+    title: `Welcome to CredoByte, ${userName}!`,
+    content: `
+      ${orgName} has invited you to join their workspace on CredoByte.
+      CredoByte is an AI agent platform for ecommerce and service-based businesses. Our agents handle sales chats, reviews, FAQs, and more, helping teams work faster and smarter.
+      To get started, accept the invitation, then use the **Forgot Password** option to reset your password and log in. From there, you can access the dashboard and set up your preferences.
+      If you need help, our support team is always available.
+      We’re glad to have you on board.
+    `,
+    button: {
+      text: 'Go to Dashboard',
+      url: btnUrl,
+    },
+    footerNote: 'Need help? Contact our support team at support@credobyte.com',
+  });
+
+  return sendEmail({
+    to,
+    subject: `You’re Invited to Join ${orgName} on CredoByte!`,
+    text: `Welcome to CredoByte, ${userName}! We're excited to have you on board.`,
+    html,
+  });
+};
 
 // Export the client for advanced usage
 export { client };

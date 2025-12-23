@@ -11,6 +11,7 @@ import {
   ordersContextLoader,
   productContextLoader,
   reviewContextLoader,
+  settingsContextLoader,
   tenantContextLoader,
 } from '../contexts/TenantContext';
 import AdminAuthRoutes from './AdminAuthRoute';
@@ -89,7 +90,7 @@ const router = createBrowserRouter([
       { path: PageRoutes.CUSTOMERS, element: <CustomersPage />, loader: customerContextLoader },
       { path: PageRoutes.REVIEWS, element: <ReviewsPage />, loader: reviewContextLoader },
       { path: PageRoutes.BILLING, element: <BillingPage />, loader: billingContextLoader },
-      { path: PageRoutes.SETTINGS, element: <SettingsPage /> },
+      { path: PageRoutes.SETTINGS, element: <SettingsPage />, loader: settingsContextLoader },
     ],
   },
   {

@@ -30,6 +30,8 @@ import { NotificationRoute } from './routes/notification.route.js';
 import { adminEmailListRoute } from './routes/admin-email-list.route.js';
 import { whatsappFlowRoute } from './routes/whatsapp-flow.js';
 import { queueConsumer } from './helpers/rabbitmq/index.js';
+import { userRoleRoute } from './routes/role.route.js';
+import { userPermissionRoute } from './routes/permission-route.js';
 
 const app = express();
 
@@ -59,6 +61,8 @@ app.use('/api/organization/subscription-plan', subscriptionPlanRoute);
 app.use('/api/organization/order', orderRoute);
 app.use('/api/organization/customers', customerRoute);
 app.use('/api/organization/review', reviewRoute);
+app.use('/api/organization/role', userRoleRoute);
+app.use('/api/organization/permissions', userPermissionRoute);
 
 // app-user routes
 app.use('/api/app-user/subscription-plan', appUserAuthSecretValidation, subscriptionPlanRoute);
@@ -69,6 +73,8 @@ app.use('/api/app-user/organization', appUserAuthSecretValidation, organizationR
 app.use('/api/app-user/conversation', appUserAuthSecretValidation, convRoute);
 app.use('/api/app-user/notification', appUserAuthSecretValidation, NotificationRoute);
 app.use('/api/app-user/notification-email-list', appUserAuthSecretValidation, adminEmailListRoute);
+app.use('/api/app-user/role', appUserAuthSecretValidation, userRoleRoute);
+app.use('/api/app-user/permissions', userPermissionRoute);
 
 // whatsapp flow route
 app.use('/api/whatsappflow', whatsappFlowRoute);

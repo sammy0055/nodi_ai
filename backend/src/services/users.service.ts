@@ -7,7 +7,11 @@ import { generateTokens, verifyToken } from '../utils/jwt';
 import crypto from 'crypto';
 
 import { OAuth2Client } from 'google-auth-library';
-import { sendPasswordResetEmail } from '../utils/send-email';
+import { sendPasswordResetEmail, sendUserInviteMail } from '../utils/send-email';
+import { UserRoleModel } from '../models/role.model';
+import { UserPermissionsModel } from '../models/permission.model';
+import { OrganizationsModel } from '../models/organizations.model';
+import { Op } from 'sequelize';
 
 export class UserService {
   constructor() {}
@@ -17,15 +21,125 @@ export class UserService {
     'postmessage'
   );
 
+  static async createUser(data: User, user: Pick<User, 'id' | 'organizationId'>) {
+    if (!user.id) throw new Error('user is not authenticated');
+    if (data.roles?.length === 0) throw new Error('role is required');
+    const roles = await UserRoleModel.findAll({ where: { id: data.roles?.map((r) => r.id) } });
+    if (!roles) throw new Error('user role does not exist');
+    const _user = await UsersModel.findByPk(user.id, {
+      include: [
+        {
+          model: UserRoleModel,
+          as: 'roles',
+          include: [
+            {
+              model: UserPermissionsModel,
+              as: 'permissions',
+            },
+          ],
+        },
+      ],
+    });
+
+    const plainUser = _user?.get({ plain: true }) as any;
+    if (!plainUser) throw new Error('user does not exist');
+
+    const isSupperAdmin = plainUser?.roles.find((r: any) => r.name === UserTypes.SuperAdmin);
+    if (!isSupperAdmin) throw new Error("you don't have permission to perform this action");
+
+    const org = await OrganizationsModel.findByPk(user.organizationId!);
+    if (!org) throw new Error('an organization does not exist for this user');
+
+    // send invitation email
+    await sendUserInviteMail(data.email, {
+      orgName: org.name,
+      userName: data.name,
+      btnUrl: `${appConfig.frontendUrl}`,
+    });
+
+    const payload = {
+      name: data.name,
+      email: data.email,
+      password: 'password',
+    };
+
+    const otherUser = await UsersModel.create({ ...payload, organizationId: user.organizationId });
+    await otherUser.setRoles(roles);
+    return await UsersModel.findByPk(otherUser.id, { include: { model: UserRoleModel, as: 'roles' } });
+  }
+
+  static async updateUser(user: User, _user: Pick<User, 'id' | 'organizationId'>) {
+    if (!user.id) throw new Error('user id is required to update a user');
+    const oldUser = await UsersModel.findByPk(user.id);
+    if (!oldUser) throw new Error('user does not exist');
+    const admin = await UsersModel.findByPk(_user.id, { include: { model: UserRoleModel, as: 'roles' } });
+    const planAdmin = admin?.get({ plain: true }) as any;
+    const isSupperAdmin = planAdmin?.roles?.find((r: any) => r.name === UserTypes.SuperAdmin);
+    if (!isSupperAdmin) throw new Error("you don't have permission to perform this action");
+    const [_, updatedUser] = await UsersModel.update(user, {
+      where: { id: user.id, organizationId: _user.organizationId },
+      returning: true,
+    });
+    if (user.roles) {
+      const userRoles = await UserRoleModel.findAll({ where: { id: user.roles?.map((u) => u.id) } });
+      await oldUser.setRoles(userRoles);
+    }
+    return updatedUser[0].get({ plain: true }); // plain JS object
+  }
+
+  static async deleteUser(userToBeRemoveId: string, user: Pick<User, 'id' | 'organizationId'>) {
+    if (!user.id) throw new Error('user is not authenticated');
+    const _user = await UsersModel.findByPk(user.id, {
+      include: [
+        {
+          model: UserRoleModel,
+          as: 'roles',
+          include: [
+            {
+              model: UserPermissionsModel,
+              as: 'permissions',
+            },
+          ],
+        },
+      ],
+    });
+
+    const plainUser = _user?.get({ plain: true }) as any;
+    if (!plainUser) throw new Error('user does not exist');
+    if (plainUser.id === userToBeRemoveId) throw new Error('super-admin can not be deleted');
+
+    const isSupperAdmin = plainUser?.roles.find((r: any) => r.name === UserTypes.SuperAdmin);
+    if (!isSupperAdmin) throw new Error("you don't have permission to perform this action");
+    await UsersModel.destroy({ where: { id: userToBeRemoveId } });
+  }
+
+  static async getUsers(user: Pick<User, 'id' | 'organizationId'>) {
+    const users = await UsersModel.findAll({
+      where: { organizationId: user.organizationId },
+      include: [
+        {
+          model: UserRoleModel,
+          as: 'roles',
+          where: {
+            name: {
+              [Op.ne]: 'super-admin',
+            },
+          },
+          required: false,
+        },
+      ],
+    });
+    return users;
+  }
+
   static async signUp(data: Omit<ISignUp, 'id'>) {
-    const user: User = await UsersModel.create(data);
+    const user = await UsersModel.create(data);
 
     // JWT payload
     const payload = {
       id: user.id,
       organizationId: user.organizationId || '',
       email: user.email,
-      userType: user.userType,
     };
 
     // Generate tokens
@@ -79,7 +193,6 @@ export class UserService {
     const userInfo = {
       email: payload.email!,
       name: payload.name!,
-      userType: UserTypes.Owner,
       password: 'goolge-user-password',
     };
 
@@ -90,7 +203,6 @@ export class UserService {
         id: existingUser.id,
         organizationId: existingUser.organizationId || '',
         email: existingUser.email,
-        userType: existingUser.userType,
       };
 
       const { accessToken, refreshToken, expires_in } = generateTokens(userPayload);
@@ -110,14 +222,13 @@ export class UserService {
       };
     }
 
-    const user: User = await UsersModel.create(userInfo);
+    const user = await UsersModel.create(userInfo);
 
     // JWT payload
     const userPayload = {
       id: user.id,
       organizationId: user.organizationId || '',
       email: user.email,
-      userType: user.userType,
     };
 
     // Generate tokens
@@ -161,7 +272,6 @@ export class UserService {
       const userInfo = {
         email: payload.email!,
         name: payload.name!,
-        userType: UserTypes.Owner,
         password: 'goolge-user-password',
       };
 
@@ -172,7 +282,6 @@ export class UserService {
         id: user.id,
         organizationId: user.organizationId || '',
         email: user.email,
-        userType: user.userType,
       };
 
       // Generate tokens
@@ -196,7 +305,6 @@ export class UserService {
       id: user.id,
       organizationId: user.organizationId || '',
       email: user.email,
-      userType: user.userType,
     };
 
     const { accessToken, refreshToken, expires_in } = generateTokens(userPayload);
@@ -227,7 +335,6 @@ export class UserService {
       id: user.id,
       organizationId: user.organizationId || '',
       email: user.email,
-      userType: user.userType,
     };
 
     // Generate tokens
@@ -308,7 +415,6 @@ export class UserService {
       id: user.id,
       organizationId: user.organizationId || '',
       email: user.email,
-      userType: user.userType,
     };
 
     // Generate tokens
@@ -325,5 +431,26 @@ export class UserService {
         expires_in: 900, // 15 minutes = 900 seconds
       },
     };
+  }
+
+  static async addRoleToUser(roleIds: string[], userId: string) {
+    if (roleIds.length === 0 || !userId) throw new Error('wrong input data');
+    const user = await UsersModel.findByPk(userId);
+    if (!user) throw new Error('user does not exist');
+
+    const roles = await UserRoleModel.findAll({ where: { id: roleIds } });
+    if (!roles || roles.length === 0) throw new Error('roles does not exist');
+
+    await user.setRoles(roles);
+  }
+
+  static async removeRoleFromUser(roleIds: string[], userId: string) {
+    if (roleIds.length === 0 || !userId) throw new Error('wrong input data');
+    const user = await UsersModel.findByPk(userId);
+    if (!user) throw new Error('user does not exist');
+
+    const roles = await UserRoleModel.findAll({ where: { id: roleIds } });
+    if (!roles || roles.length === 0) throw new Error('roles does not exist');
+    await user.removeRoles(roles);
   }
 }

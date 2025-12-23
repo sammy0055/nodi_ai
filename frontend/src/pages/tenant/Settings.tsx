@@ -10,6 +10,12 @@ import {
   FiHelpCircle,
   FiClock,
   FiPlus,
+  FiUser,
+  FiUsers,
+  FiKey,
+  FiTrash2,
+  FiEye,
+  FiEyeOff,
 } from 'react-icons/fi';
 import Button from '../../components/atoms/Button/Button';
 import Input from '../../components/atoms/Input/Input';
@@ -18,6 +24,9 @@ import { OrganizationService } from '../../services/organizationService';
 import { useWhatsAppSignup } from '../../hooks/whatsapp';
 import type { BaseRequestAttributes } from '../../types/request';
 import { CurrencyCode } from '../../types/product';
+import { useLoaderData } from 'react-router';
+import { UserService } from '../../services/userService';
+import type { Permission, Role, User } from '../../types/users';
 
 const SettingsPage: React.FC = () => {
   const orgData = useOrgValue();
@@ -31,6 +40,44 @@ const SettingsPage: React.FC = () => {
     WABA_REDIRECT_URL
   );
 
+  const data = useLoaderData() as {
+    users: User[];
+    roles: Role[];
+    permissions: Permission[];
+  };
+
+  // State for navigation
+  const [activeTab, setActiveTab] = useState<'general' | 'users' | 'roles'>('general');
+
+  // State for Users tab
+  const [users, setUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    if (data) {
+      setUsers(data.users);
+      setRoles(data?.roles || []);
+      if (data?.roles?.length !== 0) {
+        setSelectedRoleId(data?.roles[0].id);
+        if (data?.roles[0]?.permissions) setRolePermissions(new Set(data?.roles[0]?.permissions?.map((p) => p.id)));
+      }
+      setPermissions(data.permissions);
+    }
+  }, [data]);
+
+  // State for Roles & Permissions tab
+  const [roles, setRoles] = useState<Role[]>([]);
+
+  const [permissions, setPermissions] = useState<Permission[]>([]);
+
+  const [selectedRoleId, setSelectedRoleId] = useState<string>();
+  const [rolePermissions, setRolePermissions] = useState<Set<string>>(new Set([]));
+
+  // State for new user form
+  const [newUser, setNewUser] = useState({ name: '', email: '', roleId: '2' });
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [editUserData, setEditUserData] = useState<User | null>(null);
+
+  // Existing states from original code
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [catalogRequest, setCatalogRequest] = useState<any>(null);
@@ -49,7 +96,6 @@ const SettingsPage: React.FC = () => {
   const handleSave = async () => {
     setIsLoading(true);
     try {
-      // Simulate API call
       await updateOrganization({ ...orgData, organizationId: orgData.id } as any);
       setSaveStatus('success');
       setIsEditing(false);
@@ -122,7 +168,6 @@ const SettingsPage: React.FC = () => {
   const handleCatalogCreation = async () => {
     setIsLoading(true);
     try {
-      // Simulate catalog creation process
       const requestInput: BaseRequestAttributes = {
         title: 'create catalog for my business',
         description: 'create catalog on meta dashboard for my business so i can start adding products',
@@ -156,12 +201,107 @@ const SettingsPage: React.FC = () => {
     }
   };
 
-  console.log('====================================');
-  console.log(whatsappData);
-  console.log('====================================');
-  
-  return (
-    <div className="space-y-6">
+  // Users tab functions
+  const { deleteUser, updateUser, addUser, setRolePermissions: adminSetRolePermissions } = new UserService();
+  const handleAddUser = async () => {
+    try {
+      if (!newUser.name.trim() || !newUser.email.trim()) return;
+
+      const newUserObj = {
+        name: newUser.name,
+        email: newUser.email,
+        roles: [roles.find((role) => role.id === newUser.roleId) || roles[0]],
+      };
+      const data = await addUser(newUserObj as any);
+      setUsers([...users, data.data as any]);
+      setNewUser({ name: '', email: '', roleId: '2' });
+    } catch (error: any) {
+      alert(error.message);
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      await deleteUser(userId);
+      setUsers(users.filter((user) => user.id !== userId));
+    } catch (error: any) {
+      alert(error.message);
+    }
+  };
+
+  const handleEditUser = (user: User) => {
+    setEditingUserId(user.id);
+    setEditUserData({ ...user });
+  };
+
+  const handleSaveEditUser = async () => {
+    if (!editUserData) return;
+
+    try {
+      await updateUser(editUserData as any);
+      setUsers(users.map((user) => (user.id === editUserData.id ? editUserData : user)));
+      setEditingUserId(null);
+      setEditUserData(null);
+    } catch (error: any) {
+      alert(error.message);
+    }
+  };
+
+  const handleCancelEditUser = () => {
+    setEditingUserId(null);
+    setEditUserData(null);
+  };
+
+  // Roles & Permissions functions
+  const handleRoleChange = (roleId: string) => {
+    setSelectedRoleId(roleId);
+    // Reset to some default permissions for the role
+    const selectedRole = roles.find((r) => r.id === roleId);
+    const defaultPermissions = new Set<string>(selectedRole?.permissions?.map((p) => p.id));
+    setRolePermissions(defaultPermissions);
+  };
+
+  const handlePermissionToggle = (permissionId: string) => {
+    const newPermissions = new Set(rolePermissions);
+    if (newPermissions.has(permissionId)) {
+      newPermissions.delete(permissionId);
+    } else {
+      newPermissions.add(permissionId);
+    }
+    setRolePermissions(newPermissions);
+  };
+
+  const handleSavePermissions = async () => {
+    try {
+      await adminSetRolePermissions({ permIds: [...rolePermissions], role: selectedRoleId! });
+      alert(`Permissions saved for ${roles.find((r) => r.id === selectedRoleId)?.name} role`);
+    } catch (error: any) {
+      alert(error.message);
+    }
+  };
+
+  const handleSelectAllPermissions = () => {
+    const allPermissionIds = permissions.map((p) => p.id);
+    setRolePermissions(new Set(allPermissionIds));
+  };
+
+  const handleDeselectAllPermissions = () => {
+    setRolePermissions(new Set());
+  };
+
+  // Render the appropriate content based on active tab
+  const renderTabContent = () => {
+    if (activeTab === 'general') {
+      return renderGeneralTab();
+    } else if (activeTab === 'users') {
+      return renderUsersTab();
+    } else {
+      return renderRolesTab();
+    }
+  };
+
+  const renderGeneralTab = () => (
+    <>
       {/* Header */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-neutral-900">Settings</h2>
@@ -233,7 +373,9 @@ const SettingsPage: React.FC = () => {
                 onChange={(e) => setOrgData((prev) => ({ ...prev, currency: e.target.value as any }))}
               >
                 {Object.values(CurrencyCode).map((currency) => (
-                  <option value={currency}>{currency}</option>
+                  <option key={currency} value={currency}>
+                    {currency}
+                  </option>
                 ))}
               </select>
             </div>
@@ -452,6 +594,345 @@ const SettingsPage: React.FC = () => {
           <Button variant="outline">View Documentation</Button>
           <Button>Contact Support</Button>
         </div>
+      </div>
+    </>
+  );
+
+  const renderUsersTab = () => (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-neutral-900">User Management</h2>
+      </div>
+
+      {/* Add New User Form */}
+      <div className="bg-white rounded-lg shadow-medium p-6">
+        <h3 className="text-lg font-semibold text-neutral-900 mb-4 flex items-center">
+          <FiUser className="mr-2 text-primary-600" />
+          Add New User
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <Input
+            label="Full Name"
+            value={newUser.name}
+            onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+            placeholder="Enter user's full name"
+          />
+
+          <Input
+            label="Email Address"
+            value={newUser.email}
+            onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+            placeholder="Enter user's email"
+            type="email"
+          />
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-neutral-700">Role</label>
+            <select
+              className="border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              value={newUser.roleId}
+              onChange={(e) => setNewUser({ ...newUser, roleId: e.target.value })}
+            >
+              {roles.map((role) => (
+                <option key={role.id} value={role.id}>
+                  {role.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <Button onClick={handleAddUser}>
+          <FiPlus className="mr-2" />
+          Add User
+        </Button>
+      </div>
+
+      {/* Users List */}
+      <div className="bg-white rounded-lg shadow-medium p-6">
+        <h3 className="text-lg font-semibold text-neutral-900 mb-4 flex items-center">
+          <FiUsers className="mr-2 text-primary-600" />
+          All Users ({users.length})
+        </h3>
+
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-neutral-200">
+            <thead>
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                  Name
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                  Email
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                  Role
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-neutral-200">
+              {users.map((user) => (
+                <tr key={user.id} className="hover:bg-neutral-50">
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    {editingUserId === user.id ? (
+                      <input
+                        type="text"
+                        value={editUserData?.name || ''}
+                        onChange={(e) => setEditUserData((prev) => (prev ? { ...prev, name: e.target.value } : null))}
+                        className="border border-neutral-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    ) : (
+                      <div className="text-sm font-medium text-neutral-900">{user.name}</div>
+                    )}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    {editingUserId === user.id ? (
+                      <input
+                        type="email"
+                        value={editUserData?.email || ''}
+                        onChange={(e) => setEditUserData((prev) => (prev ? { ...prev, email: e.target.value } : null))}
+                        className="border border-neutral-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    ) : (
+                      <div className="text-sm text-neutral-600">{user.email}</div>
+                    )}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    {editingUserId === user.id ? (
+                      <select
+                        className="border border-neutral-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        value={(editUserData?.roles && editUserData?.roles[0]?.id) || ''}
+                        onChange={(e) => {
+                          const selectedRole = roles.find((r) => r.id === e.target.value);
+                          if (editUserData && selectedRole) {
+                            setEditUserData({ ...editUserData, roles: [selectedRole] });
+                          }
+                        }}
+                      >
+                        {roles.map((role) => (
+                          <option key={role.id} value={role.id}>
+                            {role.name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+                        {user.roles && user.roles[0]?.name}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                    {editingUserId === user.id ? (
+                      <div className="flex space-x-2">
+                        <Button size="sm" variant="outline" onClick={handleSaveEditUser}>
+                          <FiCheck className="mr-1" />
+                          Save
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={handleCancelEditUser}>
+                          <FiX className="mr-1" />
+                          Cancel
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex space-x-2">
+                        <Button size="sm" variant="outline" onClick={() => handleEditUser(user)}>
+                          <FiEdit className="mr-1" />
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDeleteUser(user.id)}
+                          className="text-red-600 hover:bg-red-50"
+                        >
+                          <FiTrash2 className="mr-1" />
+                          Delete
+                        </Button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {users.length === 0 && (
+          <div className="text-center py-8">
+            <FiUsers className="mx-auto h-12 w-12 text-neutral-400" />
+            <h3 className="mt-2 text-sm font-medium text-neutral-900">No users</h3>
+            <p className="mt-1 text-sm text-neutral-500">Get started by adding a new user.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderRolesTab = () => (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-neutral-900">Roles & Permissions</h2>
+      </div>
+
+      {/* Role Selection */}
+      <div className="bg-white rounded-lg shadow-medium p-6">
+        <h3 className="text-lg font-semibold text-neutral-900 mb-4 flex items-center">
+          <FiKey className="mr-2 text-primary-600" />
+          Select Role
+        </h3>
+
+        <div className="mb-6">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-neutral-700">Role</label>
+            <select
+              className="border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              value={selectedRoleId}
+              onChange={(e) => handleRoleChange(e.target.value)}
+            >
+              {roles.map((role) => (
+                <option key={role.id} value={role.id}>
+                  {role.name} - {role.description}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {selectedRoleId && (
+            <div className="mt-4">
+              <p className="text-sm text-neutral-600">
+                <span className="font-medium">Description:</span>{' '}
+                {roles.find((r) => r.id === selectedRoleId)?.description}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Permissions */}
+        <div className="border-t border-neutral-200 pt-6">
+          <div className="flex justify-between items-center mb-4">
+            <h4 className="font-semibold text-neutral-900">Permissions</h4>
+            <div className="flex space-x-2">
+              <Button size="sm" variant="outline" onClick={handleSelectAllPermissions}>
+                <FiEye className="mr-1" />
+                Select All
+              </Button>
+              <Button size="sm" variant="outline" onClick={handleDeselectAllPermissions}>
+                <FiEyeOff className="mr-1" />
+                Deselect All
+              </Button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {permissions.map((permission) => (
+              <div
+                key={permission.id}
+                className="flex items-center p-3 border border-neutral-200 rounded-lg hover:bg-neutral-50"
+              >
+                <input
+                  type="checkbox"
+                  id={`permission-${permission.id}`}
+                  checked={rolePermissions.has(permission.id)}
+                  onChange={() => handlePermissionToggle(permission.id)}
+                  className="h-4 w-4 text-primary-600 border-neutral-300 rounded focus:ring-primary-500"
+                />
+                <label htmlFor={`permission-${permission.id}`} className="ml-3 flex flex-col">
+                  <span className="text-sm font-medium text-neutral-900">{permission.key}</span>
+                  <span className="text-xs text-neutral-500">{permission.description}</span>
+                </label>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6">
+            <Button onClick={handleSavePermissions}>
+              <FiSave className="mr-2" />
+              Save Permissions
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Roles Summary */}
+      <div className="bg-white rounded-lg shadow-medium p-6">
+        <h3 className="text-lg font-semibold text-neutral-900 mb-4">All Roles</h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {roles.map((role) => (
+            <div
+              key={role.id}
+              className={`p-4 border rounded-lg ${
+                selectedRoleId === role.id ? 'border-primary-500 bg-primary-50' : 'border-neutral-200'
+              }`}
+            >
+              <h4 className="font-medium text-neutral-900">{role.name}</h4>
+              <p className="text-sm text-neutral-600 mt-1">{role.description}</p>
+              <div className="mt-2 flex justify-between items-center">
+                <span className="text-xs text-neutral-500">
+                  {users.filter((u) => u.roles.some((r) => r.id === role.id)).length} users
+                </span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setSelectedRoleId(role.id)}
+                  className={selectedRoleId === role.id ? 'bg-primary-100' : ''}
+                >
+                  Select
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* Navigation Tabs */}
+      <div className="bg-white rounded-lg shadow-medium">
+        <nav className="flex flex-wrap border-b border-neutral-200">
+          <button
+            onClick={() => setActiveTab('general')}
+            className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
+              activeTab === 'general'
+                ? 'text-primary-600 border-b-2 border-primary-600 font-semibold'
+                : 'text-neutral-600 hover:text-neutral-900'
+            }`}
+          >
+            <FiShoppingBag className="mr-2" />
+            General
+          </button>
+          <button
+            onClick={() => setActiveTab('users')}
+            className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
+              activeTab === 'users'
+                ? 'text-primary-600 border-b-2 border-primary-600 font-semibold'
+                : 'text-neutral-600 hover:text-neutral-900'
+            }`}
+          >
+            <FiUsers className="mr-2" />
+            Users
+          </button>
+          <button
+            onClick={() => setActiveTab('roles')}
+            className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
+              activeTab === 'roles'
+                ? 'text-primary-600 border-b-2 border-primary-600 font-semibold'
+                : 'text-neutral-600 hover:text-neutral-900'
+            }`}
+          >
+            <FiKey className="mr-2" />
+            Roles & Permissions
+          </button>
+        </nav>
+
+        {/* Tab Content */}
+        <div className="p-6">{renderTabContent()}</div>
       </div>
     </div>
   );

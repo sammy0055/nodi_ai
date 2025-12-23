@@ -5,6 +5,8 @@ export enum ModelNames {
   Organizations = 'Organizations',
   Products = 'Products',
   Users = 'Users',
+  UserRole = "UserRole",
+  UserPermissions = "UserPermissions",
   AdminUser = 'AdminUser',
   Whatsappsettings = 'Whatsappsettings',
   Zones = 'Zones',

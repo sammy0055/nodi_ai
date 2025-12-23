@@ -1,9 +1,19 @@
-import { DataTypes, Model, InferAttributes, InferCreationAttributes, CreationOptional } from 'sequelize';
+import {
+  DataTypes,
+  Model,
+  InferAttributes,
+  InferCreationAttributes,
+  CreationOptional,
+  BelongsToManyAddAssociationsMixin,
+  BelongsToManySetAssociationsMixin,
+  BelongsToManyRemoveAssociationMixin,
+  BelongsToManyRemoveAssociationsMixin,
+} from 'sequelize';
 import bcrypt from 'bcrypt';
 import { sequelize } from './db';
 import { DbModels } from '.';
-import { UserTypes } from '../data/data-types';
 import { ModelNames } from './model-names';
+import { UserRoleModel } from './role.model';
 
 class UsersModel extends Model<
   InferAttributes<UsersModel>, // read attributes
@@ -14,9 +24,18 @@ class UsersModel extends Model<
   declare name: string;
   declare email: string;
   declare password: string;
-  declare userType: `${UserTypes}`;
   declare resetToken: string | null;
   declare resetTokenExpires: Date | null;
+  declare status?: 'active' | 'suspended';
+  activeOrderCount?: number;
+  maxConcurrentOrders?: number;
+  isActive?: boolean;
+  lastActive?: Date;
+
+  declare addRole: BelongsToManyAddAssociationsMixin<UserRoleModel, string>;
+  declare setRoles: BelongsToManySetAssociationsMixin<UserRoleModel, string>;
+  declare removeRole: BelongsToManyRemoveAssociationMixin<UserRoleModel, string>;
+  declare removeRoles: BelongsToManyRemoveAssociationsMixin<UserRoleModel, string>;
 
   // custom method
   async comparePassword(plainPassword: string): Promise<boolean> {
@@ -37,6 +56,13 @@ class UsersModel extends Model<
       foreignKey: 'ownerId',
       as: 'ownedOrganization',
     });
+
+    this.belongsToMany(models.UserRoleModel, {
+      through: 'user_roles',
+      foreignKey: 'user_id',
+      otherKey: 'role_id',
+      as: 'roles',
+    });
   }
 }
 
@@ -56,7 +82,11 @@ UsersModel.init(
     name: { type: DataTypes.STRING, allowNull: false },
     email: { type: DataTypes.STRING, unique: true, allowNull: false },
     password: { type: DataTypes.STRING, allowNull: false },
-    userType: { type: DataTypes.ENUM, values: Object.values(UserTypes), defaultValue: 'owner' },
+    status: { type: DataTypes.STRING, allowNull: true, defaultValue: 'active' },
+    activeOrderCount: { type: DataTypes.INTEGER, defaultValue: 0 },
+    maxConcurrentOrders: { type: DataTypes.INTEGER, defaultValue: 100 },
+    isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
+    lastActive: { type: DataTypes.DATE, defaultValue: Date.now() },
     resetToken: {
       type: DataTypes.STRING,
       allowNull: true,

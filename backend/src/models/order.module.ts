@@ -2,7 +2,7 @@ import { DataTypes, Model, InferAttributes, InferCreationAttributes, CreationOpt
 import { sequelize } from './db';
 import { DbModels } from '.';
 import { ModelNames } from './model-names';
-import { IOrder, OrderSourceTypes, OrderStatusTypes } from '../types/order';
+import { IOrder, OrderPriorityTypes, OrderSourceTypes, OrderStatusTypes } from '../types/order';
 import { ManageVectorStore } from '../helpers/vector-store';
 
 class OrderModel
@@ -36,7 +36,17 @@ class OrderModel
   declare searchVector?: any;
   declare cancelWindowMinutes: number;
   declare cancellationDeadline: Date;
-  declare area?: any
+  declare area?: any;
+
+  // New fields for assignment and timing
+  declare assignedUserId?: string;
+  declare assignedUserName?: string;
+  declare assignedAt?: Date;
+  declare processingTime?: number;
+  declare estimatedCompletionTime?: number;
+  declare priority: `${OrderPriorityTypes}`;
+  declare notes?: string;
+  declare customerNotes?: string;
 
   static associate(models: DbModels) {
     this.belongsTo(models.OrganizationsModel, {
@@ -53,7 +63,6 @@ class OrderModel
       foreignKey: 'branchId',
       as: 'branch',
     });
-
   }
 
   // Add a helper method to check if order can be cancelled
@@ -169,6 +178,15 @@ OrderModel.init(
     serviceType: { type: DataTypes.ENUM('delivery', 'takeaway'), allowNull: false },
     deliveryAreaName: { type: DataTypes.STRING, allowNull: true },
     deliveryTime: { type: DataTypes.DATE, allowNull: true },
+    // New fields for assignment and timing
+    assignedUserId: { type: DataTypes.UUID, allowNull: true },
+    assignedUserName: { type: DataTypes.STRING, allowNull: true },
+    assignedAt: { type: DataTypes.DATE, allowNull: true },
+    processingTime: { type: DataTypes.INTEGER, allowNull: true },
+    estimatedCompletionTime: { type: DataTypes.INTEGER, allowNull: true },
+    priority: { type: DataTypes.STRING, defaultValue: OrderPriorityTypes.MEDIUM },
+    notes: { type: DataTypes.TEXT, allowNull: true },
+    customerNotes: { type: DataTypes.TEXT, allowNull: true },
     searchVector: {
       type: 'TSVECTOR',
       allowNull: true,

@@ -18,6 +18,14 @@ export enum OrderSourceTypes {
   API = 'api',
 }
 
+// Order priority levels
+export enum OrderPriorityTypes {
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
+  URGENT = 'urgent',
+}
+
 export interface OrderItemOption {
   optionId: string;
   optionName: string;

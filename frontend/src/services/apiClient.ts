@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_BACKEND_PROD_APP_URL;
+const API_BASE_URL = 'http://localhost:4000/api';
 //  import.meta.env.VITE_ENV_PROD === 'PROD' ? import.meta.env.VITE_BACKEND_PROD_APP_URL : 'http://localhost:4000/api';
 // import.meta.env.VITE_BACKEND_PROD_APP_URL
 export const APP_USER_API_ROUTES = {
@@ -38,6 +38,13 @@ export const API_ROUTES = {
   UPDATE_ORGANIZATION: `${API_BASE_URL}/organization/update-organization`,
   GET_OGANIZATION: `${API_BASE_URL}/organization/get-organization`,
   CURRENT_USER: `${API_BASE_URL}/user/current-user`,
+  ADD_USER: `${API_BASE_URL}/user/create-user`,
+  GET_USERS: `${API_BASE_URL}/user/get-users`,
+  DELETE_USER: `${API_BASE_URL}/user/delete-user`,
+  UPDATE_USER: `${API_BASE_URL}/user/update-user`,
+  GET_ROLES: `${API_BASE_URL}/organization/role/org-get-roles`,
+  GET_PERMISSIONS: `${API_BASE_URL}/organization/permissions/org-get-permissions`,
+  SET_ROLE_PERMISSIONS: `${API_BASE_URL}/organization/role/set-role-permissions`,
   WHATSAPP_AUTH: `${API_BASE_URL}/whatsapp-settings/get-whatsapp-auth-url`,
   EXCHANGE_WABA_CODE: `${API_BASE_URL}/whatsapp-settings/exchange-whatsapp-code-for-access-token`,
   PUBLISH_WHATSAPP_TEMPLATE: `${API_BASE_URL}/whatsapp-settings/publish-pre-built-templates-flows`,
