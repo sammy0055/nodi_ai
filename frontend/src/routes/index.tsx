@@ -40,6 +40,7 @@ import CustomersPage from '../pages/tenant/CustomerPage';
 import ReviewsPage from '../pages/tenant/ReviewPage';
 import BillingPage from '../pages/tenant/BillingPage';
 import SettingsPage from '../pages/tenant/Settings';
+import { PrivacyPolicy } from '../pages/privacyPolicy';
 
 export const PageRoutes = {
   LOGIN: 'sign-in',
@@ -69,6 +70,10 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: <App />,
+  },
+  {
+    path: '/privacy_policy',
+    element: <PrivacyPolicy />,
   },
   {
     path: '/app/*',
