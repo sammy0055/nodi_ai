@@ -48,8 +48,6 @@ interface User {
   activeOrderCount?: number;
   maxConcurrentOrders?: number;
   isActive?: boolean;
-  avatar?: string;
-  role?: string;
   lastActive?: Date;
 }
 
@@ -568,7 +566,6 @@ const OrdersPage: React.FC = () => {
       activeOrderCount: 2,
       maxConcurrentOrders: 5,
       isActive: true,
-      role: 'Team Lead',
       lastActive: new Date(Date.now() - 5 * 60000),
     },
     {
@@ -579,7 +576,6 @@ const OrdersPage: React.FC = () => {
       activeOrderCount: 1,
       maxConcurrentOrders: 3,
       isActive: true,
-      role: 'Order Specialist',
       lastActive: new Date(Date.now() - 2 * 60000),
     },
     {
@@ -590,7 +586,6 @@ const OrdersPage: React.FC = () => {
       activeOrderCount: 0,
       maxConcurrentOrders: 4,
       isActive: true,
-      role: 'Processing Agent',
       lastActive: new Date(Date.now() - 10 * 60000),
     },
     {
@@ -601,7 +596,6 @@ const OrdersPage: React.FC = () => {
       activeOrderCount: 3,
       maxConcurrentOrders: 6,
       isActive: true,
-      role: 'Operations Manager',
       lastActive: new Date(Date.now() - 60000),
     },
     {
@@ -612,7 +606,6 @@ const OrdersPage: React.FC = () => {
       activeOrderCount: 1,
       maxConcurrentOrders: 4,
       isActive: true,
-      role: 'Support Agent',
       lastActive: new Date(Date.now() - 3 * 60000),
     },
   ]);
@@ -1536,7 +1529,7 @@ const OrdersPage: React.FC = () => {
                         .filter((user) => user.isActive)
                         .map((user) => (
                           <option key={user.id} value={user.id}>
-                            {user.name} ({user.role}) - {user.activeOrderCount || 0}/{user.maxConcurrentOrders || 5}{' '}
+                            {user.name} ({user.roles[0].name}) - {user.activeOrderCount || 0}/{user.maxConcurrentOrders || 5}{' '}
                             orders
                           </option>
                         ))}
@@ -1821,6 +1814,11 @@ const OrdersPage: React.FC = () => {
                             <div>
                               <h5 className="font-medium text-gray-900">{item.product?.name}</h5>
                               <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
+                              {item?.product?.options?.length > 0 && (
+                                <div className="text-xs text-neutral-500 mt-1">
+                                  {item?.product.options?.map((opt) => `${opt?.name}: ${opt.choice.label}`).join(', ')}
+                                </div>
+                              )}
                             </div>
                           </div>
                           <div className="text-right">
@@ -1828,6 +1826,19 @@ const OrdersPage: React.FC = () => {
                             <p className="text-xs text-gray-500">
                               Unit: {formatCurrency(item.product?.price || 0, selectedOrder.currency)}
                             </p>
+                            {item?.product.options?.some((opt) => parseInt(opt.choice.priceAdjustment) > 0) && (
+                              <p className="text-xs text-neutral-500">
+                                +
+                                {formatCurrency(
+                                  item.product?.options?.reduce(
+                                    (sum, opt) => sum + parseInt(opt.choice.priceAdjustment),
+                                    0
+                                  ),
+                                  selectedOrder.currency
+                                )}{' '}
+                                options
+                              </p>
+                            )}
                           </div>
                         </div>
                       </div>
