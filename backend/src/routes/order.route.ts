@@ -32,6 +32,31 @@ orderRoute.get('/get-all', authMiddleware, async (req, res) => {
   }
 });
 
+orderRoute.get('/get-all-assigned-orders', authMiddleware, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+
+
+    // calculate offset
+    const offset = (page - 1) * limit;
+    const data = await OrderService.getAsignedOrders(req.user!, { page, limit, offset });
+    const response: APIResponseFormat<any> = {
+      message: 'asigned order retreived successfully',
+      data,
+    };
+
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
+
 orderRoute.post('/update-order-status', authMiddleware, validateOrderSchema(), async (req, res) => {
   try {
     const status = req.body.status as any;
@@ -41,6 +66,25 @@ orderRoute.post('/update-order-status', authMiddleware, validateOrderSchema(), a
     const response: APIResponseFormat<any> = {
       message: 'order status updated successfully',
       data: [],
+    };
+
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
+
+orderRoute.post('/update-order', authMiddleware, async (req, res) => {
+  try {
+    const data = await OrderService.updateOrder(req.body, req.user!);
+    const response: APIResponseFormat<any> = {
+      message: 'order updated successfully',
+      data,
     };
 
     res.status(201).json(response);

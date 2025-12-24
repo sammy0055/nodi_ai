@@ -42,7 +42,8 @@ class OrderModel
   declare assignedUserId?: string;
   declare assignedUserName?: string;
   declare assignedAt?: Date;
-  declare processingTime?: number;
+  declare startedAt?: Date;
+  declare completedAt?: Date;
   declare estimatedCompletionTime?: number;
   declare priority: `${OrderPriorityTypes}`;
   declare notes?: string;
@@ -182,7 +183,8 @@ OrderModel.init(
     assignedUserId: { type: DataTypes.UUID, allowNull: true },
     assignedUserName: { type: DataTypes.STRING, allowNull: true },
     assignedAt: { type: DataTypes.DATE, allowNull: true },
-    processingTime: { type: DataTypes.INTEGER, allowNull: true },
+    startedAt: { type: DataTypes.DATE, allowNull: true },
+    completedAt: { type: DataTypes.DATE, allowNull: true },
     estimatedCompletionTime: { type: DataTypes.INTEGER, allowNull: true },
     priority: { type: DataTypes.STRING, defaultValue: OrderPriorityTypes.MEDIUM },
     notes: { type: DataTypes.TEXT, allowNull: true },

@@ -1,15 +1,19 @@
+import { UserTypes } from '../data/data-types';
 import { AreaModel } from '../models/area.model';
 import { BranchesModel } from '../models/branches.model';
 import { CustomerModel } from '../models/customer.model';
 import { OrderModel } from '../models/order.module';
+import { UserPermissionsModel } from '../models/permission.model';
 import { ProductOptionChoiceModel } from '../models/product-option-choice.model';
 import { ProductOptionModel } from '../models/product-option.model';
 import { ProductModel } from '../models/products.model';
+import { UserRoleModel } from '../models/role.model';
+import { UsersModel } from '../models/users.model';
 import { ZoneModel } from '../models/zones.model';
 import { Pagination } from '../types/common-types';
-import { OrderStatusTypes } from '../types/order';
+import { IOrder, OrderStatusTypes } from '../types/order';
 import { User } from '../types/users';
-import { JSON, Op, literal } from 'sequelize';
+import { Op, literal } from 'sequelize';
 
 interface selectedOptionsAttributes {
   optionId: string;
@@ -141,5 +145,147 @@ export class OrderService {
   ) {
     if (!user.organizationId) throw new Error('no organization exist for this order');
     await OrderModel.update({ status: status }, { where: { id: orderId, organizationId: user.organizationId } });
+  }
+
+  static async updateOrder(order: IOrder, user: Pick<User, 'id' | 'organizationId'>) {
+    if (order.organizationId !== user.organizationId) throw new Error('this order is not in your organization');
+    const [_, updatedOrder] = await OrderModel.update(order, {
+      where: { id: order.id, organizationId: order.organizationId },
+      returning: true,
+    });
+    return updatedOrder[0].get({ plain: true }); // plain JS object
+  }
+
+  static async getAsignedOrders(user: Pick<User, 'id' | 'organizationId'>, { offset, limit, page }: Pagination) {
+    const _user = (await UsersModel.findOne({
+      where: { id: user.id, organizationId: user.organizationId },
+      include: [
+        {
+          model: UserRoleModel,
+          as: 'roles',
+          include: [
+            {
+              model: UserPermissionsModel,
+              as: 'permissions',
+            },
+          ],
+        },
+      ],
+    })) as any;
+
+    const currentUser = _user?.get({ plain: true }) as any;
+    if (!currentUser) throw new Error('user does not exist');
+    const userRlole = currentUser?.roles.length === 0 ? null : currentUser?.roles[0];
+    if (!userRlole) throw new Error('user does not have permission to perform this action');
+    const where =
+      userRlole.name === UserTypes.Staff
+        ? {
+            organizationId: user.organizationId!,
+            assignedUserId: user.id,
+          }
+        : {
+            organizationId: user.organizationId!,
+            assignedUserId: {
+              [Op.and]: {
+                [Op.not]: null,
+              },
+            },
+          };
+
+    const { rows: orders, count: totalItems } = await OrderModel.findAndCountAll({
+      where,
+      offset,
+      limit,
+      include: [
+        { model: CustomerModel, as: 'customer' },
+        { model: BranchesModel, as: 'branch' },
+      ], // join for customer info
+      order: [['createdAt', 'DESC']], // recent first
+    });
+
+    const totalPages = Math.ceil(totalItems / limit);
+    const plainOrders = [];
+
+    for (const order of orders) {
+      const plainOrder = order.get({ plain: true });
+
+      // loop through order items
+      for (let i = 0; i < plainOrder.items.length; i++) {
+        const item = plainOrder.items[i];
+
+        if (item.productId) {
+          const product = await ProductModel.findByPk(item.productId);
+          const productData = product?.get({ plain: true }) as any;
+          if (product) {
+            if (item?.selectedOptions?.length) {
+              const selectedOptions = item.selectedOptions as selectedOptionsAttributes[];
+
+              const options = [];
+              for (const selected of selectedOptions) {
+                if (!selected.optionId) continue;
+
+                const option = await ProductOptionModel.findOne({
+                  where: { id: selected.optionId, productId: product.id },
+                  include: [
+                    {
+                      model: ProductOptionChoiceModel,
+                      as: 'choices',
+                      attributes: ['id', 'label', 'priceAdjustment'],
+                      where: { id: selected.choiceId },
+                    },
+                  ],
+                });
+
+                if (option) {
+                  const plain = option.get({ plain: true }) as any;
+                  options.push({
+                    ...plain,
+                    choice: plain.choices?.[0] || null, // single object instead of array
+                  });
+                }
+              }
+
+              if (options.length) productData.options = options;
+            }
+          }
+          // ✅ always attach product, even if no options
+          plainOrder.items[i].product = productData;
+          delete plainOrder.items[i].productId;
+        }
+      }
+      // attach area if present
+      if (plainOrder.deliveryAreaId) {
+        const area = await AreaModel.findByPk(plainOrder.deliveryAreaId, {
+          include: [{ model: ZoneModel, as: 'zone', attributes: ['id', 'name'] }],
+        });
+
+        if (area) {
+          const plainArea = area.get({ plain: true }) as any;
+          plainOrder.area = {
+            id: plainArea.id,
+            name: plainArea.name,
+            zone: plainArea.zone,
+          };
+        }
+      } else {
+        plainOrder.area = null;
+      }
+
+      // push after processing
+      plainOrders.push(plainOrder);
+    }
+
+    // ✅ Return only after all orders are processed
+    return {
+      data: plainOrders,
+      pagination: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        pageSize: limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    };
   }
 }

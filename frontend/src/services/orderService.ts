@@ -12,7 +12,7 @@ export class OrderService {
     searchTerm,
     page,
     status,
-  }: GetOrderParams): Promise<{ data: { data: IOrder[], pagination:Pagination }; message: string }> {
+  }: GetOrderParams): Promise<{ data: { data: IOrder[]; pagination: Pagination }; message: string }> {
     return await ApiClient('GET_ORDERS', {
       queryParams: `?search=${encodeURIComponent(searchTerm || '')}&page=${page || 1}&status=${encodeURIComponent(
         status || ''
@@ -20,8 +20,24 @@ export class OrderService {
     });
   }
 
+  async getAssignedOrders({
+    page,
+    status,
+  }: GetOrderParams): Promise<{ data: { data: IOrder[]; pagination: Pagination }; message: string }> {
+    return await ApiClient("GET_ASSIGNED_ORDERS", {
+      queryParams: `?page=${page || 1}&status=${encodeURIComponent(status || '')}`,
+    });
+  }
+
   async updateOrderStatus(data: { orderId: string; status: string }) {
     return await ApiClient('UPDATE_ORDER_STATUS', {
+      method: 'POST',
+      body: data,
+    });
+  }
+
+  async updateOrder(data: IOrder): Promise<{ data: IOrder }> {
+    return await ApiClient('UPDATE_ORDER', {
       method: 'POST',
       body: data,
     });

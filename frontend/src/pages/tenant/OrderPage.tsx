@@ -38,6 +38,8 @@ import { OrderService } from '../../services/orderService';
 import { useLoaderData } from 'react-router';
 import type { Pagination } from '../../types/customer';
 import type { User } from '../../types/users';
+import { UserService } from '../../services/userService';
+import useProcessingTime from '../../hooks/orderProcessingTimer';
 
 // Extended User interface with additional fields for order management
 
@@ -45,6 +47,7 @@ import type { User } from '../../types/users';
 export const OrderStatusTypes = {
   PENDING: 'pending',
   CONFIRMED: 'confirmed',
+  COMPLETED: 'completed',
   PROCESSING: 'processing',
   SHIPPED: 'shipped',
   DELIVERED: 'delivered',
@@ -123,7 +126,8 @@ export interface IOrder {
   assignedUserId?: string;
   assignedUserName?: string;
   assignedAt?: Date;
-  processingTime?: number;
+  startedAt?: Date;
+  completedAt?: Date;
   estimatedCompletionTime?: number;
   priority: OrderPriority;
   notes?: string;
@@ -232,6 +236,7 @@ const OrderRow = memo(
     formatTime: (seconds: number) => string;
     formatCurrency: (amount: number, currency?: string) => string;
   }) => {
+    const processingTime = useProcessingTime(order);
     return (
       <div className="group bg-white hover:bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3 transition-all duration-200">
         <div className="flex flex-col md:flex-row md:items-center justify-between">
@@ -292,9 +297,9 @@ const OrderRow = memo(
                     <div className="flex items-center px-3 py-1.5 bg-blue-50 rounded-lg">
                       <FiUserCheck className="text-blue-600 mr-2" size={14} />
                       <span className="text-sm font-medium text-blue-800">{order.assignedUserName}</span>
-                      {order.processingTime !== undefined && (
+                      {processingTime && (
                         <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                          {formatTime(order.processingTime)}
+                          {formatTime(processingTime)}
                         </span>
                       )}
                     </div>
@@ -399,6 +404,7 @@ const OrderCard = memo(
     formatTime: (seconds: number) => string;
     formatCurrency: (amount: number, currency?: string) => string;
   }) => {
+    const processingTime = useProcessingTime(order);
     return (
       <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-lg transition-all duration-200 group">
         {/* Card Header */}
@@ -457,9 +463,9 @@ const OrderCard = memo(
             <div className="flex items-center">
               <FiUserCheck className="text-blue-600 mr-2" size={14} />
               <span className="text-sm font-medium text-blue-800">{order.assignedUserName}</span>
-              {order.processingTime !== undefined && (
+              {processingTime && (
                 <span className="ml-auto text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                  {formatTime(order.processingTime)}
+                  {formatTime(processingTime)}
                 </span>
               )}
             </div>
@@ -530,7 +536,7 @@ const OrdersPage: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'all'>('all');
   const [selectedPriority, setSelectedPriority] = useState<OrderPriority | 'all'>('all');
   const [selectedTab, setSelectedTab] = useState<
-    'all' | 'assigned' | 'processing' | 'completed' | 'cancelled' | 'refunded' | 'pending'
+    'all' | 'assigned' | 'processing' | 'delivered' | 'cancelled' | 'refunded' | 'pending'
   >('all');
 
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
@@ -541,16 +547,14 @@ const OrdersPage: React.FC = () => {
   const [assignToUserId, setAssignToUserId] = useState<string>('');
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
-  const [timer, setTimer] = useState(0);
 
+  const selectedOrderProcessingTime = useProcessingTime(selectedOrder!);
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
   const { updateOrderStatus } = useMemo(() => new OrderService(), []);
+  const { updateUser } = useMemo(() => new UserService(), []);
 
   // Mock users data with enhanced fields
   const [users, setUsers] = useState<User[]>([]);
-
-  // Current user (mock - in real app, get from auth context)
-  // const currentUser = useMemo(() => users[0], [users]);
 
   useEffect(() => {
     if (data) {
@@ -559,10 +563,7 @@ const OrdersPage: React.FC = () => {
       setUsers(data.users);
       setCurrentUser(data.currentUser);
     }
-    console.log('================data====================');
-    console.log(data);
-    console.log('====================================');
-  }, [data, setOrders]);
+  }, [data]);
 
   useEffect(() => {
     const Fn = async () => {
@@ -577,86 +578,58 @@ const OrdersPage: React.FC = () => {
     handlePagination(1);
   }, [selectedStatus, selectedTab, selectedPriority]);
 
-  // Timer for processing orders - Optimized to update less frequently
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTimer((prev) => prev + 1);
-    }, 1000);
+  const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
+    setUpdatingOrderId(orderId);
+    try {
+      if (newStatus === 'delivered' || newStatus === 'completed') {
+        const orderToUpdate = orders.find((o) => o.id === orderId);
+        if (!orderToUpdate) {
+          alert('order not found');
+          return;
+        }
+        await updateOrder({ ...orderToUpdate, status: newStatus, completedAt: new Date() });
+      }
+      await updateOrderStatus({ orderId, status: newStatus });
 
-    return () => clearInterval(interval);
-  }, []);
-
-  // Update processing times - Optimized to not cause full re-renders
-  useEffect(() => {
-    if (timer % 5 === 0) {
-      // Update only every 5 seconds instead of every second
       setOrders((prevOrders) =>
         prevOrders.map((order) => {
-          if (
-            order.status === OrderStatusTypes.PROCESSING &&
-            order.assignedUserId &&
-            order.processingTime !== undefined
-          ) {
-            return {
-              ...order,
-              processingTime: (order.processingTime || 0) + 5,
-            };
+          if (order.id === orderId) {
+            const updatedOrder = { ...order, status: newStatus };
+
+            if (
+              newStatus === OrderStatusTypes.DELIVERED ||
+              newStatus === OrderStatusTypes.CANCELLED ||
+              newStatus === OrderStatusTypes.REFUNDED
+            ) {
+              const assignedUserId = order.assignedUserId;
+              if (assignedUserId) {
+                setUsers((prevUsers) =>
+                  prevUsers.map((u) =>
+                    u.id === assignedUserId ? { ...u, activeOrderCount: Math.max(0, (u.activeOrderCount || 1) - 1) } : u
+                  )
+                );
+              }
+
+              return {
+                ...updatedOrder,
+                processingTime: undefined,
+                assignedUserId: undefined,
+                assignedUserName: undefined,
+              };
+            }
+
+            return updatedOrder;
           }
           return order;
         })
       );
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      alert('Failed to update order status. Please try again.');
+    } finally {
+      setUpdatingOrderId(null);
     }
-  }, [timer, setOrders]);
-
-  const handleStatusUpdate = useCallback(
-    async (orderId: string, newStatus: OrderStatus) => {
-      setUpdatingOrderId(orderId);
-      try {
-        await updateOrderStatus({ orderId, status: newStatus });
-
-        setOrders((prevOrders) =>
-          prevOrders.map((order) => {
-            if (order.id === orderId) {
-              const updatedOrder = { ...order, status: newStatus };
-
-              if (
-                newStatus === OrderStatusTypes.DELIVERED ||
-                newStatus === OrderStatusTypes.CANCELLED ||
-                newStatus === OrderStatusTypes.REFUNDED
-              ) {
-                const assignedUserId = order.assignedUserId;
-                if (assignedUserId) {
-                  setUsers((prevUsers) =>
-                    prevUsers.map((u) =>
-                      u.id === assignedUserId
-                        ? { ...u, activeOrderCount: Math.max(0, (u.activeOrderCount || 1) - 1) }
-                        : u
-                    )
-                  );
-                }
-
-                return {
-                  ...updatedOrder,
-                  processingTime: undefined,
-                  assignedUserId: undefined,
-                  assignedUserName: undefined,
-                };
-              }
-
-              return updatedOrder;
-            }
-            return order;
-          })
-        );
-      } catch (error) {
-        console.error('Error updating order status:', error);
-        alert('Failed to update order status. Please try again.');
-      } finally {
-        setUpdatingOrderId(null);
-      }
-    },
-    [updateOrderStatus, setOrders, setUsers]
-  );
+  };
 
   const handleAssignOrder = useCallback(
     async (order: IOrder, userId: string) => {
@@ -677,10 +650,25 @@ const OrdersPage: React.FC = () => {
           assignedUserId: userId,
           assignedUserName: user.name,
           assignedAt: new Date(),
-          processingTime: 0,
+          startedAt: new Date(),
         };
+        const userToUpdate = users.find((u) => u.id === userId);
+        if (!userToUpdate) {
+          alert('asigned user does not exist');
+          setShowAssignmentModal(false);
+          setOrderToAssign(null);
+          setAssignToUserId('');
+          return;
+        }
 
-        setOrders((prevOrders) => prevOrders.map((o) => (o.id === order.id ? updatedOrder : o)));
+        const data = await updateOrder(updatedOrder);
+        setOrders((prevOrders) => prevOrders.map((o) => (o.id === data.data.id ? updatedOrder : o)));
+
+        await updateUser({
+          ...userToUpdate,
+          activeOrderCount: (userToUpdate.activeOrderCount || 0) + 1,
+          lastActive: new Date(),
+        });
 
         setUsers((prevUsers) =>
           prevUsers.map((u) =>
@@ -704,16 +692,32 @@ const OrdersPage: React.FC = () => {
       if (!order.assignedUserId) return;
 
       try {
-        const updatedOrder: IOrder = {
+        const updatedOrder: any = {
           ...order,
           status: OrderStatusTypes.CONFIRMED,
-          assignedUserId: undefined,
-          assignedUserName: undefined,
-          assignedAt: undefined,
-          processingTime: undefined,
+          assignedUserId: null,
+          assignedUserName: null,
+          assignedAt: null,
+          processingTime: null,
         };
 
-        setOrders((prevOrders) => prevOrders.map((o) => (o.id === order.id ? updatedOrder : o)));
+        const userToUpdate = users.find((u) => u.id === order.assignedUserId);
+        if (!userToUpdate) {
+          alert('asigned user does not exist');
+          setShowAssignmentModal(false);
+          setOrderToAssign(null);
+          setAssignToUserId('');
+          return;
+        }
+
+        const data = await updateOrder(updatedOrder);
+        setOrders((prevOrders) => prevOrders.map((o) => (o.id === data.data.id ? updatedOrder : o)));
+
+        await updateUser({
+          ...userToUpdate,
+          activeOrderCount: (userToUpdate.activeOrderCount || 1) - 1,
+          lastActive: new Date(),
+        });
 
         setUsers((prevUsers) =>
           prevUsers.map((u) =>
@@ -725,7 +729,7 @@ const OrdersPage: React.FC = () => {
         alert('Failed to unassign order. Please try again.');
       }
     },
-    [setOrders, setUsers]
+    [setOrders, setUsers, users]
   );
 
   const handleAssignToSelf = useCallback(
@@ -734,7 +738,12 @@ const OrdersPage: React.FC = () => {
         alert('kindly login');
         return;
       }
-      await handleAssignOrder(order, currentUser?.id);
+      try {
+        await handleAssignOrder(order, currentUser?.id);
+      } catch (error: any) {
+        console.error('Error unassigning order:', error);
+        alert('Failed to assignself order. Please try again.');
+      }
     },
     [currentUser?.id, handleAssignOrder]
   );
@@ -863,13 +872,7 @@ const OrdersPage: React.FC = () => {
     }).format(amount);
   }, []);
 
-  const { getOrders } = useMemo(() => new OrderService(), []);
-
-  const handlePagination = useCallback(async (page: number) => {
-    // In real app, fetch from API
-    console.log('Fetching page:', page);
-    // alert('get new page' + page);
-  }, []);
+  const { getOrders, getAssignedOrders, updateOrder } = useMemo(() => new OrderService(), []);
 
   // Calculate stats for the dashboard
   const stats = useMemo(() => {
@@ -890,10 +893,10 @@ const OrdersPage: React.FC = () => {
       .filter((o) => o.status === OrderStatusTypes.DELIVERED)
       .reduce((sum, o) => sum + o.totalAmount, 0);
 
-    const avgProcessingTime =
-      processingOrders.length > 0
-        ? processingOrders.reduce((sum, o) => sum + (o.processingTime || 0), 0) / processingOrders.length
-        : 0;
+    // const avgProcessingTime =
+    //   processingOrders.length > 0
+    //     ? processingOrders.reduce((sum, o) => sum + (o.processingTime || 0), 0) / processingOrders.length
+    //     : 0;
 
     return {
       totalOrders: allOrders.length,
@@ -902,59 +905,81 @@ const OrdersPage: React.FC = () => {
       pendingOrders: pendingOrders.length,
       totalRevenue,
       todayRevenue,
-      avgProcessingTime,
+      avgProcessingTime: 0,
       highPriorityOrders: highPriorityOrders.length,
     };
   }, [orders]);
-
+  console.log('==================selectedTab==================');
+  console.log(selectedTab);
+  console.log('====================================');
   // Filter orders based on selected tab and filters
-  const filteredOrders = useMemo(
-    () =>
-      orders.filter((order) => {
-        // Tab filter
-        let tabFilter = true;
-        switch (selectedTab) {
-          case 'all':
-            tabFilter = true;
-            break;
-          case 'assigned':
-            tabFilter = !!order.assignedUserId;
-            break;
-          case 'processing':
-            tabFilter = order.status === OrderStatusTypes.PROCESSING;
-            break;
-          case 'completed':
-            tabFilter = order.status === OrderStatusTypes.DELIVERED;
-            break;
-          case 'cancelled':
-            tabFilter = order.status === OrderStatusTypes.CANCELLED;
-            break;
-          case 'refunded':
-            tabFilter = order.status === OrderStatusTypes.REFUNDED;
-            break;
-          case 'pending':
-            tabFilter = order.status === OrderStatusTypes.PENDING;
-            break;
-        }
+  const fetchOrders = async (page: number, resetData = false) => {
+    const filters: any = { page };
 
-        // Status filter
-        const statusFilter = selectedStatus === 'all' || order.status === selectedStatus;
+    if (selectedTab !== 'all' && selectedTab !== 'assigned') {
+      filters.status = selectedTab;
+    }
 
-        // Priority filter
-        const priorityFilter = selectedPriority === 'all' || order.priority === selectedPriority;
+    const response = selectedTab === 'assigned' ? await getAssignedOrders(filters) : await getOrders(filters);
 
-        // Search filter
-        const searchFilter =
-          !searchTerm ||
-          order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          order.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          order.customer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          order.branch.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const newData = response.data.data;
+    const pagination = response.data.pagination;
 
-        return tabFilter && statusFilter && priorityFilter && searchFilter;
-      }),
-    [orders, selectedTab, selectedStatus, selectedPriority, searchTerm]
-  );
+    setOrders((prev) => (resetData ? newData : [...prev, ...newData]));
+    setPagination(pagination);
+  };
+
+  const handlePagination = async (page: number) => {
+    fetchOrders(page, page === 1);
+  };
+
+  // const filteredOrders = useMemo(
+  //   () =>
+  //     orders.filter((order) => {
+  //       // Tab filter
+  //       let tabFilter = true;
+  //       switch (selectedTab) {
+  //         case 'all':
+  //           tabFilter = true;
+  //           break;
+  //         case 'assigned':
+  //           tabFilter = !!order.assignedUserId;
+  //           break;
+  //         case 'processing':
+  //           tabFilter = order.status === OrderStatusTypes.PROCESSING;
+  //           break;
+  //         case 'completed':
+  //           tabFilter = order.status === OrderStatusTypes.DELIVERED;
+  //           break;
+  //         case 'cancelled':
+  //           tabFilter = order.status === OrderStatusTypes.CANCELLED;
+  //           break;
+  //         case 'refunded':
+  //           tabFilter = order.status === OrderStatusTypes.REFUNDED;
+  //           break;
+  //         case 'pending':
+  //           tabFilter = order.status === OrderStatusTypes.PENDING;
+  //           break;
+  //       }
+
+  //       // Status filter
+  //       const statusFilter = selectedStatus === 'all' || order.status === selectedStatus;
+
+  //       // Priority filter
+  //       const priorityFilter = selectedPriority === 'all' || order.priority === selectedPriority;
+
+  //       // Search filter
+  //       const searchFilter =
+  //         !searchTerm ||
+  //         order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //         order.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //         order.customer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //         order.branch.name.toLowerCase().includes(searchTerm.toLowerCase());
+
+  //       return tabFilter && statusFilter && priorityFilter && searchFilter;
+  //     }),
+  //   [orders, selectedTab, selectedStatus, selectedPriority, searchTerm]
+  // );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -964,16 +989,6 @@ const OrdersPage: React.FC = () => {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Order Management</h1>
             <p className="text-gray-600 mt-1">Track and process customer orders in real-time</p>
-          </div>
-          <div className="flex items-center space-x-3 mt-4 lg:mt-0">
-            <Button variant="outline" className="border-gray-300">
-              <FiDownload className="mr-2" />
-              Export
-            </Button>
-            <Button>
-              <FiPlus className="mr-2" />
-              New Order
-            </Button>
           </div>
         </div>
 
@@ -1110,15 +1125,15 @@ const OrdersPage: React.FC = () => {
               </button>
 
               <button
-                onClick={() => setSelectedTab('completed')}
+                onClick={() => setSelectedTab('delivered')}
                 className={`px-6 py-4 font-medium text-sm whitespace-nowrap flex items-center border-b-2 transition-all ${
-                  selectedTab === 'completed'
+                  selectedTab === 'delivered'
                     ? 'border-green-600 text-green-600 bg-green-50'
                     : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               >
                 <FiCheckCircle className="mr-2" />
-                Completed
+                Delivered
                 <span className="ml-2 bg-green-100 text-green-800 rounded-full px-2 py-0.5 text-xs">
                   {orders.filter((o) => o.status === OrderStatusTypes.DELIVERED).length}
                 </span>
@@ -1281,7 +1296,7 @@ const OrdersPage: React.FC = () => {
 
           {/* Orders Content */}
           <div className="p-4">
-            {filteredOrders.length === 0 ? (
+            {orders?.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FiSearch className="text-gray-400" size={24} />
@@ -1308,7 +1323,7 @@ const OrdersPage: React.FC = () => {
               </div>
             ) : viewMode === 'list' ? (
               <div className="space-y-3">
-                {filteredOrders.map((order) => (
+                {orders?.map((order) => (
                   <OrderRow
                     key={order.id}
                     order={order}
@@ -1330,7 +1345,7 @@ const OrdersPage: React.FC = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {filteredOrders.map((order) => (
+                {orders?.map((order) => (
                   <OrderCard
                     key={order.id}
                     order={order}
@@ -1575,10 +1590,10 @@ const OrdersPage: React.FC = () => {
                             <span className="font-medium">{formatDate(selectedOrder.assignedAt)}</span>
                           </div>
                         )}
-                        {selectedOrder.processingTime && (
+                        {selectedOrderProcessingTime && (
                           <div className="flex justify-between">
                             <span className="text-gray-500">Processing Time:</span>
-                            <span className="font-medium">{formatTime(selectedOrder.processingTime)}</span>
+                            <span className="font-medium">{formatTime(selectedOrderProcessingTime)}</span>
                           </div>
                         )}
                       </div>

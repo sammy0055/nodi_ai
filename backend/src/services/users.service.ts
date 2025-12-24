@@ -74,8 +74,8 @@ export class UserService {
     if (!oldUser) throw new Error('user does not exist');
     const admin = await UsersModel.findByPk(_user.id, { include: { model: UserRoleModel, as: 'roles' } });
     const planAdmin = admin?.get({ plain: true }) as any;
-    const isSupperAdmin = planAdmin?.roles?.find((r: any) => r.name === UserTypes.SuperAdmin);
-    if (!isSupperAdmin) throw new Error("you don't have permission to perform this action");
+    // const isSupperAdmin = planAdmin?.roles?.find((r: any) => r.name === UserTypes.SuperAdmin);
+    // if (!isSupperAdmin) throw new Error("you don't have permission to perform this action");
     const [_, updatedUser] = await UsersModel.update(user, {
       where: { id: user.id, organizationId: _user.organizationId },
       returning: true,
