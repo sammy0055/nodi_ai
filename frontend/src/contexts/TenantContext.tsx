@@ -23,6 +23,9 @@ export const tenantContextLoader = async () => {
   const org = orgResult.status === 'fulfilled' ? orgResult.value : null;
   const subscription = subscriptionResults.status === 'fulfilled' ? subscriptionResults.value : null;
   const subscriptionPlans = subsriptionPlanResults.status === 'fulfilled' ? subsriptionPlanResults.value : null;
+  console.log('===============rg?.data,=====================');
+  console.log(user, org);
+  console.log('====================================');
   return {
     user: user?.data,
     org: org?.data,

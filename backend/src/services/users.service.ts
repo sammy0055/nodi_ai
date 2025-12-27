@@ -379,7 +379,7 @@ export class UserService {
         {
           model: UserRoleModel,
           as: 'roles',
-          where: { organizationId: user.organizationId },
+          where: user.organizationId ? { organizationId: user.organizationId } : {},
           required: false, // keep users without roles
           include: [
             {
