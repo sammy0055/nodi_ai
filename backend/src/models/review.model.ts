@@ -79,19 +79,6 @@ ReviewModel.init(
     timestamps: true,
 
     indexes: [
-      // GIN text search index (for full-text search on comment)
-      {
-        name: 'review_search_idx',
-        using: 'GIN',
-        fields: [
-          sequelize.literal(`
-      to_tsvector(
-        'english',
-        coalesce("comment", '') || ' '
-      )
-    `),
-        ],
-      },
       // Search by customerId
       {
         name: 'review_customer_idx',
