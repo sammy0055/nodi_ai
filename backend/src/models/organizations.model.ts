@@ -3,7 +3,7 @@ import { sequelize } from './db';
 import { DbModels } from '.';
 import { BusinessType, supportedBusinessTypes } from '../data/data-types';
 import { ModelNames } from './model-names';
-import { IOrganization } from '../types/organization';
+import { IOrganization, OrgReviewQuestions } from '../types/organization';
 import { CurrencyCode } from '../types/product';
 
 class OrganizationsModel
@@ -21,6 +21,7 @@ class OrganizationsModel
   declare status: 'active' | 'suspended' | 'cancelled';
   declare languageProtectedTerms?: string[] | undefined;
   declare currency: CurrencyCode;
+  declare reviewQuestions: OrgReviewQuestions[]
   static associate(models: DbModels) {
     //hasMany The foreign key is on the other model (the one being linked).
     this.hasMany(models.BranchesModel, { foreignKey: 'organizationId' });
@@ -93,6 +94,7 @@ OrganizationsModel.init(
     status: { type: DataTypes.ENUM, values: ['active', 'suspended', 'cancelled'], defaultValue: 'active' },
     languageProtectedTerms: { type: DataTypes.ARRAY(DataTypes.STRING), defaultValue: [] },
     currency: { type: DataTypes.ENUM, values: [...Object.values(CurrencyCode)], defaultValue: CurrencyCode.LBP },
+    reviewQuestions: { type: DataTypes.JSONB, defaultValue: [] },
   },
   {
     sequelize,
@@ -105,7 +107,12 @@ OrganizationsModel.init(
     ],
     hooks: {
       async beforeUpdate(org: any) {
-        if (org.changed('AIAssistantName') || org.changed('languageProtectedTerms') || org.changed('name')) {
+        if (
+          org.changed('AIAssistantName') ||
+          org.changed('languageProtectedTerms') ||
+          org.changed('name') ||
+          org.changed('reviewQuestions')
+        ) {
           org.shouldUpdateChatbotSystemPrompt = true;
         }
       },

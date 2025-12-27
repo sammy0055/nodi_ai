@@ -110,10 +110,13 @@ export const customerContextLoader = async () => {
 
 export const reviewContextLoader = async () => {
   const { getReviews } = new ReviewService();
-  const [reviewResults] = await Promise.allSettled([getReviews({})]);
+  const {getOrganization} = new OrganizationService()
+  const [reviewResults, orgResult] = await Promise.allSettled([getReviews({}), getOrganization()]);
   const reviews = reviewResults.status === 'fulfilled' ? reviewResults.value : null;
+   const organization = orgResult.status === 'fulfilled' ? orgResult.value : null;
   return {
     reviews: { data: reviews?.data },
+    organization: organization?.data
   };
 };
 

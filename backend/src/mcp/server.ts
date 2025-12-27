@@ -11,7 +11,7 @@ import { calculateDelivery, getAllZonesAndAreas, getDeliveryOptions } from './to
 import { getRecommendations, suggestAlternatives } from './tools/smart_recommendation';
 import { cancelOrder, createOrder, getBranchInfo, getOrderDetails } from './tools/order_and_service';
 import { createCustomerProfile, getCustomerProfile } from './tools/customer';
-import { createReview } from './tools/review';
+import { createReview, getOrganizationReviewQuestions } from './tools/review';
 
 export const server = new McpServer({
   name: 'Credobyte-MCP-Server',
@@ -53,6 +53,7 @@ getCustomerProfile(server);
 createCustomerProfile(server);
 
 // review
+getOrganizationReviewQuestions(server)
 createReview(server);
 
 const main = async () => {

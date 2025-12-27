@@ -1,5 +1,8 @@
 import express from 'express';
-import { validatecreateOrganizationSchemaBody } from '../middleware/validation/organization';
+import {
+  validatecreateOrganizationSchemaBody,
+  validatesetOrgReviewQuestionsSchemaBody,
+} from '../middleware/validation/organization';
 import { OrganizationController } from '../controllers/organization.controller';
 import { APIResponseFormat } from '../types/apiTypes';
 import { IOrganization } from '../types/organization';
@@ -92,6 +95,30 @@ organizationRoute.get('/get-organization', authMiddleware, async (req, res) => {
     res.status(500).json(response);
   }
 });
+
+organizationRoute.post(
+  '/set-org-review-questions',
+  authMiddleware,
+  validatesetOrgReviewQuestionsSchemaBody(),
+  async (req, res) => {
+    try {
+      const data = await OrganizationController.setOrgReviewQuestions(req.body, req.user!);
+      const response: APIResponseFormat<any> = {
+        message: 'review questions set successfully',
+        data,
+      };
+
+      res.status(201).json(response);
+    } catch (error: any) {
+      const response: APIResponseFormat<null> = {
+        message: error.message,
+        error: error,
+      };
+      errorLogger(error);
+      res.status(500).json(response);
+    }
+  }
+);
 
 // app-user route actions ----------------------------------
 organizationRoute.get('/organization-statistics', adminAuthMiddleware, async (req, res) => {

@@ -3,6 +3,12 @@ import type { CurrencyCode } from './product';
 import type { User } from './users';
 import type { IWhatSappSettings } from './whatsapp';
 
+export interface OrgReviewQuestions {
+  id: string;
+  question: string;
+  answer: string | null;
+}
+
 export interface IOrganization {
   id: string; // uuid
   name: string;
@@ -12,6 +18,7 @@ export interface IOrganization {
   languageProtectedTerms?: string[];
   currency: CurrencyCode;
   status: 'active' | 'suspended' | 'cancelled';
+  reviewQuestions: OrgReviewQuestions[];
 }
 
 export interface OrganizationPayload extends IOrganization {

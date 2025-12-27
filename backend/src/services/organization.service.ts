@@ -2,7 +2,7 @@ import { BranchesModel } from '../models/branches.model';
 import { WhatSappSettingsModel } from '../models/whatsapp-settings.model';
 import { OrganizationsModel } from '../models/organizations.model';
 import { UsersModel } from '../models/users.model';
-import { IOrganization } from '../types/organization';
+import { IOrganization, OrgReviewQuestions } from '../types/organization';
 import { User } from '../types/users';
 import { NotificationModel } from '../models/notification.model';
 import { literal, Op, Sequelize } from 'sequelize';
@@ -159,5 +159,14 @@ export class OrganizationService {
   static async updateOrganizationStatusForAdmin(org: Pick<IOrganization, 'status' | 'id'>) {
     if (!org.id || !org.status) throw new Error('payload is missing');
     await OrganizationsModel.update({ status: org.status }, { where: { id: org.id } });
+  }
+
+  static async setOrgReviewQuestions(data: OrgReviewQuestions[], user: Pick<User, 'id' | 'organizationId'>) {
+    const [_, updatedOrg] = await OrganizationsModel.update(
+      { reviewQuestions: data },
+      { where: { id: user.organizationId! }, returning: true, individualHooks: true }
+    );
+    const plainOrg = updatedOrg[0].get({ plain: true });
+    return plainOrg;
   }
 }

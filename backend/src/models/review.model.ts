@@ -67,19 +67,9 @@ ReviewModel.init(
         key: 'id',
       },
     },
-    rating: {
-      type: DataTypes.FLOAT,
+    items: {
+      type: DataTypes.JSONB,
       allowNull: false,
-      defaultValue: 2.5,
-      validate: {
-        min: 0,
-        max: 5,
-      },
-    },
-    comment: {
-      type: DataTypes.TEXT,
-      allowNull: false,
-      defaultValue: '',
     },
   },
   {

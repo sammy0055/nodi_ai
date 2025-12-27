@@ -1,5 +1,6 @@
-import type { IReview } from '../pages/tenant/ReviewPage';
+import type { IReviews, OrgReviewQuestions } from '../pages/tenant/ReviewPage';
 import type { Pagination } from '../types/customer';
+import type { IOrganization } from '../types/organization';
 import { API_ROUTES, ApiClient } from './apiClient';
 
 interface GetReviewsParams {
@@ -13,7 +14,7 @@ interface GetReviewsParams {
 export class ReviewService {
   async getReviews(
     params: GetReviewsParams
-  ): Promise<{ data: { data: IReview[]; pagination: Pagination }; message: string }> {
+  ): Promise<{ data: { data: IReviews[]; pagination: Pagination }; message: string }> {
     return await ApiClient('GET_REVIEWS', {
       queryParams: `?page=${encodeURIComponent(params.page || 1)}&searchQuery=${encodeURIComponent(
         params.search || ''
@@ -23,7 +24,7 @@ export class ReviewService {
 
   async searchReviews(
     searchTerm: string
-  ): Promise<{ data: { data: IReview[]; pagination: Pagination }; message: string }> {
+  ): Promise<{ data: { data: IReviews[]; pagination: Pagination }; message: string }> {
     const response = await fetch(`${API_ROUTES.GET_REVIEWS}?searchQuery=${searchTerm}`, {
       method: 'GET',
       headers: {
@@ -43,5 +44,12 @@ export class ReviewService {
     }
 
     return await response.json();
+  }
+
+  async setOrgReviewQuestions(data: OrgReviewQuestions[]): Promise<{ data: IOrganization; message: string }> {
+    return await ApiClient('SET_ORG_REVIEW_QUESTIONS', {
+      method: 'POST',
+      body: data,
+    });
   }
 }

@@ -1,6 +1,6 @@
 import { OrganizationService } from '../services/organization.service';
 import { Pagination } from '../types/common-types';
-import { IOrganization } from '../types/organization';
+import { IOrganization, OrgReviewQuestions } from '../types/organization';
 import { User } from '../types/users';
 
 export class OrganizationController {
@@ -22,5 +22,8 @@ export class OrganizationController {
   }
   static async getOrganizationsForAdmin({ offset, limit, page }: Pagination, searchQuery: string) {
     return await OrganizationService.getOrganizationForAdmin({ offset, limit, page }, searchQuery);
+  }
+  static async setOrgReviewQuestions(data: OrgReviewQuestions[], user: Pick<User, 'id' | 'organizationId'>) {
+    return await OrganizationService.setOrgReviewQuestions(data, user);
   }
 }

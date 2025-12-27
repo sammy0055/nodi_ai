@@ -37,6 +37,7 @@ export const API_ROUTES = {
   CREATE_ORGANIZATION: `${API_BASE_URL}/organization/create`,
   UPDATE_ORGANIZATION: `${API_BASE_URL}/organization/update-organization`,
   GET_OGANIZATION: `${API_BASE_URL}/organization/get-organization`,
+  SET_ORG_REVIEW_QUESTIONS: `${API_BASE_URL}/organization/set-org-review-questions`,
   CURRENT_USER: `${API_BASE_URL}/user/current-user`,
   ADD_USER: `${API_BASE_URL}/user/create-user`,
   GET_USERS: `${API_BASE_URL}/user/get-users`,
