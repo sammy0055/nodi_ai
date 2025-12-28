@@ -120,6 +120,30 @@ organizationRoute.post(
   }
 );
 
+organizationRoute.post(
+  '/set-org-review-timer',
+  authMiddleware,
+  validatesetOrgReviewQuestionsSchemaBody(),
+  async (req, res) => {
+    try {
+      const data = await OrganizationController.setOrgReviewTimer(req.body.timer, req.user!);
+      const response: APIResponseFormat<any> = {
+        message: 'review timer set successfully',
+        data,
+      };
+
+      res.status(201).json(response);
+    } catch (error: any) {
+      const response: APIResponseFormat<null> = {
+        message: error.message,
+        error: error,
+      };
+      errorLogger(error);
+      res.status(500).json(response);
+    }
+  }
+);
+
 // app-user route actions ----------------------------------
 organizationRoute.get('/organization-statistics', adminAuthMiddleware, async (req, res) => {
   try {

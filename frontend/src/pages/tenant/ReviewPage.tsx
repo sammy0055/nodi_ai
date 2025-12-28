@@ -28,6 +28,7 @@ import { ReviewService } from '../../services/reviewService';
 import uuid from 'react-uuid';
 import { useLoaderData } from 'react-router';
 import type { IOrganization } from '../../types/organization';
+import ReviewDatePicker from '../../components/organisms/review/reviewDataPicker';
 
 export interface OrgReviewQuestions {
   id: string;
@@ -91,6 +92,7 @@ const ReviewsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showFilters, setShowFilters] = useState(false);
+  const [reviewTime, setReviewTime] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'highest' | 'lowest'>('newest');
 
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
@@ -104,7 +106,7 @@ const ReviewsPage: React.FC = () => {
     { id: '5', name: 'Robert Wilson', email: 'robert@example.com', totalReviews: 6, averageRating: 2.8 },
   ]);
 
-  const { setOrgReviewQuestions } = new ReviewService();
+  const { setOrgReviewQuestions, setOrgReviewTimer } = new ReviewService();
 
   // initialize data
   useEffect(() => {
@@ -341,6 +343,14 @@ const ReviewsPage: React.FC = () => {
     setSortBy('newest');
   }, []);
 
+  const handleSetReviewTimer = async (time: number) => {
+    try {
+      await setOrgReviewTimer(time);
+    } catch (error: any) {
+      alert('something went wrong, try again');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -512,17 +522,33 @@ const ReviewsPage: React.FC = () => {
               <div className="flex-1">
                 <div className="relative max-w-md">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiSearch className="text-gray-400" />
+                    {activeTab === 'reviews' && <FiSearch className="text-gray-400" />}
                   </div>
-                  <input
-                    type="text"
-                    placeholder={
-                      activeTab === 'reviews' ? 'Search reviews, customers, or order numbers...' : 'Search questions...'
-                    }
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
+                  {activeTab === 'reviews' ? (
+                    <input
+                      type="text"
+                      placeholder={
+                        activeTab === 'reviews'
+                          ? 'Search reviews, customers, or order numbers...'
+                          : 'Search questions...'
+                      }
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  ) : (
+                    <ReviewDatePicker
+                      value={reviewTime}
+                      onChange={setReviewTime}
+                      submit={handleSetReviewTimer}
+                      label="Review After"
+                      placeholder="Set when to review"
+                      minMinutes={0}
+                      maxMinutes={1440}
+                      showHours={true}
+                      showMinutes={true}
+                    />
+                  )}
                 </div>
               </div>
 

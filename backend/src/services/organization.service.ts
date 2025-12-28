@@ -169,4 +169,14 @@ export class OrganizationService {
     const plainOrg = updatedOrg[0].get({ plain: true });
     return plainOrg;
   }
+
+  static async setOrgReviewTimer(timer: number, user: Pick<User, 'id' | 'organizationId'>) {
+    if (!timer) throw new Error('reviewTimer is required');
+    const [_, updatedOrg] = await OrganizationsModel.update(
+      { reviewTimer: timer },
+      { where: { id: user.organizationId! }, returning: true, individualHooks: true }
+    );
+    const plainOrg = updatedOrg[0].get({ plain: true });
+    return plainOrg;
+  }
 }

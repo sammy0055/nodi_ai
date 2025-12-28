@@ -21,7 +21,8 @@ class OrganizationsModel
   declare status: 'active' | 'suspended' | 'cancelled';
   declare languageProtectedTerms?: string[] | undefined;
   declare currency: CurrencyCode;
-  declare reviewQuestions: OrgReviewQuestions[]
+  declare reviewQuestions: OrgReviewQuestions[];
+  declare reviewTimer: number | null;
   static associate(models: DbModels) {
     //hasMany The foreign key is on the other model (the one being linked).
     this.hasMany(models.BranchesModel, { foreignKey: 'organizationId' });
@@ -95,6 +96,7 @@ OrganizationsModel.init(
     languageProtectedTerms: { type: DataTypes.ARRAY(DataTypes.STRING), defaultValue: [] },
     currency: { type: DataTypes.ENUM, values: [...Object.values(CurrencyCode)], defaultValue: CurrencyCode.LBP },
     reviewQuestions: { type: DataTypes.JSONB, defaultValue: [] },
+    reviewTimer: { type: DataTypes.INTEGER, allowNull: true },
   },
   {
     sequelize,

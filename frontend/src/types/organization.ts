@@ -19,6 +19,7 @@ export interface IOrganization {
   currency: CurrencyCode;
   status: 'active' | 'suspended' | 'cancelled';
   reviewQuestions: OrgReviewQuestions[];
+  reviewTimer: number | null;
 }
 
 export interface OrganizationPayload extends IOrganization {

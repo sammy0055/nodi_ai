@@ -52,4 +52,11 @@ export class ReviewService {
       body: data,
     });
   }
+
+  async setOrgReviewTimer(timer: number): Promise<{ data: IOrganization; message: string }> {
+    return await ApiClient('SET_ORG_REVIEW_TIMER', {
+      method: 'POST',
+      body: { timer:timer },
+    });
+  }
 }

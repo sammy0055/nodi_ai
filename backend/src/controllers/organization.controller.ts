@@ -26,4 +26,8 @@ export class OrganizationController {
   static async setOrgReviewQuestions(data: OrgReviewQuestions[], user: Pick<User, 'id' | 'organizationId'>) {
     return await OrganizationService.setOrgReviewQuestions(data, user);
   }
+
+   static async setOrgReviewTimer(timer: number, user: Pick<User, 'id' | 'organizationId'>) {
+    return await OrganizationService.setOrgReviewTimer(timer, user);
+  }
 }
