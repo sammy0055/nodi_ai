@@ -31,7 +31,7 @@ export const setupReviewQueues = async () => {
 };
 
 export async function scheduleReview(data: { orderId: string }) {
-  await setupReviewQueues();
+
   const { channel } = await initRabbit();
   const toMs = (mins: number) => mins * 60 * 1000;
 
