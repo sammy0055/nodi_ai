@@ -112,6 +112,7 @@ const ReviewsPage: React.FC = () => {
   useEffect(() => {
     if (data.organization.reviewQuestions) {
       setReviewQuestions(data.organization.reviewQuestions);
+      setReviewTime(data.organization.reviewTimer || null)
     }
   }, [data]);
 
@@ -343,9 +344,9 @@ const ReviewsPage: React.FC = () => {
     setSortBy('newest');
   }, []);
 
-  const handleSetReviewTimer = async (time: number) => {
+  const handleSetReviewTimer = async (timer: number) => {
     try {
-      await setOrgReviewTimer(time);
+      await setOrgReviewTimer(timer);
     } catch (error: any) {
       alert('something went wrong, try again');
     }

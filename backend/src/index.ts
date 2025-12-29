@@ -32,6 +32,7 @@ import { whatsappFlowRoute } from './routes/whatsapp-flow.js';
 import { queueConsumer } from './helpers/rabbitmq/index.js';
 import { userRoleRoute } from './routes/role.route.js';
 import { userPermissionRoute } from './routes/permission-route.js';
+import { startReviewtWorkerConsumer } from './helpers/rabbitmq/reviewQueue/index.js';
 
 const app = express();
 
@@ -84,5 +85,7 @@ const PORT = appConfig.port;
 app.listen(PORT, async () => {
   await connectDB();
   queueConsumer();
+  // review queue -------------------
+  startReviewtWorkerConsumer();
   await vectorStore.initCollection();
 });

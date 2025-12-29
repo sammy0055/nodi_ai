@@ -27,6 +27,7 @@ import { CurrencyCode } from '../../types/product';
 import { useLoaderData } from 'react-router';
 import { UserService } from '../../services/userService';
 import type { Permission, Role, User } from '../../types/users';
+import FAQManager from '../../components/organisms/settings/fqaManager';
 
 const SettingsPage: React.FC = () => {
   const orgData = useOrgValue();
@@ -47,7 +48,7 @@ const SettingsPage: React.FC = () => {
   };
 
   // State for navigation
-  const [activeTab, setActiveTab] = useState<'general' | 'users' | 'roles'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'users' | 'roles' | 'fqa'>('general');
 
   // State for Users tab
   const [users, setUsers] = useState<User[]>([]);
@@ -295,6 +296,8 @@ const SettingsPage: React.FC = () => {
       return renderGeneralTab();
     } else if (activeTab === 'users') {
       return renderUsersTab();
+    } else if (activeTab === 'fqa') {
+      return renderFQATab();
     } else {
       return renderRolesTab();
     }
@@ -891,6 +894,12 @@ const SettingsPage: React.FC = () => {
     </div>
   );
 
+  const renderFQATab = () => (
+    <div>
+      <FAQManager />
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       {/* Navigation Tabs */}
@@ -928,6 +937,17 @@ const SettingsPage: React.FC = () => {
           >
             <FiKey className="mr-2" />
             Roles & Permissions
+          </button>
+          <button
+            onClick={() => setActiveTab('fqa')}
+            className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
+              activeTab === 'fqa'
+                ? 'text-primary-600 border-b-2 border-primary-600 font-semibold'
+                : 'text-neutral-600 hover:text-neutral-900'
+            }`}
+          >
+            <FiKey className="mr-2" />
+            FQA
           </button>
         </nav>
 

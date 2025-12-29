@@ -1,9 +1,7 @@
 import { processMessages } from '../../mcp/chat-webhook';
-import { initRabbit } from './init';
+import { initRabbit, RabitQueues } from './init';
 
-enum RabitQueues {
-  WHATSAPP_MESSAGES = 'whatsapp.messages',
-}
+
 export const queueProducer = async (data: any) => {
   try {
     const { channel } = await initRabbit();

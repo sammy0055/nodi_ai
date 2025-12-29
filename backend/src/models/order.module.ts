@@ -37,6 +37,8 @@ class OrderModel
   declare cancelWindowMinutes: number;
   declare cancellationDeadline: Date;
   declare area?: any;
+  declare isReviewed: boolean;
+  declare reviewedAt: Date;
 
   // New fields for assignment and timing
   declare assignedUserId?: string;
@@ -188,6 +190,8 @@ OrderModel.init(
     estimatedCompletionTime: { type: DataTypes.INTEGER, allowNull: true },
     priority: { type: DataTypes.STRING, defaultValue: OrderPriorityTypes.MEDIUM },
     notes: { type: DataTypes.TEXT, allowNull: true },
+    isReviewed: { type: DataTypes.BOOLEAN, defaultValue: false },
+    reviewedAt: { type: DataTypes.DATE, allowNull: true },
     customerNotes: { type: DataTypes.TEXT, allowNull: true },
     searchVector: {
       type: 'TSVECTOR',
