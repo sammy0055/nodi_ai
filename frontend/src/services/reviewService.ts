@@ -1,7 +1,7 @@
 import type { IReviews, OrgReviewQuestions } from '../pages/tenant/ReviewPage';
 import type { Pagination } from '../types/customer';
 import type { IOrganization } from '../types/organization';
-import { API_ROUTES, ApiClient } from './apiClient';
+import { ApiClient } from './apiClient';
 
 interface GetReviewsParams {
   page?: number;
@@ -9,6 +9,7 @@ interface GetReviewsParams {
   rating?: number;
   branch?: string;
   serviceType?: 'takeaway' | 'delivery';
+  searchTerm?: string;
 }
 
 export class ReviewService {
@@ -23,27 +24,13 @@ export class ReviewService {
   }
 
   async searchReviews(
-    searchTerm: string
+    params: GetReviewsParams
   ): Promise<{ data: { data: IReviews[]; pagination: Pagination }; message: string }> {
-    const response = await fetch(`${API_ROUTES.GET_REVIEWS}?searchQuery=${searchTerm}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
+    return await ApiClient('GET_REVIEWS', {
+      queryParams: `?searchQuery=${encodeURIComponent(params.searchTerm || '')}&rating=${params.rating}&page=${
+        params.page || 1
+      }`,
     });
-
-    if (!response.ok) {
-      let errorMessage = `${response.status} ${response.statusText}`;
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.message || errorMessage;
-      } catch {
-        throw new Error(errorMessage);
-      }
-    }
-
-    return await response.json();
   }
 
   async setOrgReviewQuestions(data: OrgReviewQuestions[]): Promise<{ data: IOrganization; message: string }> {

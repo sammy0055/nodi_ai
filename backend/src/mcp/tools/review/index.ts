@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp';
 import { models } from '../../../models';
+import { OrderModel } from '../../../models/order.module';
 
 const { ReviewModel, OrganizationsModel } = models;
 
@@ -59,7 +60,11 @@ export const createReview = (server: McpServer) => {
     },
     async (param) => {
       try {
-        await ReviewModel.create(param);
+        const createdReview = await ReviewModel.create(param);
+        await OrderModel.update(
+          { isReviewed: true, reviewedAt: new Date() },
+          { where: { id: createdReview.orderId, organizationId: createdReview.orgainzationId } }
+        );
         return {
           content: [{ type: 'text', text: 'Review created successfully' }],
         };

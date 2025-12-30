@@ -9,7 +9,6 @@ export interface IReview {
   customerId: string;
   orderId: string;
   rating: number;
-  comment: string;
 }
 
 class ReviewModel extends Model implements IReview {
@@ -67,6 +66,7 @@ ReviewModel.init(
         key: 'id',
       },
     },
+    rating: { type: DataTypes.INTEGER, defaultValue: 0 },
     items: {
       type: DataTypes.JSONB,
       allowNull: false,

@@ -26,10 +26,8 @@ import {
   FiAlertCircle,
   FiTrendingUp,
   FiBarChart2,
-  FiDownload,
   FiActivity,
   FiZap,
-  FiPlus,
 } from 'react-icons/fi';
 import Button from '../../components/atoms/Button/Button';
 import { useDebounce } from 'use-debounce';

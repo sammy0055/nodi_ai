@@ -14,7 +14,7 @@ import type {
 } from '../types/subscription';
 import type { IOrder } from '../pages/tenant/OrderPage';
 import type { Customer, Pagination } from '../types/customer';
-import type { IReview } from '../pages/tenant/ReviewPage';
+import type { IReviews } from '../pages/tenant/ReviewPage';
 
 export const userAtom = atom<User | null>({
   key: uuid(),
@@ -31,6 +31,8 @@ export const orgAtom = atom<IOrganization>({
     AIAssistantName: '',
     currency: 'LBP',
     status: 'active',
+    reviewTimer:10,
+    reviewQuestions: []
   },
 });
 
@@ -99,7 +101,7 @@ export const customerAtom = atom<Customer[] | []>({
   default: [],
 });
 
-export const reviewAtom = atom<IReview[] | []>({
+export const reviewAtom = atom<IReviews[] | []>({
   key: uuid(),
   default: [],
 });
@@ -125,7 +127,7 @@ export const useCreditUsageValue = (): UsageRecordAttributes[] | [] => useRecoil
 export const useCreditBalanceValue = (): CreditBalanceAttributes | null => useRecoilValue(creditBalanceAtom);
 export const useOrdersValue = (): IOrder[] | [] => useRecoilValue(ordersAtom);
 export const useCustomerValue = (): Customer[] | [] => useRecoilValue(customerAtom);
-export const useReviewValue = (): IReview[] | [] => useRecoilValue(reviewAtom);
+export const useReviewValue = (): IReviews[] | [] => useRecoilValue(reviewAtom);
 export const usePaginationValue = (): Pagination | null => useRecoilValue(paginationAtom);
 
 // Set values

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   FiStar,
   FiMessageSquare,
@@ -8,7 +8,6 @@ import {
   FiEye,
   FiFilter,
   FiSearch,
-  FiChevronLeft,
   FiChevronRight,
   FiThumbsUp,
   FiThumbsDown,
@@ -17,10 +16,8 @@ import {
   FiPackage,
   FiCheck,
   FiX,
-  FiRefreshCw,
   FiAlertCircle,
   FiTrendingUp,
-  FiDownload,
 } from 'react-icons/fi';
 import Button from '../../components/atoms/Button/Button';
 import { useDebounce } from 'use-debounce';
@@ -29,6 +26,7 @@ import uuid from 'react-uuid';
 import { useLoaderData } from 'react-router';
 import type { IOrganization } from '../../types/organization';
 import ReviewDatePicker from '../../components/organisms/review/reviewDataPicker';
+import type { Pagination } from '../../types/customer';
 
 export interface OrgReviewQuestions {
   id: string;
@@ -48,28 +46,17 @@ export interface IReviews {
     id: string;
     name: string;
     email?: string;
-    avatar?: string;
   };
   order: {
     id: string;
-    orderNumber: string;
     totalAmount: number;
     currency: string;
   };
 }
 
-interface Customer {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  totalReviews: number;
-  averageRating: number;
-}
-
 const ReviewsPage: React.FC = () => {
   const data = useLoaderData() as {
-    reviews: { data: IReviews[] };
+    reviews: { data: { data: IReviews[]; pagination: Pagination } };
     organization: IOrganization;
   };
   // State for review questions
@@ -77,93 +64,35 @@ const ReviewsPage: React.FC = () => {
 
   // State for reviews
   const [reviews, setReviews] = useState<IReviews[]>([]);
+  const [pagination, setPagination] = useState<Pagination | null>(null);
 
   // State for form and UI
   const [newQuestion, setNewQuestion] = useState('');
   const [editingQuestion, setEditingQuestion] = useState<OrgReviewQuestions | null>(null);
   const [editText, setEditText] = useState('');
   const [activeTab, setActiveTab] = useState<'questions' | 'reviews'>('reviews');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm] = useState('');
   const [selectedRating, setSelectedRating] = useState<number | 'all'>('all');
-  const [selectedCustomer, setSelectedCustomer] = useState<string>('all');
   const [showQuestionModal, setShowQuestionModal] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedReview, setSelectedReview] = useState<IReviews | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showFilters, setShowFilters] = useState(false);
   const [reviewTime, setReviewTime] = useState<number | null>(null);
-  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'highest' | 'lowest'>('newest');
+  // const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
 
-  const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
-
-  // Mock customers data
-  const [customers, setCustomers] = useState<Customer[]>([
-    { id: '1', name: 'John Smith', email: 'john@example.com', totalReviews: 5, averageRating: 4.2 },
-    { id: '2', name: 'Sarah Johnson', email: 'sarah@example.com', totalReviews: 8, averageRating: 4.8 },
-    { id: '3', name: 'Michael Chen', email: 'michael@example.com', totalReviews: 3, averageRating: 3.5 },
-    { id: '4', name: 'Emily Davis', email: 'emily@example.com', totalReviews: 12, averageRating: 4.6 },
-    { id: '5', name: 'Robert Wilson', email: 'robert@example.com', totalReviews: 6, averageRating: 2.8 },
-  ]);
-
-  const { setOrgReviewQuestions, setOrgReviewTimer } = new ReviewService();
+  const { setOrgReviewQuestions, setOrgReviewTimer, searchReviews } = new ReviewService();
 
   // initialize data
   useEffect(() => {
     if (data.organization.reviewQuestions) {
       setReviewQuestions(data.organization.reviewQuestions);
-      setReviewTime(data.organization.reviewTimer || null)
+      setReviewTime(data.organization.reviewTimer || null);
+    }
+    if (data.reviews) {
+      setReviews(data.reviews.data.data);
+      setPagination(data.reviews.data.pagination);
     }
   }, [data]);
-
-  // Generate mock reviews
-  const generateMockReviews = useCallback((): IReviews[] => {
-    const questions = reviewQuestions;
-    const mockReviews: IReviews[] = [];
-    const ratings = [1, 2, 3, 4, 5];
-
-    for (let i = 1; i <= 50; i++) {
-      const rating = ratings[Math.floor(Math.random() * ratings.length)];
-      const customer = customers[Math.floor(Math.random() * customers.length)];
-      const reviewQuestions = questions.map((q) => ({
-        ...q,
-        answer: rating > 3 ? 'Yes' : rating === 3 ? 'Neutral' : 'No',
-      }));
-
-      const review: IReviews = {
-        id: `review-${i}`,
-        organizationId: 'org-1',
-        customerId: customer.id,
-        orderId: `order-${1000 + i}`,
-        rating,
-        items: reviewQuestions.slice(0, 3), // Only show 3 questions per review
-        createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000), // Random date within last 30 days
-        customer: {
-          id: customer.id,
-          name: customer.name,
-          email: customer.email,
-          avatar: `https://i.pravatar.cc/150?img=${i % 70}`,
-        },
-        order: {
-          id: `order-${1000 + i}`,
-          orderNumber: `ORD${1000 + i}`,
-          totalAmount: Math.floor(Math.random() * 500) + 50,
-          currency: 'USD',
-        },
-      };
-
-      mockReviews.push(review);
-    }
-
-    // Sort by newest first
-    return mockReviews.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-  }, [reviewQuestions, customers]);
-
-  // Initialize reviews
-  useEffect(() => {
-    const mockReviews = generateMockReviews();
-    setReviews(mockReviews);
-  }, [generateMockReviews]);
 
   // CRUD Operations for Review Questions
   const handleAddQuestion = async () => {
@@ -218,53 +147,10 @@ const ReviewsPage: React.FC = () => {
     }
   };
 
-  const startEditQuestion = useCallback((question: OrgReviewQuestions) => {
+  const startEditQuestion = (question: OrgReviewQuestions) => {
     setEditingQuestion(question);
     setEditText(question.question);
-  }, []);
-
-  // Filter and sort reviews
-  const filteredAndSortedReviews = useMemo(() => {
-    let filtered = reviews;
-
-    // Filter by search term
-    if (debouncedSearchTerm) {
-      filtered = filtered.filter(
-        (review) =>
-          review.customer.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-          review.order.orderNumber.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-          review.items.some((item) => item.question.toLowerCase().includes(debouncedSearchTerm.toLowerCase()))
-      );
-    }
-
-    // Filter by rating
-    if (selectedRating !== 'all') {
-      filtered = filtered.filter((review) => review.rating === selectedRating);
-    }
-
-    // Filter by customer
-    if (selectedCustomer !== 'all') {
-      filtered = filtered.filter((review) => review.customerId === selectedCustomer);
-    }
-
-    // Sort reviews
-    filtered = [...filtered].sort((a, b) => {
-      switch (sortBy) {
-        case 'newest':
-          return b.createdAt.getTime() - a.createdAt.getTime();
-        case 'oldest':
-          return a.createdAt.getTime() - b.createdAt.getTime();
-        case 'highest':
-          return b.rating - a.rating;
-        case 'lowest':
-          return a.rating - b.rating;
-        default:
-          return b.createdAt.getTime() - a.createdAt.getTime();
-      }
-    });
-
-    return filtered;
-  }, [reviews, debouncedSearchTerm, selectedRating, selectedCustomer, sortBy]);
+  };
 
   // Calculate statistics
   const stats = useMemo(() => {
@@ -292,27 +178,19 @@ const ReviewsPage: React.FC = () => {
     };
   }, [reviews]);
 
-  // Pagination
-  const paginatedReviews = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredAndSortedReviews.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredAndSortedReviews, currentPage, itemsPerPage]);
-
-  const totalPages = Math.ceil(filteredAndSortedReviews.length / itemsPerPage);
-
   // Format date
-  const formatDate = useCallback((date: Date) => {
+  const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    }).format(date);
-  }, []);
+    }).format(new Date(date && date));
+  };
 
   // Render stars
-  const renderStars = useCallback((rating: number) => {
+  const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <FiStar
         key={i}
@@ -328,21 +206,19 @@ const ReviewsPage: React.FC = () => {
         size={16}
       />
     ));
-  }, []);
+  };
 
   // Handle view review
-  const handleViewReview = useCallback((review: IReviews) => {
+  const handleViewReview = (review: IReviews) => {
     setSelectedReview(review);
     setShowReviewModal(true);
-  }, []);
+  };
 
   // Handle reset filters
-  const handleResetFilters = useCallback(() => {
-    setSearchTerm('');
-    setSelectedRating('all');
-    setSelectedCustomer('all');
-    setSortBy('newest');
-  }, []);
+  // const handleResetFilters = () => {
+  //   setSearchTerm('');
+  //   setSelectedRating('all');
+  // };
 
   const handleSetReviewTimer = async (timer: number) => {
     try {
@@ -352,6 +228,25 @@ const ReviewsPage: React.FC = () => {
     }
   };
 
+  const getFilteredReviews = async (page = 1, restData: boolean = false) => {
+    const filter: any = { page };
+    if (selectedRating !== 'all') filter.rating = selectedRating;
+    if (searchTerm) filter.searchTerm = searchTerm;
+
+    const data = await searchReviews(filter);
+    if (restData) {
+      setReviews((prevState) => [...prevState, ...data.data.data]);
+      setPagination(data.data.pagination);
+    } else {
+      setReviews(data.data.data || []);
+      setPagination(data.data.pagination);
+    }
+  };
+  const [debouncedTerm] = useDebounce(searchTerm, 500); // 500ms delay
+  useEffect(() => {
+    getFilteredReviews();
+  }, [selectedRating, debouncedTerm]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -360,20 +255,6 @@ const ReviewsPage: React.FC = () => {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Customer Reviews</h1>
             <p className="text-gray-600 mt-1">Manage review questions and monitor customer feedback</p>
-          </div>
-          <div className="flex items-center space-x-3 mt-4 lg:mt-0">
-            <Button variant="outline" className="border-gray-300">
-              <FiDownload className="mr-2" />
-              Export
-            </Button>
-            <Button
-              onClick={() => setActiveTab(activeTab === 'questions' ? 'reviews' : 'questions')}
-              variant="outline"
-              className="border-gray-300"
-            >
-              <FiRefreshCw className="mr-2" />
-              Switch to {activeTab === 'questions' ? 'Reviews' : 'Questions'}
-            </Button>
           </div>
         </div>
 
@@ -523,21 +404,22 @@ const ReviewsPage: React.FC = () => {
               <div className="flex-1">
                 <div className="relative max-w-md">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    {activeTab === 'reviews' && <FiSearch className="text-gray-400" />}
+                    {/* {activeTab === 'reviews' && <FiSearch className="text-gray-400" />} */}
                   </div>
                   {activeTab === 'reviews' ? (
-                    <input
-                      type="text"
-                      placeholder={
-                        activeTab === 'reviews'
-                          ? 'Search reviews, customers, or order numbers...'
-                          : 'Search questions...'
-                      }
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                    <></>
                   ) : (
+                    // <input
+                    //   type="text"
+                    //   placeholder={
+                    //     activeTab === 'reviews'
+                    //       ? 'Search reviews, customers, or order numbers...'
+                    //       : 'Search questions...'
+                    //   }
+                    //   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                    //   value={searchTerm}
+                    //   onChange={(e) => setSearchTerm(e.target.value)}
+                    // />
                     <ReviewDatePicker
                       value={reviewTime}
                       onChange={setReviewTime}
@@ -563,18 +445,12 @@ const ReviewsPage: React.FC = () => {
                   >
                     <FiFilter className="mr-2" />
                     Filters
-                    {(selectedRating !== 'all' || selectedCustomer !== 'all') && (
-                      <span className="ml-2 bg-blue-100 text-blue-800 rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                        {(selectedRating !== 'all' ? 1 : 0) + (selectedCustomer !== 'all' ? 1 : 0)}
-                      </span>
-                    )}
                   </Button>
                 )}
 
                 {activeTab === 'questions' && (
                   <Button
                     onClick={() => setShowQuestionModal(true)}
-                    className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
                   >
                     <FiPlus className="mr-2" />
                     Add Question
@@ -603,23 +479,7 @@ const ReviewsPage: React.FC = () => {
                     </select>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Customer</label>
-                    <select
-                      value={selectedCustomer}
-                      onChange={(e) => setSelectedCustomer(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="all">All Customers</option>
-                      {customers.map((customer) => (
-                        <option key={customer.id} value={customer.id}>
-                          {customer.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
+                  {/* <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
                     <select
                       value={sortBy}
@@ -631,10 +491,10 @@ const ReviewsPage: React.FC = () => {
                       <option value="highest">Highest Rating</option>
                       <option value="lowest">Lowest Rating</option>
                     </select>
-                  </div>
+                  </div> */}
                 </div>
 
-                {(selectedRating !== 'all' || selectedCustomer !== 'all') && (
+                {/* {selectedRating !== 'all' && (
                   <div className="mt-4 flex justify-end">
                     <Button
                       variant="outline"
@@ -645,7 +505,7 @@ const ReviewsPage: React.FC = () => {
                       Clear all filters
                     </Button>
                   </div>
-                )}
+                )} */}
               </div>
             )}
           </div>
@@ -730,7 +590,7 @@ const ReviewsPage: React.FC = () => {
             ) : (
               // Reviews List
               <div className="space-y-4">
-                {paginatedReviews.length === 0 ? (
+                {reviews.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <FiSearch className="text-gray-400" size={24} />
@@ -741,16 +601,16 @@ const ReviewsPage: React.FC = () => {
                         ? `No reviews match "${searchTerm}". Try a different search term or clear filters.`
                         : 'No reviews available.'}
                     </p>
-                    {(searchTerm || selectedRating !== 'all' || selectedCustomer !== 'all') && (
+                    {/* {(searchTerm || selectedRating !== 'all') && (
                       <Button variant="outline" onClick={handleResetFilters} className="mt-4">
                         Clear all filters
                       </Button>
-                    )}
+                    )} */}
                   </div>
                 ) : (
                   <>
                     <div className="space-y-4">
-                      {paginatedReviews.map((review) => (
+                      {reviews.map((review) => (
                         <div
                           key={review.id}
                           className={`bg-white border rounded-lg p-4 hover:shadow-lg transition-all duration-200 ${
@@ -767,12 +627,10 @@ const ReviewsPage: React.FC = () => {
                               <div className="flex items-start space-x-3">
                                 <div className="flex-shrink-0">
                                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center overflow-hidden">
-                                    {review.customer.avatar ? (
-                                      <img
-                                        src={review.customer.avatar}
-                                        alt={review.customer.name}
-                                        className="w-full h-full object-cover"
-                                      />
+                                    {review.customer.name ? (
+                                      <div className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-500 text-white font-bold">
+                                        {review.customer.name?.charAt(0).toUpperCase() || 'A'}
+                                      </div>
                                     ) : (
                                       <FiUser className="text-blue-600" size={20} />
                                     )}
@@ -801,11 +659,11 @@ const ReviewsPage: React.FC = () => {
                                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm mb-3">
                                     <div className="flex items-center text-gray-600">
                                       <FiPackage className="mr-2 text-gray-400" size={14} />
-                                      <span className="truncate">{review.order.orderNumber}</span>
+                                      <span className="truncate">{review.order.id}</span>
                                     </div>
                                     <div className="flex items-center text-gray-600">
                                       <FiCalendar className="mr-2 text-gray-400" size={14} />
-                                      <span>{formatDate(review.createdAt)}</span>
+                                      <span>{formatDate(review?.createdAt)}</span>
                                     </div>
                                   </div>
 
@@ -840,7 +698,7 @@ const ReviewsPage: React.FC = () => {
                             <div className="mt-4 md:mt-0 md:ml-4 flex flex-col items-end">
                               <div className="text-right mb-3">
                                 <p className="text-lg font-bold text-gray-900">
-                                  ${review.order.totalAmount.toFixed(2)}
+                                  {review.order.currency} {review.order.totalAmount.toFixed(2)}
                                 </p>
                                 <p className="text-xs text-gray-500 mt-1">Order Total</p>
                               </div>
@@ -861,62 +719,19 @@ const ReviewsPage: React.FC = () => {
                     </div>
 
                     {/* Pagination */}
-                    {totalPages > 1 && (
+                    {pagination?.totalPages! > 1 && (
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-4 border-t border-gray-200">
-                        <div className="text-sm text-gray-700 mb-4 sm:mb-0">
-                          Showing <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> to{' '}
-                          <span className="font-medium">
-                            {Math.min(currentPage * itemsPerPage, filteredAndSortedReviews.length)}
-                          </span>{' '}
-                          of <span className="font-medium">{filteredAndSortedReviews.length}</span> results
-                        </div>
                         <div className="flex items-center space-x-2">
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                            disabled={currentPage === 1}
+                            onClick={() =>
+                              getFilteredReviews(pagination?.currentPage && pagination?.currentPage + 1, true)
+                            }
+                            disabled={!pagination?.hasNextPage}
                             className="px-3 py-1"
                           >
-                            <FiChevronLeft className="mr-1" />
-                            Previous
-                          </Button>
-                          <div className="flex items-center space-x-1">
-                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                              let pageNum;
-                              if (totalPages <= 5) {
-                                pageNum = i + 1;
-                              } else if (currentPage <= 3) {
-                                pageNum = i + 1;
-                              } else if (currentPage >= totalPages - 2) {
-                                pageNum = totalPages - 4 + i;
-                              } else {
-                                pageNum = currentPage - 2 + i;
-                              }
-
-                              return (
-                                <button
-                                  key={i}
-                                  onClick={() => setCurrentPage(pageNum)}
-                                  className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm ${
-                                    currentPage === pageNum
-                                      ? 'bg-blue-600 text-white'
-                                      : 'text-gray-700 hover:bg-gray-100'
-                                  }`}
-                                >
-                                  {pageNum}
-                                </button>
-                              );
-                            })}
-                          </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                            disabled={currentPage === totalPages}
-                            className="px-3 py-1"
-                          >
-                            Next
+                            load more
                             <FiChevronRight className="ml-1" />
                           </Button>
                         </div>
@@ -976,7 +791,7 @@ const ReviewsPage: React.FC = () => {
                 <Button
                   onClick={handleAddQuestion}
                   disabled={!newQuestion.trim()}
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                  // className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
                 >
                   <FiPlus className="mr-2" />
                   Add Question
@@ -995,7 +810,7 @@ const ReviewsPage: React.FC = () => {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">Review Details</h3>
                 <p className="text-sm text-gray-600 mt-1">
-                  Order {selectedReview.order.orderNumber} • {selectedReview.customer.name}
+                  Order {selectedReview.order.id} • {selectedReview.customer.name}
                 </p>
               </div>
               <button
@@ -1011,7 +826,7 @@ const ReviewsPage: React.FC = () => {
 
             <div className="p-6 space-y-6">
               {/* Review Summary */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div className="bg-gray-50 rounded-lg p-4">
                     <h4 className="font-medium text-gray-900 mb-3 flex items-center">
@@ -1085,16 +900,14 @@ const ReviewsPage: React.FC = () => {
                     </h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-gray-500">Order Number:</span>
-                        <span className="font-medium">{selectedReview.order.orderNumber}</span>
-                      </div>
-                      <div className="flex justify-between">
                         <span className="text-gray-500">Order ID:</span>
                         <span className="font-medium">{selectedReview.orderId}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-500">Order Total:</span>
-                        <span className="font-medium">${selectedReview.order.totalAmount.toFixed(2)}</span>
+                        <span className="font-medium">
+                          {selectedReview.order.currency} {selectedReview.order.totalAmount.toFixed(2)}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -1110,31 +923,9 @@ const ReviewsPage: React.FC = () => {
                         <span className="font-medium">{formatDate(selectedReview.createdAt)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-500">Organization:</span>
-                        <span className="font-medium">{selectedReview.organizationId}</span>
+                        <span className="text-gray-500">Organization: </span>
+                        <span className="font-medium"> {selectedReview.organizationId}</span>
                       </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-medium text-gray-900 mb-3">Quick Actions</h4>
-                    <div className="space-y-2">
-                      <Button variant="outline" className="w-full justify-center">
-                        <FiMessageSquare className="mr-2" />
-                        Contact Customer
-                      </Button>
-                      <Button variant="outline" className="w-full justify-center">
-                        <FiEdit2 className="mr-2" />
-                        Follow Up
-                      </Button>
-                      {selectedReview.rating < 3 && (
-                        <Button className="w-full justify-center bg-red-600 hover:bg-red-700">
-                          <FiAlertCircle className="mr-2" />
-                          Flag for Review
-                        </Button>
-                      )}
                     </div>
                   </div>
                 </div>
