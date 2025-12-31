@@ -101,7 +101,7 @@ export class ProductService {
     const manageImageFile = new ImageUploadHelper();
     await manageImageFile.deleteImageFile([oldProduct.filePath]);
     const data = await ProductModel.destroy({ where: { id: productId } });
-    await WhatsappCatalogHelper.deleteMetaCatalogItem({ itemId: productId }, whatsappData);
+    await WhatsappCatalogHelper.deleteMetaCatalogItem({ itemId: oldProduct.metaProductId }, whatsappData);
     return data;
   }
 
