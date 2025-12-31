@@ -1,7 +1,16 @@
 import { ProductModel } from '../models/products.model';
-import { getWhatsappCatalog, WhatsappCatalogHelper } from './whatsapp-catalog';
+import { getWhatsappCatalog } from './whatsapp-catalog';
 
-const priceInt = (priceStr: string) => parseInt(priceStr.replace(/[^\d]/g, ''), 10);
+function splitCurrencyAndPrice(value: string) {
+  const match = value.match(/^([A-Z]+)\s*([\d,]+(?:\.\d+)?)$/);
+
+  if (!match) return null;
+
+  return {
+    currency: match[1],
+    price: parseFloat(match[2].replace(/,/g, '')),
+  };
+}
 
 export const syncMetaCatalogToDB = async ({
   catalogId,
@@ -20,35 +29,26 @@ export const syncMetaCatalogToDB = async ({
       // Check if product already exists by metaProductId
       const existing = await ProductModel.findOne({
         where: {
-          metaProductId: item.id,
+          metaProductId: item.retailer_id,
           organizationId,
         },
       });
 
       if (!existing) {
         // Create with OUR UUID, store Meta IDs separately
-        const product = await ProductModel.create({
+        await ProductModel.create({
           name: item.name,
-          price: priceInt(item.price),
-          metaProductId: item.id,
+          price: splitCurrencyAndPrice(item.price)?.price!,
+          currency: splitCurrencyAndPrice(item.price)?.currency! as any,
+          metaProductId: item.retailer_id,
           organizationId,
           description: item.description || '',
         });
-
-        await WhatsappCatalogHelper.updateMetaCatalogItem(
-          {
-            itemId: product.id,
-            name: product.name,
-            price: product.price,
-            description: product.description,
-          },
-          { catalogId } as any
-        );
       } else {
         // Update only safe fields
         await existing.update({
           name: item.name,
-          price: priceInt(item.price),
+          price: splitCurrencyAndPrice(item.price)?.price!,
           description: item.description || '',
         });
       }
