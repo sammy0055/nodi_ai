@@ -106,7 +106,7 @@ chatRoute.post('/chat-webhook', async (req, res) => {
           }
         } else {
           console.log('====================================');
-          console.log(msg);
+          console.log(JSON.stringify(msg));
           console.log('====================================');
           console.log('Got message:', msg.id, msg.text?.body);
           // process each message independently
