@@ -105,6 +105,9 @@ chatRoute.post('/chat-webhook', async (req, res) => {
             await handleIncomingMessage({ whatsappBusinessId: entry.id, msg, processMessages });
           }
         } else {
+          console.log('====================================');
+          console.log(msg);
+          console.log('====================================');
           console.log('Got message:', msg.id, msg.text?.body);
           // process each message independently
           // await handleMessages(entry.id, msg);

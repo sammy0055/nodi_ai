@@ -336,4 +336,4 @@ const createCatalogItem = async () => {
 // sendMessage()
 // createCatalogItem();
 // queueProducer({ data: { hel: { d: '', dfsaf: ['dwee'] } } });
-listCatalogItems();
+// listCatalogItems();
