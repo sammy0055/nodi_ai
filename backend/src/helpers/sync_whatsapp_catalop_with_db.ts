@@ -1,5 +1,5 @@
 import { ProductModel } from '../models/products.model';
-import { getWhatsappCatalog } from './whatsapp-catalog';
+import { getWhatsappCatalog, WhatsappCatalogHelper } from './whatsapp-catalog';
 
 const priceInt = (priceStr: string) => parseInt(priceStr.replace(/[^\d]/g, ''), 10);
 
@@ -11,22 +11,50 @@ export const syncMetaCatalogToDB = async ({
   organizationId: string;
 }) => {
   const params = 'fields=id,retailer_id,name,price,availability,description&limit=100';
-  let url = `https://graph.facebook.com/v23.0/${catalogId}/products?${params}`;
-  const json = await getWhatsappCatalog(url);
+  let url: string | null = `https://graph.facebook.com/v23.0/${catalogId}/products?${params}`;
 
   while (url) {
+    const json = await getWhatsappCatalog(url);
+
     for (const item of json.data ?? []) {
-      await ProductModel.upsert({
-        id: item.retailer_id,
-        name: item.name,
-        price: priceInt(item.price),
-        metaProductId: item.id,
-        organizationId: organizationId,
-        description: item.description || '',
+      // Check if product already exists by metaProductId
+      const existing = await ProductModel.findOne({
+        where: {
+          metaProductId: item.id,
+          organizationId,
+        },
       });
+
+      if (!existing) {
+        // Create with OUR UUID, store Meta IDs separately
+        const product = await ProductModel.create({
+          name: item.name,
+          price: priceInt(item.price),
+          metaProductId: item.id,
+          organizationId,
+          description: item.description || '',
+        });
+
+        await WhatsappCatalogHelper.updateMetaCatalogItem(
+          {
+            itemId: product.id,
+            name: product.name,
+            price: product.price,
+            description: product.description,
+          },
+          { catalogId } as any
+        );
+      } else {
+        // Update only safe fields
+        await existing.update({
+          name: item.name,
+          price: priceInt(item.price),
+          description: item.description || '',
+        });
+      }
     }
 
-    url = json.paging?.next ?? '';
+    url = json.paging?.next ?? null;
   }
 };
 

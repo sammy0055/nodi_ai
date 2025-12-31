@@ -303,7 +303,7 @@ const catalogMag = async (product: Partial<any>) => {
 
 const listCatalogItems = async () => {
   try {
-    const params = 'fields=id,retailer_id,name,price,availability,description&limit=100';
+    const params = 'fields=id,retailer_id,name,price,availability,description,image_link&limit=100';
     let url = `https://graph.facebook.com/v23.0/${'1386344629753105'}/products?${params}`;
     const data = await getWhatsappCatalog(url);
     console.log('====================================');
