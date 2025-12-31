@@ -19,6 +19,30 @@ interface CatalogItemTypes {
   imageUrl: string;
 }
 
+export interface MetaCatalogProduct {
+  id: string;
+  name: string;
+  retailer_id: string;
+  price: string;
+  description: string;
+}
+
+export interface MetaPagingCursors {
+  before?: string;
+  after?: string;
+}
+
+export interface MetaPaging {
+  cursors?: MetaPagingCursors;
+  next?: string;
+  previous?: string;
+}
+
+export interface MetaCatalogProductsResponse {
+  data: MetaCatalogProduct[];
+  paging?: MetaPaging;
+}
+
 export class WhatsappCatalogHelper {
   static async createMetaCatalogItem(
     { itemId, name, description, price, currency, imageUrl }: CatalogItemTypes,
@@ -140,3 +164,22 @@ export class WhatsappCatalogHelper {
     return await response.json();
   }
 }
+
+export const getWhatsappCatalog = async (url: string): Promise<MetaCatalogProductsResponse> => {
+  const headers = { Authorization: `Bearer ${accessToken}` };
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      ...headers,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(`Error ${response.status}: ${errorData.error.message}`);
+  }
+
+  return await response.json();
+};

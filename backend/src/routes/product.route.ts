@@ -119,3 +119,22 @@ productRoute.get('/products', authMiddleware, async (req, res) => {
     res.status(500).json(response);
   }
 });
+
+productRoute.get('/sync-wcatalog-to-db', authMiddleware, async (req, res) => {
+  try {
+    await ProductController.syncWhatsappCatalogToDB(req.user!);
+    const response: APIResponseFormat<any> = {
+      message: 'product sync successfully',
+      data: null,
+    };
+
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});

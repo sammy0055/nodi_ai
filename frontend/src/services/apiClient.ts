@@ -55,6 +55,7 @@ export const API_ROUTES = {
   GET_PRODUCTS: `${API_BASE_URL}/organization/product/products`,
   UPDATE_PRODUCT: `${API_BASE_URL}/organization/product/products`,
   DELETE_PRODUCT: `${API_BASE_URL}/organization/product/products`,
+  SYNC_CATALOG_TO_DB: `${API_BASE_URL}/organization/product/sync-wcatalog-to-db`,
   ADD_PRODUCT_OPTION: `${API_BASE_URL}/organization/product-option/create`,
   UPDATE_PRODUCT_OPTION: `${API_BASE_URL}/organization/product-option/update`,
   GET_PRODUCT_OPTIONS: `${API_BASE_URL}/organization/product-option/get-many`,

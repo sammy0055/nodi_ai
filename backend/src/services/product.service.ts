@@ -1,4 +1,5 @@
 import { ImageUploadHelper } from '../helpers/image-upload';
+import { syncMetaCatalogToDB } from '../helpers/sync_whatsapp_catalop_with_db';
 import { WhatsappCatalogHelper } from '../helpers/whatsapp-catalog';
 import { validateFile } from '../middleware/validation/file';
 import { ProductModel } from '../models/products.model';
@@ -158,5 +159,12 @@ export class ProductService {
         hasPrevPage: page > 1,
       },
     };
+  }
+
+  static async syncWhatsappCatalogToDB(user: Pick<User, 'id' | 'organizationId'>) {
+    if (!user.organizationId) throw new Error('organization does not exit');
+    const whatsappsettings = await WhatSappSettingsModel.findOne({ where: { organizationId: user.organizationId } });
+    if (!whatsappsettings?.catalogId) throw new Error('whatsapp catalog does not exist for this organization');
+    await syncMetaCatalogToDB({ catalogId: whatsappsettings.catalogId, organizationId: user.organizationId });
   }
 }

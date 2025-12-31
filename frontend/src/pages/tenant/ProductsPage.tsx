@@ -53,8 +53,7 @@ const ProductOptionsManager: React.FC<{
   onOptionsChange: (options: ProductOption[]) => void;
 }> = ({ productId, options, onOptionsChange }) => {
   const productOptions = options.filter((opt) => opt.productId === productId);
-  const { addProductOption, addProductOptionChoice, deleteProductChoice, deleteProductOption } =
-    new ProductService();
+  const { addProductOption, addProductOptionChoice, deleteProductChoice, deleteProductOption } = new ProductService();
   const addOption = async () => {
     const newOption: ProductOption = {
       id: `opt-${Date.now()}`,
@@ -256,17 +255,18 @@ const ProductOptionsManager: React.FC<{
 const ProductsPage: React.FC = () => {
   const data = useLoaderData() as {
     products: { data: Product[]; pagination: Pagination };
-    productOptions: ProductOption[]
+    productOptions: ProductOption[];
   };
   const products = useProductsValue();
   const setProducts = useProductsSetRecoilState();
   const productOptions = useProductOptionValue();
   const setProductOptions = useProductOptionSetRecoilState();
   const whatsappData = useWhatsappValue();
-  const organization = useOrgValue()
+  const organization = useOrgValue();
   const [searchTerm, setSearchTerm] = useState('');
   const [showProductModal, setShowProductModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [isCatalogsync, setIscatalogsync] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [editingProduct, setEditingProduct] = useState<Partial<Product>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -279,6 +279,7 @@ const ProductsPage: React.FC = () => {
     updateProductOption,
     updateProductChoice,
     getProducts,
+    syncMetaCatalogToDB,
   } = new ProductService();
 
   // Pagination
@@ -306,7 +307,7 @@ const ProductsPage: React.FC = () => {
   useEffect(() => {
     if (data) {
       setProducts(data.products.data);
-      setProductOptions(data.productOptions)
+      setProductOptions(data.productOptions);
       setPagination(data.products.pagination);
     }
   }, [data]);
@@ -428,6 +429,18 @@ const ProductsPage: React.FC = () => {
     }
   };
 
+  const syncCatalog = async () => {
+    try {
+      setIscatalogsync(true);
+      await syncMetaCatalogToDB();
+      setIscatalogsync(false);
+      alert('catalog sync successfully');
+    } catch (error: any) {
+      setIscatalogsync(false);
+      alert('something went wrong');
+    }
+  };
+
   // WhatsApp Catalog Warning Component
   const CatalogWarning = () => (
     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
@@ -527,6 +540,10 @@ const ProductsPage: React.FC = () => {
           <Button onClick={handleAddProduct}>
             <FiPlus className="mr-2" />
             Add Product
+          </Button>
+          <Button onClick={syncCatalog} isLoading={isCatalogsync}>
+            <FiUpload className="mr-2" />
+            Sync Catalog
           </Button>
         </div>
       </div>

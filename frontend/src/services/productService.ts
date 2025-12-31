@@ -130,4 +130,8 @@ export class ProductService {
       credentials: 'include',
     });
   }
+
+  async syncMetaCatalogToDB() {
+    return await ApiClient('SYNC_CATALOG_TO_DB', { method: 'GET' });
+  }
 }

@@ -10,7 +10,7 @@ import { run } from './migration';
 import { sendVerificationEmail } from '../utils/send-email';
 import { ChatHistoryManager } from '../services/ChatHistoryManager.service';
 import { templates } from '../data/templates';
-import { priceToMetaFormat } from '../helpers/whatsapp-catalog';
+import { getWhatsappCatalog, priceToMetaFormat } from '../helpers/whatsapp-catalog';
 import { queueProducer } from './rabbitmq';
 
 const ddd = {
@@ -301,6 +301,21 @@ const catalogMag = async (product: Partial<any>) => {
   return await response.json();
 };
 
+const listCatalogItems = async () => {
+  try {
+    const params = 'fields=id,retailer_id,name,price,availability,description&limit=100';
+    let url = `https://graph.facebook.com/v23.0/${'1386344629753105'}/products?${params}`;
+    const data = await getWhatsappCatalog(url);
+    console.log('====================================');
+    console.log(data);
+    console.log('====================================');
+  } catch (error: any) {
+    console.log('===================error=================');
+    console.log(error);
+    console.log('====================================');
+  }
+};
+
 const createCatalogItem = async () => {
   try {
     const res = await catalogMag(p);
@@ -320,4 +335,5 @@ const createCatalogItem = async () => {
 // createWhsappFlow();
 // sendMessage()
 // createCatalogItem();
-queueProducer({ data: { hel: { d: '', dfsaf: ['dwee'] } } });
+// queueProducer({ data: { hel: { d: '', dfsaf: ['dwee'] } } });
+listCatalogItems();
