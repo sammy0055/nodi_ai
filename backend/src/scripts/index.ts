@@ -12,6 +12,7 @@ import { ChatHistoryManager } from '../services/ChatHistoryManager.service';
 import { templates } from '../data/templates';
 import { getWhatsappCatalog, priceToMetaFormat } from '../helpers/whatsapp-catalog';
 import { queueProducer } from './rabbitmq';
+import { getVoiceNote } from '../helpers/download_voice_note';
 
 const ddd = {
   whatsappBusinessId: '1390720013053482',
@@ -337,3 +338,4 @@ const createCatalogItem = async () => {
 // createCatalogItem();
 // queueProducer({ data: { hel: { d: '', dfsaf: ['dwee'] } } });
 // listCatalogItems();
+getVoiceNote('1500555364366195');

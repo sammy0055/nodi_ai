@@ -6,6 +6,7 @@ import { ZoneModel } from '../models/zones.model';
 import { AreaModel } from '../models/area.model';
 import { BranchesModel } from '../models/branches.model';
 import { queueProducer } from '../helpers/rabbitmq';
+import { getVoiceNote } from '../helpers/download_voice_note';
 export const chatRoute = express.Router();
 
 export interface IncomingMessageAttr {
@@ -104,10 +105,17 @@ chatRoute.post('/chat-webhook', async (req, res) => {
             console.log('Got message:', msg.id, msg);
             await handleIncomingMessage({ whatsappBusinessId: entry.id, msg, processMessages });
           }
+        } else if (msg.type === 'audio') {
+          const text = await getVoiceNote(msg.audio?.id!);
+          const newMsg = {
+            ...msg,
+            text: {
+              body: text,
+            },
+          };
+          console.log('Got message:', msg.id, msg);
+          await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
         } else {
-          console.log('====================================');
-          console.log(JSON.stringify(msg));
-          console.log('====================================');
           console.log('Got message:', msg.id, msg.text?.body);
           // process each message independently
           // await handleMessages(entry.id, msg);

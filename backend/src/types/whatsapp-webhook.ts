@@ -41,7 +41,8 @@ export interface WhatsAppMessage {
   };
   order?: Order;
   interactive?: Interative;
-  type: 'text' | 'order' | 'interactive';
+  audio?: AudioMessage;
+  type: 'text' | 'order' | 'interactive' | 'audio';
 }
 
 export interface ProductItem {
@@ -69,4 +70,10 @@ interface Interative {
     body: string;
     name: string;
   };
+}
+
+interface AudioMessage {
+  mime_type: string;
+  id: string;
+  url: string;
 }
