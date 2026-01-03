@@ -5,7 +5,7 @@ import { ModelNames } from './model-names';
 
 export interface IReview {
   id: CreationOptional<string>;
-  orgainzationId: string;
+  organizationId: string;
   customerId: string;
   orderId: string;
   rating: number;
@@ -13,7 +13,7 @@ export interface IReview {
 
 class ReviewModel extends Model implements IReview {
   public id!: CreationOptional<string>;
-  public orgainzationId!: string;
+  public organizationId!: string;
   public customerId!: string;
   public orderId!: string;
   public rating!: number;

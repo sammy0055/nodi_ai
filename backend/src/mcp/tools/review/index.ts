@@ -63,7 +63,7 @@ export const createReview = (server: McpServer) => {
         const createdReview = await ReviewModel.create(param);
         await OrderModel.update(
           { isReviewed: true, reviewedAt: new Date() },
-          { where: { id: createdReview.orderId, organizationId: createdReview.orgainzationId } }
+          { where: { id: createdReview.orderId, organizationId: createdReview.organizationId } }
         );
         return {
           content: [{ type: 'text', text: 'Review created successfully' }],
