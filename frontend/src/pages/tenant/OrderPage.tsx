@@ -42,6 +42,7 @@ import useProcessingTime from '../../hooks/orderProcessingTimer';
 // Order status object
 export const OrderStatusTypes = {
   PENDING: 'pending',
+  SHIPPED: 'shipped',
   PROCESSING: 'processing',
   DELIVERED: 'delivered',
   CANCELLED: 'cancelled',
@@ -586,10 +587,7 @@ const OrdersPage: React.FC = () => {
           if (order.id === orderId) {
             const updatedOrder = { ...order, status: newStatus };
 
-            if (
-              newStatus === OrderStatusTypes.DELIVERED ||
-              newStatus === OrderStatusTypes.CANCELLED 
-            ) {
+            if (newStatus === OrderStatusTypes.DELIVERED || newStatus === OrderStatusTypes.CANCELLED) {
               const assignedUserId = order.assignedUserId;
               if (assignedUserId) {
                 setUsers((prevUsers) =>
@@ -652,6 +650,7 @@ const OrdersPage: React.FC = () => {
 
         const data = await updateOrder(updatedOrder);
         setOrders((prevOrders) => prevOrders.map((o) => (o.id === data.data.id ? updatedOrder : o)));
+        setAssignToUserId(updatedOrder.assignedUserId || '');
 
         await updateUser({
           ...userToUpdate,
@@ -755,8 +754,8 @@ const OrdersPage: React.FC = () => {
       //   return 'bg-blue-50 text-blue-700 border-blue-200';
       case OrderStatusTypes.PROCESSING:
         return 'bg-purple-50 text-purple-700 border-purple-200';
-      // case OrderStatusTypes.SHIPPED:
-      //   return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+      case OrderStatusTypes.SHIPPED:
+        return 'bg-indigo-50 text-indigo-700 border-indigo-200';
       case OrderStatusTypes.DELIVERED:
         return 'bg-green-50 text-green-700 border-green-200';
       case OrderStatusTypes.CANCELLED:
@@ -780,8 +779,8 @@ const OrdersPage: React.FC = () => {
       //   return <FiCheckCircle className="text-blue-600" />;
       case OrderStatusTypes.PROCESSING:
         return <FiRefreshCw className="text-purple-600" />;
-      // case OrderStatusTypes.SHIPPED:
-      //   return <FiTruck className="text-indigo-600" />;
+      case OrderStatusTypes.SHIPPED:
+        return <FiTruck className="text-indigo-600" />;
       case OrderStatusTypes.DELIVERED:
         return <FiPackage className="text-green-600" />;
       case OrderStatusTypes.CANCELLED:
