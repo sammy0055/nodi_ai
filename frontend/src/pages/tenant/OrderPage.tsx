@@ -546,9 +546,7 @@ const OrdersPage: React.FC = () => {
 
   // Mock users data with enhanced fields
   const [users, setUsers] = useState<User[]>([]);
-  console.log('====================================');
-  console.log({ users, currentUser });
-  console.log('====================================');
+
   useEffect(() => {
     if (data) {
       setOrders(data.orders.data);
@@ -576,7 +574,7 @@ const OrdersPage: React.FC = () => {
     try {
       if (newStatus === 'delivered') {
         const orderToUpdate = orders.find((o) => o.id === orderId);
-        if (orderToUpdate?.estimatedCompletionTime) {
+        if (orderToUpdate?.status === 'delivered') {
           alert('can not change order status, order is already completed');
           return;
         }
@@ -644,7 +642,7 @@ const OrdersPage: React.FC = () => {
       try {
         const updatedOrder: IOrder = {
           ...order,
-          status: OrderStatusTypes.PROCESSING,
+          status: order.status === 'pending' ? OrderStatusTypes.PROCESSING : order.status,
           assignedUserId: userId,
           assignedUserName: user.name,
           assignedAt: new Date(),
@@ -689,15 +687,18 @@ const OrdersPage: React.FC = () => {
   const handleUnassignOrder = useCallback(
     async (order: IOrder) => {
       if (!order.assignedUserId) return;
-
+      if (order.status === 'delivered') {
+        alert('this order is already completed');
+        return;
+      }
       try {
         const updatedOrder: any = {
           ...order,
-          status: OrderStatusTypes.PENDING,
           assignedUserId: null,
           assignedUserName: null,
           assignedAt: null,
           processingTime: null,
+          estimatedCompletionTime: null,
         };
 
         const userToUpdate = users.find((u) => u.id === order.assignedUserId);

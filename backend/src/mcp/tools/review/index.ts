@@ -13,7 +13,7 @@ export const getOrganizationReviewQuestions = (server: McpServer) => {
       description:
         'Fetches the organization-specific review questions used to collect customer feedback and ratings after a purchase or service interaction.',
       inputSchema: {
-        organizationId: z.string().describe('the id of the organization'),
+        organizationId: z.string()
       },
     },
     async (args) => {
@@ -45,7 +45,7 @@ export const createReview = (server: McpServer) => {
       title: 'create_review',
       description: 'create a review for an order',
       inputSchema: {
-        organizationId: z.string().describe('the id of the organization'),
+        organizationId: z.string(),
         customerId: z.string().describe('the customers unique ID'),
         orderId: z.string().describe('the order unique ID'),
         rating: z.number().min(1).max(5).describe('the rating for the order'),
