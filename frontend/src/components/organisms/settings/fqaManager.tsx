@@ -1,19 +1,18 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX } from 'react-icons/fi';
+import { OrganizationService } from '../../../services/organizationService';
+import uuid from 'react-uuid';
+import type { FAQItem } from '../../../types/organization';
 
-interface FAQItem {
-  id: string;
-  question: string;
-  answer: string;
+
+
+interface FAQManagerProps {
+  data: FAQItem[];
 }
 
-const FAQManager: React.FC = () => {
+const FAQManager: React.FC<FAQManagerProps> = ({ data }) => {
   // Initial mock data
-  const initialFAQs: FAQItem[] = [
-    { id: '1', question: 'How do I reset my password?', answer: 'Go to Settings > Security > Reset Password.' },
-    { id: '2', question: 'What payment methods do you accept?', answer: 'We accept Visa, MasterCard, and PayPal.' },
-    { id: '3', question: 'How long does shipping take?', answer: 'Standard shipping takes 3-5 business days.' },
-  ];
+  const initialFAQs: FAQItem[] = [];
 
   // State
   const [faqs, setFaqs] = useState<FAQItem[]>(initialFAQs);
@@ -23,19 +22,30 @@ const FAQManager: React.FC = () => {
   const [editQuestion, setEditQuestion] = useState('');
   const [editAnswer, setEditAnswer] = useState('');
 
-  // Add new FAQ
-  const handleAdd = () => {
-    if (!newQuestion.trim() || !newAnswer.trim()) return;
-    
-    const newFAQ: FAQItem = {
-      id: Date.now().toString(),
-      question: newQuestion,
-      answer: newAnswer,
-    };
+  const { setOrgFQAQuestions } = new OrganizationService();
 
-    setFaqs([...faqs, newFAQ]);
-    setNewQuestion('');
-    setNewAnswer('');
+  useEffect(() => {
+    if (data) setFaqs(data);
+  }, [data]);
+
+  // Add new FAQ
+  const handleAdd = async () => {
+    try {
+      if (!newQuestion.trim() || !newAnswer.trim()) return;
+
+      const newFAQ: FAQItem = {
+        id: uuid(),
+        question: newQuestion,
+        answer: newAnswer,
+      };
+
+      await setOrgFQAQuestions([...faqs, newFAQ]);
+      setFaqs([...faqs, newFAQ]);
+      setNewQuestion('');
+      setNewAnswer('');
+    } catch (error: any) {
+      alert('something went wrong');
+    }
   };
 
   // Start editing
@@ -46,18 +56,22 @@ const FAQManager: React.FC = () => {
   };
 
   // Save edit
-  const saveEdit = () => {
-    if (!editingId) return;
+  const saveEdit = async () => {
+    try {
+      if (!editingId) return;
 
-    setFaqs(faqs.map(faq => 
-      faq.id === editingId 
-        ? { ...faq, question: editQuestion, answer: editAnswer }
-        : faq
-    ));
+      const updatedfqa = faqs.map((faq) =>
+        faq.id === editingId ? { ...faq, question: editQuestion, answer: editAnswer } : faq
+      );
+      await setOrgFQAQuestions(updatedfqa);
+      setFaqs(updatedfqa);
 
-    setEditingId(null);
-    setEditQuestion('');
-    setEditAnswer('');
+      setEditingId(null);
+      setEditQuestion('');
+      setEditAnswer('');
+    } catch (error: any) {
+      alert('something went wrong');
+    }
   };
 
   // Cancel edit
@@ -68,8 +82,14 @@ const FAQManager: React.FC = () => {
   };
 
   // Delete FAQ
-  const deleteFAQ = (id: string) => {
-    setFaqs(faqs.filter(faq => faq.id !== id));
+  const deleteFAQ = async (id: string) => {
+    try {
+      const newfqa = faqs.filter((faq) => faq.id !== id);
+      await setOrgFQAQuestions(newfqa);
+      setFaqs(newfqa);
+    } catch (error: any) {
+      alert('something went wrong');
+    }
   };
 
   return (
@@ -153,16 +173,10 @@ const FAQManager: React.FC = () => {
                     <p className="text-gray-600 mt-1">{faq.answer}</p>
                   </div>
                   <div className="flex space-x-1 ml-2">
-                    <button
-                      onClick={() => startEdit(faq)}
-                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
-                    >
+                    <button onClick={() => startEdit(faq)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded">
                       <FiEdit2 size={16} />
                     </button>
-                    <button
-                      onClick={() => deleteFAQ(faq.id)}
-                      className="p-1.5 text-red-600 hover:bg-red-50 rounded"
-                    >
+                    <button onClick={() => deleteFAQ(faq.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded">
                       <FiTrash2 size={16} />
                     </button>
                   </div>

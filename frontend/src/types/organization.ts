@@ -9,6 +9,12 @@ export interface OrgReviewQuestions {
   answer: string | null;
 }
 
+export interface FAQItem {
+  id: string;
+  question: string;
+  answer: string;
+}
+
 export interface IOrganization {
   id: string; // uuid
   name: string;
@@ -19,6 +25,7 @@ export interface IOrganization {
   currency: CurrencyCode;
   status: 'active' | 'suspended' | 'cancelled';
   reviewQuestions: OrgReviewQuestions[];
+  frequentlyAskedQuestions: FAQItem[];
   reviewTimer: number | null;
 }
 

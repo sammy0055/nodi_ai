@@ -88,10 +88,14 @@ export const inventoryContextLoader = async () => {
 export const ordersContextLoader = async () => {
   const { getOrders } = new OrderService();
   const { getUsers, fetchCurrentUser } = new UserService();
-  const [orderResults, usersResults, currentUserResult] = await Promise.allSettled([getOrders({}), getUsers(), fetchCurrentUser()]);
+  const [orderResults, usersResults, currentUserResult] = await Promise.allSettled([
+    getOrders({}),
+    getUsers(),
+    fetchCurrentUser(),
+  ]);
   const orders = orderResults.status === 'fulfilled' ? orderResults.value : null;
   const users = usersResults.status === 'fulfilled' ? usersResults.value : null;
-   const currentUser = currentUserResult.status === 'fulfilled' ? currentUserResult.value : null;
+  const currentUser = currentUserResult.status === 'fulfilled' ? currentUserResult.value : null;
   return {
     orders: orders?.data,
     users: users?.data,
@@ -110,13 +114,13 @@ export const customerContextLoader = async () => {
 
 export const reviewContextLoader = async () => {
   const { getReviews } = new ReviewService();
-  const {getOrganization} = new OrganizationService()
+  const { getOrganization } = new OrganizationService();
   const [reviewResults, orgResult] = await Promise.allSettled([getReviews({}), getOrganization()]);
   const reviews = reviewResults.status === 'fulfilled' ? reviewResults.value : null;
-   const organization = orgResult.status === 'fulfilled' ? orgResult.value : null;
+  const organization = orgResult.status === 'fulfilled' ? orgResult.value : null;
   return {
     reviews: { data: reviews?.data },
-    organization: organization?.data
+    organization: organization?.data,
   };
 };
 
@@ -145,18 +149,22 @@ export async function billingContextLoader() {
 
 export async function settingsContextLoader() {
   const { getUsers, getRoles, getPermissions } = new UserService();
-  const [usersResults, rolesResults, permissionsResult] = await Promise.allSettled([
+  const { getOrganization } = new OrganizationService();
+  const [usersResults, rolesResults, permissionsResult, orgResult] = await Promise.allSettled([
     getUsers(),
     getRoles(),
     getPermissions(),
+    getOrganization(),
   ]);
 
   const users = usersResults.status === 'fulfilled' ? usersResults.value : null;
   const roles = rolesResults.status === 'fulfilled' ? rolesResults.value : null;
   const permissions = permissionsResult.status === 'fulfilled' ? permissionsResult.value : null;
+  const organization = orgResult.status === 'fulfilled' ? orgResult.value : null;
   return {
     users: users?.data,
     roles: roles?.data,
     permissions: permissions?.data,
+    organization: organization?.data,
   };
 }

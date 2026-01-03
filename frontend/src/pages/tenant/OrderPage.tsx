@@ -1678,7 +1678,7 @@ const OrdersPage: React.FC = () => {
                               <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
                               {item?.product?.options?.length > 0 && (
                                 <div className="text-xs text-neutral-500 mt-1">
-                                  {item?.product.options?.map((opt) => `${opt?.name}: ${opt.choice.label}`).join(', ')}
+                                  {item?.product?.options?.map((opt) => `${opt?.name}: ${opt.choice.label}`).join(', ')}
                                 </div>
                               )}
                             </div>
@@ -1688,7 +1688,7 @@ const OrdersPage: React.FC = () => {
                             <p className="text-xs text-gray-500">
                               Unit: {formatCurrency(item.product?.price || 0, selectedOrder.currency)}
                             </p>
-                            {item?.product.options?.some((opt) => parseInt(opt.choice.priceAdjustment) > 0) && (
+                            {item?.product?.options?.some((opt) => parseInt(opt.choice.priceAdjustment) > 0) && (
                               <p className="text-xs text-neutral-500">
                                 +
                                 {formatCurrency(

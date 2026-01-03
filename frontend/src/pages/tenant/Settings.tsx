@@ -27,6 +27,7 @@ import { CurrencyCode } from '../../types/product';
 import { useLoaderData } from 'react-router';
 import { UserService } from '../../services/userService';
 import type { Permission, Role, User } from '../../types/users';
+import type { IOrganization } from '../../types/organization';
 import FAQManager from '../../components/organisms/settings/fqaManager';
 
 const SettingsPage: React.FC = () => {
@@ -45,6 +46,7 @@ const SettingsPage: React.FC = () => {
     users: User[];
     roles: Role[];
     permissions: Permission[];
+    organization: IOrganization;
   };
 
   // State for navigation
@@ -896,7 +898,7 @@ const SettingsPage: React.FC = () => {
 
   const renderFQATab = () => (
     <div>
-      <FAQManager />
+      <FAQManager data={data.organization.frequentlyAskedQuestions} />
     </div>
   );
 

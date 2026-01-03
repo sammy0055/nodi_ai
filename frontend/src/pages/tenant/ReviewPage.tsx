@@ -84,11 +84,11 @@ const ReviewsPage: React.FC = () => {
 
   // initialize data
   useEffect(() => {
-    if (data.organization.reviewQuestions) {
+    if (data?.organization?.reviewQuestions) {
       setReviewQuestions(data.organization.reviewQuestions);
       setReviewTime(data.organization.reviewTimer || null);
     }
-    if (data.reviews) {
+    if (data.reviews.data) {
       setReviews(data.reviews.data.data);
       setPagination(data.reviews.data.pagination);
     }

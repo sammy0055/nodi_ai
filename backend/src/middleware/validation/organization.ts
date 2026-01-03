@@ -17,6 +17,14 @@ const setOrgReviewQuestionsSchema = z.array(
   })
 );
 
+const setOrgFQAQuestionsSchema = z.array(
+  z.object({
+    id: z.string(),
+    question: z.string(),
+    answer: z.string(),
+  })
+);
+
 export function validatecreateOrganizationSchemaBody() {
   return (req: Request, res: Response, next: NextFunction) => {
     const parsed = createOrganizationSchema.safeParse(req.body);
@@ -37,6 +45,23 @@ export function validatecreateOrganizationSchemaBody() {
 export function validatesetOrgReviewQuestionsSchemaBody() {
   return (req: Request, res: Response, next: NextFunction) => {
     const parsed = setOrgReviewQuestionsSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({
+        message: 'validation failed',
+        errors: parsed.error.issues.map((i) => ({
+          path: i.path.join('.'),
+          message: i.message,
+        })),
+      });
+    }
+    req.body = parsed.data; // use the parsed/typed data
+    next();
+  };
+}
+
+export function validatesetOrgFQAQuestionsSchemaBody() {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const parsed = setOrgFQAQuestionsSchema.safeParse(req.body);
     if (!parsed.success) {
       return res.status(400).json({
         message: 'validation failed',

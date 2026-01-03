@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   validatecreateOrganizationSchemaBody,
+  validatesetOrgFQAQuestionsSchemaBody,
   validatesetOrgReviewQuestionsSchemaBody,
 } from '../middleware/validation/organization';
 import { OrganizationController } from '../controllers/organization.controller';
@@ -103,6 +104,30 @@ organizationRoute.post(
   async (req, res) => {
     try {
       const data = await OrganizationController.setOrgReviewQuestions(req.body, req.user!);
+      const response: APIResponseFormat<any> = {
+        message: 'review questions set successfully',
+        data,
+      };
+
+      res.status(201).json(response);
+    } catch (error: any) {
+      const response: APIResponseFormat<null> = {
+        message: error.message,
+        error: error,
+      };
+      errorLogger(error);
+      res.status(500).json(response);
+    }
+  }
+);
+
+organizationRoute.post(
+  '/set-org-fqa-questions',
+  authMiddleware,
+  validatesetOrgFQAQuestionsSchemaBody(),
+  async (req, res) => {
+    try {
+      const data = await OrganizationController.setOrgFQAQuestions(req.body, req.user!);
       const response: APIResponseFormat<any> = {
         message: 'review questions set successfully',
         data,
