@@ -2,13 +2,9 @@ import { IArea } from './area';
 
 export enum OrderStatusTypes {
   PENDING = 'pending',
-  CONFIRMED = 'confirmed',
   PROCESSING = 'processing',
-  SHIPPED = 'shipped',
   DELIVERED = 'delivered',
   CANCELLED = 'cancelled',
-  RETURNED = 'returned',
-  REFUNDED = 'refunded',
 }
 
 export enum OrderSourceTypes {

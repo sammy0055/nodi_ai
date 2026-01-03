@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo, memo, type ReactElement } from 'react';
 import {
   FiSearch,
-  FiFilter,
   FiEdit,
   FiEye,
   FiBox,
@@ -25,7 +24,6 @@ import {
   FiUserPlus,
   FiAlertCircle,
   FiTrendingUp,
-  FiBarChart2,
   FiActivity,
   FiZap,
 } from 'react-icons/fi';
@@ -44,15 +42,9 @@ import useProcessingTime from '../../hooks/orderProcessingTimer';
 // Order status object
 export const OrderStatusTypes = {
   PENDING: 'pending',
-  CONFIRMED: 'confirmed',
-  COMPLETED: 'completed',
   PROCESSING: 'processing',
-  SHIPPED: 'shipped',
   DELIVERED: 'delivered',
   CANCELLED: 'cancelled',
-  RETURNED: 'returned',
-  REFUNDED: 'refunded',
-  ON_HOLD: 'on_hold',
 } as const;
 
 // Order source object
@@ -543,8 +535,8 @@ const OrdersPage: React.FC = () => {
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   const [orderToAssign, setOrderToAssign] = useState<IOrder | null>(null);
   const [assignToUserId, setAssignToUserId] = useState<string>('');
-  const [showFilters, setShowFilters] = useState(false);
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  // const [showFilters, setShowFilters] = useState(false);
+  const [viewMode] = useState<'list' | 'grid'>('list');
 
   const selectedOrderProcessingTime = useProcessingTime(selectedOrder!);
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
@@ -579,7 +571,7 @@ const OrdersPage: React.FC = () => {
   const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
     setUpdatingOrderId(orderId);
     try {
-      if (newStatus === 'delivered' || newStatus === 'completed') {
+      if (newStatus === 'delivered') {
         const orderToUpdate = orders.find((o) => o.id === orderId);
         if (!orderToUpdate) {
           alert('order not found');
@@ -596,8 +588,7 @@ const OrdersPage: React.FC = () => {
 
             if (
               newStatus === OrderStatusTypes.DELIVERED ||
-              newStatus === OrderStatusTypes.CANCELLED ||
-              newStatus === OrderStatusTypes.REFUNDED
+              newStatus === OrderStatusTypes.CANCELLED 
             ) {
               const assignedUserId = order.assignedUserId;
               if (assignedUserId) {
@@ -692,7 +683,7 @@ const OrdersPage: React.FC = () => {
       try {
         const updatedOrder: any = {
           ...order,
-          status: OrderStatusTypes.CONFIRMED,
+          status: OrderStatusTypes.PENDING,
           assignedUserId: null,
           assignedUserName: null,
           assignedAt: null,
@@ -760,22 +751,22 @@ const OrdersPage: React.FC = () => {
     switch (status) {
       case OrderStatusTypes.PENDING:
         return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-      case OrderStatusTypes.CONFIRMED:
-        return 'bg-blue-50 text-blue-700 border-blue-200';
+      // case OrderStatusTypes.CONFIRMED:
+      //   return 'bg-blue-50 text-blue-700 border-blue-200';
       case OrderStatusTypes.PROCESSING:
         return 'bg-purple-50 text-purple-700 border-purple-200';
-      case OrderStatusTypes.SHIPPED:
-        return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+      // case OrderStatusTypes.SHIPPED:
+      //   return 'bg-indigo-50 text-indigo-700 border-indigo-200';
       case OrderStatusTypes.DELIVERED:
         return 'bg-green-50 text-green-700 border-green-200';
       case OrderStatusTypes.CANCELLED:
         return 'bg-red-50 text-red-700 border-red-200';
-      case OrderStatusTypes.RETURNED:
-        return 'bg-orange-50 text-orange-700 border-orange-200';
-      case OrderStatusTypes.REFUNDED:
-        return 'bg-gray-50 text-gray-700 border-gray-200';
-      case OrderStatusTypes.ON_HOLD:
-        return 'bg-pink-50 text-pink-700 border-pink-200';
+      // case OrderStatusTypes.RETURNED:
+      //   return 'bg-orange-50 text-orange-700 border-orange-200';
+      // case OrderStatusTypes.REFUNDED:
+      //   return 'bg-gray-50 text-gray-700 border-gray-200';
+      // case OrderStatusTypes.ON_HOLD:
+      //   return 'bg-pink-50 text-pink-700 border-pink-200';
       default:
         return 'bg-gray-50 text-gray-700 border-gray-200';
     }
@@ -785,22 +776,22 @@ const OrdersPage: React.FC = () => {
     switch (status) {
       case OrderStatusTypes.PENDING:
         return <FiClock className="text-yellow-600" />;
-      case OrderStatusTypes.CONFIRMED:
-        return <FiCheckCircle className="text-blue-600" />;
+      // case OrderStatusTypes.CONFIRMED:
+      //   return <FiCheckCircle className="text-blue-600" />;
       case OrderStatusTypes.PROCESSING:
         return <FiRefreshCw className="text-purple-600" />;
-      case OrderStatusTypes.SHIPPED:
-        return <FiTruck className="text-indigo-600" />;
+      // case OrderStatusTypes.SHIPPED:
+      //   return <FiTruck className="text-indigo-600" />;
       case OrderStatusTypes.DELIVERED:
         return <FiPackage className="text-green-600" />;
       case OrderStatusTypes.CANCELLED:
         return <FiXCircle className="text-red-600" />;
-      case OrderStatusTypes.RETURNED:
-        return <FiRefreshCw className="text-orange-600" />;
-      case OrderStatusTypes.REFUNDED:
-        return <FiDollarSign className="text-gray-600" />;
-      case OrderStatusTypes.ON_HOLD:
-        return <FiAlertCircle className="text-pink-600" />;
+      // case OrderStatusTypes.RETURNED:
+      //   return <FiRefreshCw className="text-orange-600" />;
+      // case OrderStatusTypes.REFUNDED:
+      //   return <FiDollarSign className="text-gray-600" />;
+      // case OrderStatusTypes.ON_HOLD:
+      //   return <FiAlertCircle className="text-pink-600" />;
       default:
         return <FiBox className="text-gray-600" />;
     }
@@ -907,9 +898,7 @@ const OrdersPage: React.FC = () => {
       highPriorityOrders: highPriorityOrders.length,
     };
   }, [orders]);
-  console.log('==================selectedTab==================');
-  console.log(selectedTab);
-  console.log('====================================');
+
   // Filter orders based on selected tab and filters
   const fetchOrders = async (page: number, resetData = false) => {
     const filters: any = { page };
@@ -1088,7 +1077,7 @@ const OrdersPage: React.FC = () => {
                 <FiClock className="mr-2" />
                 Pending
                 <span className="ml-2 bg-yellow-100 text-yellow-800 rounded-full px-2 py-0.5 text-xs">
-                  {orders.filter((o) => o.status === OrderStatusTypes.PENDING).length}
+                  {orders?.filter((o) => o.status === OrderStatusTypes.PENDING).length}
                 </span>
               </button>
 
@@ -1172,7 +1161,7 @@ const OrdersPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center space-x-3">
+              {/* <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-2">
                   <Button
                     variant={viewMode === 'list' ? 'primary' : 'outline'}
@@ -1206,11 +1195,11 @@ const OrdersPage: React.FC = () => {
                     </span>
                   )}
                 </Button>
-              </div>
+              </div> */}
             </div>
 
             {/* Advanced Filters */}
-            {showFilters && (
+            {/* {showFilters && (
               <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
@@ -1257,7 +1246,7 @@ const OrdersPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-            )}
+            )} */}
           </div>
 
           {/* Users Status Bar */}
@@ -1717,10 +1706,10 @@ const OrdersPage: React.FC = () => {
 };
 
 // Helper component for grid icon
-const FiGrid: React.FC<{ size?: number }> = ({ size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 16 16" fill="currentColor">
-    <path d="M1 1h5v5H1V1zm0 7h5v5H1V8zm7-7h5v5H8V1zm0 7h5v5H8V8z" fillRule="evenodd" clipRule="evenodd" />
-  </svg>
-);
+// const FiGrid: React.FC<{ size?: number }> = ({ size = 16 }) => (
+//   <svg width={size} height={size} viewBox="0 0 16 16" fill="currentColor">
+//     <path d="M1 1h5v5H1V1zm0 7h5v5H1V8zm7-7h5v5H8V1zm0 7h5v5H8V8z" fillRule="evenodd" clipRule="evenodd" />
+//   </svg>
+// );
 
 export default OrdersPage;
