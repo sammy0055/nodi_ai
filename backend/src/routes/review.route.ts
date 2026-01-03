@@ -22,9 +22,6 @@ reviewRoute.get('/get-reviews', authMiddleware, async (req, res) => {
       message: 'reviews retrieved successfully',
       data,
     };
-    console.log('==================response==================');
-    console.log(response);
-    console.log('====================================');
     res.status(201).json(response);
   } catch (error: any) {
     const response: APIResponseFormat<null> = {

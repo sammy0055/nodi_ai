@@ -28,4 +28,12 @@ function useProcessingTime(order: IOrder) {
   return processingTime;
 }
 
+export const getOrderProcessingTime = (order: IOrder) => {
+  if (!order?.startedAt) throw new Error('wrong processing time');
+  const start = new Date(order.startedAt).getTime();
+  const end = order.completedAt ? new Date(order.completedAt).getTime() : Date.now();
+
+  return Math.floor((end - start) / 1000);
+};
+
 export default useProcessingTime;

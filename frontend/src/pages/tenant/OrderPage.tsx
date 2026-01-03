@@ -35,7 +35,7 @@ import { useLoaderData } from 'react-router';
 import type { Pagination } from '../../types/customer';
 import type { User } from '../../types/users';
 import { UserService } from '../../services/userService';
-import useProcessingTime from '../../hooks/orderProcessingTimer';
+import useProcessingTime, { getOrderProcessingTime } from '../../hooks/orderProcessingTimer';
 
 // Extended User interface with additional fields for order management
 
@@ -572,19 +572,20 @@ const OrdersPage: React.FC = () => {
   const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
     setUpdatingOrderId(orderId);
     try {
+      const orderToUpdate = orders.find((o) => o.id === orderId);
+      if (orderToUpdate?.status === 'delivered') {
+        alert('can not change order status, order is already completed');
+        return;
+      }
       if (newStatus === 'delivered') {
-        const orderToUpdate = orders.find((o) => o.id === orderId);
-        if (orderToUpdate?.status === 'delivered') {
-          alert('can not change order status, order is already completed');
-          return;
-        }
         if (!orderToUpdate) {
           alert('order not found');
           return;
         }
+        const processingTime = getOrderProcessingTime(orderToUpdate);
         await updateOrder({
           ...orderToUpdate,
-          estimatedCompletionTime: selectedOrderProcessingTime,
+          estimatedCompletionTime: processingTime,
           status: newStatus,
           completedAt: new Date(),
         });
@@ -630,6 +631,10 @@ const OrdersPage: React.FC = () => {
   const handleAssignOrder = useCallback(
     async (order: IOrder, userId: string) => {
       if (!userId) return;
+      if (order.status === 'delivered') {
+        alert('this order is already completed');
+        return;
+      }
 
       const user = users.find((u) => u.id === userId);
       if (!user) return;
