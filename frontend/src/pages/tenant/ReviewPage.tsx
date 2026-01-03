@@ -93,7 +93,9 @@ const ReviewsPage: React.FC = () => {
       setPagination(data.reviews.data.pagination);
     }
   }, [data]);
-
+console.log('====================================');
+console.log(data);
+console.log('====================================');
   // CRUD Operations for Review Questions
   const handleAddQuestion = async () => {
     if (!newQuestion.trim()) return;
