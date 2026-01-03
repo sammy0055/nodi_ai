@@ -32,7 +32,8 @@ export const orgAtom = atom<IOrganization>({
     currency: 'LBP',
     status: 'active',
     reviewTimer:10,
-    reviewQuestions: []
+    reviewQuestions: [],
+    frequentlyAskedQuestions:[]
   },
 });
 
