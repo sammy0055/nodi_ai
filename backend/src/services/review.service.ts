@@ -26,7 +26,7 @@ export class ReviewService {
     const { rows: reviews, count: totalItems } = await ReviewModel.findAndCountAll({
       where,
       include: [
-        { model: CustomerModel, as: 'customer', attributes: ['id', 'name', 'email'] },
+        { model: CustomerModel, as: 'customer', attributes: ['id', 'name'] },
         {
           model: OrderModel,
           as: 'order',
