@@ -546,7 +546,9 @@ const OrdersPage: React.FC = () => {
 
   // Mock users data with enhanced fields
   const [users, setUsers] = useState<User[]>([]);
-
+console.log('====================================');
+console.log({users, currentUser});
+console.log('====================================');
   useEffect(() => {
     if (data) {
       setOrders(data.orders.data);

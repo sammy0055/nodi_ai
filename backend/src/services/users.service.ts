@@ -120,12 +120,15 @@ export class UserService {
         {
           model: UserRoleModel,
           as: 'roles',
-          where: {
-            name: {
-              [Op.ne]: 'super-admin',
+          where: user.organizationId ? { organizationId: user.organizationId } : {},
+          required: false, // keep users without roles
+          include: [
+            {
+              model: UserPermissionsModel,
+              as: 'permissions',
+              through: { attributes: [] }, // hide join table
             },
-          },
-          required: false,
+          ],
         },
       ],
     });
