@@ -169,7 +169,7 @@ const StatusSelect = memo(
         <select
           value={order.status}
           onChange={handleChange}
-          disabled={updatingOrderId === order.id}
+          disabled={updatingOrderId === order.id || order?.estimatedCompletionTime !== null}
           className={`appearance-none bg-white border border-gray-300 rounded-lg px-3 py-1.5 pr-8 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
             updatingOrderId === order.id ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-gray-400'
           }`}
@@ -546,9 +546,9 @@ const OrdersPage: React.FC = () => {
 
   // Mock users data with enhanced fields
   const [users, setUsers] = useState<User[]>([]);
-console.log('====================================');
-console.log({users, currentUser});
-console.log('====================================');
+  console.log('====================================');
+  console.log({ users, currentUser });
+  console.log('====================================');
   useEffect(() => {
     if (data) {
       setOrders(data.orders.data);
@@ -576,11 +576,20 @@ console.log('====================================');
     try {
       if (newStatus === 'delivered') {
         const orderToUpdate = orders.find((o) => o.id === orderId);
+        if (orderToUpdate?.estimatedCompletionTime) {
+          alert('can not change order status, order is already completed');
+          return;
+        }
         if (!orderToUpdate) {
           alert('order not found');
           return;
         }
-        await updateOrder({ ...orderToUpdate, status: newStatus, completedAt: new Date() });
+        await updateOrder({
+          ...orderToUpdate,
+          estimatedCompletionTime: selectedOrderProcessingTime,
+          status: newStatus,
+          completedAt: new Date(),
+        });
       }
       await updateOrderStatus({ orderId, status: newStatus });
 
