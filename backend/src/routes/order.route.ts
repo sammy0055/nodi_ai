@@ -104,9 +104,7 @@ orderRoute.get('/orders-stats', authMiddleware, async (req, res) => {
       message: 'order stats retrieved successfully',
       data,
     };
-    console.log('================response====================');
-    console.log(response);
-    console.log('====================================');
+
     res.status(201).json(response);
   } catch (error: any) {
     const response: APIResponseFormat<null> = {

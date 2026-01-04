@@ -299,14 +299,16 @@ export class OrderService {
 
   static async getOrderStats(user: Pick<User, 'id' | 'organizationId'>) {
     const stats = await OrderModel.findAll({
-      attributes: ['status', [fn('COUNT', col('id')), 'count']],
+      attributes: ['status', [fn('COUNT', col('id')), 'count'], [fn('SUM', col('totalAmount')), 'revenue']],
       group: ['status'],
       where: { organizationId: user.organizationId! },
     });
 
     // format result
-    const result: any = {
-      total: 0,
+    let totalOrders = 0;
+    let totalRevenue = 0;
+
+    const statusCount: any = {
       processing: 0,
       delivered: 0,
       cancelled: 0,
@@ -314,12 +316,20 @@ export class OrderService {
     };
 
     stats.forEach((row: any) => {
-      const status = row.status;
       const count = Number(row.get('count'));
-      result[status] = count;
-      result.total += count;
+      const revenue = Number(row.get('revenue') || 0);
+
+      totalOrders += count;
+      totalRevenue += revenue;
+
+      statusCount[row.status] = count;
     });
-    console.log(result);
+
+    const result = {
+      totalOrders,
+      totalRevenue,
+      ...statusCount,
+    };
     return result;
   }
 }
