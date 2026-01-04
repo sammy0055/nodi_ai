@@ -32,3 +32,21 @@ reviewRoute.get('/get-reviews', authMiddleware, async (req, res) => {
     res.status(500).json(response);
   }
 });
+
+reviewRoute.get('/get-review-stats', authMiddleware, async (req, res) => {
+  try {
+    const data = await ReviewService.getReviewStats(req.user!);
+    const response: APIResponseFormat<any> = {
+      message: 'reviews stats retrieved successfully',
+      data,
+    };
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
