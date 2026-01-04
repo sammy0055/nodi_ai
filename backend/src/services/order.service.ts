@@ -39,9 +39,6 @@ export class OrderService {
     };
 
     const { userRole } = await getUserRoleAndPermission({ id: user.id, organizationId: user.organizationId! });
-    console.log('===============userRole=====================');
-    console.log(userRole);
-    console.log('====================================');
     if (userRole === UserTypes.Staff) {
       if (status) where.status = status;
       if (status !== OrderStatusTypes.PENDING) where.assignedUserId = user.id;

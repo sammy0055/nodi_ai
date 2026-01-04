@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   FiPlus,
-  FiSearch,
   FiUser,
   FiMapPin,
   FiCalendar,
@@ -25,6 +24,7 @@ import { useOrdersSetRecoilState, useOrdersValue, useUserSetRecoilState, useUser
 import useProcessingTime, { getOrderProcessingTime } from '../../../hooks/orderProcessingTimer';
 import { OrderService } from '../../../services/orderService';
 import { UserService } from '../../../services/userService';
+import type { Pagination } from '../../../types/customer';
 
 // Order status object
 export const OrderStatusTypes = {
@@ -141,19 +141,17 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
   // State
   const [activeTab, setActiveTab] = useState<OrderStatus>('processing');
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
-  const [filteredOrders, setFilteredOrders] = useState<IOrder[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState<Pagination>();
   const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [showFilters] = useState(false);
+
   const [mobileView, setMobileView] = useState<'list' | 'detail'>('list');
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
   const [selectedSource, setSelectedSource] = useState<string>('all');
   const [_, setAssignToUserId] = useState<string>('');
 
   const processingTime = useProcessingTime(selectedOrder!);
-
+  const { updateOrder, updateOrderStatus, getOrders } = new OrderService();
   // Tabs configuration
   const tabs = [
     {
@@ -201,54 +199,50 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
   useEffect(() => {
     if (data) {
       setOrders(data.orders.data);
-      // setPagination(data.orders.pagination);
       setCurrentUser(data.currentUser);
       setSelectedOrder(data.orders.data[0] || null);
       setLoading(false);
-      setHasMore(true);
+      setPagination(data.orders.pagination);
     }
   }, [data]);
 
-  // Filter orders based on search and filters
   useEffect(() => {
-    let filtered = [...orders];
+    handlePagination(pagination?.currentPage || 1);
+  }, [activeTab]);
 
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (order) =>
-          order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          order.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          order.customer.phone.includes(searchTerm)
-      );
+  // Filter orders based on selected tab and filters
+  const fetchOrders = async (page: number, resetData = false) => {
+    try {
+      setLoading(true);
+      const filters: any = { page };
+
+      const selectedTab = tabs.find((t) => t.id === activeTab)!.id;
+
+      if (selectedTab !== 'new') {
+        filters.status = selectedTab;
+      }
+      if (selectedTab === 'new') filters.status = OrderStatusTypes.PENDING;
+      const response = await getOrders(filters);
+
+      const newData = response.data.data;
+      const pagination = response.data.pagination;
+
+      setOrders((prev) => (resetData ? newData : [...prev, ...newData]));
+      setSelectedOrder(response.data.data[0]);
+      setPagination(pagination);
+      setLoading(false);
+    } catch (error: any) {
+      alert('something went wrong');
     }
+  };
 
-    // Filter by priority
-    if (selectedPriority !== 'all') {
-      filtered = filtered.filter((order) => order.priority === selectedPriority);
-    }
-
-    // Filter by source
-    if (selectedSource !== 'all') {
-      filtered = filtered.filter((order) => order.source === selectedSource);
-    }
-
-    setFilteredOrders(filtered);
-  }, [searchTerm, selectedPriority, selectedSource, orders]);
+  const handlePagination = async (page: number) => {
+    fetchOrders(page, page === 1);
+  };
 
   // Load more data
   const loadMore = () => {
-    // setLoading(true);
-    // setTimeout(() => {
-    //   const moreOrders = generateMockOrders(10, activeTab);
-    //   setOrders((prev) => [...prev, ...moreOrders]);
-    //   setFilteredOrders((prev) => [...prev, ...moreOrders]);
-    //   setPage((prev) => prev + 1);
-    //   setLoading(false);
-    //   if (moreOrders.length < 10) {
-    //     setHasMore(false);
-    //   }
-    // }, 1000);
+    handlePagination(pagination?.currentPage || 1);
   };
 
   const formatTime = useCallback((seconds: number) => {
@@ -273,7 +267,6 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
     }
   };
 
-  const { updateOrder, updateOrderStatus } = new OrderService();
   const { updateUser } = new UserService();
   const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
     try {
@@ -519,7 +512,6 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
                   key={tab.id}
                   onClick={() => {
                     setActiveTab(tab.id as OrderStatus);
-                    setPage(1);
                   }}
                   className={`p-4 rounded-xl border transition-all duration-200 flex flex-col items-center justify-center ${
                     isActive
@@ -544,92 +536,6 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
           </div>
         </div>
 
-        {/* Search and Filters */}
-        <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between space-y-4 lg:space-y-0">
-            <div className="flex-1">
-              <div className="relative max-w-md">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FiSearch className="text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search orders by number, customer, or phone..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Advanced Filters */}
-          {showFilters && (
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
-                  <select
-                    value={selectedPriority}
-                    onChange={(e) => setSelectedPriority(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="all">All Priorities</option>
-                    {Object.values(OrderPriorityTypes).map((priority) => (
-                      <option key={priority} value={priority}>
-                        {priority.charAt(0).toUpperCase() + priority.slice(1)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Source</label>
-                  <select
-                    value={selectedSource}
-                    onChange={(e) => setSelectedSource(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="all">All Sources</option>
-                    {Object.values(OrderSourceTypes).map((source) => (
-                      <option key={source} value={source}>
-                        {source.replace('_', ' ')}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    <option>Newest First</option>
-                    <option>Oldest First</option>
-                    <option>Highest Amount</option>
-                    <option>Lowest Amount</option>
-                    <option>Highest Priority</option>
-                  </select>
-                </div>
-              </div>
-
-              {(selectedPriority !== 'all' || selectedSource !== 'all') && (
-                <div className="mt-4 flex justify-end">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedPriority('all');
-                      setSelectedSource('all');
-                    }}
-                    className="text-gray-600 hover:text-gray-900"
-                  >
-                    Clear all filters
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
         {/* Two Column Layout - Only Order List has Scrollbar */}
         <div className="flex flex-col lg:flex-row border border-gray-200 rounded-xl bg-white">
           {/* Left Column - Orders List with Scrollbar */}
@@ -638,18 +544,18 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
               <div className="bg-white p-4 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-medium text-gray-900">Orders ({filteredOrders.length})</h3>
+                    <h3 className="font-medium text-gray-900">Orders ({pagination?.totalPages})</h3>
                     <p className="text-sm text-gray-500 mt-1">Select an order to view details</p>
                   </div>
                   <div className="text-sm text-gray-600">
-                    Showing {filteredOrders.length} of {orders.length}
+                    Showing {pagination?.totalPages} of {pagination?.totalItems}
                   </div>
                 </div>
               </div>
 
               {/* Scrollable Orders List */}
               <div className="h-[600px] overflow-y-auto">
-                {loading && page === 1 ? (
+                {loading && pagination?.currentPage === 1 ? (
                   <div className="p-8 text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                     <p className="mt-2 text-gray-600">Loading orders...</p>
@@ -732,7 +638,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
               </div>
 
               {/* Load More Button */}
-              {hasMore && filteredOrders.length > 0 && (
+              {pagination?.hasNextPage && pagination.totalPages > 0 && (
                 <div className="p-4 border-t border-gray-200 bg-white">
                   <Button onClick={loadMore} variant="outline" className="w-full" disabled={loading}>
                     {loading ? (
