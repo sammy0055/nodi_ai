@@ -1,6 +1,7 @@
 import type { IReviews, OrgReviewQuestions } from '../pages/tenant/ReviewPage';
 import type { Pagination } from '../types/customer';
 import type { IOrganization } from '../types/organization';
+import type { ReviewStats } from '../types/stats';
 import { ApiClient } from './apiClient';
 
 interface GetReviewsParams {
@@ -45,5 +46,9 @@ export class ReviewService {
       method: 'POST',
       body: { timer: timer },
     });
+  }
+
+  async getReviewStats(): Promise<{ data: ReviewStats }> {
+    return ApiClient('GET_REVIEWS_STATS');
   }
 }

@@ -17,7 +17,7 @@ import {
   FiCheck,
   FiX,
   FiAlertCircle,
-  FiTrendingUp,
+  // FiTrendingUp,
 } from 'react-icons/fi';
 import Button from '../../components/atoms/Button/Button';
 import { useDebounce } from 'use-debounce';
@@ -259,7 +259,7 @@ const ReviewsPage: React.FC = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-xl border border-gray-200 p-5">
             <div className="flex items-center justify-between">
               <div>
@@ -330,7 +330,7 @@ const ReviewsPage: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Rating Distribution */}
         <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">

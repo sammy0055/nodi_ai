@@ -7,6 +7,7 @@ import {
   billingContextLoader,
   branchContextLoader,
   customerContextLoader,
+  dashboardContextLoader,
   inventoryContextLoader,
   ordersContextLoader,
   productContextLoader,
@@ -42,6 +43,7 @@ import ReviewsPage from '../pages/tenant/ReviewPage';
 import BillingPage from '../pages/tenant/BillingPage';
 import SettingsPage from '../pages/tenant/Settings';
 import { PrivacyPolicy } from '../pages/privacyPolicy';
+import Dashboard from '../pages/tenant/Dashboard';
 
 export const PageRoutes = {
   LOGIN: 'sign-in',
@@ -77,11 +79,17 @@ const router = createBrowserRouter([
     element: <PrivacyPolicy />,
   },
   {
+    path: '/staff_orders',
+    element: <OrdersPage />,
+    loader: ordersContextLoader,
+  },
+  {
     path: '/app/*',
     element: <TenantLayout />,
     loader: tenantContextLoader,
     children: [
-      { index: true, element: <Navigate to={PageRoutes.ORDERS} /> },
+      { index: true, element: <Navigate to={PageRoutes.APP_DASHBOARD} /> },
+      { path: PageRoutes.APP_DASHBOARD, element: <Dashboard />, loader: dashboardContextLoader },
       { path: PageRoutes.ORDERS, element: <OrdersPage />, loader: ordersContextLoader },
       { path: PageRoutes.AreasZones, element: <AreasZonesPage />, loader: areaAndZoneContextLoader },
       { path: PageRoutes.BRANCHS, element: <BranchesPage />, loader: branchContextLoader },

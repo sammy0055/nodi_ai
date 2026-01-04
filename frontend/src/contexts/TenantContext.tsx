@@ -9,6 +9,29 @@ import { OrderService } from '../services/orderService';
 import { CustomerService } from '../services/customerService';
 import { ReviewService } from '../services/reviewService';
 
+export const dashboardContextLoader = async () => {
+  const { getOrganization } = new OrganizationService();
+  const { getOrderStats, getOrderAvgProcessingStats } = new OrderService();
+  const { getReviewStats } = new ReviewService();
+  const [orgResult, orderStatsResult, orderAvgPResult, reviewStatsResult] = await Promise.allSettled([
+    getOrganization(),
+    getOrderStats(),
+    getOrderAvgProcessingStats(),
+    getReviewStats(),
+  ]);
+
+  const org = orgResult.status === 'fulfilled' ? orgResult.value : null;
+  const orderStats = orderStatsResult.status === 'fulfilled' ? orderStatsResult.value : null;
+  const orderAvgProcess = orderAvgPResult.status === 'fulfilled' ? orderAvgPResult.value : null;
+  const reviewStats = reviewStatsResult.status === 'fulfilled' ? reviewStatsResult.value : null;
+  return {
+    organization: org?.data,
+    orderStats: orderStats?.data,
+    orderAvgProcessStats: orderAvgProcess?.data,
+    reviewStats: reviewStats?.data,
+  };
+};
+
 export const tenantContextLoader = async () => {
   const { getOrganization } = new OrganizationService();
   const { fetchCurrentUser } = new UserService();

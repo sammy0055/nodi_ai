@@ -24,6 +24,7 @@ import {
 } from '../store/authAtoms';
 import { UserService } from '../services/userService';
 import type { ISubscription, ISubscriptionPlan } from '../types/subscription';
+import { MdDashboard } from 'react-icons/md';
 
 export const TenantLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -47,6 +48,10 @@ export const TenantLayout = () => {
   useEffect(() => {
     if (!data) return;
     // 🔑 Handle redirects once, based on missing data
+    if (data?.user?.roles.length !== 0 && data?.user?.roles[0].name === 'staff') {
+      navigate(`/staff_orders`, { replace: true });
+      return;
+    }
     if (!data.user) {
       navigate(`/app/auth/${PageRoutes.LOGIN}`, { replace: true });
       return;
@@ -69,6 +74,7 @@ export const TenantLayout = () => {
 
   // Navigation items
   const navigationItems = [
+    { path: `/app/${PageRoutes.APP_DASHBOARD}`, label: 'Dashboard', icon: <MdDashboard className="text-lg" /> },
     { path: `/app/${PageRoutes.ORDERS}`, label: 'Orders', icon: <FiShoppingCart className="text-lg" /> },
     { path: `/app/${PageRoutes.PRODUCTS}`, label: 'Products', icon: <FiPackage className="text-lg" /> },
     { path: `/app/${PageRoutes.BRANCHS}`, label: 'Branches', icon: <FiTrendingUp className="text-lg" /> },

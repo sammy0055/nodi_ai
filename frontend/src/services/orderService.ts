@@ -1,5 +1,6 @@
 import type { IOrder } from '../pages/tenant/OrderPage';
 import type { Pagination } from '../types/customer';
+import type { OrderAverageProcessingTimpe, OrderStats } from '../types/stats';
 import { ApiClient } from './apiClient';
 
 interface GetOrderParams {
@@ -24,7 +25,7 @@ export class OrderService {
     page,
     status,
   }: GetOrderParams): Promise<{ data: { data: IOrder[]; pagination: Pagination }; message: string }> {
-    return await ApiClient("GET_ASSIGNED_ORDERS", {
+    return await ApiClient('GET_ASSIGNED_ORDERS', {
       queryParams: `?page=${page || 1}&status=${encodeURIComponent(status || '')}`,
     });
   }
@@ -41,5 +42,11 @@ export class OrderService {
       method: 'POST',
       body: data,
     });
+  }
+  async getOrderStats(): Promise<{ data: OrderStats }> {
+    return ApiClient('GET_ORDER_STATS');
+  }
+  async getOrderAvgProcessingStats(): Promise<{ data: OrderAverageProcessingTimpe }> {
+    return ApiClient('GET_ORDER_AVG_PROCESSING_STATS');
   }
 }

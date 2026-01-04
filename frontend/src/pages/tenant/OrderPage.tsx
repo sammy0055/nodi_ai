@@ -23,7 +23,7 @@ import {
   FiUserCheck,
   FiUserPlus,
   FiAlertCircle,
-  FiTrendingUp,
+  // FiTrendingUp,
   FiActivity,
   FiZap,
 } from 'react-icons/fi';
@@ -366,154 +366,6 @@ const OrderRow = memo(
 
 OrderRow.displayName = 'OrderRow';
 
-// Memoized OrderCard component
-const OrderCard = memo(
-  ({
-    order,
-    // updatingOrderId,
-    // onStatusUpdate,
-    onViewOrder,
-    onAssignToSelf,
-    onUnassignOrder,
-    getStatusColor,
-    getStatusIcon,
-    getPriorityColor,
-    getSourceIcon,
-    formatDate,
-    formatTime,
-    formatCurrency,
-  }: {
-    order: IOrder;
-    updatingOrderId: string | null;
-    onStatusUpdate: (orderId: string, status: OrderStatus) => void;
-    onViewOrder: (order: IOrder) => void;
-    onAssignToSelf: (order: IOrder) => void;
-    onUnassignOrder: (order: IOrder) => void;
-    getStatusColor: (status: OrderStatus) => string;
-    getStatusIcon: (status: OrderStatus) => ReactElement;
-    getPriorityColor: (priority: OrderPriority) => string;
-    getSourceIcon: (source: OrderSource) => ReactElement;
-    formatDate: (date: Date) => string;
-    formatTime: (seconds: number) => string;
-    formatCurrency: (amount: number, currency?: string) => string;
-  }) => {
-    const processingTime = useProcessingTime(order);
-    return (
-      <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-lg transition-all duration-200 group">
-        {/* Card Header */}
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <div className="flex items-center space-x-2 mb-1">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
-                {getSourceIcon(order.source)}
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">{order.orderNumber}</h3>
-                <p className="text-xs text-gray-500">{formatDate(order.createdAt)}</p>
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-col items-end space-y-1">
-            <span
-              className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                order.status
-              )}`}
-            >
-              {getStatusIcon(order.status)}
-              <span className="ml-1 capitalize">{order.status.replace('_', ' ')}</span>
-            </span>
-            <span
-              className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(
-                order.priority
-              )}`}
-            >
-              <FiZap size={10} className="mr-1" />
-              {order.priority}
-            </span>
-          </div>
-        </div>
-
-        {/* Customer Info */}
-        <div className="mb-4">
-          <div className="flex items-center mb-2">
-            <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center mr-2">
-              <FiUser size={12} className="text-gray-600" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-900">{order.customer.name}</p>
-              <p className="text-xs text-gray-500">{order.customer.phone}</p>
-            </div>
-          </div>
-          <div className="flex items-center text-sm text-gray-600">
-            <FiMapPin className="mr-1" size={12} />
-            <span className="truncate">{order.branch.name}</span>
-          </div>
-        </div>
-
-        {/* Assigned User */}
-        {order.assignedUserName && (
-          <div className="mb-4 p-2 bg-blue-50 rounded-lg">
-            <div className="flex items-center">
-              <FiUserCheck className="text-blue-600 mr-2" size={14} />
-              <span className="text-sm font-medium text-blue-800">{order.assignedUserName}</span>
-              {processingTime && (
-                <span className="ml-auto text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                  {formatTime(processingTime)}
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Order Details */}
-        <div className="mb-4 grid grid-cols-2 gap-2 text-sm">
-          <div>
-            <p className="text-gray-500 text-xs">Items</p>
-            <p className="font-medium">{order.items.length}</p>
-          </div>
-          <div>
-            <p className="text-gray-500 text-xs">Est. Time</p>
-            <p className="font-medium">{order.estimatedCompletionTime || 'N/A'} min</p>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-          <div>
-            <p className="text-lg font-bold text-gray-900">{formatCurrency(order.totalAmount, order.currency)}</p>
-          </div>
-          <div className="flex space-x-1">
-            <Button variant="outline" size="sm" onClick={() => onViewOrder(order)} className="!p-1.5">
-              <FiEye size={14} />
-            </Button>
-            {!order.assignedUserId ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onAssignToSelf(order)}
-                className="!p-1.5 text-blue-600 border-blue-200 hover:bg-blue-50"
-              >
-                <FiUserCheck size={14} />
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onUnassignOrder(order)}
-                className="!p-1.5 text-red-600 border-red-200 hover:bg-red-50"
-              >
-                <FiUserCheck size={14} />
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-);
-
-OrderCard.displayName = 'OrderCard';
-
 export interface OrderPageProps {
   orders: { data: IOrder[]; pagination: Pagination };
   users: User[];
@@ -525,7 +377,7 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
   const currentUser = useUserValue();
   const setCurrentUser = useUserSetRecoilState();
   const setOrders = useOrdersSetRecoilState();
-  const [_, setPagination] = useState<Pagination>();
+  const [pagination, setPagination] = useState<Pagination>();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'all'>('all');
   const [selectedPriority, setSelectedPriority] = useState<OrderPriority | 'all'>('all');
@@ -540,7 +392,6 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
   const [orderToAssign, setOrderToAssign] = useState<IOrder | null>(null);
   const [assignToUserId, setAssignToUserId] = useState<string>('');
   // const [showFilters, setShowFilters] = useState(false);
-  const [viewMode] = useState<'list' | 'grid'>('list');
 
   const selectedOrderProcessingTime = useProcessingTime(selectedOrder!);
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
@@ -883,40 +734,40 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
   const { getOrders, getAssignedOrders, updateOrder } = useMemo(() => new OrderService(), []);
 
   // Calculate stats for the dashboard
-  const stats = useMemo(() => {
-    const allOrders = orders;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  // const stats = useMemo(() => {
+  //   const allOrders = orders;
+  //   const today = new Date();
+  //   today.setHours(0, 0, 0, 0);
 
-    const todayOrders = allOrders.filter((o) => new Date(o.createdAt) >= today);
-    const processingOrders = allOrders.filter((o) => o.status === OrderStatusTypes.PROCESSING);
-    const pendingOrders = allOrders.filter((o) => o.status === OrderStatusTypes.PENDING);
-    const highPriorityOrders = allOrders.filter((o) => o.priority === 'urgent' || o.priority === 'high');
+  //   const todayOrders = allOrders.filter((o) => new Date(o.createdAt) >= today);
+  //   const processingOrders = allOrders.filter((o) => o.status === OrderStatusTypes.PROCESSING);
+  //   const pendingOrders = allOrders.filter((o) => o.status === OrderStatusTypes.PENDING);
+  //   const highPriorityOrders = allOrders.filter((o) => o.priority === 'urgent' || o.priority === 'high');
 
-    const totalRevenue = allOrders
-      .filter((o) => o.status === OrderStatusTypes.DELIVERED)
-      .reduce((sum, o) => sum + o.totalAmount, 0);
+  //   const totalRevenue = allOrders
+  //     .filter((o) => o.status === OrderStatusTypes.DELIVERED)
+  //     .reduce((sum, o) => sum + o.totalAmount, 0);
 
-    const todayRevenue = todayOrders
-      .filter((o) => o.status === OrderStatusTypes.DELIVERED)
-      .reduce((sum, o) => sum + o.totalAmount, 0);
+  //   const todayRevenue = todayOrders
+  //     .filter((o) => o.status === OrderStatusTypes.DELIVERED)
+  //     .reduce((sum, o) => sum + o.totalAmount, 0);
 
-    // const avgProcessingTime =
-    //   processingOrders.length > 0
-    //     ? processingOrders.reduce((sum, o) => sum + (o.processingTime || 0), 0) / processingOrders.length
-    //     : 0;
+  //   // const avgProcessingTime =
+  //   //   processingOrders.length > 0
+  //   //     ? processingOrders.reduce((sum, o) => sum + (o.processingTime || 0), 0) / processingOrders.length
+  //   //     : 0;
 
-    return {
-      totalOrders: allOrders.length,
-      todayOrders: todayOrders.length,
-      processingOrders: processingOrders.length,
-      pendingOrders: pendingOrders.length,
-      totalRevenue,
-      todayRevenue,
-      avgProcessingTime: 0,
-      highPriorityOrders: highPriorityOrders.length,
-    };
-  }, [orders]);
+  //   return {
+  //     totalOrders: allOrders.length,
+  //     todayOrders: todayOrders.length,
+  //     processingOrders: processingOrders.length,
+  //     pendingOrders: pendingOrders.length,
+  //     totalRevenue,
+  //     todayRevenue,
+  //     avgProcessingTime: 0,
+  //     highPriorityOrders: highPriorityOrders.length,
+  //   };
+  // }, [orders]);
 
   // Filter orders based on selected tab and filters
   const fetchOrders = async (page: number, resetData = false) => {
@@ -999,7 +850,7 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-xl border border-gray-200 p-5">
             <div className="flex items-center justify-between">
               <div>
@@ -1065,7 +916,7 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
               <span className="text-gray-600">{stats.pendingOrders} pending</span>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Main Content */}
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -1327,7 +1178,7 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
                   </Button>
                 )}
               </div>
-            ) : viewMode === 'list' ? (
+            ) : (
               <div className="space-y-3">
                 {orders?.map((order) => (
                   <OrderRow
@@ -1348,27 +1199,12 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
                     formatCurrency={formatCurrency}
                   />
                 ))}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {orders?.map((order) => (
-                  <OrderCard
-                    key={order.id}
-                    order={order}
-                    updatingOrderId={updatingOrderId}
-                    onStatusUpdate={handleStatusUpdate}
-                    onViewOrder={handleViewOrder}
-                    onAssignToSelf={handleAssignToSelf}
-                    onUnassignOrder={handleUnassignOrder}
-                    getStatusColor={getStatusColor}
-                    getStatusIcon={getStatusIcon}
-                    getPriorityColor={getPriorityColor}
-                    getSourceIcon={getSourceIcon}
-                    formatDate={formatDate}
-                    formatTime={formatTime}
-                    formatCurrency={formatCurrency}
-                  />
-                ))}
+                <Button
+                  disabled={!pagination?.hasNextPage}
+                  onClick={() => handlePagination(pagination?.currentPage || 1)}
+                >
+                  Load More
+                </Button>
               </div>
             )}
           </div>
@@ -1740,9 +1576,7 @@ const OrdersPage = () => {
   const { getUserRole } = useValidateUserRolesAndPermissions(data.currentUser);
   const userRole = getUserRole();
 
-  if (userRole === 'staff') 
-    return <StaffOrderPage {...data} />;
-  
+  if (userRole === 'staff') return <StaffOrderPage {...data} />;
 
   return <AdminOrdersPage {...data} />;
 };
