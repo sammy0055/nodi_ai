@@ -332,4 +332,31 @@ export class OrderService {
     };
     return result;
   }
+
+  static async getOrdersAverageProcessingTime(user: Pick<User, 'id' | 'organizationId'>) {
+    const data = await OrderModel.findAll({
+      attributes: [
+        'assignedUserId',
+        'assignedUserName',
+        [fn('AVG', col('estimatedCompletionTime')), 'averageEstimatedCompletionTime'],
+      ],
+      where: {
+        status: 'delivered',
+        assignedUserId: { [Op.ne]: null } as any,
+        estimatedCompletionTime: { [Op.ne]: null } as any,
+        organizationId: user.organizationId!,
+      },
+      group: ['assignedUserId', 'assignedUserName'],
+      raw: true,
+    });
+
+    const result = data.map((row: any) => ({
+      assignedUserId: row.assignedUserId,
+      assignedUserName: row.assignedUserName,
+      averageEstimatedCompletionTime: row.averageEstimatedCompletionTime
+        ? Number(row.averageEstimatedCompletionTime)
+        : 0,
+    }));
+    return result;
+  }
 }

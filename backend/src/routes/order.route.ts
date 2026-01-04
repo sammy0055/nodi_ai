@@ -115,3 +115,22 @@ orderRoute.get('/orders-stats', authMiddleware, async (req, res) => {
     res.status(500).json(response);
   }
 });
+
+orderRoute.get('/get-average-processing-time', authMiddleware, async (req, res) => {
+  try {
+    const data = await OrderService.getOrdersAverageProcessingTime(req.user!);
+    const response: APIResponseFormat<any> = {
+      message: 'order stats retrieved successfully',
+      data,
+    };
+
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
