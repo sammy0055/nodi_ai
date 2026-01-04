@@ -14,7 +14,7 @@ import { ZoneModel } from '../models/zones.model';
 import { Pagination } from '../types/common-types';
 import { IOrder, OrderStatusTypes } from '../types/order';
 import { User } from '../types/users';
-import { Op, literal } from 'sequelize';
+import { Op, literal, fn, col } from 'sequelize';
 
 interface selectedOptionsAttributes {
   optionId: string;
@@ -295,5 +295,31 @@ export class OrderService {
         hasPrevPage: page > 1,
       },
     };
+  }
+
+  static async getOrderStats(user: Pick<User, 'id' | 'organizationId'>) {
+    const stats = await OrderModel.findAll({
+      attributes: ['status', [fn('COUNT', col('id')), 'count']],
+      group: ['status'],
+      where: { organizationId: user.organizationId! },
+    });
+
+    // format result
+    const result: any = {
+      total: 0,
+      processing: 0,
+      delivered: 0,
+      cancelled: 0,
+      pending: 0,
+    };
+
+    stats.forEach((row: any) => {
+      const status = row.status;
+      const count = Number(row.get('count'));
+      result[status] = count;
+      result.total += count;
+    });
+    console.log(result);
+    return result;
   }
 }

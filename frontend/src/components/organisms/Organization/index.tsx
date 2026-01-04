@@ -526,9 +526,9 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
                     <div className={`text-sm font-medium ${isActive ? tab.textColor : 'text-gray-700'}`}>
                       {tab.label}
                     </div>
-                    <div className={`text-2xl font-bold mt-1 ${isActive ? tab.textColor : 'text-gray-900'}`}>
+                    {/* <div className={`text-2xl font-bold mt-1 ${isActive ? tab.textColor : 'text-gray-900'}`}>
                       {tab.count}
-                    </div>
+                    </div> */}
                   </div>
                 </button>
               );

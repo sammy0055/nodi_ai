@@ -37,7 +37,6 @@ orderRoute.get('/get-all-assigned-orders', authMiddleware, async (req, res) => {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
 
-
     // calculate offset
     const offset = (page - 1) * limit;
     const data = await OrderService.getAsignedOrders(req.user!, { page, limit, offset });
@@ -87,6 +86,27 @@ orderRoute.post('/update-order', authMiddleware, async (req, res) => {
       data,
     };
 
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
+
+orderRoute.get('/orders-stats', authMiddleware, async (req, res) => {
+  try {
+    const data = await OrderService.getOrderStats(req.user!);
+    const response: APIResponseFormat<any> = {
+      message: 'order stats retrieved successfully',
+      data,
+    };
+    console.log('================response====================');
+    console.log(response);
+    console.log('====================================');
     res.status(201).json(response);
   } catch (error: any) {
     const response: APIResponseFormat<null> = {
