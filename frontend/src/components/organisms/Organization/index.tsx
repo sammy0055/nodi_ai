@@ -242,7 +242,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
 
   // Load more data
   const loadMore = () => {
-    handlePagination(pagination?.currentPage || 1);
+    handlePagination((pagination?.currentPage && pagination?.currentPage + 1) || 1);
   };
 
   const formatTime = useCallback((seconds: number) => {

@@ -1016,7 +1016,7 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
           {/* Toolbar */}
           <div className="p-4 border-b border-gray-200">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between space-y-4 lg:space-y-0">
-              <div className="flex-1">
+              {/* <div className="flex-1">
                 <div className="relative max-w-md">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <FiSearch className="text-gray-400" />
@@ -1029,7 +1029,7 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-              </div>
+              </div> */}
 
               {/* <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-2">
@@ -1201,7 +1201,7 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
                 ))}
                 <Button
                   disabled={!pagination?.hasNextPage}
-                  onClick={() => handlePagination(pagination?.currentPage || 1)}
+                  onClick={() => handlePagination((pagination?.currentPage && pagination?.currentPage + 1) || 1)}
                 >
                   Load More
                 </Button>
