@@ -1,4 +1,5 @@
 import { UserTypes } from '../data/data-types';
+import { getUserRoleAndPermission } from '../helpers/get_user_role_and_perm';
 import { AreaModel } from '../models/area.model';
 import { BranchesModel } from '../models/branches.model';
 import { CustomerModel } from '../models/customer.model';
@@ -36,7 +37,17 @@ export class OrderService {
     const where: any = {
       organizationId: user.organizationId!,
     };
-    if (status) where.status = status;
+
+    const { userRole } = await getUserRoleAndPermission({ id: user.id, organizationId: user.organizationId! });
+    console.log('===============userRole=====================');
+    console.log(userRole);
+    console.log('====================================');
+    if (userRole === UserTypes.Staff) {
+      if (status) where.status = status;
+      if (status !== OrderStatusTypes.PENDING) where.assignedUserId = user.id;
+    } else {
+      if (status) where.status = status;
+    }
     if (search) {
       // escape quotes in keyword
       const escapedKeyword = search.replace(/'/g, "''");

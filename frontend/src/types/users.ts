@@ -1,8 +1,10 @@
+export type UserRoles = 'super-admin' | 'admin' | 'manager' | 'staff';
+
 export type Role = {
   id: string;
-  name: string;
+  name: UserRoles;
   description: string;
-  permissions?:Permission[]
+  permissions?: Permission[];
 };
 
 export type Permission = {

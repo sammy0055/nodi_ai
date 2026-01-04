@@ -36,6 +36,8 @@ import type { Pagination } from '../../types/customer';
 import type { User } from '../../types/users';
 import { UserService } from '../../services/userService';
 import useProcessingTime, { getOrderProcessingTime } from '../../hooks/orderProcessingTimer';
+import { StaffOrderPage } from '../../components/organisms/Organization';
+import { useValidateUserRolesAndPermissions } from '../../hooks/validateUserRoleAndPermissions';
 
 // Extended User interface with additional fields for order management
 
@@ -512,12 +514,13 @@ const OrderCard = memo(
 
 OrderCard.displayName = 'OrderCard';
 
-const OrdersPage: React.FC = () => {
-  const data = useLoaderData() as {
-    orders: { data: IOrder[]; pagination: Pagination };
-    users: User[];
-    currentUser: User;
-  };
+export interface OrderPageProps {
+  orders: { data: IOrder[]; pagination: Pagination };
+  users: User[];
+  currentUser: User;
+}
+
+const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
   const orders = useOrdersValue();
   const currentUser = useUserValue();
   const setCurrentUser = useUserSetRecoilState();
@@ -1727,5 +1730,21 @@ const OrdersPage: React.FC = () => {
 //     <path d="M1 1h5v5H1V1zm0 7h5v5H1V8zm7-7h5v5H8V1zm0 7h5v5H8V8z" fillRule="evenodd" clipRule="evenodd" />
 //   </svg>
 // );
+
+const OrdersPage = () => {
+  const data = useLoaderData() as {
+    orders: { data: IOrder[]; pagination: Pagination };
+    users: User[];
+    currentUser: User;
+  };
+  const { getUserRole } = useValidateUserRolesAndPermissions(data.currentUser);
+  const userRole = getUserRole();
+
+  if (userRole === 'staff') 
+    return <StaffOrderPage {...data} />;
+  
+
+  return <AdminOrdersPage {...data} />;
+};
 
 export default OrdersPage;

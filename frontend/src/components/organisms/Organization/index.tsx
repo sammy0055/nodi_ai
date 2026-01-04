@@ -1,0 +1,1075 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  FiPlus,
+  FiSearch,
+  FiUser,
+  FiMapPin,
+  FiCalendar,
+  FiShoppingBag,
+  FiSmartphone,
+  FiMessageCircle,
+  FiGlobe,
+  FiPackage,
+  FiTruck,
+  FiXCircle,
+  FiRefreshCw,
+  FiArrowLeft,
+  FiChevronDown,
+  FiShoppingCart,
+  FiBox,
+  FiUserCheck,
+} from 'react-icons/fi';
+import Button from '../../atoms/Button/Button';
+import type { OrderPageProps } from '../../../pages/tenant/OrderPage';
+import { useOrdersSetRecoilState, useOrdersValue, useUserSetRecoilState, useUserValue } from '../../../store/authAtoms';
+import useProcessingTime, { getOrderProcessingTime } from '../../../hooks/orderProcessingTimer';
+import { OrderService } from '../../../services/orderService';
+import { UserService } from '../../../services/userService';
+
+// Order status object
+export const OrderStatusTypes = {
+  PENDING: 'pending',
+  PROCESSING: 'processing',
+  SHIPPED: 'shipped',
+  DELIVERED: 'delivered',
+  CANCELLED: 'cancelled',
+} as const;
+
+// Order source object
+export const OrderSourceTypes = {
+  CHATBOT: 'chatbot',
+  WEBSITE: 'website',
+  MOBILE_APP: 'mobile_app',
+  API: 'api',
+  WALK_IN: 'walk_in',
+} as const;
+
+// Order priority levels
+export const OrderPriorityTypes = {
+  LOW: 'low',
+  MEDIUM: 'medium',
+  HIGH: 'high',
+  URGENT: 'urgent',
+} as const;
+
+export type OrderStatus = (typeof OrderStatusTypes)[keyof typeof OrderStatusTypes];
+export type OrderSource = (typeof OrderSourceTypes)[keyof typeof OrderSourceTypes];
+export type OrderPriority = (typeof OrderPriorityTypes)[keyof typeof OrderPriorityTypes];
+
+export interface OrderItemOption {
+  optionId: string;
+  id: string;
+  name: string;
+  choiceId: string;
+  priceAdjustment: number;
+  choice: { id: string; label: string; priceAdjustment: string };
+}
+
+export interface OrderItem {
+  productId: string;
+  inventoryId: string;
+  quantity: number;
+  totalPrice: string;
+  product: {
+    name: string;
+    price: number;
+    currency: string;
+    options: OrderItemOption[];
+  };
+}
+
+export interface IOrder {
+  id: string;
+  orderNumber: string;
+  title: string;
+  customerId: string;
+  organizationId: string;
+  branchId: string;
+  status: OrderStatus;
+  source: OrderSource;
+  items: OrderItem[];
+  subtotal: number;
+  deliveryCharge: number;
+  totalAmount: number;
+  currency: string;
+  deliveryAreaId: string;
+  deliveryAreaName?: string;
+  deliveryTime?: Date;
+  shippingAddress?: string;
+  serviceType: 'delivery' | 'takeaway' | 'dine_in';
+  createdAt: Date;
+  updatedAt: Date;
+
+  // New fields for assignment and timing
+  assignedUserId?: string;
+  assignedUserName?: string;
+  assignedAt?: Date;
+  startedAt?: Date;
+  completedAt?: Date;
+  estimatedCompletionTime?: number;
+  priority: OrderPriority;
+  notes?: string;
+  customerNotes?: string;
+
+  branch: {
+    id: string;
+    name: string;
+    address?: string;
+  };
+  customer: {
+    id: string;
+    name: string;
+    phone: string;
+    email?: string;
+    avatar?: string;
+  };
+  area: {
+    id: string;
+    name: string;
+    zone: {
+      id: string;
+      name: string;
+    };
+  };
+}
+
+const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
+  const orders = useOrdersValue();
+  const currentUser = useUserValue();
+  const setCurrentUser = useUserSetRecoilState();
+  const setOrders = useOrdersSetRecoilState();
+  // State
+  const [activeTab, setActiveTab] = useState<OrderStatus>('processing');
+  const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
+  const [filteredOrders, setFilteredOrders] = useState<IOrder[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [showFilters] = useState(false);
+  const [mobileView, setMobileView] = useState<'list' | 'detail'>('list');
+  const [selectedPriority, setSelectedPriority] = useState<string>('all');
+  const [selectedSource, setSelectedSource] = useState<string>('all');
+  const [_, setAssignToUserId] = useState<string>('');
+
+  const processingTime = useProcessingTime(selectedOrder!);
+
+  // Tabs configuration
+  const tabs = [
+    {
+      id: 'new',
+      label: 'New Orders',
+      icon: FiPlus,
+      color: 'border-blue-200 bg-blue-50',
+      textColor: 'text-blue-700',
+      count: 12,
+    },
+    {
+      id: OrderStatusTypes.PROCESSING,
+      label: 'Processing',
+      icon: FiRefreshCw,
+      color: 'border-purple-200 bg-purple-50',
+      textColor: 'text-purple-700',
+      count: 15,
+    },
+    {
+      id: OrderStatusTypes.SHIPPED,
+      label: 'Shipped',
+      icon: FiTruck,
+      color: 'border-indigo-200 bg-indigo-50',
+      textColor: 'text-indigo-700',
+      count: 7,
+    },
+    {
+      id: OrderStatusTypes.DELIVERED,
+      label: 'Delivered',
+      icon: FiPackage,
+      color: 'border-green-200 bg-green-50',
+      textColor: 'text-green-700',
+      count: 24,
+    },
+    {
+      id: OrderStatusTypes.CANCELLED,
+      label: 'Cancelled',
+      icon: FiXCircle,
+      color: 'border-red-200 bg-red-50',
+      textColor: 'text-red-700',
+      count: 3,
+    },
+  ];
+
+  useEffect(() => {
+    if (data) {
+      setOrders(data.orders.data);
+      // setPagination(data.orders.pagination);
+      setCurrentUser(data.currentUser);
+      setSelectedOrder(data.orders.data[0] || null);
+      setLoading(false);
+      setHasMore(true);
+    }
+  }, [data]);
+
+  // Filter orders based on search and filters
+  useEffect(() => {
+    let filtered = [...orders];
+
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (order) =>
+          order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          order.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          order.customer.phone.includes(searchTerm)
+      );
+    }
+
+    // Filter by priority
+    if (selectedPriority !== 'all') {
+      filtered = filtered.filter((order) => order.priority === selectedPriority);
+    }
+
+    // Filter by source
+    if (selectedSource !== 'all') {
+      filtered = filtered.filter((order) => order.source === selectedSource);
+    }
+
+    setFilteredOrders(filtered);
+  }, [searchTerm, selectedPriority, selectedSource, orders]);
+
+  // Load more data
+  const loadMore = () => {
+    // setLoading(true);
+    // setTimeout(() => {
+    //   const moreOrders = generateMockOrders(10, activeTab);
+    //   setOrders((prev) => [...prev, ...moreOrders]);
+    //   setFilteredOrders((prev) => [...prev, ...moreOrders]);
+    //   setPage((prev) => prev + 1);
+    //   setLoading(false);
+    //   if (moreOrders.length < 10) {
+    //     setHasMore(false);
+    //   }
+    // }, 1000);
+  };
+
+  const formatTime = useCallback((seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${secs}s`;
+    } else {
+      return `${secs}s`;
+    }
+  }, []);
+
+  // Handle order selection
+  const handleSelectOrder = (order: IOrder) => {
+    setSelectedOrder(order);
+    if (window.innerWidth < 768) {
+      setMobileView('detail');
+    }
+  };
+
+  const { updateOrder, updateOrderStatus } = new OrderService();
+  const { updateUser } = new UserService();
+  const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
+    try {
+      const orderToUpdate = orders.find((o) => o.id === orderId);
+      if (orderToUpdate?.status === 'delivered') {
+        alert('can not change order status, order is already completed');
+        return;
+      }
+      if (newStatus === 'delivered') {
+        if (!orderToUpdate) {
+          alert('order not found');
+          return;
+        }
+        const processingTime = getOrderProcessingTime(orderToUpdate);
+        const updatedOrder = {
+          ...orderToUpdate,
+          estimatedCompletionTime: processingTime,
+          status: newStatus,
+          completedAt: new Date(),
+        };
+
+        await updateOrder(updatedOrder);
+        setOrders((prevOrders) => prevOrders.map((order) => (order.id === updatedOrder.id ? updatedOrder : order)));
+        setSelectedOrder(updatedOrder);
+      }
+
+      await updateOrderStatus({ orderId, status: newStatus });
+      setOrders((prevOrders) =>
+        prevOrders.map((order) => (order.id === orderId ? { ...order, status: newStatus } : order))
+      );
+      setSelectedOrder({ ...selectedOrder, status: newStatus } as any);
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      alert('Failed to update order status. Please try again.');
+    }
+  };
+
+  const handleAssignOrder = async (order: IOrder, userId: string) => {
+    if (!userId) return;
+    if (order.status === 'delivered') {
+      alert('this order is already completed');
+      return;
+    }
+
+    const user = currentUser;
+    if (!user) return;
+
+    if (user.activeOrderCount && user.maxConcurrentOrders && user.activeOrderCount >= user.maxConcurrentOrders) {
+      alert(`${user.name} has reached maximum concurrent orders (${user.maxConcurrentOrders})`);
+      return;
+    }
+
+    try {
+      const updatedOrder: IOrder = {
+        ...order,
+        status: order.status === 'pending' ? OrderStatusTypes.PROCESSING : order.status,
+        assignedUserId: userId,
+        assignedUserName: user.name,
+        assignedAt: new Date(),
+        startedAt: new Date(),
+      };
+      const userToUpdate = currentUser;
+      if (!userToUpdate) {
+        alert('asigned user does not exist');
+        return;
+      }
+
+      const data = await updateOrder(updatedOrder);
+      setOrders((prevOrders) => prevOrders.map((o) => (o.id === data.data.id ? updatedOrder : o)));
+      setSelectedOrder(updatedOrder);
+      setAssignToUserId(updatedOrder.assignedUserId || '');
+
+      await updateUser({
+        ...userToUpdate,
+        activeOrderCount: (userToUpdate.activeOrderCount || 0) + 1,
+        lastActive: new Date(),
+      });
+
+      setCurrentUser(
+        (prev) => ({ ...prev, activeOrderCount: (prev?.activeOrderCount || 0) + 1, lastActive: new Date() } as any)
+      );
+    } catch (error) {
+      console.error('Error assigning order:', error);
+      alert('Failed to assign order. Please try again.');
+    }
+  };
+
+  const handleUnassignOrder = async (order: IOrder) => {
+    if (!order.assignedUserId) return;
+    if (order.status === 'delivered') {
+      alert('this order is already completed');
+      return;
+    }
+    try {
+      const updatedOrder: any = {
+        ...order,
+        assignedUserId: null,
+        assignedUserName: null,
+        assignedAt: null,
+        processingTime: null,
+        estimatedCompletionTime: null,
+      };
+
+      const userToUpdate = currentUser;
+      if (!userToUpdate) {
+        alert('asigned user does not exist');
+        return;
+      }
+
+      const data = await updateOrder(updatedOrder);
+      setOrders((prevOrders) => prevOrders.map((o) => (o.id === data.data.id ? updatedOrder : o)));
+      setSelectedOrder(updatedOrder);
+      setAssignToUserId('');
+      await updateUser({
+        ...userToUpdate,
+        activeOrderCount: (userToUpdate.activeOrderCount || 1) - 1,
+        lastActive: new Date(),
+      });
+
+      setCurrentUser((u) => ({ ...u, activeOrderCount: Math.max(0, (u?.activeOrderCount || 1) - 1) } as any));
+    } catch (error) {
+      console.error('Error unassigning order:', error);
+      alert('Failed to unassign order. Please try again.');
+    }
+  };
+
+  const handleAssignToSelf = async (order: IOrder) => {
+    if (!currentUser?.id) {
+      alert('kindly login');
+      return;
+    }
+    try {
+      await handleAssignOrder(order, currentUser?.id);
+    } catch (error: any) {
+      console.error('Error unassigning order:', error);
+      alert('Failed to assignself order. Please try again.');
+    }
+  };
+
+  // Format date
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(date));
+  };
+
+  // Format currency
+  const formatCurrency = (amount: number, currency: string = 'USD') => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 2,
+    }).format(amount);
+  };
+
+  // Get status color
+  const getStatusColor = (status: OrderStatus) => {
+    switch (status) {
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'processing':
+        return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'shipped':
+        return 'bg-indigo-100 text-indigo-800 border-indigo-200';
+      case 'delivered':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800 border-red-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  // Get priority color
+  const getPriorityColor = (priority: OrderPriority) => {
+    switch (priority) {
+      case 'urgent':
+        return 'bg-red-100 text-red-800 border-red-300';
+      case 'high':
+        return 'bg-orange-100 text-orange-800 border-orange-300';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      case 'low':
+        return 'bg-green-100 text-green-800 border-green-300';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-300';
+    }
+  };
+
+  // Get source icon
+  const getSourceIcon = (source: OrderSource) => {
+    switch (source) {
+      case 'website':
+        return <FiGlobe className="text-blue-500" size={14} />;
+      case 'mobile_app':
+        return <FiSmartphone className="text-green-500" size={14} />;
+      case 'chatbot':
+        return <FiMessageCircle className="text-purple-500" size={14} />;
+      case 'api':
+        return <FiBox className="text-orange-500" size={14} />;
+      case 'walk_in':
+        return <FiUser className="text-teal-500" size={14} />;
+      default:
+        return <FiShoppingCart className="text-gray-500" size={14} />;
+    }
+  };
+
+  // Mobile back button
+  const MobileBackButton = () => (
+    <button
+      onClick={() => setMobileView('list')}
+      className="lg:hidden flex items-center px-4 py-3 mb-4 text-gray-700 hover:text-gray-900 bg-white rounded-lg border border-gray-200"
+    >
+      <FiArrowLeft className="mr-2" />
+      Back to Orders
+    </button>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Order Management</h1>
+              <p className="text-gray-600 mt-1">Track and manage all customer orders</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs as Cards - Full Width */}
+        <div className="mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    setActiveTab(tab.id as OrderStatus);
+                    setPage(1);
+                  }}
+                  className={`p-4 rounded-xl border transition-all duration-200 flex flex-col items-center justify-center ${
+                    isActive
+                      ? `${tab.color} border-2 ${tab.textColor} shadow-md scale-[1.02]`
+                      : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                  }`}
+                >
+                  <div className={`mb-2 p-2 rounded-lg ${isActive ? 'bg-white' : 'bg-gray-50'}`}>
+                    <Icon className={isActive ? tab.textColor : 'text-gray-500'} size={20} />
+                  </div>
+                  <div className="text-center">
+                    <div className={`text-sm font-medium ${isActive ? tab.textColor : 'text-gray-700'}`}>
+                      {tab.label}
+                    </div>
+                    <div className={`text-2xl font-bold mt-1 ${isActive ? tab.textColor : 'text-gray-900'}`}>
+                      {tab.count}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Search and Filters */}
+        <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between space-y-4 lg:space-y-0">
+            <div className="flex-1">
+              <div className="relative max-w-md">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiSearch className="text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search orders by number, customer, or phone..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Advanced Filters */}
+          {showFilters && (
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+                  <select
+                    value={selectedPriority}
+                    onChange={(e) => setSelectedPriority(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="all">All Priorities</option>
+                    {Object.values(OrderPriorityTypes).map((priority) => (
+                      <option key={priority} value={priority}>
+                        {priority.charAt(0).toUpperCase() + priority.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Source</label>
+                  <select
+                    value={selectedSource}
+                    onChange={(e) => setSelectedSource(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="all">All Sources</option>
+                    {Object.values(OrderSourceTypes).map((source) => (
+                      <option key={source} value={source}>
+                        {source.replace('_', ' ')}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option>Newest First</option>
+                    <option>Oldest First</option>
+                    <option>Highest Amount</option>
+                    <option>Lowest Amount</option>
+                    <option>Highest Priority</option>
+                  </select>
+                </div>
+              </div>
+
+              {(selectedPriority !== 'all' || selectedSource !== 'all') && (
+                <div className="mt-4 flex justify-end">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedPriority('all');
+                      setSelectedSource('all');
+                    }}
+                    className="text-gray-600 hover:text-gray-900"
+                  >
+                    Clear all filters
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Two Column Layout - Only Order List has Scrollbar */}
+        <div className="flex flex-col lg:flex-row border border-gray-200 rounded-xl bg-white">
+          {/* Left Column - Orders List with Scrollbar */}
+          {(mobileView === 'list' || window.innerWidth >= 768) && (
+            <div className="lg:w-2/5 flex flex-col border-r border-gray-200">
+              <div className="bg-white p-4 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium text-gray-900">Orders ({filteredOrders.length})</h3>
+                    <p className="text-sm text-gray-500 mt-1">Select an order to view details</p>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    Showing {filteredOrders.length} of {orders.length}
+                  </div>
+                </div>
+              </div>
+
+              {/* Scrollable Orders List */}
+              <div className="h-[600px] overflow-y-auto">
+                {loading && page === 1 ? (
+                  <div className="p-8 text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-2 text-gray-600">Loading orders...</p>
+                  </div>
+                ) : orders?.length === 0 ? (
+                  <div className="p-8 text-center">
+                    <FiBox className="mx-auto text-gray-400" size={48} />
+                    <p className="mt-2 text-gray-600">No orders found</p>
+                    {(searchTerm || selectedPriority !== 'all' || selectedSource !== 'all') && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setSearchTerm('');
+                          setSelectedPriority('all');
+                          setSelectedSource('all');
+                        }}
+                        className="mt-4"
+                      >
+                        Clear all filters
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  orders?.map((order) => (
+                    <div
+                      key={order.id}
+                      onClick={() => handleSelectOrder(order)}
+                      className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-all duration-200 ${
+                        selectedOrder?.id === order.id ? 'bg-blue-50' : ''
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          {/* <h3 className="font-semibold text-gray-900">{order.id}</h3> */}
+                          <p className="text-sm text-gray-600 mt-1">{order.customer.name}</p>
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <span className="text-lg font-bold text-gray-900">
+                            {formatCurrency(order.totalAmount, order.currency)}
+                          </span>
+                          <span
+                            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border mt-1 ${getStatusColor(
+                              order.status
+                            )}`}
+                          >
+                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center text-sm text-gray-500 mb-2">
+                        <FiCalendar className="mr-1" size={12} />
+                        <span>{formatDate(order.createdAt)}</span>
+                        <span className="mx-2">•</span>
+                        <FiMapPin className="mr-1" size={12} />
+                        <span>{order.branch.name}</span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <span
+                            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(
+                              order.priority
+                            )}`}
+                          >
+                            {order.priority}
+                          </span>
+                          <div className="flex items-center text-gray-500">
+                            {getSourceIcon(order.source)}
+                            <span className="ml-1 text-xs">{order.source.replace('_', ' ')}</span>
+                          </div>
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Load More Button */}
+              {hasMore && filteredOrders.length > 0 && (
+                <div className="p-4 border-t border-gray-200 bg-white">
+                  <Button onClick={loadMore} variant="outline" className="w-full" disabled={loading}>
+                    {loading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                        Loading...
+                      </>
+                    ) : (
+                      'Load More Orders'
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Right Column - Order Details (No Scrollbar) */}
+          {(mobileView === 'detail' || window.innerWidth >= 768) && selectedOrder && (
+            <div className="lg:w-3/5">
+              {/* Mobile back button */}
+              {window.innerWidth < 768 && <MobileBackButton />}
+
+              <div className="bg-white p-6 border-b border-gray-200">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <h2 className="text-xl font-bold text-gray-900">{selectedOrder.orderNumber}</h2>
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(
+                          selectedOrder.status
+                        )}`}
+                      >
+                        {selectedOrder.status.charAt(0).toUpperCase() + selectedOrder.status.slice(1)}
+                      </span>
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getPriorityColor(
+                          selectedOrder.priority
+                        )}`}
+                      >
+                        {selectedOrder.priority}
+                      </span>
+                    </div>
+                    <div className="flex items-center text-gray-600">
+                      <FiUser className="mr-2" size={14} />
+                      <span className="font-medium">{selectedOrder.customer.name}</span>
+                      <span className="mx-2">•</span>
+                      <span>{selectedOrder.customer.phone}</span>
+                    </div>
+                  </div>
+
+                  {selectedOrder.assignedUserName && (
+                    <div className="mt-3 flex items-center">
+                      <div className="flex items-center px-3 py-1.5 bg-blue-50 rounded-lg">
+                        <FiUserCheck className="text-blue-600 mr-2" size={14} />
+                        <span className="text-sm font-medium text-blue-800">{selectedOrder.assignedUserName}</span>
+                        {processingTime && (
+                          <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                            {formatTime(processingTime)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex space-x-2 mt-4 lg:mt-0">
+                    {!selectedOrder.assignedUserId ? (
+                      <div className="flex space-x-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleAssignToSelf(selectedOrder)}
+                          className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                        >
+                          <FiUserCheck className="mr-1" />
+                          Asign Self
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleUnassignOrder(selectedOrder)}
+                        className="text-red-600 border-red-200 hover:bg-red-50"
+                      >
+                        <FiUserCheck className="mr-1" />
+                        Unassign
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Order Details Content - No Scrollbar */}
+              <div className="p-6 bg-gray-50">
+                {/* Status Update Section */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="block text-sm font-medium text-gray-700">Update Order Status</label>
+                    <span className="text-xs text-gray-500">Current: {selectedOrder.status}</span>
+                  </div>
+                  <div className="flex space-x-2">
+                    <div className="relative flex-1">
+                      <select
+                        value={selectedOrder.status}
+                        onChange={(e) => handleStatusUpdate(selectedOrder.id, e.target.value as any)}
+                        className="w-full appearance-none bg-white border border-gray-300 rounded-lg px-3 py-2.5 pr-10 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        {Object.values(OrderStatusTypes).map((status) => (
+                          <option key={status} value={status}>
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                        <FiChevronDown />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Information Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                  {/* Customer Information - WITHOUT AVATAR AND EMAIL */}
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <h3 className="font-medium text-gray-900 mb-3 flex items-center">
+                      <FiUser className="mr-2" />
+                      Customer Information
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <div className="text-gray-500">Name</div>
+                          <div className="font-medium">{selectedOrder?.customer?.name}</div>
+                        </div>
+                        <div>
+                          <div className="text-gray-500">Phone</div>
+                          <div className="font-medium">{selectedOrder?.customer?.phone}</div>
+                        </div>
+                      </div>
+                      <div className="text-sm">
+                        <div className="text-gray-500">Customer ID</div>
+                        <div className="font-medium">{selectedOrder?.customerId}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Order Information */}
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <h3 className="font-medium text-gray-900 mb-3 flex items-center">
+                      <FiShoppingBag className="mr-2" />
+                      Order Information
+                    </h3>
+                    <div className="space-y-3 text-sm">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <div className="text-gray-500">Created</div>
+                          <div className="font-medium">{formatDate(selectedOrder.createdAt)}</div>
+                        </div>
+                        <div>
+                          <div className="text-gray-500">Service Type</div>
+                          <div className="font-medium">{selectedOrder?.serviceType}</div>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <div className="text-gray-500">Source</div>
+                          <div className="font-medium flex items-center">
+                            {getSourceIcon(selectedOrder.source)}
+                            <span className="ml-2">{selectedOrder.source.replace('_', ' ')}</span>
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-gray-500">Est. Time</div>
+                          <div className="font-medium">{selectedOrder.estimatedCompletionTime} min</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Branch Information */}
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <h3 className="font-medium text-gray-900 mb-3 flex items-center">
+                      <FiMapPin className="mr-2" />
+                      Branch & Location
+                    </h3>
+                    <div className="space-y-3 text-sm">
+                      <div>
+                        <div className="text-gray-500">Branch</div>
+                        <div className="font-medium">{selectedOrder?.branch?.name}</div>
+                        {selectedOrder?.branch?.address && (
+                          <div className="text-gray-600 text-xs mt-1">{selectedOrder.branch.address}</div>
+                        )}
+                      </div>
+                      {selectedOrder?.area && (
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <div className="text-gray-500">Zone</div>
+                            <div className="font-medium">{selectedOrder?.area?.zone?.name}</div>
+                          </div>
+                          <div>
+                            <div className="text-gray-500">Area</div>
+                            <div className="font-medium">{selectedOrder?.area?.name}</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Delivery Information */}
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <h3 className="font-medium text-gray-900 mb-3 flex items-center">
+                      <FiTruck className="mr-2" />
+                      Delivery Information
+                    </h3>
+                    <div className="space-y-3 text-sm">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <div className="text-gray-500">Delivery Charge</div>
+                          <div className="font-medium">
+                            {formatCurrency(selectedOrder.deliveryCharge, selectedOrder.currency)}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-gray-500">Type</div>
+                          <div className="font-medium">
+                            {selectedOrder.serviceType.charAt(0).toUpperCase() + selectedOrder.serviceType.slice(1)}
+                          </div>
+                        </div>
+                      </div>
+                      {selectedOrder.shippingAddress && (
+                        <div>
+                          <div className="text-gray-500">Shipping Address</div>
+                          <div className="font-medium">{selectedOrder.shippingAddress}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Order Items */}
+                <div className="mb-6">
+                  <h3 className="font-medium text-gray-900 mb-4 flex items-center">
+                    <FiPackage className="mr-2" />
+                    Order Items ({selectedOrder.items.length})
+                  </h3>
+                  <div className="bg-white rounded-lg overflow-hidden border border-gray-200">
+                    <div className="divide-y divide-gray-200">
+                      {selectedOrder.items.map((item, index) => (
+                        <div key={index} className="p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <div className="font-medium text-gray-900">{item.product.name}</div>
+                              <div className="text-sm text-gray-600 mt-1">
+                                Unit Price: {formatCurrency(item.product.price, selectedOrder.currency)}
+                              </div>
+                              {item?.product?.options?.length > 0 && (
+                                <div className="text-sm text-gray-500 mt-2">
+                                  Options: {item.product.options.map((opt) => opt.choice.label).join(', ')}
+                                </div>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <div className="flex items-center space-x-4">
+                                <div className="text-right">
+                                  <div className="font-medium text-gray-900">{item.totalPrice}</div>
+                                  <div className="text-sm text-gray-600">
+                                    Qty: <span className="font-medium">{item.quantity}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Order Summary */}
+                <div className="bg-white rounded-lg p-4 border border-gray-200 mb-6">
+                  <h3 className="font-medium text-gray-900 mb-4 flex items-center">Order Summary</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Subtotal:</span>
+                      <span className="font-medium">
+                        {formatCurrency(selectedOrder.subtotal, selectedOrder.currency)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Delivery Charge:</span>
+                      <span className="font-medium">
+                        {formatCurrency(selectedOrder.deliveryCharge, selectedOrder.currency)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t border-gray-300">
+                      <span className="text-lg font-semibold text-gray-900">Total Amount:</span>
+                      <span className="text-2xl font-bold text-gray-900">
+                        {formatCurrency(selectedOrder.totalAmount, selectedOrder.currency)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notes */}
+                {(selectedOrder.notes || selectedOrder.customerNotes) && (
+                  <div>
+                    <h3 className="font-medium text-gray-900 mb-4">Notes</h3>
+                    <div className="space-y-4">
+                      {selectedOrder.customerNotes && (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                          <h4 className="font-medium text-yellow-800 mb-2">Customer Note</h4>
+                          <p className="text-yellow-700">{selectedOrder.customerNotes}</p>
+                        </div>
+                      )}
+                      {selectedOrder.notes && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                          <h4 className="font-medium text-blue-800 mb-2">Internal Note</h4>
+                          <p className="text-blue-700">{selectedOrder.notes}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Mobile empty state */}
+          {mobileView === 'list' && window.innerWidth < 768 && !selectedOrder && (
+            <div className="lg:hidden p-8 text-center bg-white border border-gray-200 rounded-xl">
+              <FiBox className="mx-auto text-gray-400" size={48} />
+              <p className="mt-2 text-gray-600">Select an order to view details</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export { StaffOrderPage };
