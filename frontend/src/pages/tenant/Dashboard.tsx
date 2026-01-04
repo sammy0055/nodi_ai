@@ -373,13 +373,13 @@ const DashboardPage: React.FC = () => {
                       <div
                         className="h-full bg-green-500 rounded-full transition-all duration-1000 ease-out"
                         style={{
-                          width: `${(reviewStats.positive / reviewStats.total) * 100}%`,
+                          width: `${reviewStats.total ? (reviewStats.positive / reviewStats.total) * 100 : 0}%`,
                           transition: 'width 1s ease-out',
                         }}
                       ></div>
                     </div>
                     <span className="font-bold text-gray-900">
-                      {((reviewStats.positive / reviewStats.total) * 100).toFixed(1)}%
+                      {reviewStats.total ? ((reviewStats.positive / reviewStats.total) * 100).toFixed(1) + '%' : '0%'}
                     </span>
                   </div>
                 </div>
@@ -438,7 +438,7 @@ const DashboardPage: React.FC = () => {
               },
             ].map((item, index) => {
               const Icon = item.icon;
-              const percentage = ((item.count / orderStats.totalOrders) * 100).toFixed(1);
+              const percentage = orderStats.totalOrders ? ((item.count / orderStats.totalOrders) * 100).toFixed(1) : 0;
 
               return (
                 <div
