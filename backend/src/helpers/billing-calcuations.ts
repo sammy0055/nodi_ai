@@ -54,6 +54,7 @@ export const calculateAndSubtractCredits = async (
       whatsappCredits = whatsappConvWindow_per_credit;
     }
   }
+  
   const totalCreditsUsed = aiCredits + whatsappCredits + catalogCredits;
   const creditUsed = Number(totalCreditsUsed.toFixed(2));
 

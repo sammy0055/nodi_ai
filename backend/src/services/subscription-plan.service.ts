@@ -1,3 +1,4 @@
+import Stripe from 'stripe';
 import { stripe } from '../helpers/stripe';
 import { SubscriptionPlanModel } from '../models/subscription-plan.model';
 import { ISubscriptionPlan } from '../types/subscription-plan';
@@ -11,17 +12,28 @@ export class SubscriptionPlanService {
       description: plan.description,
     });
 
-    const subPrice = await stripe.prices.create({
-      unit_amount: plan.price * 100, // in cents
+    const pricePayload: Stripe.PriceCreateParams = {
+      unit_amount: plan.price * 100,
       currency: 'usd',
-      recurring: { interval: 'month' },
       product: subscriptionPlan.id,
-    });
+    };
+
+    if (plan.paymentType === 'recurring_subscription') {
+      pricePayload.recurring = { interval: 'month' };
+    }
+
+    if (plan.paymentType === 'offline_manual') {
+      pricePayload.unit_amount = 0;
+      plan.price = 0;
+    }
+
+    const subPrice = await stripe.prices.create(pricePayload);
 
     const payload: ISubscriptionPlan = {
       ...plan,
       stripePlanId: subscriptionPlan.id,
       stripePlanPriceId: subPrice.id,
+      paymentType: plan.paymentType,
     };
 
     return await SubscriptionPlanModel.create(payload);

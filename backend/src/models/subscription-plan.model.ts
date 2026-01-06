@@ -22,6 +22,7 @@ class SubscriptionPlanModel
   declare billing_cycle_days: CreationOptional<number>;
   declare isActive: CreationOptional<boolean>;
   declare features?: string[] | undefined;
+  declare paymentType: 'recurring_subscription' | 'one_time_charge' | 'offline_manual';
 
   static associate(models: DbModels) {
     this.hasMany(models.SubscriptionsModel, {
@@ -50,6 +51,7 @@ SubscriptionPlanModel.init(
     billing_cycle_days: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 30 },
     isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
     features: { type: DataTypes.ARRAY(DataTypes.STRING), defaultValue: [] },
+    paymentType: { type: DataTypes.STRING, allowNull: false },
   },
   { sequelize, modelName: ModelNames.SubscriptionPlans, timestamps: true }
 );

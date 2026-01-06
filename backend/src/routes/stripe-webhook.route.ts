@@ -51,8 +51,9 @@ stripeWebHookRoute.post('/webhook', async (req, res) => {
           organizationId: metadata.organizationId,
           startDate,
           currentPeriodStart,
-          currentPeriodEnd,
-          nextBillingDate,
+          currentPeriodEnd: subscriptionPlan.paymentType === 'recurring_subscription' ? currentPeriodEnd : null,
+          nextBillingDate: subscriptionPlan.paymentType === 'recurring_subscription' ? nextBillingDate : null,
+          customerId: customerId,
           status: 'active',
         });
         await CreditBalanceModel.create({
@@ -120,5 +121,5 @@ stripeWebHookRoute.post('/webhook', async (req, res) => {
     console.error(error.message);
     // send alert to app-admin
   }
-    res.sendStatus(200);
+  res.sendStatus(200);
 });

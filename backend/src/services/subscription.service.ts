@@ -6,6 +6,8 @@ import { SubscriptionPlanModel } from '../models/subscription-plan.model';
 import { SubscriptionsModel } from '../models/subscriptions.model';
 import { UsageRecordModel } from '../models/usage-records.model';
 import { User } from '../types/users';
+import { OrganizationsModel } from '../models/organizations.model';
+import { ISubscriptionPlan } from '../types/subscription-plan';
 
 export class SubscriptionService {
   static readonly successUrl = appConfig.stripe.successUrl;
@@ -95,5 +97,47 @@ export class SubscriptionService {
     }, {});
 
     return result;
+  }
+
+  // app-admin functions --------------------------------
+  static async createSubscriptionForOrg(orgId: string, plan: ISubscriptionPlan) {
+    if (plan.paymentType !== 'offline_manual') throw new Error('only offline_manual subscription is allowed');
+    if (!orgId) throw new Error('organization id is required');
+    const org = (await OrganizationsModel.findByPk(orgId, { include: ['owner'] })) as any;
+    if (!org) throw new Error('organization does not exist');
+    let customerId;
+    const sub = await SubscriptionsModel.findOne({ where: { organizationId: org.id } });
+    if (!sub) {
+      const customer = await stripe.customers.create({
+        email: org.owner.email, // optional but recommended
+        name: org.owner.name,
+      });
+      customerId = customer.id as string;
+    } else {
+      const subscription = await stripe.subscriptions.retrieve(sub.subscriptionId);
+      customerId = subscription.customer as string;
+    }
+
+    // now create subscription
+    const data = await stripe.subscriptions.create({
+      customer: customerId,
+      items: [{ price: plan.stripePlanPriceId }],
+      metadata: { planId: plan.id, organizationId: orgId },
+    });
+
+    return data;
+  }
+
+  static async updateSubscriptionCredit({
+    organizationId,
+    creditPoint,
+  }: {
+    organizationId: string;
+    creditPoint: number;
+  }) {
+    if (!organizationId || !creditPoint) throw new Error('one or more input is missing');
+    const creditBalance = await CreditBalanceModel.findOne({ where: { organizationId } });
+    if (!creditBalance) throw new Error('subscription does not exist');
+    return await creditBalance.increment({ totalCredits: creditPoint }, { silent: false });
   }
 }

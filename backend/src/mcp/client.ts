@@ -244,7 +244,7 @@ export class MCPClient extends UsageBase {
 
   async process({ query, organizationId, customerId, conversationId, systemPrompt }: ProcessQueryTypes) {
     const res = await this.query({ query, organizationId, customerId, conversationId, systemPrompt });
-    // this.increaseCredits();
+   
     return res;
   }
 }

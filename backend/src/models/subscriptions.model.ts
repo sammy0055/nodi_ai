@@ -18,10 +18,11 @@ class SubscriptionsModel
   declare status: `${SubstriptionStatusTypes}`;
   declare startDate: Date;
   declare currentPeriodStart: Date;
-  declare currentPeriodEnd: Date;
-  declare nextBillingDate: Date;
+  declare currentPeriodEnd: Date | null;
+  declare nextBillingDate: Date | null;
   declare cancelAtPeriodEnd: CreationOptional<boolean>;
   declare subscriptionId: string;
+  declare customerId: string;
 
   static associate(models: DbModels) {
     this.belongsTo(models.OrganizationsModel, {
@@ -29,7 +30,7 @@ class SubscriptionsModel
       as: 'organization',
     });
 
-     this.belongsTo(models.SubscriptionPlanModel, {
+    this.belongsTo(models.SubscriptionPlanModel, {
       foreignKey: 'planId',
       as: 'plan',
     });
@@ -60,6 +61,7 @@ SubscriptionsModel.init(
       onUpdate: 'NO ACTION',
     },
     subscriptionId: { type: DataTypes.STRING, allowNull: false },
+    customerId: { type: DataTypes.STRING, allowNull: false },
     status: {
       type: DataTypes.ENUM,
       allowNull: false,
@@ -68,8 +70,8 @@ SubscriptionsModel.init(
     },
     startDate: { type: DataTypes.DATE, allowNull: false },
     currentPeriodStart: { type: DataTypes.DATE, allowNull: false },
-    currentPeriodEnd: { type: DataTypes.DATE, allowNull: false },
-    nextBillingDate: { type: DataTypes.DATE, allowNull: false },
+    currentPeriodEnd: { type: DataTypes.DATE, allowNull: true },
+    nextBillingDate: { type: DataTypes.DATE, allowNull: true },
     cancelAtPeriodEnd: { type: DataTypes.BOOLEAN, defaultValue: false },
   },
   {
