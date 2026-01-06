@@ -135,4 +135,9 @@ export class SubscriptionService {
     if (!creditBalance) throw new Error('subscription does not exist');
     return await creditBalance.increment({ totalCredits: creditPoint }, { silent: false });
   }
+
+  static async adminCancelOrgSubscription({ subId, orgId }: { subId: string; orgId: string }) {
+    if (!subId || !orgId) throw new Error('one or more input is missing');
+    return await SubscriptionsModel.destroy({ where: { id: subId, organizationId: orgId } });
+  }
 }

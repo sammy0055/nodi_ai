@@ -21,10 +21,13 @@ export class SubscriptionController {
   static async getSubscriptionStatisticsForOrg() {
     return await SubscriptionService.getSubscriptionStatistics();
   }
-  static async createSubscriptionForOrg(data:{ orgId: string;creditPoint: number }) {
+  static async createSubscriptionForOrg(data: { orgId: string; creditPoint: number }) {
     return await SubscriptionService.createSubscriptionForOrg(data);
   }
   static async updateSubscriptionCredit(data: { organizationId: string; creditPoint: number }) {
     return await SubscriptionService.updateSubscriptionCredit(data);
+  }
+  static async adminCancelOrgSubscription(data: { subId: string; orgId: string }) {
+    return await SubscriptionService.adminCancelOrgSubscription(data);
   }
 }

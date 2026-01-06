@@ -166,3 +166,22 @@ subscriptionRouter.post('/add-billing-credit', adminAuthMiddleware, async (req, 
     res.status(500).json(response);
   }
 });
+
+subscriptionRouter.delete('/cancel-org-subscription', adminAuthMiddleware, async (req, res) => {
+  try {
+    const data = await SubscriptionController.adminCancelOrgSubscription(req.body);
+    const response: APIResponseFormat<any> = {
+      message: 'organization subscription cancelled successfully',
+      data,
+    };
+
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
