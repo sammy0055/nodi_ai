@@ -2,12 +2,13 @@
 
 import { Conversation } from '../models/conversation.model';
 import { CreditBalanceModel } from '../models/creditBalance.model';
+import { OrganizationsModel } from '../models/organizations.model';
 import { SubscriptionsModel } from '../models/subscriptions.model';
 import { UsageRecordModel } from '../models/usage-records.model';
 import { creditFeatureName } from '../types/usage-record';
 
 // free trial
-const isFreeTrialActive = true;
+const isFreeTrialActive = false;
 
 export interface CreditUsageAttributes {
   aiTokensUsed: number;
@@ -54,21 +55,22 @@ export const calculateAndSubtractCredits = async (
       whatsappCredits = whatsappConvWindow_per_credit;
     }
   }
-  
+
   const totalCreditsUsed = aiCredits + whatsappCredits + catalogCredits;
   const creditUsed = Number(totalCreditsUsed.toFixed(2));
 
   const creditRecords = await CreditBalanceModel.findOne({ where: { organizationId: org.organizationId } });
   if (!creditRecords) throw new Error('Credit: no credit for organization:' + org.conversationId);
 
-  if (creditRecords.totalCredits <= creditUsed) {
+  if (creditRecords.remainingCredits < creditUsed) {
     await SubscriptionsModel.update({ status: 'cancelled' }, { where: { organizationId: org.organizationId } });
     // send email notification to organization
     //   disable webhook subscription for whatsapp
     console.warn('====================================');
     console.warn('subscription cancelled for organization:' + org.organizationId);
     console.warn('====================================');
-    return;
+    await OrganizationsModel.update({ status: 'suspended' }, { where: { id: org.organizationId } });
+    throw new Error('credit exusted for organization' + org.organizationId);
   }
 
   await CreditBalanceModel.update(
