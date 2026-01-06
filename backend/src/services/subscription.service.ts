@@ -117,7 +117,7 @@ export class SubscriptionService {
     await CreditBalanceModel.create({
       organizationId: orgId,
       totalCredits: creditPoint,
-      usedCredits: creditPoint,
+      usedCredits: 0,
       remainingCredits: creditPoint,
     });
     return sub;
