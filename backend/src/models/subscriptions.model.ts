@@ -14,15 +14,15 @@ class SubscriptionsModel
 {
   declare id: CreationOptional<string>;
   declare organizationId: string | null | undefined;
-  declare planId: string;
+  declare planId: string | null;
   declare status: `${SubstriptionStatusTypes}`;
   declare startDate: Date;
   declare currentPeriodStart: Date;
   declare currentPeriodEnd: Date | null;
   declare nextBillingDate: Date | null;
   declare cancelAtPeriodEnd: CreationOptional<boolean>;
-  declare subscriptionId: string;
-  declare customerId: string;
+  declare subscriptionId: string | null;
+  declare customerId: string | null;
 
   static associate(models: DbModels) {
     this.belongsTo(models.OrganizationsModel, {
@@ -52,7 +52,7 @@ SubscriptionsModel.init(
     },
     planId: {
       type: DataTypes.UUID,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: ModelNames.SubscriptionPlans,
         key: 'id',
@@ -60,8 +60,8 @@ SubscriptionsModel.init(
       onDelete: 'NO ACTION',
       onUpdate: 'NO ACTION',
     },
-    subscriptionId: { type: DataTypes.STRING, allowNull: false },
-    customerId: { type: DataTypes.STRING, allowNull: false },
+    subscriptionId: { type: DataTypes.STRING, allowNull: true },
+    customerId: { type: DataTypes.STRING, allowNull: true },
     status: {
       type: DataTypes.ENUM,
       allowNull: false,

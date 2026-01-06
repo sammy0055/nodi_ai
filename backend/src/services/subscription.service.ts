@@ -100,34 +100,27 @@ export class SubscriptionService {
   }
 
   // app-admin functions --------------------------------
-  static async createSubscriptionForOrg({ planId, orgId }: { orgId: string; planId: string }) {
-    const plan = await SubscriptionPlanModel.findByPk(planId);
-    if (!plan) throw new Error('billing plan does not exist');
-    if (plan.paymentType !== 'offline_manual') throw new Error('only offline_manual subscription is allowed');
-    if (!orgId) throw new Error('organization id is required');
-    const org = (await OrganizationsModel.findByPk(orgId, { include: ['owner'] })) as any;
+  static async createSubscriptionForOrg({ orgId, creditPoint }: { orgId: string; creditPoint: number }) {
+    const org = await OrganizationsModel.findByPk(orgId);
     if (!org) throw new Error('organization does not exist');
-    let customerId;
-    const sub = await SubscriptionsModel.findOne({ where: { organizationId: org.id } });
-    if (!sub) {
-      const customer = await stripe.customers.create({
-        email: org.owner.email, // optional but recommended
-        name: org.owner.name,
-      });
-      customerId = customer.id as string;
-    } else {
-      const subscription = await stripe.subscriptions.retrieve(sub.subscriptionId);
-      customerId = subscription.customer as string;
-    }
-
-    // now create subscription
-    const data = await stripe.subscriptions.create({
-      customer: customerId,
-      items: [{ price: plan.stripePlanPriceId }],
-      metadata: { planId: plan.id, organizationId: orgId },
+    const sub = await SubscriptionsModel.create({
+      organizationId: orgId,
+      startDate: new Date(),
+      currentPeriodStart: new Date(),
+      currentPeriodEnd: null,
+      nextBillingDate: null,
+      customerId: null,
+      subscriptionId: null,
+      status: 'active',
     });
 
-    return data;
+    await CreditBalanceModel.create({
+      organizationId: orgId,
+      totalCredits: creditPoint,
+      usedCredits: creditPoint,
+      remainingCredits: creditPoint,
+    });
+    return sub;
   }
 
   static async updateSubscriptionCredit({

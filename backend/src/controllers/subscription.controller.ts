@@ -21,7 +21,7 @@ export class SubscriptionController {
   static async getSubscriptionStatisticsForOrg() {
     return await SubscriptionService.getSubscriptionStatistics();
   }
-  static async createSubscriptionForOrg(data:{ orgId: string; planId: string}) {
+  static async createSubscriptionForOrg(data:{ orgId: string;creditPoint: number }) {
     return await SubscriptionService.createSubscriptionForOrg(data);
   }
   static async updateSubscriptionCredit(data: { organizationId: string; creditPoint: number }) {
