@@ -7,7 +7,6 @@ import { SubscriptionsModel } from '../models/subscriptions.model';
 import { UsageRecordModel } from '../models/usage-records.model';
 import { User } from '../types/users';
 import { OrganizationsModel } from '../models/organizations.model';
-import { ISubscriptionPlan } from '../types/subscription-plan';
 
 export class SubscriptionService {
   static readonly successUrl = appConfig.stripe.successUrl;
