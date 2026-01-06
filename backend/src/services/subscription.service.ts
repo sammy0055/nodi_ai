@@ -138,6 +138,7 @@ export class SubscriptionService {
 
   static async adminCancelOrgSubscription({ subId, orgId }: { subId: string; orgId: string }) {
     if (!subId || !orgId) throw new Error('one or more input is missing');
-    return await SubscriptionsModel.destroy({ where: { id: subId, organizationId: orgId } });
+    await SubscriptionsModel.destroy({ where: { id: subId, organizationId: orgId } });
+    await CreditBalanceModel.destroy({ where: { organizationId: orgId } });
   }
 }
