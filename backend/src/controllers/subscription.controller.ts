@@ -1,4 +1,5 @@
 import { SubscriptionService } from '../services/subscription.service';
+import { ISubscriptionPlan } from '../types/subscription-plan';
 import { User } from '../types/users';
 
 export class SubscriptionController {
@@ -17,7 +18,13 @@ export class SubscriptionController {
   static async getCreditBalance(user: Pick<User, 'id' | 'organizationId'>) {
     return await SubscriptionService.getCreditBalance(user);
   }
-  static async getSubscriptionStatisticsForOrg(){
-    return await SubscriptionService.getSubscriptionStatistics()
+  static async getSubscriptionStatisticsForOrg() {
+    return await SubscriptionService.getSubscriptionStatistics();
+  }
+  static async createSubscriptionForOrg(org: string, plan: ISubscriptionPlan) {
+    return await SubscriptionService.createSubscriptionForOrg(org, plan);
+  }
+  static async updateSubscriptionCredit(data: { organizationId: string; creditPoint: number }) {
+    return await SubscriptionService.updateSubscriptionCredit(data);
   }
 }
