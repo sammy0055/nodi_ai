@@ -12,12 +12,15 @@ import {
   FiCheckCircle,
   FiX,
   FiMoreVertical,
+  FiPlus,
 } from 'react-icons/fi';
 import Button from '../../components/atoms/Button/Button';
 import { useDebounce } from 'use-debounce';
 import { useLoaderData } from 'react-router';
 import { AdminOrganziationService } from '../../services/admin/AdminOrganizationService';
 import type { Pagination } from '../../types/customer';
+import Input from '../../components/atoms/Input/Input';
+import { SubscriptionService } from '../../services/subscriptionService';
 
 // Types based on your schema
 interface Organization {
@@ -72,12 +75,12 @@ const OrganizationsPage: React.FC = () => {
   const [organizations, setOrganizations] = useState<Organization[]>(data.adminOrganizations.data.data);
   const [statistics] = useState<Statistics>({ organizations: data.organizations });
   const [searchTerm, setSearchTerm] = useState('');
-
+  const [creditPoint, setCreditPoint] = useState('');
   const [pagination, setPagination] = useState<Pagination>(data.adminOrganizations.data.pagination);
   const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null);
   const [showActionModal, setShowActionModal] = useState(false);
   const [actionType, setActionType] = useState<
-    'suspend' | 'cancel' | 'reactivate' | 'suspend-subscription' | 'cancel-subscription' | null
+    'suspend' | 'cancel' | 'reactivate' | 'cancel-subscription' | 'create-subscription' | 'add-credit' | null
   >(null);
   const [isLoading, setIsLoading] = useState(false);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
@@ -86,7 +89,7 @@ const OrganizationsPage: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
-
+  const { adminCancelSubscription, adminCreateSubscription, addCreditPoint } = new SubscriptionService();
   // Filter organizations when search term changes
   const { adminGetPaginatedOrganizations, adminSearchOrganizations, updateOrganizationStatus } =
     new AdminOrganziationService();
@@ -117,7 +120,7 @@ const OrganizationsPage: React.FC = () => {
 
   const handleAction = (
     org: Organization,
-    type: 'suspend' | 'cancel' | 'reactivate' | 'suspend-subscription' | 'cancel-subscription'
+    type: 'suspend' | 'cancel' | 'reactivate' | 'cancel-subscription' | 'create-subscription' | 'add-credit'
   ) => {
     setSelectedOrganization(org);
     setActionType(type);
@@ -136,7 +139,6 @@ const OrganizationsPage: React.FC = () => {
     try {
       // Simulate API call
       let updatedOrg = { ...selectedOrganization };
-
       switch (actionType) {
         case 'suspend':
           updatedOrg.status = 'suspended';
@@ -150,11 +152,22 @@ const OrganizationsPage: React.FC = () => {
           updatedOrg.status = 'active';
           await updateOrganizationStatus({ status: 'active', id: updatedOrg.id });
           break;
-        case 'suspend-subscription':
-          if (updatedOrg.subscription) updatedOrg.subscription.status = 'suspended';
-          break;
         case 'cancel-subscription':
-          if (updatedOrg.subscription) updatedOrg.subscription.status = 'cancelled';
+          const subId = updatedOrg?.subscription?.id;
+          if (!subId) {
+            alert('organization does not have a subscription');
+            return;
+          }
+          await adminCancelSubscription({ subId: subId!, orgId: updatedOrg.id });
+          alert('subscription cancelled successfully');
+          break;
+        case 'create-subscription':
+          await adminCreateSubscription({ orgId: updatedOrg.id, creditPoint: Number(creditPoint) });
+          alert('subscription created successfully');
+          break;
+        case 'add-credit':
+          await addCreditPoint({ organizationId: updatedOrg.id, creditPoint: Number(creditPoint) });
+          alert('added billing credit successfully');
           break;
       }
 
@@ -163,7 +176,7 @@ const OrganizationsPage: React.FC = () => {
       setSelectedOrganization(null);
       setActionType(null);
     } catch (error) {
-      alert('Failed to update organization');
+      alert('something went wrong');
     } finally {
       setIsLoading(false);
     }
@@ -282,22 +295,32 @@ const OrganizationsPage: React.FC = () => {
               </div>
 
               {org?.subscription?.status === 'active' && (
-                <button
-                  onClick={() => handleAction(org, 'suspend-subscription')}
-                  className="flex items-center w-full px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
-                >
-                  <FiPause className="mr-2 text-yellow-600" />
-                  Suspend Subscription
-                </button>
+                <>
+                  <button
+                    onClick={() => handleAction(org, 'cancel-subscription')}
+                    className="flex items-center w-full px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
+                  >
+                    <FiPause className="mr-2 text-yellow-600" />
+                    Cancel Subscription
+                  </button>
+
+                  <button
+                    onClick={() => handleAction(org, 'add-credit')}
+                    className="flex items-center w-full px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
+                  >
+                    <FiPlus className="mr-2 text-yellow-600" />
+                    Add Credit
+                  </button>
+                </>
               )}
 
-              {org?.subscription?.status === 'suspended' && (
+              {!org?.subscription && (
                 <button
-                  onClick={() => handleAction(org, 'cancel-subscription')}
+                  onClick={() => handleAction(org, 'create-subscription')}
                   className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
                 >
                   <FiXCircle className="mr-2" />
-                  Cancel Subscription
+                  Create Subscription
                 </button>
               )}
             </div>
@@ -335,16 +358,18 @@ const OrganizationsPage: React.FC = () => {
       <div className="md:col-span-3 hidden md:block">
         {org?.subscription ? (
           <div className="space-y-1 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-neutral-500">Plan:</span>
-              <span
-                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getPlanColor(
-                  org.subscription.plan.name
-                )}`}
-              >
-                {org.subscription.plan.name}
-              </span>
-            </div>
+            {org?.subscription?.plan && (
+              <div className="flex items-center justify-between">
+                <span className="text-neutral-500">Plan:</span>
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getPlanColor(
+                    org.subscription.plan.name
+                  )}`}
+                >
+                  {org.subscription.plan.name}
+                </span>
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <span className="text-neutral-500">Subscription:</span>
               <span
@@ -394,16 +419,18 @@ const OrganizationsPage: React.FC = () => {
       <div className="md:hidden col-span-1 space-y-3">
         {org.subscription && (
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <p className="text-neutral-500">Plan</p>
-              <span
-                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getPlanColor(
-                  org.subscription.plan.name
-                )}`}
-              >
-                {org.subscription.plan.name}
-              </span>
-            </div>
+            {org.subscription.plan && (
+              <div>
+                <p className="text-neutral-500">Plan</p>
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getPlanColor(
+                    org.subscription.plan.name
+                  )}`}
+                >
+                  {org.subscription.plan.name}
+                </span>
+              </div>
+            )}
             <div>
               <p className="text-neutral-500">Subscription</p>
               <span
@@ -616,8 +643,9 @@ const OrganizationsPage: React.FC = () => {
                 {actionType === 'suspend' && 'Suspend Organization'}
                 {actionType === 'cancel' && 'Cancel Organization'}
                 {actionType === 'reactivate' && 'Reactivate Organization'}
-                {actionType === 'suspend-subscription' && 'Suspend Subscription'}
                 {actionType === 'cancel-subscription' && 'Cancel Subscription'}
+                {actionType === 'create-subscription' && 'Create Subscription'}
+                {actionType === 'add-credit' && 'Add Credit'}
               </h3>
               <button
                 onClick={() => {
@@ -633,7 +661,7 @@ const OrganizationsPage: React.FC = () => {
 
             <div className="p-6">
               <div className="flex items-center mb-4">
-                <FiAlertCircle className="text-yellow-600 mr-3 text-xl" />
+                {actionType !== 'add-credit' && <FiAlertCircle className="text-yellow-600 mr-3 text-xl" />}
                 <div>
                   <h4 className="font-medium text-neutral-900">Confirm Action</h4>
                   <p className="text-sm text-neutral-600 mt-1">
@@ -643,11 +671,28 @@ const OrganizationsPage: React.FC = () => {
                       `Are you sure you want to cancel ${selectedOrganization.name}? This action cannot be undone.`}
                     {actionType === 'reactivate' &&
                       `Are you sure you want to reactivate ${selectedOrganization.name}? They will regain access to the platform.`}
-                    {actionType === 'suspend-subscription' &&
-                      `Are you sure you want to suspend ${selectedOrganization.name}'s subscription? They will lose access to premium features.`}
                     {actionType === 'cancel-subscription' &&
-                      `Are you sure you want to cancel ${selectedOrganization.name}'s subscription? This action cannot be undone.`}
+                      `Are you sure you want to cancel ${selectedOrganization.name}'s subscription? They will lose access to premium features.`}
+                    {actionType === 'create-subscription' &&
+                      `Are you sure you want to create ${selectedOrganization.name}'s subscription? This action cannot be undone.`}
                   </p>
+
+                  {actionType === 'create-subscription' && (
+                    <Input
+                      type="number"
+                      value={creditPoint}
+                      onChange={(e) => setCreditPoint(e.target.value)}
+                      label="Credit Point"
+                    />
+                  )}
+                  {actionType === 'add-credit' && (
+                    <Input
+                      type="number"
+                      value={creditPoint}
+                      onChange={(e) => setCreditPoint(e.target.value)}
+                      label="Credit Point"
+                    />
+                  )}
                 </div>
               </div>
 
@@ -672,8 +717,9 @@ const OrganizationsPage: React.FC = () => {
                   {actionType === 'suspend' && 'Suspend Organization'}
                   {actionType === 'cancel' && 'Cancel Organization'}
                   {actionType === 'reactivate' && 'Reactivate Organization'}
-                  {actionType === 'suspend-subscription' && 'Suspend Subscription'}
                   {actionType === 'cancel-subscription' && 'Cancel Subscription'}
+                  {actionType === 'create-subscription' && 'Create Subscription'}
+                  {actionType === 'add-credit' && 'Add Credit'}
                 </Button>
               </div>
             </div>
