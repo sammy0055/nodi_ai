@@ -100,7 +100,9 @@ export class SubscriptionService {
   }
 
   // app-admin functions --------------------------------
-  static async createSubscriptionForOrg(orgId: string, plan: ISubscriptionPlan) {
+  static async createSubscriptionForOrg({ planId, orgId }: { orgId: string; planId: string }) {
+    const plan = await SubscriptionPlanModel.findByPk(planId);
+    if (!plan) throw new Error('billing plan does not exist');
     if (plan.paymentType !== 'offline_manual') throw new Error('only offline_manual subscription is allowed');
     if (!orgId) throw new Error('organization id is required');
     const org = (await OrganizationsModel.findByPk(orgId, { include: ['owner'] })) as any;

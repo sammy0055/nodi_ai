@@ -2,14 +2,7 @@ import { z } from 'zod';
 import { Request, Response, NextFunction } from 'express';
 
 const appAdminCreateSubscriptionInputSchema = z.object({
-  name: z.string().trim(),
-  description: z.string().trim(),
-  price: z.number(),
-  creditPoints: z.number(),
-  billing_cycle_days: z.number().optional(),
-  isActive: z.boolean().optional(),
-  features: z.array(z.string()).optional(),
-  paymentType: z.enum(['recurring_subscription', 'one_time_charge', 'offline_manual']),
+  planId: z.string(),
   orgId: z.string(),
 });
 

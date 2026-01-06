@@ -104,7 +104,7 @@ subscriptionRouter.get('/get-credit-balance', authMiddleware, async (req, res) =
   }
 });
 
-// app-user route
+// app-user route ------------------------------------
 subscriptionRouter.get('/get-subscription-statistics', adminAuthMiddleware, async (req, res) => {
   try {
     const data = await SubscriptionController.getSubscriptionStatisticsForOrg();
@@ -124,15 +124,13 @@ subscriptionRouter.get('/get-subscription-statistics', adminAuthMiddleware, asyn
   }
 });
 
-// app-admin routes ------------------------------
 subscriptionRouter.post(
   '/create-sub-for-organization',
   adminAuthMiddleware,
   validateAppAdminCreateSubscriptionSchema(),
   async (req, res) => {
     try {
-      const orgId = req.body.orgId;
-      const data = await SubscriptionController.createSubscriptionForOrg(orgId, req.body);
+      const data = await SubscriptionController.createSubscriptionForOrg(req.body);
       const response: APIResponseFormat<any> = {
         message: 'billing created successfully',
         data,
