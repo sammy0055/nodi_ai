@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { Request, Response, NextFunction } from 'express';
 
 const appAdminCreateSubscriptionInputSchema = z.object({
-  planId: z.string(),
+  orgId: z.string(),
   creditPoint: z.number(),
 });
 
