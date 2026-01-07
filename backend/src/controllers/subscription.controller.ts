@@ -1,3 +1,4 @@
+import { SubstriptionStatusTypes } from '../data/data-types';
 import { SubscriptionService } from '../services/subscription.service';
 import { ISubscriptionPlan } from '../types/subscription-plan';
 import { User } from '../types/users';
@@ -29,5 +30,12 @@ export class SubscriptionController {
   }
   static async adminCancelOrgSubscription(data: { subId: string; orgId: string }) {
     return await SubscriptionService.adminCancelOrgSubscription(data);
+  }
+  static async adminUpdateOrgSubscriptionStatus(data: {
+    subId: string;
+    orgId: string;
+    status: `${SubstriptionStatusTypes}`;
+  }) {
+    return await SubscriptionService.adminUpdateOrgSubscriptionStatus(data);
   }
 }

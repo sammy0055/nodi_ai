@@ -7,6 +7,7 @@ import { SubscriptionsModel } from '../models/subscriptions.model';
 import { UsageRecordModel } from '../models/usage-records.model';
 import { User } from '../types/users';
 import { OrganizationsModel } from '../models/organizations.model';
+import { SubstriptionStatusTypes } from '../data/data-types';
 
 export class SubscriptionService {
   static readonly successUrl = appConfig.stripe.successUrl;
@@ -142,5 +143,18 @@ export class SubscriptionService {
     if (!subId || !orgId) throw new Error('one or more input is missing');
     await SubscriptionsModel.destroy({ where: { id: subId, organizationId: orgId } });
     await CreditBalanceModel.destroy({ where: { organizationId: orgId } });
+  }
+
+  static async adminUpdateOrgSubscriptionStatus({
+    subId,
+    orgId,
+    status,
+  }: {
+    subId: string;
+    orgId: string;
+    status: `${SubstriptionStatusTypes}`;
+  }) {
+    if (!subId && !orgId && status) throw new Error('one or more input is missing');
+    await SubscriptionsModel.update({ status: status }, { where: { id: subId, organizationId: orgId } });
   }
 }

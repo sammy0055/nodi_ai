@@ -41,4 +41,10 @@ export class SubscriptionService {
       body: data,
     });
   }
+  async adminUpdateSubscriptionStatus(data: { subId: string; orgId: string; status: 'active' | 'suspended' | 'cancelled' }) {
+    return await AdminApiClient('ADMIN_UPDATE_ORG_SUB_STATUS', {
+      method: 'POST',
+      body: data,
+    });
+  }
 }

@@ -15,6 +15,7 @@ export const APP_USER_API_ROUTES = {
   GET_SUB_PLAN_STATISTISTICS: `${API_BASE_URL}/app-user/subscription/get-subscription-statistics`,
   ADMIN_CANCEL_ORG_SUB: `${API_BASE_URL}/app-user/subscription/cancel-org-subscription`,
   ADMIN_CREATE_ORG_SUB: `${API_BASE_URL}/app-user/subscription/create-sub-for-organization`,
+  ADMIN_UPDATE_ORG_SUB_STATUS: `${API_BASE_URL}/app-user/subscription/update-org-subscription-status`,
   ADMIN_ADD_ORG_CREDIT: `${API_BASE_URL}/app-user/subscription/add-billing-credit`,
   ADMIN_GET_ORGANIZATIONS: `${API_BASE_URL}/app-user/organization/get-organizations-for-admin`,
   ADMIN_UPDATE_ORG_STATUS: `${API_BASE_URL}/app-user/organization/update-organization-status-for-admin`,

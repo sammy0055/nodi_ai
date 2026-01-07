@@ -22,6 +22,15 @@ import type { Pagination } from '../../types/customer';
 import Input from '../../components/atoms/Input/Input';
 import { SubscriptionService } from '../../services/subscriptionService';
 
+export type SubscriptionTypes =
+  | 'suspend'
+  | 'cancel'
+  | 'reactivate'
+  | 'cancel-subscription'
+  | 'create-subscription'
+  | 'add-credit'
+  | 'remove-subscription'
+  | 'reactivate-subscription';
 // Types based on your schema
 interface Organization {
   id: string;
@@ -79,9 +88,7 @@ const OrganizationsPage: React.FC = () => {
   const [pagination, setPagination] = useState<Pagination>(data.adminOrganizations.data.pagination);
   const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null);
   const [showActionModal, setShowActionModal] = useState(false);
-  const [actionType, setActionType] = useState<
-    'suspend' | 'cancel' | 'reactivate' | 'cancel-subscription' | 'create-subscription' | 'add-credit' | null
-  >(null);
+  const [actionType, setActionType] = useState<`${SubscriptionTypes}` | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
@@ -89,7 +96,8 @@ const OrganizationsPage: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
-  const { adminCancelSubscription, adminCreateSubscription, addCreditPoint } = new SubscriptionService();
+  const { adminCancelSubscription, adminCreateSubscription, addCreditPoint, adminUpdateSubscriptionStatus } =
+    new SubscriptionService();
   // Filter organizations when search term changes
   const { adminGetPaginatedOrganizations, adminSearchOrganizations, updateOrganizationStatus } =
     new AdminOrganziationService();
@@ -118,10 +126,7 @@ const OrganizationsPage: React.FC = () => {
     }
   };
 
-  const handleAction = (
-    org: Organization,
-    type: 'suspend' | 'cancel' | 'reactivate' | 'cancel-subscription' | 'create-subscription' | 'add-credit'
-  ) => {
+  const handleAction = (org: Organization, type: SubscriptionTypes) => {
     setSelectedOrganization(org);
     setActionType(type);
     setShowActionModal(true);
@@ -153,6 +158,20 @@ const OrganizationsPage: React.FC = () => {
           await updateOrganizationStatus({ status: 'active', id: updatedOrg.id });
           break;
         case 'cancel-subscription':
+          await adminUpdateSubscriptionStatus({
+            status: 'cancelled',
+            subId: updatedOrg?.subscription?.id!,
+            orgId: updatedOrg.id,
+          });
+          break;
+        case 'reactivate-subscription':
+          await adminUpdateSubscriptionStatus({
+            status: 'active',
+            subId: updatedOrg?.subscription?.id!,
+            orgId: updatedOrg.id,
+          });
+          break;
+        case 'remove-subscription':
           const subId = updatedOrg?.subscription?.id;
           if (!subId) {
             alert('organization does not have a subscription');
@@ -305,11 +324,31 @@ const OrganizationsPage: React.FC = () => {
                   </button>
 
                   <button
+                    onClick={() => handleAction(org, 'remove-subscription')}
+                    className="flex items-center w-full px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
+                  >
+                    <FiPlus className="mr-2 text-yellow-600" />
+                    Remove Subscription
+                  </button>
+
+                  <button
                     onClick={() => handleAction(org, 'add-credit')}
                     className="flex items-center w-full px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
                   >
                     <FiPlus className="mr-2 text-yellow-600" />
                     Add Credit
+                  </button>
+                </>
+              )}
+
+              {org?.subscription?.status !== 'active' && (
+                <>
+                  <button
+                    onClick={() => handleAction(org, 'reactivate-subscription')}
+                    className="flex items-center w-full px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
+                  >
+                    <FiPlus className="mr-2 text-yellow-600" />
+                    Reactivate Subscription
                   </button>
                 </>
               )}
@@ -673,8 +712,12 @@ const OrganizationsPage: React.FC = () => {
                       `Are you sure you want to reactivate ${selectedOrganization.name}? They will regain access to the platform.`}
                     {actionType === 'cancel-subscription' &&
                       `Are you sure you want to cancel ${selectedOrganization.name}'s subscription? They will lose access to premium features.`}
+                    {actionType === 'remove-subscription' &&
+                      `Are you sure you want to remove ${selectedOrganization.name}'s subscription? They will lose access to premium features.`}
                     {actionType === 'create-subscription' &&
                       `Are you sure you want to create ${selectedOrganization.name}'s subscription? This action cannot be undone.`}
+                    {actionType === 'reactivate-subscription' &&
+                      `Are you sure you want to reactivate ${selectedOrganization.name}'s subscription? This action cannot be undone.`}
                   </p>
 
                   {actionType === 'create-subscription' && (

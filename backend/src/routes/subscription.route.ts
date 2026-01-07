@@ -185,3 +185,22 @@ subscriptionRouter.delete('/cancel-org-subscription', adminAuthMiddleware, async
     res.status(500).json(response);
   }
 });
+
+subscriptionRouter.post('/update-org-subscription-status', adminAuthMiddleware, async (req, res) => {
+  try {
+    const data = await SubscriptionController.adminUpdateOrgSubscriptionStatus(req.body);
+    const response: APIResponseFormat<any> = {
+      message: 'organization subscription status updated successfully',
+      data,
+    };
+
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
