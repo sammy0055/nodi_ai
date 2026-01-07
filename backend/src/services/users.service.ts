@@ -84,6 +84,10 @@ export class UserService {
       const userRoles = await UserRoleModel.findAll({ where: { id: user.roles?.map((u) => u.id) } });
       await oldUser.setRoles(userRoles);
     }
+
+    oldUser.password = user.password;
+    oldUser.email = user.email;
+    await oldUser.save();
     return updatedUser[0].get({ plain: true }); // plain JS object
   }
 

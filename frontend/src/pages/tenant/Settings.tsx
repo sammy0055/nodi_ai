@@ -635,7 +635,7 @@ const SettingsPage: React.FC = () => {
 
           <Input
             label="Password"
-            value={newUser.email}
+            value={newUser.password}
             onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
             placeholder="Enter user's password"
             type="password"
