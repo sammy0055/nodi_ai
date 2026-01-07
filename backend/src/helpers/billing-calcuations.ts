@@ -57,9 +57,7 @@ export const calculateAndSubtractCredits = async (
 
   const totalCreditsUsed = aiCredits + whatsappCredits + catalogCredits;
   const creditUsed = Number(totalCreditsUsed.toFixed(2));
-  console.log('================aiTokensUsed====================');
-  console.log({ aiCredits, catalogCredits, whatsappCredits, aiTokensUsed, creditUsed });
-  console.log('====================================');
+
   const creditRecords = await CreditBalanceModel.findOne({ where: { organizationId: org.organizationId } });
   if (!creditRecords) throw new Error('Credit: no credit for organization:' + org.conversationId);
 
@@ -72,7 +70,9 @@ export const calculateAndSubtractCredits = async (
     console.warn('====================================');
     throw new Error('credit exusted for organization' + org.organizationId);
   }
-
+  console.log('😘================aiTokensUsed====================');
+  console.log({ aiCredits, catalogCredits, whatsappCredits, aiTokensUsed, creditUsed });
+  console.log('====================================');
   await CreditBalanceModel.update(
     {
       usedCredits: creditRecords.usedCredits + creditUsed,
