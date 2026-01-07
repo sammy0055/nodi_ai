@@ -76,7 +76,7 @@ const SettingsPage: React.FC = () => {
   const [rolePermissions, setRolePermissions] = useState<Set<string>>(new Set([]));
 
   // State for new user form
-  const [newUser, setNewUser] = useState({ name: '', email: '', roleId: '2' });
+  const [newUser, setNewUser] = useState({ name: '', email: '', password: '', roleId: '2' });
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [editUserData, setEditUserData] = useState<User | null>(null);
 
@@ -213,11 +213,12 @@ const SettingsPage: React.FC = () => {
       const newUserObj = {
         name: newUser.name,
         email: newUser.email,
+        password: newUser.password,
         roles: [roles.find((role) => role.id === newUser.roleId) || roles[0]],
       };
       const data = await addUser(newUserObj as any);
       setUsers([...users, data.data as any]);
-      setNewUser({ name: '', email: '', roleId: '2' });
+      setNewUser({ name: '', email: '', password: '', roleId: '2' });
     } catch (error: any) {
       alert(error.message);
     }
@@ -632,6 +633,14 @@ const SettingsPage: React.FC = () => {
             type="email"
           />
 
+          <Input
+            label="Password"
+            value={newUser.email}
+            onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+            placeholder="Enter user's password"
+            type="password"
+          />
+
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-neutral-700">Role</label>
             <select
@@ -704,6 +713,16 @@ const SettingsPage: React.FC = () => {
                       />
                     ) : (
                       <div className="text-sm text-neutral-600">{user.email}</div>
+                    )}
+                       {editingUserId === user.id ? (
+                      <input
+                        type="password"
+                        value={editUserData?.password || ''}
+                        onChange={(e) => setEditUserData((prev) => (prev ? { ...prev, password: e.target.value } : null))}
+                        className="border border-neutral-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    ) : (
+                      <div className="text-sm text-neutral-600"></div>
                     )}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">

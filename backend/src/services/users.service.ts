@@ -60,7 +60,7 @@ export class UserService {
     const payload = {
       name: data.name,
       email: data.email,
-      password: 'password',
+      password: data.password,
     };
 
     const otherUser = await UsersModel.create({ ...payload, organizationId: user.organizationId });
