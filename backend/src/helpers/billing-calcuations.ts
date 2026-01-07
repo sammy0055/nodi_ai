@@ -84,6 +84,6 @@ export const calculateAndSubtractCredits = async (
   );
   await UsageRecordModel.update(
     { featureName: creditFeatureName.All, creditsConsumed: creditUsed },
-    { where: { organizationId: org.conversationId } }
+    { where: { organizationId: org.organizationId } }
   );
 };
