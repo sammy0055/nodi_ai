@@ -135,6 +135,26 @@ export const permissions = [
   { key: 'area.update', description: 'Update area details and coverage' },
   { key: 'area.view', description: 'View areas and assigned branches' },
   { key: 'area.delete', description: 'Delete an operational or delivery area' },
+
+   { key: 'zone.create', description: 'Create a new zone in the system' },
+  { key: 'zone.update', description: 'Update zone details and boundaries' },
+  { key: 'zone.view', description: 'View all zones and their assignments' },
+  { key: 'zone.delete', description: 'Delete an existing zone from the system' },
+
+  { key: 'review.create', description: 'Add a new customer or product review' },
+  { key: 'review.update', description: 'Edit existing reviews or feedback' },
+  { key: 'review.view', description: 'View all reviews and ratings' },
+  { key: 'review.delete', description: 'Remove inappropriate or outdated reviews' },
+
+  { key: 'faq.create', description: 'Create a new FAQ entry' },
+  { key: 'faq.update', description: 'Update FAQ content and categories' },
+  { key: 'faq.view', description: 'View all FAQs and their details' },
+  { key: 'faq.delete', description: 'Delete outdated or incorrect FAQ entries' },
+
+  { key: 'billing.create', description: 'Create new invoices or billing records' },
+  { key: 'billing.update', description: 'Update billing details or invoice amounts' },
+  { key: 'billing.view', description: 'View all billing records and transactions' },
+  { key: 'billing.delete', description: 'Delete incorrect or duplicate billing records' },
 ];
 
 export const supportedBusinessTypes = Object.values(BusinessType);

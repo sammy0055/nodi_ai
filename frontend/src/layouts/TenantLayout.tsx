@@ -25,6 +25,7 @@ import {
 import { UserService } from '../services/userService';
 import type { ISubscription, ISubscriptionPlan } from '../types/subscription';
 import { MdDashboard } from 'react-icons/md';
+// import { useValidateUserRolesAndPermissions } from '../hooks/validateUserRoleAndPermissions';
 
 export const TenantLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -44,7 +45,7 @@ export const TenantLayout = () => {
   const setOrg = useOrgSetRecoilState();
   const setWhatsapp = useWhatsappSetRecoilState();
   const currentPlan = data?.subscriptionPlans?.find((p) => p.id === data?.subscription?.planId);
-
+  // const { isUserPermissionsValid } = useValidateUserRolesAndPermissions(data.user);
   useEffect(() => {
     if (!data) return;
     // 🔑 Handle redirects once, based on missing data
@@ -74,7 +75,12 @@ export const TenantLayout = () => {
 
   // Navigation items
   const navigationItems = [
-    { path: `/app/${PageRoutes.APP_DASHBOARD}`, label: 'Dashboard', icon: <MdDashboard className="text-lg" /> },
+    {
+      path: `/app/${PageRoutes.APP_DASHBOARD}`,
+      label: 'Dashboard',
+      icon: <MdDashboard className="text-lg" />,
+      perm: 'order.view',
+    },
     { path: `/app/${PageRoutes.ORDERS}`, label: 'Orders', icon: <FiShoppingCart className="text-lg" /> },
     { path: `/app/${PageRoutes.PRODUCTS}`, label: 'Products', icon: <FiPackage className="text-lg" /> },
     { path: `/app/${PageRoutes.BRANCHS}`, label: 'Branches', icon: <FiTrendingUp className="text-lg" /> },
@@ -143,6 +149,7 @@ export const TenantLayout = () => {
             <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
               {navigationItems.map((item) => {
                 const isActive = location.pathname === item.path;
+                // if (!isUserPermissionsValid([item!.perm] as any)) return <></>;
                 return (
                   <Link
                     key={item.path}
