@@ -24,13 +24,14 @@ export const validateSubscriptionStatus = async (organizationId: string) => {
     const sub = await SubscriptionsModel.findOne({ where: { organizationId: organizationId } });
     if (sub?.status !== 'active') throw new Error(`subscription expired for organizationId: ${organizationId}`);
   }
-  return true;
+  return isFreeTrialActive;
 };
 
 export const calculateAndSubtractCredits = async (
   args: Partial<CreditUsageAttributes>,
   org: OrganizationAttributes
 ) => {
+  
   const isFreeTrial = await validateSubscriptionStatus(org.organizationId);
   if (isFreeTrial) return;
   const { aiTokensUsed, catalogCalls } = args;
@@ -73,9 +74,7 @@ export const calculateAndSubtractCredits = async (
     throw new Error('credit exusted for organization' + org.organizationId);
   }
 
-  console.log('===============creditUsed=====================');
-  console.log(`updating credit usage: ${creditUsed}`);
-  console.log('====================================');
+ 
   await CreditBalanceModel.update(
     {
       usedCredits: creditRecords.usedCredits + creditUsed,
