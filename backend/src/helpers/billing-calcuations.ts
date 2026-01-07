@@ -2,7 +2,6 @@
 
 import { Conversation } from '../models/conversation.model';
 import { CreditBalanceModel } from '../models/creditBalance.model';
-import { OrganizationsModel } from '../models/organizations.model';
 import { SubscriptionsModel } from '../models/subscriptions.model';
 import { UsageRecordModel } from '../models/usage-records.model';
 import { creditFeatureName } from '../types/usage-record';
@@ -31,17 +30,16 @@ export const calculateAndSubtractCredits = async (
   args: Partial<CreditUsageAttributes>,
   org: OrganizationAttributes
 ) => {
-  
   const isFreeTrial = await validateSubscriptionStatus(org.organizationId);
   if (isFreeTrial) return;
   const { aiTokensUsed, catalogCalls } = args;
-  const aitoken_per_credit = 1000;
-  const catalogApiCall_per_credit = 5;
+  const aitoken_per_credit = 1000; //1000 equals 1 credit
+  const catalogApiCall_per_credit = 2;
   const whatsappConvWindow_per_credit = 1; // in 24hrs window
 
   // Convert usage to credits
-  const aiCredits = aiTokensUsed ? Math.ceil(aiTokensUsed / aitoken_per_credit) : 0;
-  const catalogCredits = catalogCalls ? Math.ceil(catalogCalls / catalogApiCall_per_credit) : 0;
+  const aiCredits = aiTokensUsed ? aiTokensUsed / aitoken_per_credit : 0;
+  const catalogCredits = catalogCalls ? catalogCalls / catalogApiCall_per_credit : 0;
   let whatsappCredits = 0;
 
   if (org.conversationId) {
@@ -59,7 +57,9 @@ export const calculateAndSubtractCredits = async (
 
   const totalCreditsUsed = aiCredits + whatsappCredits + catalogCredits;
   const creditUsed = Number(totalCreditsUsed.toFixed(2));
-
+  console.log('================aiTokensUsed====================');
+  console.log({ aiCredits, catalogCredits, whatsappCredits, aiTokensUsed, creditUsed });
+  console.log('====================================');
   const creditRecords = await CreditBalanceModel.findOne({ where: { organizationId: org.organizationId } });
   if (!creditRecords) throw new Error('Credit: no credit for organization:' + org.conversationId);
 
@@ -70,11 +70,9 @@ export const calculateAndSubtractCredits = async (
     console.warn('====================================');
     console.warn('subscription cancelled for organization:' + org.organizationId);
     console.warn('====================================');
-    await OrganizationsModel.update({ status: 'suspended' }, { where: { id: org.organizationId } });
     throw new Error('credit exusted for organization' + org.organizationId);
   }
 
- 
   await CreditBalanceModel.update(
     {
       usedCredits: creditRecords.usedCredits + creditUsed,

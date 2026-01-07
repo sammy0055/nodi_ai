@@ -4,6 +4,7 @@ import { MCPChatBot } from './client';
 import { createSystemPrompt } from './prompts';
 import { decrypt } from '../utils/crypto-utils';
 import { Conversation } from '../models/conversation.model';
+import { SubscriptionsModel } from '../models/subscriptions.model';
 
 const { CustomerModel, WhatSappSettingsModel, OrganizationsModel } = models;
 
@@ -131,7 +132,24 @@ export class ChatService extends MCPChatBot {
       };
     }
 
-    if (planOrg.status !== 'active') throw new Error(`${planOrg.name}, is not active`);
+    if (planOrg.status !== 'active') {
+      return {
+        data: {
+          type: 'message',
+          response: `${planOrg.name} is currently not active at the moment`,
+        },
+      };
+    }
+
+    const subscription = await SubscriptionsModel.findOne({ where: { organizationId: planOrg.id } });
+    if (subscription?.status !== 'active') {
+      return {
+        data: {
+          type: 'message',
+          response: `${planOrg.name} is currently not available at the moment`,
+        },
+      };
+    }
 
     systemPrompt = createSystemPrompt({
       organizationData: planOrg!,
@@ -168,7 +186,6 @@ export class ChatService extends MCPChatBot {
         );
 
         await OrganizationsModel.update({ shouldUpdateChatbotSystemPrompt: false }, { where: { id: planOrg.id } });
-
       }
     }
     await this.connectToMcpServer(conversation.id);
@@ -362,4 +379,3 @@ export class ChatService extends MCPChatBot {
     }
   }
 }
-
