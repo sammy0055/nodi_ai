@@ -1576,7 +1576,12 @@ const OrdersPage = () => {
   const { getUserRole } = useValidateUserRolesAndPermissions(data.currentUser);
   const userRole = getUserRole();
 
-  if (userRole === 'staff') return <StaffOrderPage {...data} />;
+  if (userRole === 'staff')
+    return (
+      <div className="fixed inset-0 w-screen h-screen z-50 bg-white">
+        <StaffOrderPage {...data} />
+      </div>
+    );
 
   return <AdminOrdersPage {...data} />;
 };

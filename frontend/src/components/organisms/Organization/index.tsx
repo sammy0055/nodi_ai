@@ -491,45 +491,40 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Order Management</h1>
-              <p className="text-gray-600 mt-1">Track and manage all customer orders</p>
-            </div>
-          </div>
-        </div>
-
         {/* Tabs as Cards - Full Width */}
-        <div className="mb-6">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="w-full flex items-center bg-white px-4 py-2 shadow-md">
+          {/* Back button */}
+          <button onClick={() => window.history.back()} className="p-2 rounded hover:bg-gray-100 flex items-center">
+            <svg
+              className="w-5 h-5 text-gray-700"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          {/* Tabs */}
+          <div className="flex space-x-2 ml-4 overflow-x-auto w-full">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
-                  onClick={() => {
-                    setActiveTab(tab.id as OrderStatus);
-                  }}
-                  className={`p-4 rounded-xl border transition-all duration-200 flex flex-col items-center justify-center ${
+                  onClick={() => setActiveTab(tab.id as OrderStatus)}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-all duration-200 whitespace-nowrap ${
                     isActive
-                      ? `${tab.color} border-2 ${tab.textColor} shadow-md scale-[1.02]`
-                      : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                      ? `${tab.color} border-2 ${tab.textColor} shadow`
+                      : 'bg-gray-50 border-gray-200 hover:border-gray-300 hover:shadow-sm'
                   }`}
                 >
-                  <div className={`mb-2 p-2 rounded-lg ${isActive ? 'bg-white' : 'bg-gray-50'}`}>
-                    <Icon className={isActive ? tab.textColor : 'text-gray-500'} size={20} />
-                  </div>
-                  <div className="text-center">
-                    <div className={`text-sm font-medium ${isActive ? tab.textColor : 'text-gray-700'}`}>
-                      {tab.label}
-                    </div>
-                    {/* <div className={`text-2xl font-bold mt-1 ${isActive ? tab.textColor : 'text-gray-900'}`}>
-                      {tab.count}
-                    </div> */}
-                  </div>
+                  <Icon className={isActive ? tab.textColor : 'text-gray-500'} size={20} />
+                  <span className={`text-sm font-medium ${isActive ? tab.textColor : 'text-gray-700'}`}>
+                    {tab.label}
+                  </span>
                 </button>
               );
             })}
