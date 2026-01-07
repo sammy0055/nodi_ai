@@ -73,6 +73,9 @@ export const calculateAndSubtractCredits = async (
     throw new Error('credit exusted for organization' + org.organizationId);
   }
 
+  console.log('===============creditUsed=====================');
+  console.log(`updating credit usage: ${creditUsed}`);
+  console.log('====================================');
   await CreditBalanceModel.update(
     {
       usedCredits: creditRecords.usedCredits + creditUsed,
