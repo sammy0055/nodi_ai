@@ -5,6 +5,7 @@ import { CreditBalanceModel } from '../models/creditBalance.model';
 import { SubscriptionsModel } from '../models/subscriptions.model';
 import { UsageRecordModel } from '../models/usage-records.model';
 import { creditFeatureName } from '../types/usage-record';
+import { sendEmailNotificationToOrganizationAdmins } from '../utils/organization';
 
 // free trial
 const isFreeTrialActive = false;
@@ -61,9 +62,23 @@ export const calculateAndSubtractCredits = async (
   const creditRecords = await CreditBalanceModel.findOne({ where: { organizationId: org.organizationId } });
   if (!creditRecords) throw new Error('Credit: no credit for organization:' + org.conversationId);
 
+  const isLowCredits = creditRecords.remainingCredits <= creditRecords.totalCredits * 0.3;
+  if (isLowCredits) {
+    sendEmailNotificationToOrganizationAdmins(org.organizationId, {
+      title: 'Low Billing Credit',
+      message: 'Your billing credit is below 30%, kindly recharge to avoid suspention when it gets exusted',
+      type: 'warning',
+    });
+  }
   if (creditRecords.remainingCredits < creditUsed) {
     await SubscriptionsModel.update({ status: 'cancelled' }, { where: { organizationId: org.organizationId } });
     // send email notification to organization
+    sendEmailNotificationToOrganizationAdmins(org.organizationId, {
+      title: 'Billing Credit Exusted',
+      message:
+        'you billing account balance is exusted and thus, being suspended, kindly recharge to continue using our services',
+      type: 'warning',
+    });
     //   disable webhook subscription for whatsapp
     console.warn('====================================');
     console.warn('subscription cancelled for organization:' + org.organizationId);

@@ -230,6 +230,7 @@ const OrganizationsPage: React.FC = () => {
   };
 
   const formatDate = (date: Date) => {
+    if (!date) return 'unlimited';
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'short',
@@ -313,7 +314,7 @@ const OrganizationsPage: React.FC = () => {
                 Subscription
               </div>
 
-              {org?.subscription?.status === 'active' && (
+              {org?.subscription && org?.subscription?.status === 'active' && (
                 <>
                   <button
                     onClick={() => handleAction(org, 'cancel-subscription')}
@@ -341,7 +342,7 @@ const OrganizationsPage: React.FC = () => {
                 </>
               )}
 
-              {org?.subscription?.status !== 'active' && (
+              {org?.subscription && org?.subscription?.status !== 'active' && (
                 <>
                   <button
                     onClick={() => handleAction(org, 'reactivate-subscription')}
@@ -684,6 +685,8 @@ const OrganizationsPage: React.FC = () => {
                 {actionType === 'reactivate' && 'Reactivate Organization'}
                 {actionType === 'cancel-subscription' && 'Cancel Subscription'}
                 {actionType === 'create-subscription' && 'Create Subscription'}
+                {actionType === 'reactivate-subscription' && 'Reactivate Subscription'}
+                {actionType === 'remove-subscription' && 'Remove Subscription'}
                 {actionType === 'add-credit' && 'Add Credit'}
               </h3>
               <button
@@ -762,6 +765,8 @@ const OrganizationsPage: React.FC = () => {
                   {actionType === 'reactivate' && 'Reactivate Organization'}
                   {actionType === 'cancel-subscription' && 'Cancel Subscription'}
                   {actionType === 'create-subscription' && 'Create Subscription'}
+                  {actionType === 'reactivate-subscription' && 'Reactivate Subscription'}
+                  {actionType === 'remove-subscription' && 'Remove Subscription'}
                   {actionType === 'add-credit' && 'Add Credit'}
                 </Button>
               </div>
