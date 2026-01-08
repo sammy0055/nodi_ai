@@ -110,6 +110,8 @@ export const permissions = [
   { key: 'order.process', description: 'Process and update the status of an order' },
   { key: 'order.cancel', description: 'Cancel an existing order' },
   { key: 'order.view', description: 'View order details and order history' },
+  { key: 'order.asign', description: 'Asign order to a user for processing' },
+  { key: 'order.unasign', description: 'Unasign order from a user' },
 
   { key: 'product.create', description: 'Add new products to the catalog' },
   { key: 'product.update', description: 'Edit product details, pricing, and availability' },
@@ -136,7 +138,7 @@ export const permissions = [
   { key: 'area.view', description: 'View areas and assigned branches' },
   { key: 'area.delete', description: 'Delete an operational or delivery area' },
 
-   { key: 'zone.create', description: 'Create a new zone in the system' },
+  { key: 'zone.create', description: 'Create a new zone in the system' },
   { key: 'zone.update', description: 'Update zone details and boundaries' },
   { key: 'zone.view', description: 'View all zones and their assignments' },
   { key: 'zone.delete', description: 'Delete an existing zone from the system' },
@@ -155,6 +157,10 @@ export const permissions = [
   { key: 'billing.update', description: 'Update billing details or invoice amounts' },
   { key: 'billing.view', description: 'View all billing records and transactions' },
   { key: 'billing.delete', description: 'Delete incorrect or duplicate billing records' },
+
+  { key: 'permission.update', description: 'Update existing permission details' },
+  { key: 'permission.view', description: 'View all permissions and their assignments' },
+  { key: 'permission.delete', description: 'Delete permissions from the system' },
 ];
 
 export const supportedBusinessTypes = Object.values(BusinessType);

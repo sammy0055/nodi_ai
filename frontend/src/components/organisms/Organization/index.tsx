@@ -25,6 +25,7 @@ import useProcessingTime, { getOrderProcessingTime } from '../../../hooks/orderP
 import { OrderService } from '../../../services/orderService';
 import { UserService } from '../../../services/userService';
 import type { Pagination } from '../../../types/customer';
+import { useValidateUserRolesAndPermissions } from '../../../hooks/validateUserRoleAndPermissions';
 
 // Order status object
 export const OrderStatusTypes = {
@@ -149,7 +150,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
   const [selectedSource, setSelectedSource] = useState<string>('all');
   const [_, setAssignToUserId] = useState<string>('');
-
+  const { isUserPermissionsValid } = useValidateUserRolesAndPermissions(currentUser!);
   const processingTime = useProcessingTime(selectedOrder!);
   const { updateOrder, updateOrderStatus, getOrders } = new OrderService();
   // Tabs configuration
@@ -270,6 +271,17 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
   const { updateUser } = new UserService();
   const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
     try {
+      if (!isUserPermissionsValid(['order.process'])) {
+        alert("you don't have permission to process an order");
+        return;
+      }
+
+      if (newStatus === 'cancelled') {
+        if (!isUserPermissionsValid(['order.cancel'])) {
+          alert("you don't have permission to cancel an order");
+          return;
+        }
+      }
       const orderToUpdate = orders.find((o) => o.id === orderId);
       if (orderToUpdate?.status === 'delivered') {
         alert('can not change order status, order is already completed');
@@ -305,6 +317,10 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
   };
 
   const handleAssignOrder = async (order: IOrder, userId: string) => {
+    if (!isUserPermissionsValid(['order.asign'])) {
+      alert("you don't have permission to asign an order");
+      return;
+    }
     if (!userId) return;
     if (order.status === 'delivered') {
       alert('this order is already completed');
@@ -355,6 +371,10 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
   };
 
   const handleUnassignOrder = async (order: IOrder) => {
+    if (!isUserPermissionsValid(['order.unasign'])) {
+      alert("you don't have permission to unasign an order");
+      return;
+    }
     if (!order.assignedUserId) return;
     if (order.status === 'delivered') {
       alert('this order is already completed');
@@ -487,6 +507,8 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
       Back to Orders
     </button>
   );
+
+  if (!isUserPermissionsValid(['order.view'])) window.history.back();
 
   return (
     <div className="min-h-screen bg-gray-50">

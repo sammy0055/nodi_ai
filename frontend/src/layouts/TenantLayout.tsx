@@ -25,7 +25,7 @@ import {
 import { UserService } from '../services/userService';
 import type { ISubscription, ISubscriptionPlan } from '../types/subscription';
 import { MdDashboard } from 'react-icons/md';
-// import { useValidateUserRolesAndPermissions } from '../hooks/validateUserRoleAndPermissions';
+import { useValidateUserRolesAndPermissions } from '../hooks/validateUserRoleAndPermissions';
 
 export const TenantLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -45,7 +45,7 @@ export const TenantLayout = () => {
   const setOrg = useOrgSetRecoilState();
   const setWhatsapp = useWhatsappSetRecoilState();
   const currentPlan = data?.subscriptionPlans?.find((p) => p.id === data?.subscription?.planId);
-  // const { isUserPermissionsValid } = useValidateUserRolesAndPermissions(data.user);
+  const { isUserPermissionsValid, isUserRoleValid } = useValidateUserRolesAndPermissions(data.user);
   useEffect(() => {
     if (!data) return;
     // 🔑 Handle redirects once, based on missing data
@@ -79,16 +79,20 @@ export const TenantLayout = () => {
       path: `/app/${PageRoutes.APP_DASHBOARD}`,
       label: 'Dashboard',
       icon: <MdDashboard className="text-lg" />,
+    },
+    {
+      path: `/app/${PageRoutes.ORDERS}`,
+      label: 'Orders',
+      icon: <FiShoppingCart className="text-lg" />,
       perm: 'order.view',
     },
-    { path: `/app/${PageRoutes.ORDERS}`, label: 'Orders', icon: <FiShoppingCart className="text-lg" /> },
-    { path: `/app/${PageRoutes.PRODUCTS}`, label: 'Products', icon: <FiPackage className="text-lg" /> },
-    { path: `/app/${PageRoutes.BRANCHS}`, label: 'Branches', icon: <FiTrendingUp className="text-lg" /> },
-    { path: `/app/${PageRoutes.AreasZones}`, label: 'AreaZone', icon: <FiNavigation className="text-lg" /> },
-    { path: `/app/${PageRoutes.INVENTORY}`, label: 'Branch Inventory', icon: <FiBox className="text-lg" /> },
-    { path: `/app/${PageRoutes.CUSTOMERS}`, label: 'Customers', icon: <FiUsers className="text-lg" /> },
-    { path: `/app/${PageRoutes.REVIEWS}`, label: 'Reviews', icon: <FiRefreshCw className="text-lg" /> },
-    { path: `/app/${PageRoutes.BILLING}`, label: 'Billing', icon: <FiDollarSign className="text-lg" /> },
+    { path: `/app/${PageRoutes.PRODUCTS}`, label: 'Products', icon: <FiPackage className="text-lg" />,  perm: 'product.view', },
+    { path: `/app/${PageRoutes.BRANCHS}`, label: 'Branches', icon: <FiTrendingUp className="text-lg" />,  perm: 'branch.view', },
+    { path: `/app/${PageRoutes.AreasZones}`, label: 'AreaZone', icon: <FiNavigation className="text-lg" />,  perm: 'area.view', },
+    { path: `/app/${PageRoutes.INVENTORY}`, label: 'Branch Inventory', icon: <FiBox className="text-lg" />,  perm: 'inventory.view', },
+    { path: `/app/${PageRoutes.CUSTOMERS}`, label: 'Customers', icon: <FiUsers className="text-lg" />,  perm: 'order.view', },
+    { path: `/app/${PageRoutes.REVIEWS}`, label: 'Reviews', icon: <FiRefreshCw className="text-lg" />,  perm: 'review.view', },
+    { path: `/app/${PageRoutes.BILLING}`, label: 'Billing', icon: <FiDollarSign className="text-lg" />,  perm: 'billing.view', },
     { path: `/app/${PageRoutes.SETTINGS}`, label: 'Settings', icon: <FiSettings className="text-lg" /> },
   ];
 
@@ -149,7 +153,10 @@ export const TenantLayout = () => {
             <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
               {navigationItems.map((item) => {
                 const isActive = location.pathname === item.path;
-                // if (!isUserPermissionsValid([item!.perm] as any)) return <></>;
+                if (!isUserRoleValid('super-admin')) {
+                  if (!isUserPermissionsValid([item!.perm] as any) && item.label !== 'Settings') return <></>;
+                }
+
                 return (
                   <Link
                     key={item.path}

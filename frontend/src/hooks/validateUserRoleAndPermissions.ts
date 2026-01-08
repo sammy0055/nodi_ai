@@ -6,6 +6,8 @@ const permissions = Object.freeze([
   { key: 'order.process', description: 'Process and update the status of an order' },
   { key: 'order.cancel', description: 'Cancel an existing order' },
   { key: 'order.view', description: 'View order details and order history' },
+  { key: 'order.asign', description: 'Asign order to a user for processing' },
+  { key: 'order.unasign', description: 'Unasign order from a user' },
 
   { key: 'product.create', description: 'Add new products to the catalog' },
   { key: 'product.update', description: 'Edit product details, pricing, and availability' },
@@ -50,6 +52,10 @@ const permissions = Object.freeze([
   { key: 'billing.update', description: 'Update billing details or invoice amounts' },
   { key: 'billing.view', description: 'View all billing records and transactions' },
   { key: 'billing.delete', description: 'Delete incorrect or duplicate billing records' },
+
+  { key: 'permission.update', description: 'Update existing permission details' },
+  { key: 'permission.view', description: 'View all permissions and their assignments' },
+  { key: 'permission.delete', description: 'Delete permissions from the system' },
 ] as const);
 
 // ✅ union type derived from the array
@@ -60,15 +66,15 @@ export const useValidateUserRolesAndPermissions = (user: User) => {
     if (!user) return;
   }, [user]);
   const getUserRole = (): UserRoles => {
-    return user.roles[0].name;
+    return user?.roles[0].name;
   };
   const isUserRoleValid = (userRole: UserRoles) => {
-    return user.roles[0].name === userRole;
+    return user?.roles[0].name === userRole;
   };
 
   const isUserPermissionsValid = (permissions: PermissionKey[]) => {
-    const validKeys = user.roles[0].permissions!.map((p) => p.key);
-    return permissions.every((p) => validKeys.includes(p));
+    const validKeys = user?.roles[0]?.permissions!.map((p) => p.key);
+    return permissions?.every((p) => validKeys?.includes(p));
   };
 
   return {
