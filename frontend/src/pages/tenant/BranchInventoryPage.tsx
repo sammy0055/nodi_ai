@@ -17,7 +17,7 @@ import Button from '../../components/atoms/Button/Button';
 import Input from '../../components/atoms/Input/Input';
 import { useDebounce } from 'use-debounce';
 import { ProductService } from '../../services/productService';
-import { useBranchInventorySetRecoilState, useBranchInventoryValue } from '../../store/authAtoms';
+import { useBranchInventorySetRecoilState, useBranchInventoryValue, useUserValue } from '../../store/authAtoms';
 import { BranchService } from '../../services/branchService';
 import type { IBranch, IBranchInventory } from '../../types/branch';
 import { BranchInventoryService } from '../../services/branchInventory';
@@ -25,6 +25,7 @@ import { CurrencySymbols, type CurrencyCode, type Product } from '../../types/pr
 import { useLoaderData, useNavigate } from 'react-router';
 import type { Pagination } from '../../types/customer';
 import { useClickOutside } from '../../hooks/clickOutside';
+import { useValidateUserRolesAndPermissions } from '../../hooks/validateUserRoleAndPermissions';
 
 // Validation interface
 interface ValidationErrors {
@@ -42,6 +43,9 @@ const BranchInventoryPage: React.FC = () => {
     inventory: { data: IBranchInventory[]; pagination: Pagination };
     braches: { data: IBranch[]; pagination: Pagination };
   };
+
+  const user = useUserValue();
+  const { isUserPermissionsValid, isUserRoleValid } = useValidateUserRolesAndPermissions(user!);
 
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
@@ -272,6 +276,9 @@ const BranchInventoryPage: React.FC = () => {
   };
 
   const handleUpdateInventory = async () => {
+    if (!isUserRoleValid('super-admin')) {
+      if (!isUserPermissionsValid(['inventory.update'])) navigate(-1);
+    }
     if (!editingInventory || !validateForm()) return;
 
     try {
@@ -296,6 +303,9 @@ const BranchInventoryPage: React.FC = () => {
   };
 
   const handleDeleteInventory = async (inventoryId: string) => {
+     if (!isUserRoleValid('super-admin')) {
+    if (!isUserPermissionsValid(["inventory.delete"])) navigate(-1);
+  }
     try {
       if (window.confirm('Are you sure you want to delete this inventory entry?')) {
         await deleteInventory(inventoryId);
@@ -379,6 +389,12 @@ const BranchInventoryPage: React.FC = () => {
       alert('something went wrong, try again');
     }
   };
+
+  // page permission protection
+  if (!isUserRoleValid('super-admin')) {
+    if (!isUserPermissionsValid(['inventory.view'])) navigate(-1);
+  }
+
   // Inventory Row Component
   // Updated Inventory Row Component with Better Spacing
   const InventoryRow: React.FC<{ item: IBranchInventory }> = ({ item }) => (

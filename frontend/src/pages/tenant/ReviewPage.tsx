@@ -23,10 +23,12 @@ import Button from '../../components/atoms/Button/Button';
 import { useDebounce } from 'use-debounce';
 import { ReviewService } from '../../services/reviewService';
 import uuid from 'react-uuid';
-import { useLoaderData } from 'react-router';
+import { useLoaderData, useNavigate } from 'react-router';
 import type { IOrganization } from '../../types/organization';
 import ReviewDatePicker from '../../components/organisms/review/reviewDataPicker';
 import type { Pagination } from '../../types/customer';
+import { useUserValue } from '../../store/authAtoms';
+import { useValidateUserRolesAndPermissions } from '../../hooks/validateUserRoleAndPermissions';
 
 export interface OrgReviewQuestions {
   id: string;
@@ -59,6 +61,10 @@ const ReviewsPage: React.FC = () => {
     reviews: { data: { data: IReviews[]; pagination: Pagination } };
     organization: IOrganization;
   };
+
+  const user = useUserValue();
+  const { isUserPermissionsValid, isUserRoleValid } = useValidateUserRolesAndPermissions(user!);
+  const navigate = useNavigate();
   // State for review questions
   const [reviewQuestions, setReviewQuestions] = useState<OrgReviewQuestions[]>([]);
 
@@ -96,6 +102,12 @@ const ReviewsPage: React.FC = () => {
 
   // CRUD Operations for Review Questions
   const handleAddQuestion = async () => {
+    if (!isUserRoleValid('super-admin')) {
+      if (!isUserPermissionsValid(['review.create'])) {
+        alert("you don't have permission to create review question");
+        return;
+      }
+    }
     if (!newQuestion.trim()) return;
 
     try {
@@ -116,6 +128,12 @@ const ReviewsPage: React.FC = () => {
   };
 
   const handleEditQuestion = async () => {
+    if (!isUserRoleValid('super-admin')) {
+      if (!isUserPermissionsValid(['review.update'])) {
+        alert("you don't have permission to update review question");
+        return;
+      }
+    }
     if (!editingQuestion || !editText.trim()) return;
 
     try {
@@ -135,6 +153,12 @@ const ReviewsPage: React.FC = () => {
   };
 
   const handleDeleteQuestion = async (id: string) => {
+    if (!isUserRoleValid('super-admin')) {
+      if (!isUserPermissionsValid(['review.delete'])) {
+        alert("you don't have permission to delete review question");
+        return;
+      }
+    }
     if (window.confirm('Are you sure you want to delete this question?')) {
       try {
         const updatedReviewQuestions = reviewQuestions.filter((q) => q.id !== id);
@@ -246,6 +270,10 @@ const ReviewsPage: React.FC = () => {
   useEffect(() => {
     getFilteredReviews();
   }, [selectedRating, debouncedTerm]);
+
+  if (!isUserRoleValid('super-admin')) {
+    if (!isUserPermissionsValid(['review.view'])) navigate(-1);
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -449,9 +477,7 @@ const ReviewsPage: React.FC = () => {
                 )}
 
                 {activeTab === 'questions' && (
-                  <Button
-                    onClick={() => setShowQuestionModal(true)}
-                  >
+                  <Button onClick={() => setShowQuestionModal(true)}>
                     <FiPlus className="mr-2" />
                     Add Question
                   </Button>

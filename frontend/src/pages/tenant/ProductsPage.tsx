@@ -29,12 +29,14 @@ import {
   useProductOptionValue,
   useProductsSetRecoilState,
   useProductsValue,
+  useUserValue,
   useWhatsappValue,
 } from '../../store/authAtoms';
 import { useDebounce } from 'use-debounce';
 import { useLoaderData, useNavigate } from 'react-router';
 import { PageRoutes } from '../../routes';
 import type { Pagination } from '../../types/customer';
+import { useValidateUserRolesAndPermissions } from '../../hooks/validateUserRoleAndPermissions';
 // Define types based on your schema
 const ProductStatusTypes = {
   ACTIVE: 'active',
@@ -270,6 +272,8 @@ const ProductsPage: React.FC = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [editingProduct, setEditingProduct] = useState<Partial<Product>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const user = useUserValue();
+  const { isUserPermissionsValid, isUserRoleValid } = useValidateUserRolesAndPermissions(user!);
   // const importFileInputRef = useRef<HTMLInputElement>(null);
   const {
     addProduct,
@@ -285,6 +289,7 @@ const ProductsPage: React.FC = () => {
   // Pagination
   const [pagination, setPagination] = useState<Pagination>();
   const navigate = useNavigate();
+
   const handleCreateCatalog = () => {
     navigate(`/app/${PageRoutes.SETTINGS}`);
   };
@@ -317,6 +322,12 @@ const ProductsPage: React.FC = () => {
   }, [loadProducts]);
 
   const handleDeleteProduct = async (productId: string) => {
+    if (!isUserRoleValid('super-admin')) {
+      if (!isUserPermissionsValid(['product.delete'])) {
+        alert("you don't have permission to delete product");
+        return;
+      }
+    }
     try {
       if (window.confirm('Are you sure you want to delete this product?')) {
         await deleteProduct(productId);
@@ -336,6 +347,12 @@ const ProductsPage: React.FC = () => {
   };
 
   const handleAddProduct = () => {
+    if (!isUserRoleValid('super-admin')) {
+      if (!isUserPermissionsValid(['product.create'])) {
+        alert("you don't have permission to create product");
+        return;
+      }
+    }
     setSelectedProduct(null);
     setEditingProduct({
       // id: "",
@@ -355,6 +372,12 @@ const ProductsPage: React.FC = () => {
   const handleSaveProduct = async () => {
     try {
       if (selectedProduct) {
+        if (!isUserRoleValid('super-admin')) {
+          if (!isUserPermissionsValid(['product.update'])) {
+            alert("you don't have permission to update product");
+            return;
+          }
+        }
         // Update existing product
         const { data } = await updateProduct(editingProduct as Product);
         if (productOptions.length !== 0) {
@@ -440,6 +463,11 @@ const ProductsPage: React.FC = () => {
       alert('something went wrong');
     }
   };
+
+  // page permission protection
+  if (!isUserRoleValid('super-admin')) {
+    if (!isUserPermissionsValid(['product.view'])) navigate(-1);
+  }
 
   // WhatsApp Catalog Warning Component
   const CatalogWarning = () => (

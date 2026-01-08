@@ -19,7 +19,13 @@ import {
 } from 'react-icons/fi';
 import Button from '../../components/atoms/Button/Button';
 import Input from '../../components/atoms/Input/Input';
-import { useOrgSetRecoilState, useOrgValue, useWhatsappSetRecoilState, useWhatsappValue } from '../../store/authAtoms';
+import {
+  useOrgSetRecoilState,
+  useOrgValue,
+  useUserValue,
+  useWhatsappSetRecoilState,
+  useWhatsappValue,
+} from '../../store/authAtoms';
 import { OrganizationService } from '../../services/organizationService';
 import { useWhatsAppSignup } from '../../hooks/whatsapp';
 import type { BaseRequestAttributes } from '../../types/request';
@@ -29,6 +35,7 @@ import { UserService } from '../../services/userService';
 import type { Permission, Role, User } from '../../types/users';
 import type { IOrganization } from '../../types/organization';
 import FAQManager from '../../components/organisms/settings/fqaManager';
+import { useValidateUserRolesAndPermissions } from '../../hooks/validateUserRoleAndPermissions';
 
 const SettingsPage: React.FC = () => {
   const orgData = useOrgValue();
@@ -48,6 +55,9 @@ const SettingsPage: React.FC = () => {
     permissions: Permission[];
     organization: IOrganization;
   };
+
+  const user = useUserValue();
+  const { isUserPermissionsValid, isUserRoleValid } = useValidateUserRolesAndPermissions(user!);
 
   // State for navigation
   const [activeTab, setActiveTab] = useState<'general' | 'users' | 'roles' | 'fqa'>('general');
@@ -207,6 +217,12 @@ const SettingsPage: React.FC = () => {
   // Users tab functions
   const { deleteUser, updateUser, addUser, setRolePermissions: adminSetRolePermissions } = new UserService();
   const handleAddUser = async () => {
+    if (!isUserRoleValid('super-admin')) {
+      if (!isUserPermissionsValid(['user.create'])) {
+        alert("you don't have permission to create a user");
+        return;
+      }
+    }
     try {
       if (!newUser.name.trim() || !newUser.email.trim()) return;
 
@@ -225,6 +241,12 @@ const SettingsPage: React.FC = () => {
   };
 
   const handleDeleteUser = async (userId: string) => {
+    if (!isUserRoleValid('super-admin')) {
+      if (!isUserPermissionsValid(['user.deactivate'])) {
+        alert("you don't have permission to delete a user");
+        return;
+      }
+    }
     try {
       await deleteUser(userId);
       setUsers(users.filter((user) => user.id !== userId));
@@ -239,6 +261,12 @@ const SettingsPage: React.FC = () => {
   };
 
   const handleSaveEditUser = async () => {
+    if (!isUserRoleValid('super-admin')) {
+      if (!isUserPermissionsValid(['user.update'])) {
+        alert("you don't have permission to update a user");
+        return;
+      }
+    }
     if (!editUserData) return;
 
     try {
@@ -276,6 +304,12 @@ const SettingsPage: React.FC = () => {
   };
 
   const handleSavePermissions = async () => {
+    if (!isUserRoleValid('super-admin')) {
+      if (!isUserPermissionsValid(['permission.update'])) {
+        alert("you don't have permission to update permissions");
+        return;
+      }
+    }
     try {
       await adminSetRolePermissions({ permIds: [...rolePermissions], role: selectedRoleId! });
       alert(`Permissions saved for ${roles.find((r) => r.id === selectedRoleId)?.name} role`);
@@ -298,11 +332,23 @@ const SettingsPage: React.FC = () => {
     if (activeTab === 'general') {
       return renderGeneralTab();
     } else if (activeTab === 'users') {
-      return renderUsersTab();
+      if (!isUserRoleValid('super-admin')) {
+        if (!isUserPermissionsValid(['user.view'])) {
+          return renderUsersTab();
+        }
+      }
     } else if (activeTab === 'fqa') {
-      return renderFQATab();
+      if (!isUserRoleValid('super-admin')) {
+        if (!isUserPermissionsValid(['faq.view'])) {
+          return renderFQATab();
+        }
+      }
     } else {
-      return renderRolesTab();
+      if (!isUserRoleValid('super-admin')) {
+        if (!isUserPermissionsValid(['permission.view'])) {
+          return renderRolesTab();
+        }
+      }
     }
   };
 
@@ -714,11 +760,13 @@ const SettingsPage: React.FC = () => {
                     ) : (
                       <div className="text-sm text-neutral-600">{user.email}</div>
                     )}
-                       {editingUserId === user.id ? (
+                    {editingUserId === user.id ? (
                       <input
                         type="password"
                         value={editUserData?.password || ''}
-                        onChange={(e) => setEditUserData((prev) => (prev ? { ...prev, password: e.target.value } : null))}
+                        onChange={(e) =>
+                          setEditUserData((prev) => (prev ? { ...prev, password: e.target.value } : null))
+                        }
                         className="border border-neutral-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       />
                     ) : (

@@ -19,10 +19,11 @@ import Button from '../../components/atoms/Button/Button';
 import Input from '../../components/atoms/Input/Input';
 import type { IBranch } from '../../types/branch';
 import { BranchService } from '../../services/branchService';
-import { useBranchSetRecoilState, useBranchValue } from '../../store/authAtoms';
+import { useBranchSetRecoilState, useBranchValue, useUserValue } from '../../store/authAtoms';
 import { useDebounce } from 'use-debounce';
-import { useLoaderData } from 'react-router';
+import { useLoaderData, useNavigate } from 'react-router';
 import type { Pagination } from '../../types/customer';
+import { useValidateUserRolesAndPermissions } from '../../hooks/validateUserRoleAndPermissions';
 
 // Validation interface
 interface ValidationErrors {
@@ -38,6 +39,10 @@ const BranchesPage: React.FC = () => {
   const data = useLoaderData() as {
     branches: { data: IBranch[]; pagination: Pagination };
   };
+
+  const user = useUserValue();
+  const { isUserPermissionsValid, isUserRoleValid } = useValidateUserRolesAndPermissions(user!);
+  const navigate = useNavigate();
   const branches = useBranchValue();
   const setBranches = useBranchSetRecoilState();
   const [pagination, setPagination] = useState<Pagination>();
@@ -234,6 +239,12 @@ const BranchesPage: React.FC = () => {
 
   // CRUD Operations with validation
   const handleCreateBranch = async () => {
+    if (!isUserRoleValid('super-admin')) {
+      if (!isUserPermissionsValid(['branch.create'])) {
+        alert("you don't have permission to create a branch");
+        return;
+      }
+    }
     try {
       if (!validateForm()) {
         return; // Stop if validation fails
@@ -269,6 +280,12 @@ const BranchesPage: React.FC = () => {
   };
 
   const handleUpdateBranch = async () => {
+    if (!isUserRoleValid('super-admin')) {
+      if (!isUserPermissionsValid(['branch.update'])) {
+        alert("you don't have permission to update a branch");
+        return;
+      }
+    }
     try {
       if (!editingBranch || !validateForm()) {
         return; // Stop if no branch selected or validation fails
@@ -292,6 +309,13 @@ const BranchesPage: React.FC = () => {
   };
 
   const handleDeleteBranch = async (branchId: string) => {
+    // page permission protection
+    if (!isUserRoleValid('super-admin')) {
+      if (!isUserPermissionsValid(['branch.delete'])) {
+        alert("you don't have permission to delete a branch");
+        return;
+      }
+    }
     try {
       if (window.confirm('Are you sure you want to delete this branch?')) {
         await deleteBranch(branchId);
@@ -354,6 +378,11 @@ const BranchesPage: React.FC = () => {
       alert('something went wrong, try again');
     }
   };
+
+  // page permission protection
+  if (!isUserRoleValid('super-admin')) {
+    if (!isUserPermissionsValid(['branch.view'])) navigate(-1);
+  }
 
   // Branch Row Component
   const BranchRow: React.FC<{ branch: IBranch }> = ({ branch }) => (
@@ -504,7 +533,6 @@ const BranchesPage: React.FC = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-
         </div>
       </div>
 

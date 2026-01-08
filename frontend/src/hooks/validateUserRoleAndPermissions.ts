@@ -16,7 +16,7 @@ const permissions = Object.freeze([
 
   { key: 'inventory.view', description: 'View inventory levels and stock status' },
   { key: 'inventory.update', description: 'Update stock quantities and adjustments' },
-  { key: 'inventory.transfer', description: 'Transfer inventory between branches' },
+  { key: 'inventory.delete', description: 'Remove inventory' },
 
   { key: 'user.create', description: 'Create and onboard new users or staff accounts' },
   { key: 'user.update', description: 'Update user details and profile information' },

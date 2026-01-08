@@ -19,15 +19,17 @@ import {
   useAreaSetRecoilState,
   useAreaValue,
   useOrgValue,
+  useUserValue,
   useZoneSetRecoilState,
   useZoneValue,
 } from '../../store/authAtoms';
 import { useDebounce } from 'use-debounce';
-import { useLoaderData } from 'react-router';
+import { useLoaderData, useNavigate } from 'react-router';
 import type { Pagination } from '../../types/customer';
 import type { IBranch } from '../../types/branch';
 import { useClickOutside } from '../../hooks/clickOutside';
 import { CurrencyCode, CurrencySymbols } from '../../types/product';
+import { useValidateUserRolesAndPermissions } from '../../hooks/validateUserRoleAndPermissions';
 
 // Define types based on your interfaces
 export interface IZone {
@@ -52,6 +54,10 @@ const AreasZonesPage: React.FC = () => {
     zones: { data: IZone[]; pagination: Pagination };
     branches: { data: IBranch[]; pagination: Pagination };
   };
+
+  const user = useUserValue();
+  const { isUserPermissionsValid, isUserRoleValid } = useValidateUserRolesAndPermissions(user!);
+  const navigate = useNavigate();
   // Zones state
   const zones = useZoneValue();
   const setZones = useZoneSetRecoilState();
@@ -163,6 +169,12 @@ const AreasZonesPage: React.FC = () => {
 
   const handleCreateZone = async () => {
     try {
+      if (!isUserRoleValid('super-admin')) {
+        if (!isUserPermissionsValid(['zone.create'])) {
+          alert("you don't have permission to create a zone");
+          return;
+        }
+      }
       if (!validateZone()) return;
 
       const zoneToCreate: IZone = {
@@ -182,6 +194,12 @@ const AreasZonesPage: React.FC = () => {
 
   const handleUpdateZone = async () => {
     try {
+      if (!isUserRoleValid('super-admin')) {
+        if (!isUserPermissionsValid(['zone.update'])) {
+          alert("you don't have permission to update a zone");
+          return;
+        }
+      }
       if (!editingZone || !validateZone()) return;
       const { data } = await updateZone({ zoneId: newZone.id, name: newZone.name });
       setZones(zones.map((zone) => (zone.id === editingZone.id ? { ...(data as IZone) } : zone)));
@@ -203,6 +221,12 @@ const AreasZonesPage: React.FC = () => {
 
   const handleDeleteZone = async (zoneId: string) => {
     try {
+      if (!isUserRoleValid('super-admin')) {
+        if (!isUserPermissionsValid(['zone.delete'])) {
+          alert("you don't have permission to delete a zone");
+          return;
+        }
+      }
       if (window.confirm('Are you sure you want to delete this zone? This will affect associated areas.')) {
         await deleteZone(zoneId);
         setZones(zones.filter((zone) => zone.id !== zoneId));
@@ -254,6 +278,12 @@ const AreasZonesPage: React.FC = () => {
 
   const handleCreateArea = async () => {
     try {
+      if (!isUserRoleValid('super-admin')) {
+        if (!isUserPermissionsValid(['area.create'])) {
+          alert("you don't have permission to create an area");
+          return;
+        }
+      }
       if (!validateArea()) return;
 
       const areaToCreate: IArea = {
@@ -275,6 +305,12 @@ const AreasZonesPage: React.FC = () => {
 
   const handleUpdateArea = async () => {
     try {
+      if (!isUserRoleValid('super-admin')) {
+        if (!isUserPermissionsValid(['area.update'])) {
+          alert("you don't have permission to update an area");
+          return;
+        }
+      }
       if (!editingArea || !validateArea()) return;
       const { data } = await updateArea(newArea as IArea);
       setAreas(areas.map((area) => (area.id === editingArea.id ? { ...data } : area)));
@@ -295,6 +331,12 @@ const AreasZonesPage: React.FC = () => {
   };
 
   const handleDeleteArea = async (areaId: string) => {
+    if (!isUserRoleValid('super-admin')) {
+      if (!isUserPermissionsValid(['area.delete'])) {
+        alert("you don't have permission to delete an area");
+        return;
+      }
+    }
     try {
       if (window.confirm('Are you sure you want to delete this area?')) {
         await deleteArea(areaId);
@@ -499,6 +541,10 @@ const AreasZonesPage: React.FC = () => {
   const getZoneName = (zoneId: string) => {
     return zones?.find((z) => z.id === zoneId)?.name;
   };
+
+  if (!isUserRoleValid('super-admin')) {
+    if (!isUserPermissionsValid(['area.view', 'zone.view'])) navigate(-1);
+  }
 
   return (
     <div className="space-y-8 p-4 md:p-0">

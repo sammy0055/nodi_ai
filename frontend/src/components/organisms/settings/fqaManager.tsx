@@ -3,8 +3,8 @@ import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX } from 'react-icons/fi';
 import { OrganizationService } from '../../../services/organizationService';
 import uuid from 'react-uuid';
 import type { FAQItem } from '../../../types/organization';
-
-
+import { useUserValue } from '../../../store/authAtoms';
+import { useValidateUserRolesAndPermissions } from '../../../hooks/validateUserRoleAndPermissions';
 
 interface FAQManagerProps {
   data: FAQItem[];
@@ -13,6 +13,10 @@ interface FAQManagerProps {
 const FAQManager: React.FC<FAQManagerProps> = ({ data }) => {
   // Initial mock data
   const initialFAQs: FAQItem[] = [];
+
+  const user = useUserValue();
+  const { isUserPermissionsValid, isUserRoleValid } = useValidateUserRolesAndPermissions(user!);
+ 
 
   // State
   const [faqs, setFaqs] = useState<FAQItem[]>(initialFAQs);
@@ -31,6 +35,12 @@ const FAQManager: React.FC<FAQManagerProps> = ({ data }) => {
   // Add new FAQ
   const handleAdd = async () => {
     try {
+      if (!isUserRoleValid('super-admin')) {
+        if (!isUserPermissionsValid(['faq.create'])) {
+          alert("you don't have permissions to add frequently asked questions");
+          return;
+        }
+      }
       if (!newQuestion.trim() || !newAnswer.trim()) return;
 
       const newFAQ: FAQItem = {
@@ -57,6 +67,12 @@ const FAQManager: React.FC<FAQManagerProps> = ({ data }) => {
 
   // Save edit
   const saveEdit = async () => {
+    if (!isUserRoleValid('super-admin')) {
+      if (!isUserPermissionsValid(['faq.update'])) {
+        alert("you don't have permissions to update frequently asked questions");
+        return;
+      }
+    }
     try {
       if (!editingId) return;
 
@@ -83,6 +99,12 @@ const FAQManager: React.FC<FAQManagerProps> = ({ data }) => {
 
   // Delete FAQ
   const deleteFAQ = async (id: string) => {
+    if (!isUserRoleValid('super-admin')) {
+      if (!isUserPermissionsValid(['faq.delete'])) {
+        alert("you don't have permissions to delete frequently asked questions");
+        return;
+      }
+    }
     try {
       const newfqa = faqs.filter((faq) => faq.id !== id);
       await setOrgFQAQuestions(newfqa);

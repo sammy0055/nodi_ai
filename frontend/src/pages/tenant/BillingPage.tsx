@@ -26,9 +26,11 @@ import {
   useSubscriptionPlanValue,
   useSubscriptionSetRecoilState,
   useSubscriptionValue,
+  useUserValue,
 } from '../../store/authAtoms';
 import { SubscriptionService } from '../../services/subscriptionService';
-import { useLoaderData } from 'react-router';
+import { useLoaderData, useNavigate } from 'react-router';
+import { useValidateUserRolesAndPermissions } from '../../hooks/validateUserRoleAndPermissions';
 
 // Chart data interface
 interface ChartData {
@@ -157,6 +159,10 @@ const BillingPage: React.FC = () => {
     creditBalance: CreditBalanceAttributes;
   };
 
+  const user = useUserValue();
+  const { isUserPermissionsValid, isUserRoleValid } = useValidateUserRolesAndPermissions(user!);
+  const navigate = useNavigate();
+
   const plans = useSubscriptionPlanValue();
   const setSubscriptionPlan = useSubscriptionPlanSetRecoilState();
   const currentSubscription = useSubscriptionValue();
@@ -202,6 +208,12 @@ const BillingPage: React.FC = () => {
   };
 
   const handleConfirmSubscription = async () => {
+    if (!isUserRoleValid('super-admin')) {
+      if (!isUserPermissionsValid(['billing.create'])) {
+        alert("you don't have permission to create subscription");
+        return;
+      }
+    }
     if (!selectedPlan) return;
 
     // Simulate API call
@@ -255,6 +267,10 @@ const BillingPage: React.FC = () => {
   const getCreditUsagePercentage = () => {
     return (creditBalance?.usedCredits! / creditBalance?.totalCredits!) * 100;
   };
+
+  if (!isUserRoleValid('super-admin')) {
+    if (!isUserPermissionsValid(['billing.view'])) navigate(-1);
+  }
 
   // Usage Record Item Component
   const UsageRecordItem: React.FC<{ record: UsageRecordAttributes }> = ({ record }) => (
