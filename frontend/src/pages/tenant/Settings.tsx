@@ -332,20 +332,23 @@ const SettingsPage: React.FC = () => {
     if (activeTab === 'general') {
       return renderGeneralTab();
     } else if (activeTab === 'users') {
+      if (isUserRoleValid('super-admin')) return renderUsersTab();
       if (!isUserRoleValid('super-admin')) {
-        if (!isUserPermissionsValid(['user.view'])) {
+        if (isUserPermissionsValid(['user.view'])) {
           return renderUsersTab();
         }
       }
     } else if (activeTab === 'fqa') {
+      if (isUserRoleValid('super-admin')) return renderFQATab();
       if (!isUserRoleValid('super-admin')) {
-        if (!isUserPermissionsValid(['faq.view'])) {
+        if (isUserPermissionsValid(['faq.view'])) {
           return renderFQATab();
         }
       }
     } else {
+      if (isUserRoleValid('super-admin')) return renderRolesTab();
       if (!isUserRoleValid('super-admin')) {
-        if (!isUserPermissionsValid(['permission.view'])) {
+        if (isUserPermissionsValid(['permission.view'])) {
           return renderRolesTab();
         }
       }
@@ -985,39 +988,84 @@ const SettingsPage: React.FC = () => {
             <FiShoppingBag className="mr-2" />
             General
           </button>
-          <button
-            onClick={() => setActiveTab('users')}
-            className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
-              activeTab === 'users'
-                ? 'text-primary-600 border-b-2 border-primary-600 font-semibold'
-                : 'text-neutral-600 hover:text-neutral-900'
-            }`}
-          >
-            <FiUsers className="mr-2" />
-            Users
-          </button>
-          <button
-            onClick={() => setActiveTab('roles')}
-            className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
-              activeTab === 'roles'
-                ? 'text-primary-600 border-b-2 border-primary-600 font-semibold'
-                : 'text-neutral-600 hover:text-neutral-900'
-            }`}
-          >
-            <FiKey className="mr-2" />
-            Roles & Permissions
-          </button>
-          <button
-            onClick={() => setActiveTab('fqa')}
-            className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
-              activeTab === 'fqa'
-                ? 'text-primary-600 border-b-2 border-primary-600 font-semibold'
-                : 'text-neutral-600 hover:text-neutral-900'
-            }`}
-          >
-            <FiKey className="mr-2" />
-            FQA
-          </button>
+          {isUserPermissionsValid(['user.view']) && (
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
+                activeTab === 'users'
+                  ? 'text-primary-600 border-b-2 border-primary-600 font-semibold'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              <FiUsers className="mr-2" />
+              Users
+            </button>
+          )}
+          {isUserRoleValid('super-admin') && (
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
+                activeTab === 'users'
+                  ? 'text-primary-600 border-b-2 border-primary-600 font-semibold'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              <FiUsers className="mr-2" />
+              Users
+            </button>
+          )}
+          {isUserPermissionsValid(['permission.view']) && (
+            <button
+              onClick={() => setActiveTab('roles')}
+              className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
+                activeTab === 'roles'
+                  ? 'text-primary-600 border-b-2 border-primary-600 font-semibold'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              <FiKey className="mr-2" />
+              Roles & Permissions
+            </button>
+          )}
+          {isUserRoleValid('super-admin') && (
+            <button
+              onClick={() => setActiveTab('roles')}
+              className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
+                activeTab === 'roles'
+                  ? 'text-primary-600 border-b-2 border-primary-600 font-semibold'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              <FiKey className="mr-2" />
+              Roles & Permissions
+            </button>
+          )}
+          {isUserPermissionsValid(['faq.view']) && (
+            <button
+              onClick={() => setActiveTab('fqa')}
+              className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
+                activeTab === 'fqa'
+                  ? 'text-primary-600 border-b-2 border-primary-600 font-semibold'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              <FiKey className="mr-2" />
+              FQA
+            </button>
+          )}
+          {isUserRoleValid('super-admin') && (
+            <button
+              onClick={() => setActiveTab('fqa')}
+              className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
+                activeTab === 'fqa'
+                  ? 'text-primary-600 border-b-2 border-primary-600 font-semibold'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              <FiKey className="mr-2" />
+              FQA
+            </button>
+          )}
         </nav>
 
         {/* Tab Content */}

@@ -16,8 +16,9 @@ export class SubscriptionService {
     if (!user.organizationId) throw new Error('organization does not exist, so you can not subscribe');
     const plan = await SubscriptionPlanModel.findByPk(planId);
     if (!plan) throw new Error('subscription plan does not exist');
+    const subscriptionMode = plan.paymentType === 'recurring_subscription' ? 'subscription' : 'payment';
     const session = await stripe.checkout.sessions.create({
-      mode: 'subscription',
+      mode: subscriptionMode,
       payment_method_types: ['card'],
       line_items: [
         {

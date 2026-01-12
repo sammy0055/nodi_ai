@@ -51,7 +51,7 @@ SubscriptionPlanModel.init(
     billing_cycle_days: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 30 },
     isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
     features: { type: DataTypes.ARRAY(DataTypes.STRING), defaultValue: [] },
-    paymentType: { type: DataTypes.STRING, allowNull: false },
+    paymentType: { type: DataTypes.STRING, allowNull: false, defaultValue: 'one_time_charge' },
   },
   { sequelize, modelName: ModelNames.SubscriptionPlans, timestamps: true }
 );
