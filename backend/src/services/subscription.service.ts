@@ -29,7 +29,7 @@ export class SubscriptionService {
       success_url: this.successUrl,
       cancel_url: this.cancelUrl,
       client_reference_id: user.id,
-      subscription_data: { metadata: { planId: plan.id, organizationId: user.organizationId } }, // optional extra
+      metadata: { planId: plan.id, organizationId: user.organizationId }, // optional extra
     });
 
     return { url: session.url };
