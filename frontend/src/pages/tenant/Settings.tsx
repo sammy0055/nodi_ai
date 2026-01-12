@@ -101,6 +101,7 @@ const SettingsPage: React.FC = () => {
     requestCatalogCreation,
     getOrganizationRequest,
     publishWhatsappTemplates,
+    removeWhatsappSettings,
   } = new OrganizationService();
   const handleOrgChange = (field: string, value: string) => {
     setOrgData((prev) => ({ ...prev!, [field]: value }));
@@ -201,6 +202,29 @@ const SettingsPage: React.FC = () => {
     }
   };
 
+  const handleCatalogUpdate = async () => {
+    setIsLoading(true);
+    try {
+      const requestInput: BaseRequestAttributes = {
+        title: 'update catalog for my business',
+        description: 'update catalog on meta dashboard for my business so i can start adding products',
+        requestType: 'CatalogRequest',
+      };
+
+      const { data } = await requestCatalogCreation(requestInput);
+      setCatalogRequest({
+        title: data.title,
+        description: data.description,
+        status: data.status,
+        requestType: 'CatalogRequest',
+      });
+    } catch (error) {
+      console.error('Catalog creation failed', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handlePublishTemplates = async () => {
     try {
       setIsLoading(true);
@@ -211,6 +235,18 @@ const SettingsPage: React.FC = () => {
       alert('Publish WhatsApp failed');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleRemoveWhatsappSettings = async () => {
+    setIsLoading(true);
+    try {
+      await removeWhatsappSettings();
+      setWhatsappData(null);
+      setIsLoading(false);
+    } catch (error: any) {
+      setIsLoading(false);
+      alert('something went wrong please try again later');
     }
   };
 
@@ -560,14 +596,18 @@ const SettingsPage: React.FC = () => {
                 </div>
               )}
             </div>
-
+            {whatsappData?.connectionStatus === 'connected' && (
+              <Button onClick={handleRemoveWhatsappSettings} isLoading={isLoading}>
+                <FiMessageSquare className="mr-2" />
+                Disconnect WhatsApp Business
+              </Button>
+            )}
             {/* Divider */}
             <div className="border-t border-neutral-200 my-4"></div>
 
             {/* Product Catalog */}
             <div>
               <h4 className="font-medium text-neutral-800 mb-2">Product Catalog</h4>
-
               {whatsappData?.catalogId ? (
                 <div>
                   <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-success-100 text-success-800 mb-3">
@@ -578,37 +618,14 @@ const SettingsPage: React.FC = () => {
                     Your product catalog is connected to WhatsApp. Customers can browse your products directly in
                     WhatsApp.
                   </p>
-                  <div className="flex space-x-2">
-                    <Button variant="outline">
-                      <FiExternalLink className="mr-2" />
-                      View Catalog
-                    </Button>
-                    <Button variant="outline">
-                      <FiEdit className="mr-2" />
-                      Manage Products
-                    </Button>
-                  </div>
-                </div>
-              ) : catalogRequest ? (
-                <div>
-                  <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800 mb-3">
-                    <FiClock className="mr-1" />
-                    Request Being Processed
-                  </div>
-                  <p className="text-sm text-neutral-600 mb-3">
-                    Your product catalog request is currently being processed. This usually takes a few minutes. You'll
-                    be notified once your catalog is ready.
-                  </p>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <h5 className="font-medium text-blue-800 text-sm mb-2">Request Details:</h5>
-                    <pre className="text-xs text-blue-700 overflow-x-auto">
-                      {JSON.stringify(catalogRequest || {}, null, 2)}
-                    </pre>
-                  </div>
-                  <Button variant="outline" className="mt-3" disabled>
-                    <FiClock className="mr-2" />
-                    Processing Request...
-                  </Button>
+                  {catalogRequest?.status !== 'pending' && (
+                    <div className="flex space-x-2">
+                      <Button variant="outline" onClick={handleCatalogUpdate} isLoading={isLoading}>
+                        <FiExternalLink className="mr-2" />
+                        Change Catalog
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div>
@@ -627,6 +644,28 @@ const SettingsPage: React.FC = () => {
                   >
                     <FiShoppingBag className="mr-2" />
                     Create Product Catalog
+                  </Button>
+                </div>
+              )}
+              {catalogRequest?.status === 'pending' && (
+                <div>
+                  <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800 mb-3">
+                    <FiClock className="mr-1" />
+                    Request Being Processed
+                  </div>
+                  <p className="text-sm text-neutral-600 mb-3">
+                    Your product catalog request is currently being processed. This usually takes a few minutes. You'll
+                    be notified once your catalog is ready.
+                  </p>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <h5 className="font-medium text-blue-800 text-sm mb-2">Request Details:</h5>
+                    <pre className="text-xs text-blue-700 overflow-x-auto">
+                      {JSON.stringify(catalogRequest || {}, null, 2)}
+                    </pre>
+                  </div>
+                  <Button variant="outline" className="mt-3" disabled>
+                    <FiClock className="mr-2" />
+                    Processing Request...
                   </Button>
                 </div>
               )}

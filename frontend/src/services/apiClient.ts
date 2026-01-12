@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_BACKEND_PROD_APP_URL
+const API_BASE_URL = import.meta.env.VITE_BACKEND_PROD_APP_URL;
 //  import.meta.env.VITE_ENV_PROD === 'PROD' ? import.meta.env.VITE_BACKEND_PROD_APP_URL : 'http://localhost:4000/api';
 // import.meta.env.VITE_BACKEND_PROD_APP_URL
 export const APP_USER_API_ROUTES = {
@@ -55,6 +55,7 @@ export const API_ROUTES = {
   WHATSAPP_AUTH: `${API_BASE_URL}/whatsapp-settings/get-whatsapp-auth-url`,
   EXCHANGE_WABA_CODE: `${API_BASE_URL}/whatsapp-settings/exchange-whatsapp-code-for-access-token`,
   PUBLISH_WHATSAPP_TEMPLATE: `${API_BASE_URL}/whatsapp-settings/publish-pre-built-templates-flows`,
+  REMOVE_WHATSAPP_SETTINGS: `${API_BASE_URL}/whatsapp-settings/remove-whatsapp-settings`,
   GET_REQUST: `${API_BASE_URL}/organization/request/get-request`,
   ADD_PRODUCT: `${API_BASE_URL}/organization/product/create-product`,
   GET_PRODUCTS: `${API_BASE_URL}/organization/product/products`,

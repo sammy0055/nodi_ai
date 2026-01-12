@@ -1,5 +1,5 @@
 import type { FAQItem, IOrganization } from '../types/organization';
-import { API_ROUTES, ApiClient } from './apiClient';
+import { ApiClient } from './apiClient';
 import type { ExchangeCodeTypes } from '../types/whatsapp';
 import type { BaseRequestAttributes } from '../types/request';
 
@@ -34,25 +34,7 @@ export class OrganizationService {
   async getOrganizationRequest(
     requestType: 'CatalogRequest' | 'ProductRequest' | 'OrderRequest'
   ): Promise<{ data: BaseRequestAttributes; message: string }> {
-    const response = await fetch(`${API_ROUTES.GET_REQUST}?requestType=${requestType}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-    });
-
-    if (!response.ok) {
-      let errorMessage = `${response.status} ${response.statusText}`;
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.message || errorMessage;
-      } catch {
-        throw new Error(errorMessage);
-      }
-    }
-
-    return await response.json();
+    return await ApiClient('GET_REQUST', { method: 'GET', queryParams: `?requestType=${requestType}` });
   }
 
   async requestCatalogCreation(data: BaseRequestAttributes): Promise<{ data: BaseRequestAttributes; message: string }> {
@@ -64,6 +46,10 @@ export class OrganizationService {
 
   async publishWhatsappTemplates(): Promise<{ data: any; message: string }> {
     return await ApiClient('PUBLISH_WHATSAPP_TEMPLATE', { method: 'POST' });
+  }
+
+  async removeWhatsappSettings() {
+    return await ApiClient('REMOVE_WHATSAPP_SETTINGS', { method: 'DELETE' });
   }
 
   async setOrgFQAQuestions(data: FAQItem[]): Promise<{ data: IOrganization; message: string }> {
