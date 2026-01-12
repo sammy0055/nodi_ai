@@ -67,6 +67,7 @@ export class SubscriptionPlanService {
       newPriceId = newPrice.id;
     }
     const payload = {
+      ...plan,
       name: plan.name,
       description: plan.description,
       creditPoints: plan.creditPoints,

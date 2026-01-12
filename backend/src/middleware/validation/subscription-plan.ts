@@ -9,7 +9,7 @@ const subscriptionPlanSchema = z.object({
   billing_cycle_days: z.number().optional(),
   isActive: z.boolean().optional(),
   features: z.array(z.string()).optional(),
-  paymentType: z.enum(['recurring_subscription', 'one_time_charge', 'offline_manual']),
+  paymentType: z.enum(['recurring_subscription', 'one_time_charge', 'offline_manual']).optional(),
 });
 
 export const validateSubscriptionPlanSchema = () => {
