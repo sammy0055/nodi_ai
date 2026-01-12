@@ -85,4 +85,22 @@ WhatSappRoute.post('/publish-pre-built-templates-flows', authMiddleware, async (
   }
 });
 
+WhatSappRoute.delete('/remove-whatsapp-settings', authMiddleware, async (req, res) => {
+  try {
+    await WhatSappSettingsService.removeWhatsappSettings(req.user!);
+    const response: APIResponseFormat<any> = {
+      message: 'whatsapp settings removed successfully',
+      data: [],
+    };
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
+
 export { WhatSappRoute };

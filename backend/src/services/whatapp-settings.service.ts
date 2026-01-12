@@ -119,7 +119,7 @@ export class WhatSappSettingsService {
 
     console.log(`✅------------create AreaAndZoneFlow Draft successfully:${JSON.stringify(areaAndZoneFlow, null, 2)}`);
     console.log(`✅------------create branchesFlow Draft successfully:${JSON.stringify(branchesFlow, null, 2)}`);
-    
+
     if (!user.organizationId) throw new Error('you need to have an organization first');
     const payload: IWhatSappSettings = {
       organizationId: user.organizationId,
@@ -356,5 +356,9 @@ export class WhatSappSettingsService {
 
   static async mockAddWhsappData(data: any, user: Pick<User, 'id' | 'organizationId'>) {
     return await WhatSappSettingsModel.create({ ...data, organizationId: user.organizationId });
+  }
+
+  static async removeWhatsappSettings(user: Pick<User, 'id' | 'organizationId'>) {
+    return await WhatSappSettingsModel.destroy({ where: { organizationId: user.organizationId } });
   }
 }
