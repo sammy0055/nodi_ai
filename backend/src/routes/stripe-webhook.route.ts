@@ -34,7 +34,6 @@ stripeWebHookRoute.post('/webhook', async (req, res) => {
   const updateDBAfterSuccessfullPayment = async (subscription: any) => {
     const customerId = subscription.customer as string;
     const subscriptionId = subscription.id;
-    const priceId = subscription.items.data[0].price.id;
     const metadata = subscription.metadata as { planId: string; organizationId: string };
     const { startDate, currentPeriodStart, currentPeriodEnd, nextBillingDate } = calculateBillingCycle();
 
