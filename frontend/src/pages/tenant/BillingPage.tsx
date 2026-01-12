@@ -255,6 +255,7 @@ const BillingPage: React.FC = () => {
   };
 
   const formatDate = (date: Date | string) => {
+    if (!date) return 'unlimited';
     const parsedDate = typeof date === 'string' ? new Date(date) : date;
 
     return new Intl.DateTimeFormat('en-US', {
