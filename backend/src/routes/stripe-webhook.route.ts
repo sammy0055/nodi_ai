@@ -40,8 +40,11 @@ stripeWebHookRoute.post('/webhook', async (req, res) => {
         const priceId = subscription.items.data[0].price.id;
         const metadata = subscription.metadata as { planId: string; organizationId: string };
         const { startDate, currentPeriodStart, currentPeriodEnd, nextBillingDate } = calculateBillingCycle();
-        const sub = await SubscriptionsModel.findOne({ where: { subscriptionId: subscription.id } });
-        if (sub) throw new Error('organization already has an active subscription, kindly update subscription');
+
+        await SubscriptionsModel.destroy({
+          where: { organizationId: metadata.organizationId },
+        });
+
         const subscriptionPlan = await SubscriptionPlanModel.findByPk(metadata.planId);
         if (!subscriptionPlan) throw new Error('subscripton plan does not exist in our records');
         await OrganizationsModel.update({ stripeCustomerId: customerId }, { where: { id: metadata.organizationId } });
@@ -56,12 +59,24 @@ stripeWebHookRoute.post('/webhook', async (req, res) => {
           customerId: customerId,
           status: 'active',
         });
-        await CreditBalanceModel.create({
-          organizationId: metadata.organizationId,
-          totalCredits: subscriptionPlan.creditPoints,
-          remainingCredits: subscriptionPlan.creditPoints,
-          usedCredits: subscriptionPlan.creditPoints,
-        });
+        const credit = await CreditBalanceModel.findOne({ where: { organizationId: metadata.organizationId } });
+        if (credit) {
+          await CreditBalanceModel.update(
+            {
+              totalCredits: credit.totalCredits + subscriptionPlan.creditPoints,
+              remainingCredits: credit.remainingCredits + subscriptionPlan.creditPoints,
+            },
+            { where: { organizationId: metadata.organizationId } }
+          );
+        } else {
+          await CreditBalanceModel.create({
+            organizationId: metadata.organizationId,
+            totalCredits: subscriptionPlan.creditPoints,
+            remainingCredits: subscriptionPlan.creditPoints,
+            usedCredits: subscriptionPlan.creditPoints,
+          });
+        }
+
         break;
       }
 
