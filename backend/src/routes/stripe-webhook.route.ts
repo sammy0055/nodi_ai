@@ -31,52 +31,61 @@ stripeWebHookRoute.post('/webhook', async (req, res) => {
     return { startDate, currentPeriodStart, currentPeriodEnd, nextBillingDate };
   };
 
+  const updateDBAfterSuccessfullPayment = async (subscription: any) => {
+    const customerId = subscription.customer as string;
+    const subscriptionId = subscription.id;
+    const priceId = subscription.items.data[0].price.id;
+    const metadata = subscription.metadata as { planId: string; organizationId: string };
+    const { startDate, currentPeriodStart, currentPeriodEnd, nextBillingDate } = calculateBillingCycle();
+
+    await SubscriptionsModel.destroy({
+      where: { organizationId: metadata.organizationId },
+    });
+
+    const subscriptionPlan = await SubscriptionPlanModel.findByPk(metadata.planId);
+    if (!subscriptionPlan) throw new Error('subscripton plan does not exist in our records');
+    await OrganizationsModel.update({ stripeCustomerId: customerId }, { where: { id: metadata.organizationId } });
+    await SubscriptionsModel.create({
+      planId: metadata.planId,
+      subscriptionId: subscriptionId,
+      organizationId: metadata.organizationId,
+      startDate,
+      currentPeriodStart,
+      currentPeriodEnd: subscriptionPlan.paymentType === 'recurring_subscription' ? currentPeriodEnd : null,
+      nextBillingDate: subscriptionPlan.paymentType === 'recurring_subscription' ? nextBillingDate : null,
+      customerId: customerId,
+      status: 'active',
+    });
+    const credit = await CreditBalanceModel.findOne({ where: { organizationId: metadata.organizationId } });
+    if (credit) {
+      await CreditBalanceModel.update(
+        {
+          totalCredits: credit.totalCredits + subscriptionPlan.creditPoints,
+          remainingCredits: credit.remainingCredits + subscriptionPlan.creditPoints,
+        },
+        { where: { organizationId: metadata.organizationId } }
+      );
+    } else {
+      await CreditBalanceModel.create({
+        organizationId: metadata.organizationId,
+        totalCredits: subscriptionPlan.creditPoints,
+        remainingCredits: subscriptionPlan.creditPoints,
+        usedCredits: subscriptionPlan.creditPoints,
+      });
+    }
+  };
+
   try {
     switch (event.type) {
+      case 'checkout.session.completed': {
+        const subscription = event.data.object;
+        await updateDBAfterSuccessfullPayment(subscription);
+        break;
+      }
+
       case 'customer.subscription.created': {
         const subscription = event.data.object;
-        const customerId = subscription.customer as string;
-        const subscriptionId = subscription.id;
-        const priceId = subscription.items.data[0].price.id;
-        const metadata = subscription.metadata as { planId: string; organizationId: string };
-        const { startDate, currentPeriodStart, currentPeriodEnd, nextBillingDate } = calculateBillingCycle();
-
-        await SubscriptionsModel.destroy({
-          where: { organizationId: metadata.organizationId },
-        });
-
-        const subscriptionPlan = await SubscriptionPlanModel.findByPk(metadata.planId);
-        if (!subscriptionPlan) throw new Error('subscripton plan does not exist in our records');
-        await OrganizationsModel.update({ stripeCustomerId: customerId }, { where: { id: metadata.organizationId } });
-        await SubscriptionsModel.create({
-          planId: metadata.planId,
-          subscriptionId: subscriptionId,
-          organizationId: metadata.organizationId,
-          startDate,
-          currentPeriodStart,
-          currentPeriodEnd: subscriptionPlan.paymentType === 'recurring_subscription' ? currentPeriodEnd : null,
-          nextBillingDate: subscriptionPlan.paymentType === 'recurring_subscription' ? nextBillingDate : null,
-          customerId: customerId,
-          status: 'active',
-        });
-        const credit = await CreditBalanceModel.findOne({ where: { organizationId: metadata.organizationId } });
-        if (credit) {
-          await CreditBalanceModel.update(
-            {
-              totalCredits: credit.totalCredits + subscriptionPlan.creditPoints,
-              remainingCredits: credit.remainingCredits + subscriptionPlan.creditPoints,
-            },
-            { where: { organizationId: metadata.organizationId } }
-          );
-        } else {
-          await CreditBalanceModel.create({
-            organizationId: metadata.organizationId,
-            totalCredits: subscriptionPlan.creditPoints,
-            remainingCredits: subscriptionPlan.creditPoints,
-            usedCredits: subscriptionPlan.creditPoints,
-          });
-        }
-
+        await updateDBAfterSuccessfullPayment(subscription);
         break;
       }
 
