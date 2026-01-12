@@ -79,6 +79,9 @@ stripeWebHookRoute.post('/webhook', async (req, res) => {
     switch (event.type) {
       case 'checkout.session.completed': {
         const subscription = event.data.object;
+        console.log('☀️=============subscription=======================');
+        console.log(subscription);
+        console.log('====================================');
         await updateDBAfterSuccessfullPayment(subscription);
         break;
       }
