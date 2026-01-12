@@ -86,23 +86,24 @@ requestRoute.get('/get-requests', adminAuthMiddleware, async (req, res) => {
     errorLogger(error);
     res.status(500).json(response);
   }
-  requestRoute.get('/get-request', authMiddleware, async (req, res) => {
-    try {
-      const requestType = req.query.requestType as any;
-      const data = await RequestController.getRequest(req.user!, requestType);
-      const response: APIResponseFormat<any> = {
-        message: 'request retreived successfully',
-        data,
-      };
+});
 
-      res.status(201).json(response);
-    } catch (error: any) {
-      const response: APIResponseFormat<null> = {
-        message: error.message,
-        error: error,
-      };
-      errorLogger(error);
-      res.status(500).json(response);
-    }
-  });
+requestRoute.get('/get-request', authMiddleware, async (req, res) => {
+  try {
+    const requestType = req.query.requestType as any;
+    const data = await RequestController.getRequest(req.user!, requestType);
+    const response: APIResponseFormat<any> = {
+      message: 'request retreived successfully',
+      data,
+    };
+
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
 });
