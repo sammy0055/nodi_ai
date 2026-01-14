@@ -92,25 +92,27 @@ services:
     networks:
       - app_network
 
-  # backend:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   container_name: nodi_ai_backend
-  #   restart: always
-  #   ports:
-  #     - '4000:4000'
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #     qdrant:
-  #       condition: service_started
-  #     rabbitmq:
-  #       condition: service_started
-  #     minio:
-  #       condition: service_started
-  #   networks:
-  #     - app_network
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nodi_ai_backend
+    restart: always
+    ports:
+      - '4000:4000'
+    depends_on:
+      db:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      minio:
+        condition: service_started
+      minio-init:
+        condition: service_started
+    networks:
+      - app_network
 
 networks:
   app_network:
