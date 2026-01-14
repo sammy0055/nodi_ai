@@ -44,9 +44,9 @@ WhatSappSettingsModel.init(
       onDelete: 'CASCADE',
       onUpdate: 'CASCADE',
     },
-    whatsappBusinessId: { type: DataTypes.STRING, allowNull: false },
-    whatsappPhoneNumberId: { type: DataTypes.STRING, allowNull: false },
-    whatsappPhoneNumber: { type: DataTypes.STRING, allowNull: false },
+    whatsappBusinessId: { type: DataTypes.STRING, allowNull: false, unique:true },
+    whatsappPhoneNumberId: { type: DataTypes.STRING, allowNull: false, unique:true },
+    whatsappPhoneNumber: { type: DataTypes.STRING, allowNull: false, unique:true },
     connectionStatus: {
       type: DataTypes.ENUM,
       values: Object.values(WhatSappConnectionStatus),
