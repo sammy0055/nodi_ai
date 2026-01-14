@@ -102,8 +102,8 @@ export class ProductService {
     if (!whatsappData?.catalogId) throw new Error("you don't have an active catalog, kindly create one");
     const oldProduct = await ProductModel.findByPk(productId);
     if (!oldProduct) throw new Error('product not found');
-    // const manageImageFile = new ImageUploadHelper();
-    // await manageImageFile.deleteS3ImageFile(oldProduct.filePath);
+    const manageImageFile = new ImageUploadHelper();
+    await manageImageFile.deleteS3ImageFile(oldProduct.filePath);
     const data = await ProductModel.destroy({ where: { id: productId } });
     await WhatsappCatalogHelper.deleteMetaCatalogItem({ itemId: oldProduct.metaProductId }, whatsappData);
     return data;
