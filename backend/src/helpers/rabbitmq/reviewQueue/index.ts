@@ -31,7 +31,6 @@ export const setupReviewQueues = async () => {
 };
 
 export async function scheduleReview(data: { orderId: string }) {
-
   const { channel } = await initRabbit();
   const toMs = (mins: number) => mins * 60 * 1000;
 
@@ -67,29 +66,35 @@ export async function scheduleReview(data: { orderId: string }) {
 
 export const startReviewtWorkerConsumer = async () => {
   const { channel } = await initRabbit();
+  channel.prefetch(5); //only process one message per worker
+  channel.consume(
+    RabitQueues.REVIEW_QUEUE,
+    async (message: any) => {
+      if (!message) return;
 
-  channel.consume(RabitQueues.REVIEW_QUEUE, async (message: any) => {
-    if (!message) return;
+      try {
+        const { value } = JSON.parse(message.content.toString());
+        const { orderId, whatsappBusinessId, msg } = value;
 
-    try {
-      const { value } = JSON.parse(message.content.toString());
-      const { orderId, whatsappBusinessId, msg } = value;
+        const order = await OrderModel.findByPk(orderId, {
+          include: ['customer'],
+        });
 
-      const order = await OrderModel.findByPk(orderId, {
-        include: ['customer'],
-      });
+        if (order && order.isReviewed) {
+          channel.ack(msg);
+          return;
+        }
 
-      if (order && order.isReviewed) {
-        channel.ack(msg);
-        return;
+        await processMessages(whatsappBusinessId, msg);
+        channel.ack(message);
+      } catch (err) {
+        channel.nack(message, false, false);
       }
-
-      await processMessages(whatsappBusinessId, msg);
-      channel.ack(message);
-    } catch (err) {
-      channel.nack(message, false, true);
+    },
+    {
+      noAck: false,
     }
-  });
+  );
 
   console.log(` [*] Review worker running, Waiting for messages in ${RabitQueues.REVIEW_QUEUE}`);
 };

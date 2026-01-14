@@ -1,7 +1,6 @@
 import { processMessages } from '../../mcp/chat-webhook';
 import { initRabbit, RabitQueues } from './init';
 
-
 export const queueProducer = async (data: any) => {
   try {
     const { channel } = await initRabbit();
@@ -45,8 +44,7 @@ export const queueConsumer = async () => {
           console.log('====================================');
 
           // nack the message so RabbitMQ can handle retry / DLQ
-          //   channel.nack(message, false, false);
-          channel.ack(message);
+          channel.nack(message, false, false);
         }
       },
       {
