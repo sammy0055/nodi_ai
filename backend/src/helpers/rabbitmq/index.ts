@@ -24,7 +24,7 @@ export const queueConsumer = async () => {
   try {
     const { channel } = await initRabbit();
     await channel.assertQueue(RabitQueues.WHATSAPP_MESSAGES, { durable: true });
-    channel.prefetch(30); //only process one message per worker
+    channel.prefetch(10); //only process one message per worker
     console.log(' [*] Waiting for messages in %s. To exit press CTRL+C', RabitQueues.WHATSAPP_MESSAGES);
     channel.consume(
       RabitQueues.WHATSAPP_MESSAGES,
