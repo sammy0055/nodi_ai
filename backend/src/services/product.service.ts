@@ -25,7 +25,11 @@ export class ProductService {
       metaProductId: 'ddedde',
     });
 
-    const { imgUrl, path } = await manageImageFile.uploadImage(file);
+    const { imgUrl, path } = await manageImageFile.uploadImageTos3(file, {
+      orgainationId: user.organizationId,
+      productId: createdProduct.id,
+    });
+
     await WhatsappCatalogHelper.createMetaCatalogItem(
       {
         itemId: createdProduct.id,
@@ -56,7 +60,7 @@ export class ProductService {
     const oldProduct = await ProductModel.findByPk(id);
     if (!oldProduct) throw new Error('product does not exist');
     if (file) {
-      const { path, imgUrl } = await manageImageFile.replaceImageFile(oldProduct.filePath, file);
+      const { path, imgUrl } = await manageImageFile.updateS3ImageFile(oldProduct.filePath, file);
 
       const [_, updatedRows] = await ProductModel.update(
         { ...productWithOutId, filePath: path, imageUrl: imgUrl },
@@ -99,7 +103,7 @@ export class ProductService {
     const oldProduct = await ProductModel.findByPk(productId);
     if (!oldProduct) throw new Error('product not found');
     const manageImageFile = new ImageUploadHelper();
-    await manageImageFile.deleteImageFile([oldProduct.filePath]);
+    await manageImageFile.deleteS3ImageFile(oldProduct.filePath);
     const data = await ProductModel.destroy({ where: { id: productId } });
     await WhatsappCatalogHelper.deleteMetaCatalogItem({ itemId: oldProduct.metaProductId }, whatsappData);
     return data;

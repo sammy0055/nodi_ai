@@ -41,9 +41,9 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.967.0",
     "@modelcontextprotocol/sdk": "^1.17.2",
     "@qdrant/js-client-rest": "^1.15.1",
-    "@supabase/supabase-js": "^2.57.4",
     "amqplib": "^0.10.9",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",

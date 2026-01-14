@@ -21,17 +21,18 @@ export enum EnvList {
   META_APP_WHATSAPP_AUTH_CONFIG = 'META_APP_WHATSAPP_AUTH_CONFIG',
   META_APP_REDIRECT_URL = 'META_APP_REDIRECT_URL',
   META_BUSINESS_SYSTEM_TOKEN = 'META_BUSINESS_SYSTEM_TOKEN',
-  SUPERBASE_DB_PASSWORD = 'SUPERBASE_DB_PASSWORD',
-  SUPERBASE_PROJECT_API_KEY = 'SUPERBASE_PROJECT_API_KEY',
-  SUPERBASE_PROJECT_URL = 'SUPERBASE_PROJECT_URL',
-  SUPERBASE_STORAGE_BUCKET_NAME = 'SUPERBASE_STORAGE_BUCKET_NAME',
   OPENAI_API_KEY = 'OPENAI_API_KEY',
   LOCAL_QDRANT = 'LOCAL_QDRANT',
   PROD_QDRANT = 'PROD_QDRANT',
   LOCAL_FRONTEND_URL = 'LOCAL_FRONTEND_URL',
   PROD_FRONTEND_URL = 'PROD_FRONTEND_URL',
+  LOCAL_BACKEND_URL = 'LOCAL_BACKEND_URL',
+  PROD_BACKEND_URL = 'PROD_BACKEND_URL',
   LOCAL_RABBITMQ = 'LOCAL_RABBITMQ',
   PROD_RABBITMQ = 'PROD_RABBITMQ',
+  MINIO_PUBLIC_BUCKET = 'MINIO_PUBLIC_BUCKET',
+  MINIO_ROOT_USER = 'MINIO_ROOT_USER',
+  MINIO_ROOT_PASSWORD = 'MINIO_ROOT_PASSWORD',
 }
 
 const env = getEnv(EnvList.NODE_ENV);
@@ -42,6 +43,7 @@ export const appConfig = {
   encryptionSecret: getEnv('ENCRYPTION_SECRET'),
   openaiKey: getEnv('OPENAI_API_KEY'),
   frontendUrl: env === 'dev' ? getEnv('LOCAL_FRONTEND_URL') : getEnv('PROD_FRONTEND_URL'),
+  backendUrl: env === 'dev' ? getEnv('LOCAL_BACKEND_URL') : getEnv('PROD_BACKEND_URL'),
   db: {
     url: env === 'dev' ? getEnv(EnvList.LOCAL_DATABASE_URL) : getEnv(EnvList.PROD_DATABASE_URL),
     qdrant: env === 'dev' ? getEnv(EnvList.LOCAL_QDRANT) : getEnv(EnvList.PROD_QDRANT),
@@ -66,12 +68,10 @@ export const appConfig = {
     authConfig: getEnv('META_APP_WHATSAPP_AUTH_CONFIG'),
     callbackUrl: getEnv('META_APP_REDIRECT_URL'),
   },
-  superbase: {
-    storage: {
-      bucketName: getEnv('SUPERBASE_STORAGE_BUCKET_NAME'),
-      projectUrl: getEnv('SUPERBASE_PROJECT_URL'),
-      apiKey: getEnv('SUPERBASE_PROJECT_API_KEY'),
-    },
+  s3: {
+    minioRootUser: getEnv('MINIO_ROOT_USER'),
+    minioRootPassword: getEnv('MINIO_ROOT_PASSWORD'),
+    bucketName: getEnv('MINIO_PUBLIC_BUCKET'),
   },
   appUser: {
     authSecret: getEnv('APP_USER_AUTH_SECRET'),

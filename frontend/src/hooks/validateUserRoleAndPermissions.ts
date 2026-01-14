@@ -69,7 +69,7 @@ export const useValidateUserRolesAndPermissions = (user: User) => {
     return user?.roles[0].name;
   };
   const isUserRoleValid = (userRole: UserRoles) => {
-    return user?.roles[0].name === userRole;
+    return user?.roles[0]?.name === userRole;
   };
 
   const isUserPermissionsValid = (permissions: PermissionKey[]) => {
