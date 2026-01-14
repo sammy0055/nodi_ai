@@ -8,7 +8,7 @@ export class ImageUploadHelper {
   private backendUrl = appConfig.backendUrl;
   constructor() {
     this.s3 = new S3Client({
-      endpoint: 'http://minio:4013',
+      endpoint: appConfig.s3.minioEndpoint,
       region: 'us-east-1',
       credentials: {
         accessKeyId: appConfig.s3.minioRootUser,

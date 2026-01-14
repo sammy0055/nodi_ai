@@ -30,6 +30,8 @@ export enum EnvList {
   PROD_BACKEND_URL = 'PROD_BACKEND_URL',
   LOCAL_RABBITMQ = 'LOCAL_RABBITMQ',
   PROD_RABBITMQ = 'PROD_RABBITMQ',
+  LOCAL_MINIO_ENDPOINT = 'LOCAL_MINIO_ENDPOINT',
+  PROD_MINIO_ENDPOINT = 'PROD_MINIO_ENDPOINT',
   MINIO_PUBLIC_BUCKET = 'MINIO_PUBLIC_BUCKET',
   MINIO_ROOT_USER = 'MINIO_ROOT_USER',
   MINIO_ROOT_PASSWORD = 'MINIO_ROOT_PASSWORD',
@@ -69,6 +71,7 @@ export const appConfig = {
     callbackUrl: getEnv('META_APP_REDIRECT_URL'),
   },
   s3: {
+    minioEndpoint: env === 'dev' ? getEnv('LOCAL_MINIO_ENDPOINT') : getEnv('PROD_MINIO_ENDPOINT'),
     minioRootUser: getEnv('MINIO_ROOT_USER'),
     minioRootPassword: getEnv('MINIO_ROOT_PASSWORD'),
     bucketName: getEnv('MINIO_PUBLIC_BUCKET'),
