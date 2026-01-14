@@ -80,6 +80,15 @@ app.use('/api/app-user/permissions', userPermissionRoute);
 // whatsapp flow route
 app.use('/api/whatsappflow', whatsappFlowRoute);
 
+setInterval(() => {
+  const m = process.memoryUsage()
+  console.log(
+    `[MEM] rss=${(m.rss/1024/1024).toFixed(0)}MB ` +
+    `heapUsed=${(m.heapUsed/1024/1024).toFixed(0)}MB ` +
+    `heapTotal=${(m.heapTotal/1024/1024).toFixed(0)}MB`
+  )
+}, 10000)
+
 const vectorStore = new ManageVectorStore();
 const PORT = appConfig.port;
 app.listen(PORT, async () => {
