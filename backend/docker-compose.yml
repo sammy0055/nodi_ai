@@ -117,10 +117,10 @@ services:
     deploy:
       resources:
         limits:
-          memory: 5g   # max container memory
+          memory: 8g   # max container memory
     # ---------- Override default command ----------
     command: >
-      node --max-old-space-size=4608 index.js  # V8 heap slightly below container limit
+      node --max-old-space-size=7168 index.js  # V8 heap slightly below container limit
 
 networks:
   app_network:
