@@ -22,9 +22,6 @@ function isDuplicate(id: string) {
   return false;
 }
 
-// store active user queues
-const userQueues = new Map();
-
 chatRoute.get('/chat-webhook', async (req, res) => {
   console.log('====================================');
   console.log('webhook received a request', req?.body);
@@ -185,40 +182,12 @@ async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) 
 }
 
 async function handleIncomingMessage({ whatsappBusinessId, msg, processMessages }: IncomingMessageAttr) {
-  const userPhoneNumber = msg.from;
-  const userMessage = msg.text?.body || '';
-
-  if (!userQueues.has(userPhoneNumber)) {
-    userQueues.set(userPhoneNumber, { messages: [], processing: false });
+  try {
+    // await processMessages(whatsappBusinessId, msg);
+    await queueProducer({ whatsappBusinessId, msg });
+  } catch (err) {
+    console.error('Error processing user messages:', err);
   }
-
-  const queue = userQueues.get(userPhoneNumber);
-  queue.messages.push(userMessage);
-
-  // if already processing, just queue and exit
-  if (queue.processing) return;
-
-  queue.processing = true;
-
-  // wait a bit to collect more messages (2s window)
-  await new Promise((r) => setTimeout(r, 2000));
-
-  while (queue.messages.length > 0) {
-    // collect all messages (handles spam bursts)
-    const batch = [...queue.messages].join('\n');
-    queue.messages.length = 0; // clear buffer
-    if (msg.text?.body) msg.text.body = batch;
-    try {
-      // await processMessages(whatsappBusinessId, msg);
-      await queueProducer({ whatsappBusinessId, msg });
-    } catch (err) {
-      console.error('Error processing user messages:', err);
-    }
-  }
-
-  // cleanup to free memory
-  queue.processing = false;
-  userQueues.delete(userPhoneNumber);
 }
 
 export async function processMessages(whatsappBusinessId: string, msg: WhatsAppMessage) {
