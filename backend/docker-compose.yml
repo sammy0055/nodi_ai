@@ -113,6 +113,14 @@ services:
         condition: service_started
     networks:
       - app_network
+        # ---------- Memory limits ----------
+    deploy:
+      resources:
+        limits:
+          memory: 5g   # max container memory
+    # ---------- Override default command ----------
+    command: >
+      node --max-old-space-size=4608 index.js  # V8 heap slightly below container limit
 
 networks:
   app_network:
