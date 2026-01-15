@@ -81,7 +81,7 @@ export const startReviewtWorkerConsumer = async () => {
         });
 
         if (order && order.isReviewed) {
-          channel.ack(msg);
+          channel.ack(message);
           return;
         }
 
