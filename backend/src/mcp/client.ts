@@ -1,7 +1,7 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import OpenAI from 'openai';
-import { FunctionTool } from 'openai/resources/responses/responses';
+import { FunctionTool, ResponseInputItem } from 'openai/resources/responses/responses';
 import { appConfig } from '../config';
 import { ChatHistoryManager } from '../services/ChatHistoryManager.service';
 
@@ -180,17 +180,26 @@ export class MCPClient extends UsageBase {
     });
   }
 
-  protected async query({ query, organizationId, conversationId, customerId, systemPrompt }: ProcessQueryTypes) {
+  protected async query({ query, organizationId, conversationId, customerId, assistantMessage }: ProcessQueryTypes) {
     // init a new conversation
     let currentConversationId = conversationId;
 
     // Add user message to history
-    await this.openai.conversations.items.create(conversationId, {
-      items: [
-        // ...(systemPrompt?.trim() && ([{ role: 'system', content: systemPrompt }] as any)),
-        { role: 'user', content: query },
-      ],
+    const items: ResponseInputItem[] = [];
+
+    if (assistantMessage?.trim()) {
+      items.push({
+        role: 'assistant',
+        content: assistantMessage.trim(),
+      });
+    }
+
+    items.push({
+      role: 'user',
+      content: query.trim(),
     });
+
+    await this.openai.conversations.items.create(conversationId, { items });
     await this.chatHistory.addMessage({ conversationId, organizationId }, { role: 'user', content: query });
     let iteration = 0;
     let finalResponse: any = '';
@@ -242,9 +251,16 @@ export class MCPClient extends UsageBase {
     return finalResponse;
   }
 
-  async process({ query, organizationId, customerId, conversationId, systemPrompt }: ProcessQueryTypes) {
-    const res = await this.query({ query, organizationId, customerId, conversationId, systemPrompt });
-   
+  async process({
+    query,
+    organizationId,
+    customerId,
+    conversationId,
+    systemPrompt,
+    assistantMessage,
+  }: ProcessQueryTypes) {
+    const res = await this.query({ query, organizationId, customerId, conversationId, systemPrompt, assistantMessage });
+
     return res;
   }
 }
@@ -276,6 +292,7 @@ export class MCPChatBot extends MCPClient {
 interface ProcessQueryTypes {
   query: string;
   systemPrompt: string;
+  assistantMessage: string | null;
   organizationId: string;
   conversationId: string;
   customerId: string;

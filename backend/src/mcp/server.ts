@@ -25,7 +25,7 @@ export const server = new McpServer({
 
 // organization info
 getOrgFrequentlyAskedQuestion(server);
-checkBusinessServiceAvailability(server)
+// checkBusinessServiceAvailability(server)
 
 // product discovery tools
 searchProducts(server);

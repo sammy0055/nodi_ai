@@ -5,6 +5,7 @@ import { createSystemPrompt } from './prompts';
 import { decrypt } from '../utils/crypto-utils';
 import { Conversation } from '../models/conversation.model';
 import { SubscriptionsModel } from '../models/subscriptions.model';
+import { checkBusinessServiceSchedule } from '../utils/organization';
 
 const { CustomerModel, WhatSappSettingsModel, OrganizationsModel } = models;
 
@@ -123,32 +124,41 @@ export class ChatService extends MCPChatBot {
     const planOrg = await this.getOrganization();
     const customer = await this.getCustomerData();
     let systemPrompt: string;
+    let assistantMessage: string | null = null;
     if (customer.status !== 'active') {
-      return {
-        data: {
-          type: 'message',
-          response: `you have been blocked from sending message to ${planOrg.name}`,
-        },
-      };
+      assistantMessage = `you have been blocked from sending message to ${planOrg.name}`;
+      // return {
+      //   data: {
+      //     type: 'message',
+      //     response: `you have been blocked from sending message to ${planOrg.name}`,
+      //   },
+      // };
     }
 
     if (planOrg.status !== 'active') {
-      return {
-        data: {
-          type: 'message',
-          response: `${planOrg.name} is currently not active at the moment`,
-        },
-      };
+      assistantMessage = `${planOrg.name} is currently not active at the moment`;
+      // return {
+      //   data: {
+      //     type: 'message',
+      //     response: `${planOrg.name} is currently not active at the moment`,
+      //   },
+      // };
     }
 
     const subscription = await SubscriptionsModel.findOne({ where: { organizationId: planOrg.id } });
     if (subscription?.status !== 'active') {
-      return {
-        data: {
-          type: 'message',
-          response: `${planOrg.name} is currently not available at the moment`,
-        },
-      };
+      assistantMessage = `${planOrg.name} is currently not available at the moment`;
+      // return {
+      //   data: {
+      //     type: 'message',
+      //     response: `${planOrg.name} is currently not available at the moment`,
+      //   },
+      // };
+    }
+
+    const serviceSchedule = checkBusinessServiceSchedule(planOrg.serviceSchedule);
+    if (!serviceSchedule.isOpen) {
+      assistantMessage = JSON.stringify(serviceSchedule);
     }
 
     systemPrompt = createSystemPrompt({
@@ -192,6 +202,7 @@ export class ChatService extends MCPChatBot {
     const res = await this.process({
       query: userMessage,
       systemPrompt: systemPrompt,
+      assistantMessage: assistantMessage,
       organizationId: this.organizationId,
       conversationId: conversation.id,
       customerId: customer.id,

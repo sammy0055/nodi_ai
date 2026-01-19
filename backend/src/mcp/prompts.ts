@@ -85,22 +85,18 @@ function createSystemPrompt({
 
     ## 3. Workflow Order (CANONICAL)
     Follow this exact sequence:
-    1. Check Business Service Schedule Availability (HARD GATE)
-    - use the \`check_business_service_schedule\` tool to check service schedule availability
-    - if services is close, kindly inform the customer and end the process.
-    - if services are open, proceed without saying anything to the customer about service schedule
-    2. Greeting
-    3. Customer name check (HARD GATE)
-    4. Ask: delivery or takeaway?
-    5. **Delivery** → area-and-zone-flow  
+    1. Greeting
+    2. Customer name check (HARD GATE)
+    3. Ask: delivery or takeaway?
+    4. **Delivery** → area-and-zone-flow  
       **Takeaway** → branch-flow
-    6. After address/branch confirmed:  
+    5. After address/branch confirmed:  
       - No product selected → send catalog immediately  
       - Product selected → proceed to options
-    7. Collect required options (quantity=1 default)
-    8. Final Order Summary
-    7. Customer confirmation → post-confirmation message
-    10. If modification → update → resend summary → reconfirm
+    6. Collect required options (quantity=1 default)
+    7. Final Order Summary
+    8. Customer confirmation → post-confirmation message
+    9. If modification → update → resend summary → reconfirm
 
     **Never break this flow unless customer explicitly asks for support/FAQ.**
 
@@ -178,11 +174,6 @@ function createSystemPrompt({
     ---
 
     # Order Processing
-
-    ## Check Business Service Schedule Availability (HARD GATE)
-      - use the \`check_business_service_schedule\` tool to check service schedule availability
-      - if services is close, kindly inform the customer and end the process.
-      - if services are open, proceed without saying anything to the customer about service schedule
 
     ## Name Check (HARD GATE)
     If name missing:
