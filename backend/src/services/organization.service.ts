@@ -2,7 +2,7 @@ import { BranchesModel } from '../models/branches.model';
 import { WhatSappSettingsModel } from '../models/whatsapp-settings.model';
 import { OrganizationsModel } from '../models/organizations.model';
 import { UsersModel } from '../models/users.model';
-import { IOrganization, OrgReviewQuestions } from '../types/organization';
+import { IOrganization, OrgReviewQuestions, ServiceSchedule } from '../types/organization';
 import { User } from '../types/users';
 import { NotificationModel } from '../models/notification.model';
 import { literal, Op, Sequelize } from 'sequelize';
@@ -175,6 +175,16 @@ export class OrganizationService {
       { frequentlyAskedQuestions: data },
       { where: { id: user.organizationId! }, returning: true, individualHooks: true }
     );
+    const plainOrg = updatedOrg[0].get({ plain: true });
+    return plainOrg;
+  }
+
+  static async setServiceSchedule(data: ServiceSchedule[], user: Pick<User, 'id' | 'organizationId'>) {
+    const [_, updatedOrg] = await OrganizationsModel.update(
+      { serviceSchedule: data },
+      { where: { id: user.organizationId! }, returning: true, individualHooks: true }
+    );
+
     const plainOrg = updatedOrg[0].get({ plain: true });
     return plainOrg;
   }

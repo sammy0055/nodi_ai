@@ -3,7 +3,7 @@ import { sequelize } from './db';
 import { DbModels } from '.';
 import { BusinessType, supportedBusinessTypes } from '../data/data-types';
 import { ModelNames } from './model-names';
-import { IOrganization, OrgReviewQuestions } from '../types/organization';
+import { IOrganization, OrgReviewQuestions, ServiceSchedule } from '../types/organization';
 import { CurrencyCode } from '../types/product';
 
 class OrganizationsModel
@@ -23,6 +23,7 @@ class OrganizationsModel
   declare currency: CurrencyCode;
   declare reviewQuestions: OrgReviewQuestions[];
   declare frequentlyAskedQuestions: OrgReviewQuestions[];
+  declare serviceSchedule: ServiceSchedule[];
   declare reviewTimer: number | null;
   static associate(models: DbModels) {
     //hasMany The foreign key is on the other model (the one being linked).
@@ -97,6 +98,7 @@ OrganizationsModel.init(
     languageProtectedTerms: { type: DataTypes.ARRAY(DataTypes.STRING), defaultValue: [] },
     currency: { type: DataTypes.ENUM, values: [...Object.values(CurrencyCode)], defaultValue: CurrencyCode.LBP },
     reviewQuestions: { type: DataTypes.JSONB, defaultValue: [] },
+    serviceSchedule: { type: DataTypes.JSONB, defaultValue: [] },
     frequentlyAskedQuestions: { type: DataTypes.JSONB, defaultValue: [] },
     reviewTimer: { type: DataTypes.INTEGER, allowNull: true },
   },

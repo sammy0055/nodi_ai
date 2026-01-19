@@ -17,6 +17,11 @@ export interface IReviews {
   items: OrgReviewQuestions[];
 }
 
+export interface ServiceSchedule {
+  dayOfWeek: string;
+  hours: { open: string; close: string }[];
+}
+
 export interface IOrganization {
   id: string; // uuid
   name: string;
@@ -30,4 +35,5 @@ export interface IOrganization {
   languageProtectedTerms?: string[];
   currency: CurrencyCode;
   reviewQuestions: OrgReviewQuestions[];
+  serviceSchedule: ServiceSchedule[];
 }

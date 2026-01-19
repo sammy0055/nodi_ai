@@ -1,6 +1,6 @@
 import { OrganizationService } from '../services/organization.service';
 import { Pagination } from '../types/common-types';
-import { IOrganization, OrgReviewQuestions } from '../types/organization';
+import { IOrganization, OrgReviewQuestions, ServiceSchedule } from '../types/organization';
 import { User } from '../types/users';
 
 export class OrganizationController {
@@ -27,11 +27,15 @@ export class OrganizationController {
     return await OrganizationService.setOrgReviewQuestions(data, user);
   }
 
-   static async setOrgFQAQuestions(data: OrgReviewQuestions[], user: Pick<User, 'id' | 'organizationId'>) {
+  static async setOrgFQAQuestions(data: OrgReviewQuestions[], user: Pick<User, 'id' | 'organizationId'>) {
     return await OrganizationService.setOrgFQAQuestions(data, user);
   }
 
-   static async setOrgReviewTimer(timer: number, user: Pick<User, 'id' | 'organizationId'>) {
+  static async setServiceSchedule(data: ServiceSchedule[], user: Pick<User, 'id' | 'organizationId'>) {
+    return await OrganizationService.setServiceSchedule(data, user);
+  }
+
+  static async setOrgReviewTimer(timer: number, user: Pick<User, 'id' | 'organizationId'>) {
     return await OrganizationService.setOrgReviewTimer(timer, user);
   }
 }

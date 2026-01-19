@@ -13,6 +13,7 @@ import { templates } from '../data/templates';
 import { getWhatsappCatalog, priceToMetaFormat } from '../helpers/whatsapp-catalog';
 import { queueProducer } from './rabbitmq';
 import { getVoiceNote } from '../helpers/download_voice_note';
+import { checkBusinessServiceSchedule } from '../utils/organization';
 
 const ddd = {
   whatsappBusinessId: '1390720013053482',
@@ -330,6 +331,41 @@ const createCatalogItem = async () => {
   }
 };
 
+const mockServiceScheduleData = [
+  {
+    dayOfWeek: "monday",
+    hours: [{ open: "08:00", close: "09:00" }]
+  },
+  {
+    dayOfWeek: "tuesday",
+    hours: [{ open: "09:00", close: "17:00" }]
+  },
+  {
+    dayOfWeek: "wednesday",
+    hours: [{ open: "09:00", close: "18:00" }]
+  },
+  {
+    dayOfWeek: "thursday",
+    hours: [{ open: "10:00", close: "19:00" }]
+  },
+  {
+    dayOfWeek: "friday",
+    hours: [{ open: "09:00", close: "21:00" }]
+  },
+  {
+    dayOfWeek: "saturday",
+    hours: []
+  },
+  {
+    dayOfWeek: "sunday",
+    hours: [{ open: "12:00", close: "20:00" }]
+  }
+];
+
+const slots = checkBusinessServiceSchedule(mockServiceScheduleData)
+console.log('====================================');
+console.log(slots);
+console.log('====================================');
 // summarize();
 // testMcp('hello');
 // run();
@@ -338,4 +374,6 @@ const createCatalogItem = async () => {
 // createCatalogItem();
 // queueProducer({ data: { hel: { d: '', dfsaf: ['dwee'] } } });
 // listCatalogItems();
-getVoiceNote('1500555364366195');
+// getVoiceNote('1500555364366195');
+
+

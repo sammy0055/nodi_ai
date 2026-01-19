@@ -145,6 +145,25 @@ organizationRoute.post(
   }
 );
 
+organizationRoute.post('/set-org-service-schedule', authMiddleware, async (req, res) => {
+  try {
+    const data = await OrganizationController.setServiceSchedule(req.body, req.user!);
+    const response: APIResponseFormat<any> = {
+      message: 'service schedule set successfully',
+      data,
+    };
+
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
+
 organizationRoute.post('/set-org-review-timer', authMiddleware, async (req, res) => {
   try {
     const data = await OrganizationController.setOrgReviewTimer(req.body.timer, req.user!);

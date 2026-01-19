@@ -12,7 +12,7 @@ import { getRecommendations, suggestAlternatives } from './tools/smart_recommend
 import { cancelOrder, createOrder, getBranchInfo, getOrderDetails } from './tools/order_and_service';
 import { createCustomerProfile, getCustomerProfile } from './tools/customer';
 import { createReview, getOrganizationReviewQuestions } from './tools/review';
-import { getOrgFrequentlyAskedQuestion } from './tools/organization_info';
+import { checkBusinessServiceAvailability, getOrgFrequentlyAskedQuestion } from './tools/organization_info';
 
 export const server = new McpServer({
   name: 'Credobyte-MCP-Server',
@@ -25,6 +25,7 @@ export const server = new McpServer({
 
 // organization info
 getOrgFrequentlyAskedQuestion(server);
+checkBusinessServiceAvailability(server)
 
 // product discovery tools
 searchProducts(server);
