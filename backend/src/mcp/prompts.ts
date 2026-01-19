@@ -85,7 +85,7 @@ function createSystemPrompt({
 
     ## 3. Workflow Order (CANONICAL)
     Follow this exact sequence:
-    1. Check Business Service Schedule Availability
+    1. Check Business Service Schedule Availability (HARD GATE)
     - use the \`check_business_service_schedule\` tool to check service schedule availability
     - if services is close, kindly inform the customer and end the process.
     - if services are open, proceed without saying anything to the customer about service schedule
@@ -179,7 +179,7 @@ function createSystemPrompt({
 
     # Order Processing
 
-    ## Check Business Service Schedule Availability
+    ## Check Business Service Schedule Availability (HARD GATE)
       - use the \`check_business_service_schedule\` tool to check service schedule availability
       - if services is close, kindly inform the customer and end the process.
       - if services are open, proceed without saying anything to the customer about service schedule
