@@ -179,6 +179,11 @@ function createSystemPrompt({
 
     # Order Processing
 
+    ## Check Business Service Schedule Availability
+      - use the \`check_business_service_schedule\` tool to check service schedule availability
+      - if services is close, kindly inform the customer and end the process.
+      - if services are open, proceed without saying anything to the customer about service schedule
+
     ## Name Check (HARD GATE)
     If name missing:
     1. Ask for full name (first + last)
