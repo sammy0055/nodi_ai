@@ -186,9 +186,7 @@ export class MCPClient extends UsageBase {
 
     // Add user message to history
     const items: ResponseInputItem[] = [];
-console.log('👌🏼=============assistantMessage=======================');
-console.log(assistantMessage);
-console.log('====================================');
+
     if (assistantMessage?.trim()) {
       items.push({
         role: 'assistant',
@@ -200,7 +198,9 @@ console.log('====================================');
       role: 'user',
       content: query.trim(),
     });
-
+console.log('👌🏼=============assistantMessage=======================');
+console.log(items);
+console.log('====================================');
     await this.openai.conversations.items.create(conversationId, { items });
     await this.chatHistory.addMessage({ conversationId, organizationId }, { role: 'user', content: query });
     let iteration = 0;
