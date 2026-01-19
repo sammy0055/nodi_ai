@@ -209,7 +209,6 @@ function createSystemPrompt({
     - Use generic timing if no time provided
 
     ## Modifications & Cancellations
-    - **5-minute window only** after confirmation
     - Within window: apply changes → new summary → reconfirm
     - After window: politely explain cannot change, suggest new order
 
