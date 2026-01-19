@@ -186,7 +186,9 @@ export class MCPClient extends UsageBase {
 
     // Add user message to history
     const items: ResponseInputItem[] = [];
-
+console.log('👌🏼=============assistantMessage=======================');
+console.log(assistantMessage);
+console.log('====================================');
     if (assistantMessage?.trim()) {
       items.push({
         role: 'assistant',
