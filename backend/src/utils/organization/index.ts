@@ -142,6 +142,6 @@ export function checkBusinessServiceSchedule(
       ? `Service is currently open.`
       : nextOpen
         ? `Service is closed. Next open: ${nextOpen.day.charAt(0).toUpperCase() + nextOpen.day.slice(1)} at ${nextOpen.time}.`
-        : `Service appears to be permanently closed.`
+        : `Service is temporarity closed.`
   };
 }

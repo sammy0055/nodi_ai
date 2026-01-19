@@ -158,7 +158,7 @@ export class ChatService extends MCPChatBot {
 
     const serviceSchedule = checkBusinessServiceSchedule(planOrg.serviceSchedule);
     if (!serviceSchedule.isOpen) {
-      assistantMessage = JSON.stringify(serviceSchedule);
+      assistantMessage = serviceSchedule.message;
     }
 
     systemPrompt = createSystemPrompt({
