@@ -6,6 +6,8 @@ import { decrypt } from '../utils/crypto-utils';
 import { Conversation } from '../models/conversation.model';
 import { SubscriptionsModel } from '../models/subscriptions.model';
 import { checkBusinessServiceSchedule } from '../utils/organization';
+import { appConfig } from '../config';
+import OpenAI from 'openai';
 
 const { CustomerModel, WhatSappSettingsModel, OrganizationsModel } = models;
 
@@ -128,8 +130,11 @@ export class ChatService extends MCPChatBot {
     assistantMessage: any;
   }) {
     const planOrg = await this.getOrganization();
+    const OPENAI_API_KEY = appConfig.mcpKeys.openaiKey;
+
+    const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
     const systemPrompt = createValidationSystemPrompt({ organizationData: planOrg });
-    const res = await this.openai.responses.create({
+    const res = await openai.responses.create({
       model: this.llm_model,
       input: [
         { role: 'system', content: systemPrompt },
