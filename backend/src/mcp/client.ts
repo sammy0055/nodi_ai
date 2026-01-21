@@ -180,27 +180,18 @@ export class MCPClient extends UsageBase {
     });
   }
 
-  protected async query({ query, organizationId, conversationId, customerId, assistantMessage }: ProcessQueryTypes) {
+  protected async query({ query, organizationId, conversationId, customerId }: ProcessQueryTypes) {
     // init a new conversation
     let currentConversationId = conversationId;
 
     // Add user message to history
     const items: ResponseInputItem[] = [];
 
-    if (assistantMessage?.trim()) {
-      items.push({
-        role: 'assistant',
-        content: assistantMessage.trim(),
-      });
-    }
-
     items.push({
       role: 'user',
       content: query.trim(),
     });
-console.log('👌🏼=============assistantMessage=======================');
-console.log(items);
-console.log('====================================');
+
     await this.openai.conversations.items.create(conversationId, { items });
     await this.chatHistory.addMessage({ conversationId, organizationId }, { role: 'user', content: query });
     let iteration = 0;
@@ -258,10 +249,9 @@ console.log('====================================');
     organizationId,
     customerId,
     conversationId,
-    systemPrompt,
-    assistantMessage,
+
   }: ProcessQueryTypes) {
-    const res = await this.query({ query, organizationId, customerId, conversationId, systemPrompt, assistantMessage });
+    const res = await this.query({ query, organizationId, customerId, conversationId });
 
     return res;
   }
@@ -293,8 +283,8 @@ export class MCPChatBot extends MCPClient {
 
 interface ProcessQueryTypes {
   query: string;
-  systemPrompt: string;
-  assistantMessage: string | null;
+  systemPrompt?: string | null;
+  assistantMessage?: string | null;
   organizationId: string;
   conversationId: string;
   customerId: string;

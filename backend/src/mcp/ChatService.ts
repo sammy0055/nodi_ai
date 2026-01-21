@@ -1,7 +1,7 @@
 import { ChatHistoryManager } from '../services/ChatHistoryManager.service';
 import { models } from '../models';
 import { MCPChatBot } from './client';
-import { createSystemPrompt } from './prompts';
+import { createSystemPrompt, createValidationSystemPrompt } from './prompts';
 import { decrypt } from '../utils/crypto-utils';
 import { Conversation } from '../models/conversation.model';
 import { SubscriptionsModel } from '../models/subscriptions.model';
@@ -120,13 +120,36 @@ export class ChatService extends MCPChatBot {
     return conversation;
   }
 
+  public async processValidationQuery({
+    userMessage,
+    assistantMessage,
+  }: {
+    userMessage: string;
+    assistantMessage: any;
+  }) {
+    const planOrg = await this.getOrganization();
+    const systemPrompt = createValidationSystemPrompt({ organizationData: planOrg });
+    const res = await this.openai.responses.create({
+      model: this.llm_model,
+      input: [
+        { role: 'system', content: systemPrompt },
+        { role: 'assistant', content: assistantMessage },
+        { role: 'user', content: userMessage },
+      ],
+    });
+
+    return res.output_text;
+  }
+
   public async processQuery(userMessage: string) {
     const planOrg = await this.getOrganization();
     const customer = await this.getCustomerData();
     let systemPrompt: string;
-    let assistantMessage: string | null = null;
     if (customer.status !== 'active') {
-      assistantMessage = `you have been blocked from sending message to ${planOrg.name}`;
+      return await this.processValidationQuery({
+        userMessage,
+        assistantMessage: `you have been blocked from sending message to ${planOrg.name}`,
+      });
       // return {
       //   data: {
       //     type: 'message',
@@ -136,7 +159,10 @@ export class ChatService extends MCPChatBot {
     }
 
     if (planOrg.status !== 'active') {
-      assistantMessage = `${planOrg.name} is currently not active at the moment`;
+      return await this.processValidationQuery({
+        userMessage,
+        assistantMessage: `${planOrg.name} is currently not active at the moment`,
+      });
       // return {
       //   data: {
       //     type: 'message',
@@ -147,7 +173,10 @@ export class ChatService extends MCPChatBot {
 
     const subscription = await SubscriptionsModel.findOne({ where: { organizationId: planOrg.id } });
     if (subscription?.status !== 'active') {
-      assistantMessage = `${planOrg.name} is currently not available at the moment`;
+      return await this.processValidationQuery({
+        userMessage,
+        assistantMessage: `${planOrg.name} is currently not available at the moment`,
+      });
       // return {
       //   data: {
       //     type: 'message',
@@ -158,56 +187,60 @@ export class ChatService extends MCPChatBot {
 
     const serviceSchedule = checkBusinessServiceSchedule(planOrg.serviceSchedule);
     if (!serviceSchedule.isOpen) {
-      assistantMessage = serviceSchedule.message;
-    }
-
-    systemPrompt = createSystemPrompt({
-      organizationData: planOrg!,
-      customerData: customer,
-      businessTone: 'formal',
-      assistantName: planOrg.AIAssistantName || 'Alex',
-    });
-
-    const conversation = await this.getAndCreateConversationIfNotExist(systemPrompt);
-    if (planOrg.shouldUpdateChatbotSystemPrompt) {
-      console.log('====================================');
-      console.log('should update system prompt running');
-      console.log('====================================');
-      if (conversation) {
-        const { deleteConversationItem, insertConverationItem } = new ChatHistoryManager();
-        await deleteConversationItem({
-          msgId: conversation.systemMessageId,
-          conv: { conversation_id: conversation.id },
+      if (subscription?.status !== 'active') {
+        return await this.processValidationQuery({
+          userMessage,
+          assistantMessage: JSON.stringify(serviceSchedule),
         });
-
-        systemPrompt = createSystemPrompt({
-          organizationData: planOrg!,
-          customerData: customer,
-          businessTone: 'formal',
-          assistantName: planOrg.AIAssistantName || 'Alex',
-        });
-
-        const items = await insertConverationItem(conversation.id, systemPrompt);
-
-        const systemMessage = items.data.find((i: any) => i.role === 'system');
-        await Conversation.update(
-          { systemMessageId: systemMessage?.id },
-          { where: { organizationId: planOrg.id, id: conversation.id, customerId: customer.id } }
-        );
-
-        await OrganizationsModel.update({ shouldUpdateChatbotSystemPrompt: false }, { where: { id: planOrg.id } });
       }
+
+      systemPrompt = createSystemPrompt({
+        organizationData: planOrg!,
+        customerData: customer,
+        businessTone: 'formal',
+        assistantName: planOrg.AIAssistantName || 'Alex',
+      });
+
+      const conversation = await this.getAndCreateConversationIfNotExist(systemPrompt);
+      if (planOrg.shouldUpdateChatbotSystemPrompt) {
+        console.log('====================================');
+        console.log('should update system prompt running');
+        console.log('====================================');
+        if (conversation) {
+          const { deleteConversationItem, insertConverationItem } = new ChatHistoryManager();
+          await deleteConversationItem({
+            msgId: conversation.systemMessageId,
+            conv: { conversation_id: conversation.id },
+          });
+
+          systemPrompt = createSystemPrompt({
+            organizationData: planOrg!,
+            customerData: customer,
+            businessTone: 'formal',
+            assistantName: planOrg.AIAssistantName || 'Alex',
+          });
+
+          const items = await insertConverationItem(conversation.id, systemPrompt);
+
+          const systemMessage = items.data.find((i: any) => i.role === 'system');
+          await Conversation.update(
+            { systemMessageId: systemMessage?.id },
+            { where: { organizationId: planOrg.id, id: conversation.id, customerId: customer.id } }
+          );
+
+          await OrganizationsModel.update({ shouldUpdateChatbotSystemPrompt: false }, { where: { id: planOrg.id } });
+        }
+      }
+      await this.connectToMcpServer(conversation.id);
+      const res = await this.process({
+        query: userMessage,
+        systemPrompt: systemPrompt,
+        organizationId: this.organizationId,
+        conversationId: conversation.id,
+        customerId: customer.id,
+      });
+      return res;
     }
-    await this.connectToMcpServer(conversation.id);
-    const res = await this.process({
-      query: userMessage,
-      systemPrompt: systemPrompt,
-      assistantMessage: assistantMessage,
-      organizationId: this.organizationId,
-      conversationId: conversation.id,
-      customerId: customer.id,
-    });
-    return res;
   }
 
   async sendWhatSappMessage({ recipientPhoneNumber, message }: SendWhatSappMessageProps) {
