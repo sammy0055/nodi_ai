@@ -56,6 +56,14 @@ const permissions = Object.freeze([
   { key: 'permission.update', description: 'Update existing permission details' },
   { key: 'permission.view', description: 'View all permissions and their assignments' },
   { key: 'permission.delete', description: 'Delete permissions from the system' },
+
+  { key: 'dashboard.view', description: 'View the main dashboard and its summaries' },
+
+  { key: 'settings.view', description: 'View application settings' },
+  { key: 'settings.update', description: 'Edit and update application settings' },
+
+  { key: 'service_schedule.view', description: 'View service schedules and details' },
+  { key: 'service_schedule.update', description: 'Edit and update service schedules' },
 ] as const);
 
 // ✅ union type derived from the array

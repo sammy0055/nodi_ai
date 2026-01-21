@@ -33,9 +33,10 @@ import { CurrencyCode } from '../../types/product';
 import { useLoaderData } from 'react-router';
 import { UserService } from '../../services/userService';
 import type { Permission, Role, User } from '../../types/users';
-import type { IOrganization } from '../../types/organization';
+import type { IOrganization, ServiceSchedule } from '../../types/organization';
 import FAQManager from '../../components/organisms/settings/fqaManager';
 import { useValidateUserRolesAndPermissions } from '../../hooks/validateUserRoleAndPermissions';
+import { ServiceScheduleForm } from '../../components/organisms/Organization/ServiceScheduleForm';
 
 const SettingsPage: React.FC = () => {
   const orgData = useOrgValue();
@@ -60,7 +61,7 @@ const SettingsPage: React.FC = () => {
   const { isUserPermissionsValid, isUserRoleValid } = useValidateUserRolesAndPermissions(user!);
 
   // State for navigation
-  const [activeTab, setActiveTab] = useState<'general' | 'users' | 'roles' | 'fqa'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'users' | 'roles' | 'fqa' | 'service_schedule'>('general');
 
   // State for Users tab
   const [users, setUsers] = useState<User[]>([]);
@@ -102,6 +103,7 @@ const SettingsPage: React.FC = () => {
     getOrganizationRequest,
     publishWhatsappTemplates,
     removeWhatsappSettings,
+    setOrgServiceSchedule,
   } = new OrganizationService();
   const handleOrgChange = (field: string, value: string) => {
     setOrgData((prev) => ({ ...prev!, [field]: value }));
@@ -363,10 +365,21 @@ const SettingsPage: React.FC = () => {
     setRolePermissions(new Set());
   };
 
+  const handleSetServiceSchedule = async (data: ServiceSchedule[]) => {
+    try {
+      await setOrgServiceSchedule(data);
+      alert("service schedule save successfully")
+    } catch (error: any) {
+      alert('something went wrong, please try again');
+    }
+  };
+
   // Render the appropriate content based on active tab
   const renderTabContent = () => {
     if (activeTab === 'general') {
       return renderGeneralTab();
+    } else if (activeTab === 'service_schedule') {
+      return renderServiceSchedule();
     } else if (activeTab === 'users') {
       if (isUserRoleValid('super-admin')) return renderUsersTab();
       if (!isUserRoleValid('super-admin')) {
@@ -531,8 +544,8 @@ const SettingsPage: React.FC = () => {
                   whatsappData?.connectionStatus === 'connected'
                     ? 'bg-success-100 text-success-800'
                     : whatsappData?.connectionStatus === 'pending'
-                    ? 'bg-warning-100 text-warning-600'
-                    : 'bg-warning-100 text-warning-800'
+                      ? 'bg-warning-100 text-warning-600'
+                      : 'bg-warning-100 text-warning-800'
                 }`}
               >
                 {whatsappData?.connectionStatus === 'connected' ? (
@@ -1011,6 +1024,15 @@ const SettingsPage: React.FC = () => {
     </div>
   );
 
+  const renderServiceSchedule = () => (
+    <div>
+      <ServiceScheduleForm
+        initialSchedule={data?.organization?.serviceSchedule}
+        onScheduleChange={handleSetServiceSchedule}
+      />
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       {/* Navigation Tabs */}
@@ -1026,6 +1048,18 @@ const SettingsPage: React.FC = () => {
           >
             <FiShoppingBag className="mr-2" />
             General
+          </button>
+
+          <button
+            onClick={() => setActiveTab('service_schedule')}
+            className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
+              activeTab === 'service_schedule'
+                ? 'text-primary-600 border-b-2 border-primary-600 font-semibold'
+                : 'text-neutral-600 hover:text-neutral-900'
+            }`}
+          >
+            <FiShoppingBag className="mr-2" />
+            service schedule
           </button>
           {isUserPermissionsValid(['user.view']) && (
             <button

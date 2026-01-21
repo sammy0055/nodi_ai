@@ -43,6 +43,7 @@ export const API_ROUTES = {
   GET_OGANIZATION: `${API_BASE_URL}/organization/get-organization`,
   SET_ORG_REVIEW_QUESTIONS: `${API_BASE_URL}/organization/set-org-review-questions`,
   SET_ORG_FQA_QUESTIONS: `${API_BASE_URL}/organization/set-org-fqa-questions`,
+  SET_ORG_SERVICE_SCHEDULE: `${API_BASE_URL}/organization/set-org-service-schedule`,
   SET_ORG_REVIEW_TIMER: `${API_BASE_URL}/organization/set-org-review-timer`,
   CURRENT_USER: `${API_BASE_URL}/user/current-user`,
   ADD_USER: `${API_BASE_URL}/user/create-user`,

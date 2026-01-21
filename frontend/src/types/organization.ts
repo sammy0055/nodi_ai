@@ -15,6 +15,11 @@ export interface FAQItem {
   answer: string;
 }
 
+export interface ServiceSchedule {
+  dayOfWeek: string;
+  hours: { open: string; close: string }[];
+}
+
 export interface IOrganization {
   id: string; // uuid
   name: string;
@@ -26,6 +31,7 @@ export interface IOrganization {
   status: 'active' | 'suspended' | 'cancelled';
   reviewQuestions: OrgReviewQuestions[];
   frequentlyAskedQuestions: FAQItem[];
+  serviceSchedule: ServiceSchedule[];
   reviewTimer: number | null;
 }
 

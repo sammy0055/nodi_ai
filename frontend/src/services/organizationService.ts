@@ -1,4 +1,4 @@
-import type { FAQItem, IOrganization } from '../types/organization';
+import type { FAQItem, IOrganization, ServiceSchedule } from '../types/organization';
 import { ApiClient } from './apiClient';
 import type { ExchangeCodeTypes } from '../types/whatsapp';
 import type { BaseRequestAttributes } from '../types/request';
@@ -54,6 +54,13 @@ export class OrganizationService {
 
   async setOrgFQAQuestions(data: FAQItem[]): Promise<{ data: IOrganization; message: string }> {
     return await ApiClient('SET_ORG_FQA_QUESTIONS', {
+      method: 'POST',
+      body: data,
+    });
+  }
+
+  async setOrgServiceSchedule(data: ServiceSchedule[]): Promise<{ data: IOrganization; message: string }> {
+    return await ApiClient('SET_ORG_SERVICE_SCHEDULE', {
       method: 'POST',
       body: data,
     });

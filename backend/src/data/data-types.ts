@@ -124,7 +124,6 @@ export const permissions = [
 
   { key: 'user.create', description: 'Create and onboard new users or staff accounts' },
   { key: 'user.update', description: 'Update user details and profile information' },
-  { key: 'user.assignRole', description: 'Assign roles and permissions to users' },
   { key: 'user.view', description: 'View user accounts and roles' },
   { key: 'user.deactivate', description: 'Deactivate or suspend user accounts' },
 
@@ -161,6 +160,14 @@ export const permissions = [
   { key: 'permission.update', description: 'Update existing permission details' },
   { key: 'permission.view', description: 'View all permissions and their assignments' },
   { key: 'permission.delete', description: 'Delete permissions from the system' },
+
+  { key: 'dashboard.view', description: 'View the main dashboard and its summaries' },
+
+  { key: 'settings.view', description: 'View application settings' },
+  { key: 'settings.update', description: 'Edit and update application settings' },
+
+  { key: 'service_schedule.view', description: 'View service schedules and details' },
+  { key: 'service_schedule.update', description: 'Edit and update service schedules' },
 ];
 
 export const supportedBusinessTypes = Object.values(BusinessType);

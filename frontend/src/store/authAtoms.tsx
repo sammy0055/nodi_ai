@@ -33,7 +33,8 @@ export const orgAtom = atom<IOrganization>({
     status: 'active',
     reviewTimer:10,
     reviewQuestions: [],
-    frequentlyAskedQuestions:[]
+    frequentlyAskedQuestions:[],
+    serviceSchedule:[]
   },
 });
 
