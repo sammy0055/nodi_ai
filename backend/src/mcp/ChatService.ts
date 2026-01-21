@@ -143,7 +143,12 @@ export class ChatService extends MCPChatBot {
       ],
     });
 
-    return res.output_text;
+    return {
+      data: {
+        type: 'message',
+        response: res.output_text,
+      },
+    };
   }
 
   public async processQuery(userMessage: string) {
