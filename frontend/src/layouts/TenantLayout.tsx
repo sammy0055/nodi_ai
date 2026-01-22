@@ -79,6 +79,7 @@ export const TenantLayout = () => {
       path: `/app/${PageRoutes.APP_DASHBOARD}`,
       label: 'Dashboard',
       icon: <MdDashboard className="text-lg" />,
+      perm: 'dashboard.view',
     },
     {
       path: `/app/${PageRoutes.ORDERS}`,
@@ -86,14 +87,54 @@ export const TenantLayout = () => {
       icon: <FiShoppingCart className="text-lg" />,
       perm: 'order.view',
     },
-    { path: `/app/${PageRoutes.PRODUCTS}`, label: 'Products', icon: <FiPackage className="text-lg" />,  perm: 'product.view', },
-    { path: `/app/${PageRoutes.BRANCHS}`, label: 'Branches', icon: <FiTrendingUp className="text-lg" />,  perm: 'branch.view', },
-    { path: `/app/${PageRoutes.AreasZones}`, label: 'AreaZone', icon: <FiNavigation className="text-lg" />,  perm: 'area.view', },
-    { path: `/app/${PageRoutes.INVENTORY}`, label: 'Branch Inventory', icon: <FiBox className="text-lg" />,  perm: 'inventory.view', },
-    { path: `/app/${PageRoutes.CUSTOMERS}`, label: 'Customers', icon: <FiUsers className="text-lg" />,  perm: 'order.view', },
-    { path: `/app/${PageRoutes.REVIEWS}`, label: 'Reviews', icon: <FiRefreshCw className="text-lg" />,  perm: 'review.view', },
-    { path: `/app/${PageRoutes.BILLING}`, label: 'Billing', icon: <FiDollarSign className="text-lg" />,  perm: 'billing.view', },
-    { path: `/app/${PageRoutes.SETTINGS}`, label: 'Settings', icon: <FiSettings className="text-lg" /> },
+    {
+      path: `/app/${PageRoutes.PRODUCTS}`,
+      label: 'Products',
+      icon: <FiPackage className="text-lg" />,
+      perm: 'product.view',
+    },
+    {
+      path: `/app/${PageRoutes.BRANCHS}`,
+      label: 'Branches',
+      icon: <FiTrendingUp className="text-lg" />,
+      perm: 'branch.view',
+    },
+    {
+      path: `/app/${PageRoutes.AreasZones}`,
+      label: 'AreaZone',
+      icon: <FiNavigation className="text-lg" />,
+      perm: 'area.view',
+    },
+    {
+      path: `/app/${PageRoutes.INVENTORY}`,
+      label: 'Branch Inventory',
+      icon: <FiBox className="text-lg" />,
+      perm: 'inventory.view',
+    },
+    {
+      path: `/app/${PageRoutes.CUSTOMERS}`,
+      label: 'Customers',
+      icon: <FiUsers className="text-lg" />,
+      perm: 'order.view',
+    },
+    {
+      path: `/app/${PageRoutes.REVIEWS}`,
+      label: 'Reviews',
+      icon: <FiRefreshCw className="text-lg" />,
+      perm: 'review.view',
+    },
+    {
+      path: `/app/${PageRoutes.BILLING}`,
+      label: 'Billing',
+      icon: <FiDollarSign className="text-lg" />,
+      perm: 'billing.view',
+    },
+    {
+      path: `/app/${PageRoutes.SETTINGS}`,
+      label: 'Settings',
+      icon: <FiSettings className="text-lg" />,
+      perm: 'settings.view',
+    },
   ];
 
   const { logout } = new UserService();

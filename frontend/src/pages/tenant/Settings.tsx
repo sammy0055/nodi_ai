@@ -427,7 +427,7 @@ const SettingsPage: React.FC = () => {
 
   // page permission protection
   if (!isUserRoleValid('super-admin')) {
-    if (!isUserPermissionsValid(['product.view'])) navigate(-1);
+    if (!isUserPermissionsValid(['settings.view'])) navigate(-1);
   }
 
   const renderGeneralTab = () => (
