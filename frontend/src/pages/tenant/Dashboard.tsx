@@ -17,6 +17,9 @@ import {
 } from 'react-icons/fi';
 import { useLoaderData } from 'react-router';
 import type { IOrganization } from '../../types/organization';
+import { useValidateUserRolesAndPermissions } from '../../hooks/validateUserRoleAndPermissions';
+import { useUserValue } from '../../store/authAtoms';
+import { NotFoundPage } from '../../components/organisms/NotFoundPage';
 
 // Types for dashboard data
 export interface OrderStats {
@@ -59,7 +62,8 @@ const DashboardPage: React.FC = () => {
   });
 
   const [processingTimes, setProcessingTimes] = useState<OrderAverageProcessingTime[]>([]);
-
+  const user = useUserValue();
+  const { isUserPermissionsValid, isUserRoleValid } = useValidateUserRolesAndPermissions(user!);
   const [reviewStats, setReviewStats] = useState<ReviewStats>({
     total: 847,
     averageRating: 4.7,
@@ -130,6 +134,13 @@ const DashboardPage: React.FC = () => {
       return `${secs}s`;
     }
   };
+
+  // page permission protection
+  if (!isUserRoleValid('super-admin')) {
+    if (!isUserPermissionsValid(['dashboard.view'])) {
+      return <NotFoundPage />
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

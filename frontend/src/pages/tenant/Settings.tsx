@@ -30,7 +30,7 @@ import { OrganizationService } from '../../services/organizationService';
 import { useWhatsAppSignup } from '../../hooks/whatsapp';
 import type { BaseRequestAttributes } from '../../types/request';
 import { CurrencyCode } from '../../types/product';
-import { useLoaderData } from 'react-router';
+import { useLoaderData, useNavigate } from 'react-router';
 import { UserService } from '../../services/userService';
 import type { Permission, Role, User } from '../../types/users';
 import type { IOrganization, ServiceSchedule } from '../../types/organization';
@@ -65,7 +65,7 @@ const SettingsPage: React.FC = () => {
 
   // State for Users tab
   const [users, setUsers] = useState<User[]>([]);
-
+  const navigate = useNavigate();
   useEffect(() => {
     if (data) {
       setUsers(data.users);
@@ -367,8 +367,14 @@ const SettingsPage: React.FC = () => {
 
   const handleSetServiceSchedule = async (data: ServiceSchedule[]) => {
     try {
+      if (!isUserRoleValid('super-admin')) {
+        if (!isUserPermissionsValid(['service_schedule.update'])) {
+          alert("you don't have permission to update service schedule");
+          return;
+        }
+      }
       await setOrgServiceSchedule(data);
-      alert("service schedule save successfully")
+      alert('service schedule save successfully');
     } catch (error: any) {
       alert('something went wrong, please try again');
     }
@@ -377,7 +383,12 @@ const SettingsPage: React.FC = () => {
   // Render the appropriate content based on active tab
   const renderTabContent = () => {
     if (activeTab === 'general') {
-      return renderGeneralTab();
+      if (isUserRoleValid('super-admin')) return renderGeneralTab();
+      if (!isUserRoleValid('super-admin')) {
+        if (isUserPermissionsValid(['settings.view'])) {
+          return renderGeneralTab();
+        }
+      }
     } else if (activeTab === 'service_schedule') {
       return renderServiceSchedule();
     } else if (activeTab === 'users') {
@@ -404,6 +415,21 @@ const SettingsPage: React.FC = () => {
     }
   };
 
+  const handleEditGeneralSettings = () => {
+    if (!isUserRoleValid('super-admin')) {
+      if (!isUserPermissionsValid(['settings.update'])) {
+        alert("you don't have permission to update general settings");
+        return;
+      }
+    }
+    setIsEditing(true);
+  };
+
+  // page permission protection
+  if (!isUserRoleValid('super-admin')) {
+    if (!isUserPermissionsValid(['product.view'])) navigate(-1);
+  }
+
   const renderGeneralTab = () => (
     <>
       {/* Header */}
@@ -421,7 +447,7 @@ const SettingsPage: React.FC = () => {
             </Button>
           </div>
         ) : (
-          <Button variant="outline" onClick={() => setIsEditing(true)}>
+          <Button variant="outline" onClick={handleEditGeneralSettings}>
             <FiEdit className="mr-2" />
             Edit Settings
           </Button>
@@ -1038,30 +1064,35 @@ const SettingsPage: React.FC = () => {
       {/* Navigation Tabs */}
       <div className="bg-white rounded-lg shadow-medium">
         <nav className="flex flex-wrap border-b border-neutral-200">
-          <button
-            onClick={() => setActiveTab('general')}
-            className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
-              activeTab === 'general'
-                ? 'text-primary-600 border-b-2 border-primary-600 font-semibold'
-                : 'text-neutral-600 hover:text-neutral-900'
-            }`}
-          >
-            <FiShoppingBag className="mr-2" />
-            General
-          </button>
+          {(isUserRoleValid('super-admin') || isUserPermissionsValid(['settings.view'])) && (
+            <button
+              onClick={() => setActiveTab('general')}
+              className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
+                activeTab === 'general'
+                  ? 'text-primary-600 border-b-2 border-primary-600 font-semibold'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              <FiShoppingBag className="mr-2" />
+              General
+            </button>
+          )}
 
-          <button
-            onClick={() => setActiveTab('service_schedule')}
-            className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
-              activeTab === 'service_schedule'
-                ? 'text-primary-600 border-b-2 border-primary-600 font-semibold'
-                : 'text-neutral-600 hover:text-neutral-900'
-            }`}
-          >
-            <FiShoppingBag className="mr-2" />
-            service schedule
-          </button>
-          {isUserPermissionsValid(['user.view']) && (
+          {(isUserRoleValid('super-admin') || isUserPermissionsValid(['service_schedule.view'])) && (
+            <button
+              onClick={() => setActiveTab('service_schedule')}
+              className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
+                activeTab === 'service_schedule'
+                  ? 'text-primary-600 border-b-2 border-primary-600 font-semibold'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              <FiShoppingBag className="mr-2" />
+              service schedule
+            </button>
+          )}
+
+          {(isUserRoleValid('super-admin') || isUserPermissionsValid(['user.view'])) && (
             <button
               onClick={() => setActiveTab('users')}
               className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
@@ -1074,20 +1105,8 @@ const SettingsPage: React.FC = () => {
               Users
             </button>
           )}
-          {isUserRoleValid('super-admin') && (
-            <button
-              onClick={() => setActiveTab('users')}
-              className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
-                activeTab === 'users'
-                  ? 'text-primary-600 border-b-2 border-primary-600 font-semibold'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
-            >
-              <FiUsers className="mr-2" />
-              Users
-            </button>
-          )}
-          {isUserPermissionsValid(['permission.view']) && (
+
+          {(isUserRoleValid('super-admin') || isUserPermissionsValid(['permission.view'])) && (
             <button
               onClick={() => setActiveTab('roles')}
               className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
@@ -1100,33 +1119,8 @@ const SettingsPage: React.FC = () => {
               Roles & Permissions
             </button>
           )}
-          {isUserRoleValid('super-admin') && (
-            <button
-              onClick={() => setActiveTab('roles')}
-              className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
-                activeTab === 'roles'
-                  ? 'text-primary-600 border-b-2 border-primary-600 font-semibold'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
-            >
-              <FiKey className="mr-2" />
-              Roles & Permissions
-            </button>
-          )}
-          {isUserPermissionsValid(['faq.view']) && (
-            <button
-              onClick={() => setActiveTab('fqa')}
-              className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
-                activeTab === 'fqa'
-                  ? 'text-primary-600 border-b-2 border-primary-600 font-semibold'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
-            >
-              <FiKey className="mr-2" />
-              FQA
-            </button>
-          )}
-          {isUserRoleValid('super-admin') && (
+
+          {(isUserRoleValid('super-admin') || isUserPermissionsValid(['faq.view'])) && (
             <button
               onClick={() => setActiveTab('fqa')}
               className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${

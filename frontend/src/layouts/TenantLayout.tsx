@@ -154,7 +154,7 @@ export const TenantLayout = () => {
               {navigationItems.map((item) => {
                 const isActive = location.pathname === item.path;
                 if (!isUserRoleValid('super-admin')) {
-                  if (!isUserPermissionsValid([item!.perm] as any) && item.label !== 'Settings') return <></>;
+                  if (!isUserPermissionsValid([item!.perm] as any)) return <></>;
                 }
 
                 return (
