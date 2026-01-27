@@ -512,7 +512,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="w-full mx-auto">
         {/* Tabs as Cards - Full Width */}
         <div className="w-full flex items-center bg-white px-4 py-2 shadow-md">
           {/* Back button */}
