@@ -34,6 +34,7 @@ export const OrderStatusTypes = {
   SHIPPED: 'shipped',
   DELIVERED: 'delivered',
   CANCELLED: 'cancelled',
+  SCHEDULED: 'scheduled',
 } as const;
 
 // Order source object
@@ -195,6 +196,14 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
       textColor: 'text-red-700',
       count: 3,
     },
+      {
+      id: OrderStatusTypes.SCHEDULED,
+      label: 'Scheduled',
+      icon: FiXCircle,
+      color: 'border-red-200 bg-red-50',
+      textColor: 'text-red-700',
+      count: 3,
+    },
   ];
 
   useEffect(() => {
@@ -221,6 +230,9 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
 
       if (selectedTab !== 'new') {
         filters.status = selectedTab;
+      }
+      if(selectedTab === "scheduled"){
+        return
       }
       if (selectedTab === 'new') filters.status = OrderStatusTypes.PENDING;
       const response = await getOrders(filters);
@@ -362,7 +374,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
       });
 
       setCurrentUser(
-        (prev) => ({ ...prev, activeOrderCount: (prev?.activeOrderCount || 0) + 1, lastActive: new Date() } as any)
+        (prev) => ({ ...prev, activeOrderCount: (prev?.activeOrderCount || 0) + 1, lastActive: new Date() }) as any
       );
     } catch (error) {
       console.error('Error assigning order:', error);
@@ -406,7 +418,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
         lastActive: new Date(),
       });
 
-      setCurrentUser((u) => ({ ...u, activeOrderCount: Math.max(0, (u?.activeOrderCount || 1) - 1) } as any));
+      setCurrentUser((u) => ({ ...u, activeOrderCount: Math.max(0, (u?.activeOrderCount || 1) - 1) }) as any);
     } catch (error) {
       console.error('Error unassigning order:', error);
       alert('Failed to unassign order. Please try again.');

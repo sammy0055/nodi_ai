@@ -48,6 +48,7 @@ export const OrderStatusTypes = {
   PROCESSING: 'processing',
   DELIVERED: 'delivered',
   CANCELLED: 'cancelled',
+  SCHEDULED: 'scheduled',
 } as const;
 
 // Order source object
@@ -382,7 +383,7 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'all'>('all');
   const [selectedPriority, setSelectedPriority] = useState<OrderPriority | 'all'>('all');
   const [selectedTab, setSelectedTab] = useState<
-    'all' | 'assigned' | 'processing' | 'delivered' | 'cancelled' | 'refunded' | 'pending'
+    'all' | 'assigned' | 'processing' | 'delivered' | 'cancelled' | 'refunded' | 'pending' | "scheduled"
   >('all');
 
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
@@ -1006,6 +1007,21 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
               >
                 <FiXCircle className="mr-2" />
                 Cancelled
+                <span className="ml-2 bg-red-100 text-red-800 rounded-full px-2 py-0.5 text-xs">
+                  {orders.filter((o) => o.status === OrderStatusTypes.CANCELLED).length}
+                </span>
+              </button>
+
+                  <button
+                onClick={() => setSelectedTab('scheduled')}
+                className={`px-6 py-4 font-medium text-sm whitespace-nowrap flex items-center border-b-2 transition-all ${
+                  selectedTab === 'scheduled'
+                    ? 'border-red-600 text-red-600 bg-red-50'
+                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                <FiXCircle className="mr-2" />
+                Scheduled
                 <span className="ml-2 bg-red-100 text-red-800 rounded-full px-2 py-0.5 text-xs">
                   {orders.filter((o) => o.status === OrderStatusTypes.CANCELLED).length}
                 </span>
