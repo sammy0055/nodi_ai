@@ -31,7 +31,7 @@ class CustomerService {
       where,
       offset,
       limit,
-      distinct: true, // ✅ important
+      // distinct: true, // ✅ important
       order: searchQuery
         ? [
             [
@@ -55,9 +55,9 @@ class CustomerService {
     });
 
     const totalPages = Math.ceil(totalItems / limit);
-console.log('====================================');
-console.log(customers);
-console.log('====================================');
+    console.log('====================================');
+    console.log(customers, { where, offset, limit });
+    console.log('====================================');
     return {
       data: customers,
       pagination: {
