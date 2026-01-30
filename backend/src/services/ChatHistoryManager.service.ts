@@ -194,9 +194,6 @@ export class ChatHistoryManager {
       token?: number;
     }
   ): Promise<ChatMessage> {
-    console.log('🏃🏼====================================');
-    console.log("running chatmessage");
-    console.log('====================================');
     // Get current max message index
     const maxIndex =
       ((await ChatMessage.max('message_index', {
@@ -212,9 +209,7 @@ export class ChatHistoryManager {
       token: message.token || 0,
       message_index: messageIndex,
     });
-console.log('==================chatMessage==================');
-console.log(chatMessage);
-console.log('====================================');
+
     // creditcheck
     await calculateAndSubtractCredits(
       { aiTokensUsed: message.token || 0 },

@@ -154,6 +154,9 @@ export class ChatService extends MCPChatBot {
   public async processQuery(userMessage: string) {
     const planOrg = await this.getOrganization();
     const customer = await this.getCustomerData();
+    console.log('🏃🏼🤔====================================');
+    console.log(planOrg, customer);
+    console.log('====================================');
     let systemPrompt: string;
     if (customer.status !== 'active') {
       return await this.processValidationQuery({
