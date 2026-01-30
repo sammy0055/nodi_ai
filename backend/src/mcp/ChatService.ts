@@ -93,7 +93,9 @@ export class ChatService extends MCPChatBot {
   }
 
   private async getCustomerData() {
-    const customer = await CustomerModel.findOne({ where: { phone: this.userPhoneNumber } });
+    const customer = await CustomerModel.findOne({
+      where: { phone: this.userPhoneNumber, organizationId: this.organizationId },
+    });
     if (!customer) {
       const data = await CustomerModel.create({
         name: '',
