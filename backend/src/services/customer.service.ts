@@ -55,7 +55,9 @@ class CustomerService {
     });
 
     const totalPages = Math.ceil(totalItems / limit);
-
+console.log('====================================');
+console.log(customers);
+console.log('====================================');
     return {
       data: customers,
       pagination: {

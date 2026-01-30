@@ -194,6 +194,9 @@ import { CustomerService } from '../../services/customerService';
 
 const CustomersPage: React.FC = () => {
   const data = useLoaderData() as { customers: { data: { data: Customer[]; pagination: Pagination } } };
+  console.log('====================================');
+  console.log(data);
+  console.log('====================================');
   const customers = useCustomerValue();
   const setCustomers = useCustomersSetRecoilState();
   const [pagination, setPagination] = useState<Pagination>();
