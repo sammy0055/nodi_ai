@@ -43,6 +43,7 @@ export const syncMetaCatalogToDB = async ({
           metaProductId: item.retailer_id,
           organizationId,
           description: item.description || '',
+          imageUrl: item.imageUrl || '',
         });
       } else {
         // Update only safe fields

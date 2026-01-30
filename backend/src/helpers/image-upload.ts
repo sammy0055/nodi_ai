@@ -84,7 +84,17 @@ export class ImageUploadHelper {
   //   return data;
   // };
 
+  isValidImageUrlFromMyDomain(url: string) {
+    try {
+      const parsed = new URL(url);
+      return parsed.origin === appConfig.backendUrl
+    } catch {
+      return false;
+    }
+  }
+
   async deleteS3ImageFile(key: string) {
+    if (!this.isValidImageUrlFromMyDomain(key)) return;
     const command = new DeleteObjectCommand({
       Bucket: this.bucketName,
       Key: key,

@@ -305,9 +305,10 @@ const catalogMag = async (product: Partial<any>) => {
 
 const listCatalogItems = async () => {
   try {
-    const params = 'fields=id,retailer_id,name,price,availability,description,image_link&limit=100';
+    const params = 'fields=id,retailer_id,name,price,availability,description,images&limit=100';
     let url = `https://graph.facebook.com/v23.0/${'1386344629753105'}/products?${params}`;
     const data = await getWhatsappCatalog(url);
+    
     console.log('====================================');
     console.log(data);
     console.log('====================================');
@@ -362,10 +363,10 @@ const mockServiceScheduleData = [
   }
 ];
 
-const slots = checkBusinessServiceSchedule(mockServiceScheduleData)
-console.log('====================================');
-console.log(slots);
-console.log('====================================');
+// const slots = checkBusinessServiceSchedule(mockServiceScheduleData)
+// console.log('====================================');
+// console.log(slots);
+// console.log('====================================');
 // summarize();
 // testMcp('hello');
 // run();
@@ -373,7 +374,7 @@ console.log('====================================');
 // sendMessage()
 // createCatalogItem();
 // queueProducer({ data: { hel: { d: '', dfsaf: ['dwee'] } } });
-// listCatalogItems();
+listCatalogItems();
 // getVoiceNote('1500555364366195');
 
 

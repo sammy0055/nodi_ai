@@ -25,6 +25,7 @@ export interface MetaCatalogProduct {
   retailer_id: string;
   price: string;
   description: string;
+  imageUrl: string;
 }
 
 export interface MetaPagingCursors {
@@ -181,5 +182,13 @@ export const getWhatsappCatalog = async (url: string): Promise<MetaCatalogProduc
     throw new Error(`Error ${response.status}: ${errorData.error.message}`);
   }
 
-  return await response.json();
+  const data = await response.json();
+  const image = JSON.parse(data.data[0].images[0]);
+  return {
+    ...data,
+    data: {
+      ...data.data,
+      imageUrl: image.url,
+    },
+  };
 };
