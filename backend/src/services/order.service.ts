@@ -1,5 +1,6 @@
 import { UserTypes } from '../data/data-types';
 import { getUserRoleAndPermission } from '../helpers/get_user_role_and_perm';
+import { scheduleReview } from '../helpers/rabbitmq/reviewQueue';
 import { AreaModel } from '../models/area.model';
 import { BranchesModel } from '../models/branches.model';
 import { CustomerModel } from '../models/customer.model';
@@ -153,6 +154,7 @@ export class OrderService {
   ) {
     if (!user.organizationId) throw new Error('no organization exist for this order');
     await OrderModel.update({ status: status }, { where: { id: orderId, organizationId: user.organizationId } });
+    if (status === 'delivered') await scheduleReview({ orderId: orderId });
   }
 
   static async updateOrder(order: IOrder, user: Pick<User, 'id' | 'organizationId'>) {

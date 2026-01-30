@@ -5,8 +5,6 @@ import { ManageVectorStore } from '../../../helpers/vector-store';
 import { models } from '../../../models';
 import { CurrencyCode } from '../../../types/product';
 import { OrderStatusTypes } from '../../../types/order';
-import { ChatHistoryManager } from '../../../services/ChatHistoryManager.service';
-import { scheduleReview } from '../../../helpers/rabbitmq/reviewQueue';
 
 const { BranchesModel, OrderModel, BranchInventoryModel } = models;
 // Create order with inventory check
@@ -86,7 +84,6 @@ export const createOrder = (server: McpServer) => {
         }
         const order = await OrderModel.create(params as any);
         if (order) {
-          await scheduleReview({ orderId: order.id });
           for (const product of products) {
             await BranchInventoryModel.decrement('quantityOnHand', {
               by: product.qty,
