@@ -1,3 +1,4 @@
+import { Op } from 'sequelize';
 import { ProductOptionModel } from '../models/product-option.model';
 import { ProductOption } from '../types/product-option';
 import { User } from '../types/users';
@@ -52,15 +53,18 @@ export class ProductOptionService {
   }
 
   static async getMany(filters?: {
-    productId?: string;
+    productIds?: string[];
     isRequired?: boolean;
     type?: ProductOption['type'];
   }): Promise<ProductOptionModel[]> {
     const where: any = {};
 
-    if (filters?.productId) {
-      where.productId = filters.productId;
+    if (filters?.productIds?.length) {
+      where.productId = {
+        [Op.in]: filters.productIds,
+      };
     }
+
     if (filters?.isRequired !== undefined) {
       where.isRequired = filters.isRequired;
     }
