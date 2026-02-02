@@ -284,6 +284,7 @@ const ProductsPage: React.FC = () => {
     updateProductChoice,
     getProducts,
     syncMetaCatalogToDB,
+    getProductOptions,
   } = new ProductService();
 
   // Pagination
@@ -308,11 +309,20 @@ const ProductsPage: React.FC = () => {
     }
   }, []);
 
+  const getProductOption = async (products: Product[]) => {
+    try {
+      const productIds = products.map((p) => p.id);
+      const data = await getProductOptions(productIds);
+      setProductOptions(data.data as any);
+    } catch (error) {
+      alert('something went wrong');
+    }
+  };
   // load initial products
   useEffect(() => {
     if (data) {
       setProducts(data.products.data);
-      setProductOptions(data.productOptions);
+      getProductOption(data.products.data);
       setPagination(data.products.pagination);
     }
   }, [data]);
@@ -432,6 +442,7 @@ const ProductsPage: React.FC = () => {
   const handlePagination = async (currentPage: number) => {
     try {
       const { data } = await getProducts(currentPage);
+      await getProductOption([...products, ...data.data]);
       setProducts((prev) => [...prev, ...data.data]);
       setPagination(data.pagination);
     } catch (error: any) {

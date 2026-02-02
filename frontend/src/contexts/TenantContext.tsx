@@ -78,13 +78,12 @@ export const branchContextLoader = async () => {
 };
 
 export const productContextLoader = async () => {
-  const { getProducts, getProductOptions } = new ProductService();
-  const [productsResult, pOptionResults] = await Promise.allSettled([getProducts(), getProductOptions()]);
+  const { getProducts } = new ProductService();
+  const [productsResult] = await Promise.allSettled([getProducts()]);
 
   const products = productsResult.status === 'fulfilled' ? productsResult.value : null;
-  const productOptons = pOptionResults.status === 'fulfilled' ? pOptionResults.value : null;
 
-  return { products: products?.data, productOptions: productOptons?.data };
+  return { products: products?.data };
 };
 
 export const inventoryContextLoader = async () => {

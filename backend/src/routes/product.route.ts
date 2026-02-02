@@ -98,7 +98,7 @@ productRoute.get('/products/:id', authMiddleware, async (req, res) => {
 productRoute.get('/products', authMiddleware, async (req, res) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 5;
+    const limit = parseInt(req.query.limit as string) || 10;
     const searchQuery = req.query.searchQuery || '';
 
     // calculate offset

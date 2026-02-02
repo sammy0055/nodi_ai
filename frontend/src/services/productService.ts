@@ -96,8 +96,8 @@ export class ProductService {
     });
   }
 
-  async getProductOptions(): Promise<{ data: { data: Product[] }; message: string }> {
-    return await ApiClient('GET_PRODUCT_OPTIONS');
+  async getProductOptions(productIds: string[]): Promise<{ data: { data: Product[] }; message: string }> {
+    return await ApiClient('GET_PRODUCT_OPTIONS', { method: 'POST', body: { productIds: productIds || [] } });
   }
 
   async addProductOption(data: ProductOption): Promise<{ data: ProductOption; message: string }> {
