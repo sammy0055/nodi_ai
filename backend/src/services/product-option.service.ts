@@ -58,21 +58,18 @@ export class ProductOptionService {
     type?: ProductOption['type'];
   }): Promise<ProductOptionModel[]> {
     const where: any = {};
-    console.log('===============filters?.productIds=====================');
-    console.log(filters?.productIds);
-    console.log('====================================');
     if (filters?.productIds?.length) {
       where.productId = {
         [Op.in]: filters.productIds,
       };
     }
 
-    // if (filters?.isRequired !== undefined) {
-    //   where.isRequired = filters.isRequired;
-    // }
-    // if (filters?.type) {
-    //   where.type = filters.type;
-    // }
+    if (filters?.isRequired !== undefined) {
+      where.isRequired = filters.isRequired;
+    }
+    if (filters?.type) {
+      where.type = filters.type;
+    }
 
     return await ProductOptionModel.findAll({
       where,
