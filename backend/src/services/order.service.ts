@@ -364,16 +364,32 @@ export class OrderService {
 
   static async getOrderStatsPerAsignedUser(assignedUserId: string, user: Pick<User, 'organizationId'>) {
     const whereCondition = assignedUserId ? { assignedUserId } : { assignedUserId: { [Op.ne]: null } }; // NOT NULL
-    const [statusCounts, assignedCount] = await Promise.all([
+
+    const ALL_STATUSES = Object.values(OrderStatusTypes); // adjust to your real statuses
+
+    const [rawStatusCounts, assignedCount] = await Promise.all([
       OrderModel.findAll({
         attributes: ['status', [fn('COUNT', col('id')), 'count']],
         group: ['status'],
         where: { organizationId: user.organizationId! },
+        raw: true,
       }),
       OrderModel.count({
         where: { ...whereCondition, organizationId: user.organizationId! },
       }),
     ]);
+
+    // Turn DB result into a map → { delivered: 3, pending: 1 }
+    const countMap: Record<string, number> = {};
+    for (const row of rawStatusCounts as any[]) {
+      countMap[row.status] = Number(row.count);
+    }
+
+    // Ensure every status appears
+    const statusCounts = ALL_STATUSES.map((status) => ({
+      status,
+      count: countMap[status] || 0,
+    }));
 
     return {
       statusCounts,
