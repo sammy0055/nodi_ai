@@ -361,4 +361,23 @@ export class OrderService {
     }));
     return result;
   }
+
+  static async getOrderStatsPerAsignedUser(assignedUserId: string, user: Pick<User, 'organizationId'>) {
+    const whereCondition = assignedUserId ? { assignedUserId } : { assignedUserId: { [Op.ne]: null } }; // NOT NULL
+    const [statusCounts, assignedCount] = await Promise.all([
+      OrderModel.findAll({
+        attributes: ['status', [fn('COUNT', col('id')), 'count']],
+        group: ['status'],
+        where: { organizationId: user.organizationId! },
+      }),
+      OrderModel.count({
+        where: { ...whereCondition, organizationId: user.organizationId! },
+      }),
+    ]);
+
+    return {
+      statusCounts,
+      assignedToUser: assignedCount,
+    };
+  }
 }
