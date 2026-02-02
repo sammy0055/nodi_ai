@@ -367,7 +367,7 @@ export class OrderService {
 
     const ALL_STATUSES = Object.values(OrderStatusTypes); // adjust to your real statuses
 
-    const [rawStatusCounts, assignedCount] = await Promise.all([
+    const [rawStatusCounts, assignedCount, allOrdersCount] = await Promise.all([
       OrderModel.findAll({
         attributes: ['status', [fn('COUNT', col('id')), 'count']],
         group: ['status'],
@@ -376,6 +376,9 @@ export class OrderService {
       }),
       OrderModel.count({
         where: { ...whereCondition, organizationId: user.organizationId! },
+      }),
+      OrderModel.count({
+        where: { organizationId: user.organizationId! },
       }),
     ]);
 
@@ -394,6 +397,7 @@ export class OrderService {
     return {
       statusCounts,
       assignedToUser: assignedCount,
+      allOrders: allOrdersCount,
     };
   }
 }
