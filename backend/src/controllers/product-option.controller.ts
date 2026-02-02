@@ -15,7 +15,7 @@ export class ProductOptionController {
   static async getOne(id: string) {
     return await ProductOptionService.getOne(id);
   }
-  static async getMany() {
-    return await ProductOptionService.getMany();
+  static async getMany(filters: { productIds?: string[]; isRequired?: boolean; type?: ProductOption['type'] }) {
+    return await ProductOptionService.getMany(filters);
   }
 }

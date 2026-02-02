@@ -63,7 +63,8 @@ productOptionRoute.delete('/delete/:id', authMiddleware, async (req, res) => {
 
 productOptionRoute.get('/get-many', authMiddleware, async (req, res) => {
   try {
-    const data = await ProductOptionController.getMany();
+    const productIds = req.query.productIds as string[];
+    const data = await ProductOptionController.getMany({ productIds: productIds });
     const response: APIResponseFormat<any> = {
       message: 'product option retrieved successfully',
       data,
