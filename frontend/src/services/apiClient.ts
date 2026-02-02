@@ -103,6 +103,7 @@ export const API_ROUTES = {
   GET_REVIEWS_STATS: `${API_BASE_URL}/organization/review/get-review-stats`,
   GET_ORDER_STATS: `${API_BASE_URL}/organization/order/orders-stats`,
   GET_ORDER_AVG_PROCESSING_STATS: `${API_BASE_URL}/organization/order/get-average-processing-time`,
+  GET_ORDER_STATS_PER_USER: `${API_BASE_URL}/organization/order/order-stats-per-assigned-user`,
 } as const;
 
 export type ApiRouteName = keyof typeof API_ROUTES;

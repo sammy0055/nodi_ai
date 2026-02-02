@@ -79,11 +79,6 @@ const router = createBrowserRouter([
     element: <PrivacyPolicy />,
   },
   {
-    path: '/staff_orders',
-    element: <OrdersPage />,
-    loader: ordersContextLoader,
-  },
-  {
     path: '/app/*',
     element: <TenantLayout />,
     loader: tenantContextLoader,

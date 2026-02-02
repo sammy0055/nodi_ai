@@ -38,6 +38,7 @@ import { UserService } from '../../services/userService';
 import useProcessingTime, { getOrderProcessingTime } from '../../hooks/orderProcessingTimer';
 import { StaffOrderPage } from '../../components/organisms/Organization';
 import { useValidateUserRolesAndPermissions } from '../../hooks/validateUserRoleAndPermissions';
+import { useGetOrdersOnInterval } from '../../hooks/orders';
 
 // Extended User interface with additional fields for order management
 
@@ -373,6 +374,15 @@ export interface OrderPageProps {
   currentUser: User;
 }
 
+export interface OrderStats {
+  statusCounts: {
+    status: string;
+    count: number;
+  }[];
+  assignedToUser: number;
+  allOrders: number;
+}
+
 const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
   const orders = useOrdersValue();
   const currentUser = useUserValue();
@@ -383,7 +393,7 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'all'>('all');
   const [selectedPriority, setSelectedPriority] = useState<OrderPriority | 'all'>('all');
   const [selectedTab, setSelectedTab] = useState<
-    'all' | 'assigned' | 'processing' | 'delivered' | 'cancelled' | 'refunded' | 'pending' | "scheduled"
+    'all' | 'assigned' | 'processing' | 'delivered' | 'cancelled' | 'pending' | 'scheduled'
   >('all');
 
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
@@ -392,25 +402,31 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   const [orderToAssign, setOrderToAssign] = useState<IOrder | null>(null);
   const [assignToUserId, setAssignToUserId] = useState<string>('');
+  const [orderStats, setOrderStats] = useState<OrderStats>();
   // const [showFilters, setShowFilters] = useState(false);
 
   const selectedOrderProcessingTime = useProcessingTime(selectedOrder!);
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
   const { updateOrderStatus } = useMemo(() => new OrderService(), []);
   const { updateUser } = useMemo(() => new UserService(), []);
-
+  const { getOrderStatsPerAsignedUser } = new OrderService();
   // Mock users data with enhanced fields
   const [users, setUsers] = useState<User[]>([]);
+  const getData = async () => {
+    const stats = await getOrderStatsPerAsignedUser();
+    setOrderStats(stats.data);
+  };
 
   useEffect(() => {
-    if (data) {
+    if (Object.keys(data).length !== 0) {
       setOrders(data.orders.data);
       setPagination(data.orders.pagination);
       setUsers(data.users);
       setCurrentUser(data.currentUser);
+      getData();
     }
   }, [data]);
-
+  useGetOrdersOnInterval(data, selectedTab, { setPagination });
   useEffect(() => {
     const Fn = async () => {
       const data = await getOrders({ page: 1, searchTerm });
@@ -934,7 +950,9 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
               >
                 <FiBox className="mr-2" />
                 All Orders
-                <span className="ml-2 bg-gray-100 text-gray-600 rounded-full px-2 py-0.5 text-xs">{orders.length}</span>
+                <span className="ml-2 bg-gray-100 text-gray-600 rounded-full px-2 py-0.5 text-xs">
+                  {orderStats?.allOrders || 0}
+                </span>
               </button>
 
               <button
@@ -948,7 +966,7 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
                 <FiClock className="mr-2" />
                 Pending
                 <span className="ml-2 bg-yellow-100 text-yellow-800 rounded-full px-2 py-0.5 text-xs">
-                  {orders?.filter((o) => o.status === OrderStatusTypes.PENDING).length}
+                  {orderStats?.statusCounts.find((stats) => stats.status === OrderStatusTypes.PENDING)?.count || 0}
                 </span>
               </button>
 
@@ -963,7 +981,7 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
                 <FiUserCheck className="mr-2" />
                 Assigned
                 <span className="ml-2 bg-blue-100 text-blue-800 rounded-full px-2 py-0.5 text-xs">
-                  {orders.filter((o) => o.assignedUserId).length}
+                  {orderStats?.assignedToUser || 0}
                 </span>
               </button>
 
@@ -978,7 +996,7 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
                 <FiRefreshCw className="mr-2" />
                 Processing
                 <span className="ml-2 bg-purple-100 text-purple-800 rounded-full px-2 py-0.5 text-xs">
-                  {orders.filter((o) => o.status === OrderStatusTypes.PROCESSING).length}
+                  {orderStats?.statusCounts.find((stats) => stats.status === OrderStatusTypes.PROCESSING)?.count || 0}
                 </span>
               </button>
 
@@ -993,7 +1011,7 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
                 <FiCheckCircle className="mr-2" />
                 Delivered
                 <span className="ml-2 bg-green-100 text-green-800 rounded-full px-2 py-0.5 text-xs">
-                  {orders.filter((o) => o.status === OrderStatusTypes.DELIVERED).length}
+                  {orderStats?.statusCounts.find((stats) => stats.status === OrderStatusTypes.DELIVERED)?.count || 0}
                 </span>
               </button>
 
@@ -1008,11 +1026,11 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
                 <FiXCircle className="mr-2" />
                 Cancelled
                 <span className="ml-2 bg-red-100 text-red-800 rounded-full px-2 py-0.5 text-xs">
-                  {orders.filter((o) => o.status === OrderStatusTypes.CANCELLED).length}
+                  {orderStats?.statusCounts.find((stats) => stats.status === OrderStatusTypes.CANCELLED)?.count || 0}
                 </span>
               </button>
 
-                  <button
+              <button
                 onClick={() => setSelectedTab('scheduled')}
                 className={`px-6 py-4 font-medium text-sm whitespace-nowrap flex items-center border-b-2 transition-all ${
                   selectedTab === 'scheduled'
@@ -1022,9 +1040,7 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
               >
                 <FiXCircle className="mr-2" />
                 Scheduled
-                <span className="ml-2 bg-red-100 text-red-800 rounded-full px-2 py-0.5 text-xs">
-                  {orders.filter((o) => o.status === OrderStatusTypes.CANCELLED).length}
-                </span>
+                <span className="ml-2 bg-red-100 text-red-800 rounded-full px-2 py-0.5 text-xs">0</span>
               </button>
             </div>
           </div>
@@ -1576,30 +1592,25 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
   );
 };
 
-// Helper component for grid icon
-// const FiGrid: React.FC<{ size?: number }> = ({ size = 16 }) => (
-//   <svg width={size} height={size} viewBox="0 0 16 16" fill="currentColor">
-//     <path d="M1 1h5v5H1V1zm0 7h5v5H1V8zm7-7h5v5H8V1zm0 7h5v5H8V8z" fillRule="evenodd" clipRule="evenodd" />
-//   </svg>
-// );
-
 const OrdersPage = () => {
-  const data = useLoaderData() as {
+  const response = useLoaderData() as {
     orders: { data: IOrder[]; pagination: Pagination };
     users: User[];
     currentUser: User;
   };
-  const { getUserRole } = useValidateUserRolesAndPermissions(data.currentUser);
+
+  const { getUserRole } = useValidateUserRolesAndPermissions(response.currentUser);
   const userRole = getUserRole();
 
-  if (userRole === 'staff')
+  if (userRole === 'staff') {
     return (
       <div className="fixed inset-0 w-screen h-screen z-50 bg-white">
-        <StaffOrderPage {...data} />
+        <StaffOrderPage {...response} />
       </div>
     );
+  }
 
-  return <AdminOrdersPage {...data} />;
+  return <AdminOrdersPage {...response} />;
 };
 
 export default OrdersPage;

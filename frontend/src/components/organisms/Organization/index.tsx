@@ -13,19 +13,19 @@ import {
   FiXCircle,
   FiRefreshCw,
   FiArrowLeft,
-  FiChevronDown,
   FiShoppingCart,
   FiBox,
   FiUserCheck,
 } from 'react-icons/fi';
 import Button from '../../atoms/Button/Button';
-import type { OrderPageProps } from '../../../pages/tenant/OrderPage';
+import type { OrderPageProps, OrderStats } from '../../../pages/tenant/OrderPage';
 import { useOrdersSetRecoilState, useOrdersValue, useUserSetRecoilState, useUserValue } from '../../../store/authAtoms';
 import useProcessingTime, { getOrderProcessingTime } from '../../../hooks/orderProcessingTimer';
 import { OrderService } from '../../../services/orderService';
 import { UserService } from '../../../services/userService';
 import type { Pagination } from '../../../types/customer';
 import { useValidateUserRolesAndPermissions } from '../../../hooks/validateUserRoleAndPermissions';
+import { useGetOrdersOnInterval } from '../../../hooks/orders';
 
 // Order status object
 export const OrderStatusTypes = {
@@ -151,13 +151,19 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
   const [selectedSource, setSelectedSource] = useState<string>('all');
   const [_, setAssignToUserId] = useState<string>('');
+  const [orderStats, setOrderStats] = useState<OrderStats>();
   const { isUserPermissionsValid } = useValidateUserRolesAndPermissions(currentUser!);
   const processingTime = useProcessingTime(selectedOrder!);
-  const { updateOrder, updateOrderStatus, getOrders } = new OrderService();
+  const { updateOrder, updateOrderStatus, getOrders, getOrderStatsPerAsignedUser } = new OrderService();
+
+  const getData = async (data: any) => {
+    const stats = await getOrderStatsPerAsignedUser(data.currentUser.id);
+    setOrderStats(stats.data);
+  };
   // Tabs configuration
   const tabs = [
     {
-      id: 'new',
+      id: OrderStatusTypes.PENDING,
       label: 'New Orders',
       icon: FiPlus,
       color: 'border-blue-200 bg-blue-50',
@@ -196,7 +202,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
       textColor: 'text-red-700',
       count: 3,
     },
-      {
+    {
       id: OrderStatusTypes.SCHEDULED,
       label: 'Scheduled',
       icon: FiXCircle,
@@ -207,14 +213,17 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
   ];
 
   useEffect(() => {
-    if (data) {
+    if (Object.keys(data).length !== 0) {
       setOrders(data.orders.data);
       setCurrentUser(data.currentUser);
       setSelectedOrder(data.orders.data[0] || null);
       setLoading(false);
       setPagination(data.orders.pagination);
+      getData(data)
     }
   }, [data]);
+
+  useGetOrdersOnInterval(data, activeTab, { setPagination });
 
   useEffect(() => {
     handlePagination(pagination?.currentPage || 1);
@@ -228,13 +237,13 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
 
       const selectedTab = tabs.find((t) => t.id === activeTab)!.id;
 
-      if (selectedTab !== 'new') {
+      if (selectedTab !== 'pending') {
         filters.status = selectedTab;
       }
-      if(selectedTab === "scheduled"){
-        return
+      if (selectedTab === 'scheduled') {
+        return;
       }
-      if (selectedTab === 'new') filters.status = OrderStatusTypes.PENDING;
+      if (selectedTab === 'pending') filters.status = OrderStatusTypes.PENDING;
       const response = await getOrders(filters);
 
       const newData = response.data.data;
@@ -259,6 +268,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
   };
 
   const formatTime = useCallback((seconds: number) => {
+    if (!seconds) return 0;
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
@@ -322,6 +332,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
         prevOrders.map((order) => (order.id === orderId ? { ...order, status: newStatus } : order))
       );
       setSelectedOrder({ ...selectedOrder, status: newStatus } as any);
+      alert('order status updated successfully');
     } catch (error) {
       console.error('Error updating order status:', error);
       alert('Failed to update order status. Please try again.');
@@ -520,7 +531,13 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
     </button>
   );
 
-  if (!isUserPermissionsValid(['order.view'])) window.history.back();
+  useEffect(() => {
+    if (!currentUser) return; // wait till user is loaded
+
+    if (!isUserPermissionsValid(['order.view'])) {
+      window.history.back(); // or navigate('/app')
+    }
+  }, [currentUser]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -557,7 +574,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
                 >
                   <Icon className={isActive ? tab.textColor : 'text-gray-500'} size={20} />
                   <span className={`text-sm font-medium ${isActive ? tab.textColor : 'text-gray-700'}`}>
-                    {tab.label}
+                    {tab.label} {orderStats?.statusCounts.find(stats => stats.status === tab.id)?.count || 0}
                   </span>
                 </button>
               );
@@ -573,7 +590,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
               <div className="bg-white p-4 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-medium text-gray-900">Orders ({pagination?.totalPages})</h3>
+                    <h3 className="font-medium text-gray-900">Orders ({pagination?.totalItems})</h3>
                     <p className="text-sm text-gray-500 mt-1">Select an order to view details</p>
                   </div>
                   <div className="text-sm text-gray-600">
@@ -608,61 +625,63 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
                     )}
                   </div>
                 ) : (
-                  orders?.map((order) => (
-                    <div
-                      key={order.id}
-                      onClick={() => handleSelectOrder(order)}
-                      className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-all duration-200 ${
-                        selectedOrder?.id === order.id ? 'bg-blue-50' : ''
-                      }`}
-                    >
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          {/* <h3 className="font-semibold text-gray-900">{order.id}</h3> */}
-                          <p className="text-sm text-gray-600 mt-1">{order.customer.name}</p>
-                        </div>
-                        <div className="flex flex-col items-end">
-                          <span className="text-lg font-bold text-gray-900">
-                            {formatCurrency(order.totalAmount, order.currency)}
-                          </span>
-                          <span
-                            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border mt-1 ${getStatusColor(
-                              order.status
-                            )}`}
-                          >
-                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center text-sm text-gray-500 mb-2">
-                        <FiCalendar className="mr-1" size={12} />
-                        <span>{formatDate(order.createdAt)}</span>
-                        <span className="mx-2">•</span>
-                        <FiMapPin className="mr-1" size={12} />
-                        <span>{order.branch.name}</span>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <span
-                            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(
-                              order.priority
-                            )}`}
-                          >
-                            {order.priority}
-                          </span>
-                          <div className="flex items-center text-gray-500">
-                            {getSourceIcon(order.source)}
-                            <span className="ml-1 text-xs">{order.source.replace('_', ' ')}</span>
+                  orders
+                    ?.filter((order) => order.status === activeTab)
+                    ?.map((order) => (
+                      <div
+                        key={order.id}
+                        onClick={() => handleSelectOrder(order)}
+                        className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-all duration-200 ${
+                          selectedOrder?.id === order.id ? 'bg-blue-50' : ''
+                        }`}
+                      >
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            {/* <h3 className="font-semibold text-gray-900">{order.id}</h3> */}
+                            <p className="text-sm text-gray-600 mt-1">{order.customer.name}</p>
+                          </div>
+                          <div className="flex flex-col items-end">
+                            <span className="text-lg font-bold text-gray-900">
+                              {formatCurrency(order.totalAmount, order.currency)}
+                            </span>
+                            <span
+                              className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border mt-1 ${getStatusColor(
+                                order.status
+                              )}`}
+                            >
+                              {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                            </span>
                           </div>
                         </div>
-                        <div className="text-sm text-gray-500">
-                          {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+
+                        <div className="flex items-center text-sm text-gray-500 mb-2">
+                          <FiCalendar className="mr-1" size={12} />
+                          <span>{formatDate(order.createdAt)}</span>
+                          <span className="mx-2">•</span>
+                          <FiMapPin className="mr-1" size={12} />
+                          <span>{order.branch.name}</span>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <span
+                              className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(
+                                order.priority
+                              )}`}
+                            >
+                              {order.priority}
+                            </span>
+                            <div className="flex items-center text-gray-500">
+                              {getSourceIcon(order.source)}
+                              <span className="ml-1 text-xs">{order.source.replace('_', ' ')}</span>
+                            </div>
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))
+                    ))
                 )}
               </div>
 
@@ -685,8 +704,8 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
           )}
 
           {/* Right Column - Order Details (No Scrollbar) */}
-          {(mobileView === 'detail' || window.innerWidth >= 768) && selectedOrder && (
-            <div className="lg:w-3/5">
+          {(mobileView === 'detail' || window.innerWidth >= 768) && selectedOrder?.status === activeTab && (
+            <div className="lg:w-3/5 h-[600px] flex flex-col">
               {/* Mobile back button */}
               {window.innerWidth < 768 && <MobileBackButton />}
 
@@ -760,7 +779,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
               </div>
 
               {/* Order Details Content - No Scrollbar */}
-              <div className="p-6 bg-gray-50">
+              <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
                 {/* Status Update Section */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3">
@@ -768,22 +787,18 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
                     <span className="text-xs text-gray-500">Current: {selectedOrder.status}</span>
                   </div>
                   <div className="flex space-x-2">
-                    <div className="relative flex-1">
-                      <select
-                        value={selectedOrder.status}
-                        onChange={(e) => handleStatusUpdate(selectedOrder.id, e.target.value as any)}
-                        className="w-full appearance-none bg-white border border-gray-300 rounded-lg px-3 py-2.5 pr-10 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        {Object.values(OrderStatusTypes).map((status) => (
-                          <option key={status} value={status}>
-                            {status.charAt(0).toUpperCase() + status.slice(1)}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-                        <FiChevronDown />
-                      </div>
-                    </div>
+                    <Button
+                      onClick={() => handleStatusUpdate(selectedOrder.id, 'delivered')}
+                      disabled={selectedOrder.status === 'delivered' || selectedOrder.status === 'cancelled'}
+                    >
+                      Mark As Delivered
+                    </Button>
+                    <Button
+                      onClick={() => handleStatusUpdate(selectedOrder.id, 'cancelled')}
+                      disabled={selectedOrder.status === 'cancelled' || selectedOrder.status === 'delivered'}
+                    >
+                      Cancel Order
+                    </Button>
                   </div>
                 </div>
 
@@ -840,7 +855,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
                         </div>
                         <div>
                           <div className="text-gray-500">Est. Time</div>
-                          <div className="font-medium">{selectedOrder.estimatedCompletionTime} min</div>
+                          <div className="font-medium">{formatTime(selectedOrder.estimatedCompletionTime!)}</div>
                         </div>
                       </div>
                     </div>
@@ -1006,5 +1021,13 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
     </div>
   );
 };
+
+// const StaffOrderPage:React.FC<OrderPageProps> = () => {
+//   return (
+//     <div>
+//       <h1>hello</h1>
+//     </div>
+//   );
+// };
 
 export { StaffOrderPage };

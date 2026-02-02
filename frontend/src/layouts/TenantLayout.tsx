@@ -48,11 +48,6 @@ export const TenantLayout = () => {
   const { isUserPermissionsValid, isUserRoleValid } = useValidateUserRolesAndPermissions(data.user);
   useEffect(() => {
     if (!data) return;
-    // 🔑 Handle redirects once, based on missing data
-    // if (data?.user?.roles.length !== 0 && data?.user?.roles[0].name === 'staff') {
-    //   navigate(`/staff_orders`, { replace: true });
-    //   return;
-    // }
     if (!data.user) {
       navigate(`/app/auth/${PageRoutes.LOGIN}`, { replace: true });
       return;

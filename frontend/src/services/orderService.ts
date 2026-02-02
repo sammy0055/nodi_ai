@@ -3,10 +3,19 @@ import type { Pagination } from '../types/customer';
 import type { OrderAverageProcessingTimpe, OrderStats } from '../types/stats';
 import { ApiClient } from './apiClient';
 
-interface GetOrderParams {
+export interface GetOrderParams {
   page?: number;
   searchTerm?: string;
   status?: string;
+}
+
+interface OrderStatsParams {
+  statusCounts: {
+    status: string;
+    count: number;
+  }[];
+  assignedToUser: number;
+  allOrders:number
 }
 export class OrderService {
   async getOrders({
@@ -48,5 +57,10 @@ export class OrderService {
   }
   async getOrderAvgProcessingStats(): Promise<{ data: OrderAverageProcessingTimpe }> {
     return ApiClient('GET_ORDER_AVG_PROCESSING_STATS');
+  }
+  async getOrderStatsPerAsignedUser(assignedUserId?: string | null): Promise<{ data: OrderStatsParams }> {
+    return ApiClient('GET_ORDER_STATS_PER_USER', {
+      queryParams: `?assignedUserId=${encodeURIComponent(assignedUserId || '')}`,
+    });
   }
 }
