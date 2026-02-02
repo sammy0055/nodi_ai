@@ -61,7 +61,7 @@ productOptionRoute.delete('/delete/:id', authMiddleware, async (req, res) => {
   }
 });
 
-productOptionRoute.get('/get-many', authMiddleware, async (req, res) => {
+productOptionRoute.post('/get-many', authMiddleware, async (req, res) => {
   try {
     const productIds = req.body.productIds as string[];
     const data = await ProductOptionController.getMany({ productIds: productIds });
