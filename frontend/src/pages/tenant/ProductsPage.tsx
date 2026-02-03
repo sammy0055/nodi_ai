@@ -501,7 +501,7 @@ const ProductsPage: React.FC = () => {
 
   // Product Row Component
   const ProductRow: React.FC<{ product: Product }> = ({ product }) => {
-    const productOpts = productOptions.filter((opt) => opt.productId === product.id);
+    const productOpts = productOptions?.filter((opt) => opt.productId === product.id);
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center p-4 border-b border-neutral-200 hover:bg-neutral-50">
