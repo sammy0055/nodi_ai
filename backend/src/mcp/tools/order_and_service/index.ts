@@ -51,13 +51,6 @@ export const createOrder = (server: McpServer) => {
           .string()
           .describe('Full delivery address: street, building, floor, apartment, landmark.')
           .optional(),
-        // shippingAddressCoordinates: z
-        //   .object({
-        //     longitude: z.number(),
-        //     latitude: z.number(),
-        //     googleMapUrl: z.string(),
-        //   })
-        //   .optional(),
       },
     },
     async (params) => {
@@ -232,28 +225,169 @@ export const cancelOrder = (server: McpServer) => {
       description:
         'Cancels an order if it is still within the allowed cancellation window. Validates eligibility before processing the cancellation.',
       inputSchema: {
-        orderId: z.string().describe('the id of the order'),
-        // customerId: z.string().describe('the id of the customer'),
-        // organizationId: z.string(),
+        // orderId: z.string().describe('the id of the order'),
+        customerId: z.string().describe('the id of the customer'),
+        organizationId: z.string(),
       },
     },
-    async ({ orderId }) => {
+    async ({ customerId, organizationId }) => {
       // check if we are still within the cancelation window
-      if (!orderId) {
-        return { content: [{ type: 'text', text: 'orderId messing, kindly provide the order ID' }] };
-      }
-      const order = await OrderModel.findByPk(orderId);
+
+      const order = await OrderModel.findOne({ where: { organizationId, customerId }, order: [['createdAt', 'DESC']] });
 
       if (!order) {
         return { content: [{ type: 'text', text: 'order was not found' }] };
       }
+
       if (!order.canBeCancelled()) {
         return { content: [{ type: 'text', text: 'order has passed cancelation window' }] };
       }
+
+      if (order.status === 'cancelled') {
+        return { content: [{ type: 'text', text: 'order is already cancelled' }] };
+      }
+
+      if (order.status === 'delivered') {
+        return {
+          content: [{ type: 'text', text: 'your order has already being delivered, hence can not be cancelled' }],
+        };
+      }
+
+      if (order.status !== 'pending') {
+        const branch = await BranchesModel.findOne({ where: { id: order.branchId, organizationId } });
+        if (!branch) return { content: [{ type: 'text', text: 'something went wrong please try again later' }] };
+        if (!branch.phone) return { content: [{ type: 'text', text: 'something went wrong please try again later' }] };
+
+        return {
+          content: [{ type: 'text', text: `kinldy contact our hotline to cancel your order. phone:${branch.phone}` }],
+        };
+      }
+
       await order.update({ status: OrderStatusTypes.CANCELLED });
+
       try {
         return {
           content: [{ type: 'text', text: 'order cancelled successfully' }],
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: 'Failed to cancel order' }],
+        };
+      }
+    }
+  );
+};
+
+export const updateOrder = (server: McpServer) => {
+  return server.registerTool(
+    'update_order',
+    {
+      title: 'update_order',
+      description: 'Update the customers last order.',
+      inputSchema: {
+        title: z.string().describe('title for the order'),
+        organizationId: z.string(),
+        customerId: z.string(),
+        branchId: z.string(),
+        currency: z.enum(currencyCodes as any),
+        deliveryAreaId: z
+          .string()
+          .describe('the id of the delivery area. must be present if order is delivery.')
+          .optional(),
+        serviceType: z.enum(['delivery', 'takeaway']),
+        items: z.array(
+          z.object({
+            productId: z.string(),
+            quantity: z.number(),
+            selectedOptions: z
+              .array(
+                z.object({
+                  optionId: z.string(),
+                  optionName: z.string(),
+                  choiceId: z.string(),
+                  choiceLabel: z.string(),
+                  priceAdjustment: z.string(),
+                })
+              )
+              .optional(),
+          })
+        ),
+        subtotal: z.number(),
+        deliveryCharge: z.number(),
+        totalAmount: z.number(),
+        deliveryAreaName: z.string(),
+        shippingAddress: z
+          .string()
+          .describe('Full delivery address: street, building, floor, apartment, landmark.')
+          .optional(),
+      },
+    },
+    async (params) => {
+      try {
+        const { customerId, organizationId } = params;
+        const order = await OrderModel.findOne({
+          where: { organizationId, customerId },
+          order: [['createdAt', 'DESC']],
+        });
+        if (!order) {
+          return { content: [{ type: 'text', text: 'order was not found' }] };
+        }
+
+        if (order.status === 'pending') {
+          const products = params.items.map((item) => ({ productId: item.productId, qty: item.quantity }));
+          const inventoryStock = await BranchInventoryModel.findAll({
+            where: {
+              productId: {
+                [Op.in]: products.map((p) => p.productId).filter(Boolean),
+              },
+              branchId: params.branchId,
+            },
+          });
+
+          if (!inventoryStock) {
+            return { content: [{ type: 'text', text: 'No inventory available for this products' }] };
+          }
+
+          for (const product of products) {
+            const inventoryItem = inventoryStock.find((inv) => inv.productId === product.productId);
+            if (!inventoryItem || inventoryItem.quantityOnHand! < product.qty) {
+              return { content: [{ type: 'text', text: `Product with ID: ${product.productId} is out of stock` }] };
+            }
+          }
+          await order.update(params as any);
+          for (const product of products) {
+            await BranchInventoryModel.decrement('quantityOnHand', {
+              by: product.qty,
+              where: {
+                productId: product.productId,
+                branchId: params.branchId,
+                organizationId: params.organizationId,
+              },
+            });
+          }
+
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `Your order has being updated successfully`,
+              },
+            ],
+          };
+        }
+
+        if (order.status === 'delivered') {
+          return {
+            content: [{ type: 'text', text: 'your order has already being delivered hence can not be updated' }],
+          };
+        }
+
+        const branch = await BranchesModel.findOne({ where: { id: order.branchId, organizationId } });
+        if (!branch) return { content: [{ type: 'text', text: 'something went wrong please try again later' }] };
+        if (!branch.phone) return { content: [{ type: 'text', text: 'something went wrong please try again later' }] };
+
+        return {
+          content: [{ type: 'text', text: `kinldy contact our hotline to update your order. phone:${branch.phone}` }],
         };
       } catch (error: any) {
         return {

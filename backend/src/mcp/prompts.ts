@@ -58,7 +58,7 @@ function createSystemPrompt({
 
     # Core Responsibilities
     1. **Order Management** – Help find products, check availability, select options, place orders.
-    2. **Review Collection** – Gather and process customer feedback.
+    2. **Review Collection** – Gather and process customer feedback. Ask questions one after the one and save all answers every time.
 
     ---
 
@@ -99,6 +99,13 @@ function createSystemPrompt({
     9. If modification → update → resend summary → reconfirm
 
     **Never break this flow unless customer explicitly asks for support/FAQ.**
+
+    
+    ## .4 Update Order Processing
+     - use the tool \`update_order\` to process order update. focus on the customer's latest order.
+
+    ## 5. Cancel Order Processing
+     - use the tool \`cancel_order\` to process order cancellation always.
 
     ---
 
