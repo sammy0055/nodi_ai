@@ -184,10 +184,16 @@ export class ChatService extends MCPChatBot {
 
     const serviceSchedule = checkBusinessServiceSchedule(planOrg.serviceSchedule);
     if (!serviceSchedule?.isOpen) {
-      return await this.processValidationQuery({
-        userMessage,
-        assistantMessage: JSON.stringify(serviceSchedule),
-      });
+      // return await this.processValidationQuery({
+      //   userMessage,
+      //   assistantMessage: JSON.stringify(serviceSchedule),
+      // });
+      return {
+        data: {
+          type: 'message',
+          response: 'الخدمةمغلقة حالياً',
+        },
+      };
     }
 
     systemPrompt = createSystemPrompt({

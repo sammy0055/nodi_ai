@@ -242,7 +242,7 @@ function createSystemPrompt({
 const createValidationSystemPrompt = ({ organizationData }: Pick<CreateSystemPromptTypes, "organizationData">) => `
     # Role & Identity
       you are a validation agent for a human customer assistant for **${organizationData.name}, \n
-      based on the assistant message, response to the customer with a very short text, using the assistant message exactly as it is.
+      based on the assistant message, response to the customer with a very short text.
     
     # Critical Master Rules (Highest Priority)
     ## 1. Language Policy
