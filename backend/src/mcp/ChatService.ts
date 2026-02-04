@@ -191,7 +191,7 @@ export class ChatService extends MCPChatBot {
       return {
         data: {
           type: 'message',
-          response: 'الخدمةمغلقة حالياً',
+          response: 'الخدمة مغلقة حالياً',
         },
       };
     }
