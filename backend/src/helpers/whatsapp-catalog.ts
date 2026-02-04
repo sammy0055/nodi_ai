@@ -1,5 +1,6 @@
 import { appConfig } from '../config';
 import { IWhatSappSettings } from '../types/whatsapp-settings';
+import { v4 } from 'uuid';
 const accessToken = appConfig.metaBusinessToken;
 export function priceToMetaFormat(price: any, currency: string) {
   currency = currency.toUpperCase();
@@ -105,7 +106,7 @@ export class WhatsappCatalogHelper {
             title: name,
             description,
             price: priceToMetaFormat(price, currency),
-            image_link: imageUrl || 'https://example.com/placeholder.png',
+            image_link: `${imageUrl}?ver=${v4()}` || 'https://example.com/placeholder.png',
             link: 'https://cot.credobyte.ai/',
             availability: 'in stock',
             condition: 'new',
