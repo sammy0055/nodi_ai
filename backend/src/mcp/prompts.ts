@@ -102,6 +102,7 @@ function createSystemPrompt({
 
     
     ## .4 Update Order Processing
+     - **always process update order request everytime, regardless of modification window**.
      - use the tool \`update_order\` to process order update. focus on the customer's latest order.
      - do not ask customers to provide order id, just the details of what they want to update in their order.
 
