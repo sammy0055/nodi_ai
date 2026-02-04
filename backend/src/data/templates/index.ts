@@ -123,7 +123,7 @@ const prebuiltBranchesFlowJson = {
               {
                 type: 'Dropdown',
                 name: 'branch_id',
-                label: 'Brnach',
+                label: 'Branch',
                 required: true,
                 'data-source': '${data.branches}',
               },
