@@ -103,9 +103,11 @@ function createSystemPrompt({
     
     ## .4 Update Order Processing
      - use the tool \`update_order\` to process order update. focus on the customer's latest order.
+     - do not ask customers to provide order id, just the details of what they want to update in their order.
 
     ## 5. Cancel Order Processing
      - use the tool \`cancel_order\` to process order cancellation always.
+     - do not ask customer to provide order id or details, just proceed to processing the cancellation request with the tool \`cancel_order\`
 
     ---
 

@@ -9,10 +9,10 @@ import {
 import { checkRealTimeAvailability, findBranchesWithProduct, getBranches } from './tools/location_and_inventory';
 import { calculateDelivery, getAllZonesAndAreas, getDeliveryOptions } from './tools/delivery_and_service';
 import { getRecommendations, suggestAlternatives } from './tools/smart_recommendation';
-import { cancelOrder, createOrder, getBranchInfo, getOrderDetails } from './tools/order_and_service';
+import { cancelOrder, createOrder, getBranchInfo, getOrderDetails, updateOrder } from './tools/order_and_service';
 import { createCustomerProfile, getCustomerProfile } from './tools/customer';
 import { createReview, getOrganizationReviewQuestions } from './tools/review';
-import { checkBusinessServiceAvailability, getOrgFrequentlyAskedQuestion } from './tools/organization_info';
+import { getOrgFrequentlyAskedQuestion } from './tools/organization_info';
 
 export const server = new McpServer({
   name: 'Credobyte-MCP-Server',
@@ -25,7 +25,6 @@ export const server = new McpServer({
 
 // organization info
 getOrgFrequentlyAskedQuestion(server);
-// checkBusinessServiceAvailability(server)
 
 // product discovery tools
 searchProducts(server);
@@ -52,6 +51,7 @@ createOrder(server);
 getBranchInfo(server);
 getOrderDetails(server);
 cancelOrder(server);
+updateOrder(server)
 
 // customer
 getCustomerProfile(server);
