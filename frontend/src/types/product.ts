@@ -11,6 +11,7 @@ export interface Product {
   imageUrl?: string;
   file?: File;
   options?: ProductOption[];
+  updatedAt: Date;
 }
 
 export interface ProductOptionChoice {

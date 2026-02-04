@@ -509,7 +509,11 @@ const ProductsPage: React.FC = () => {
         <div className="md:col-span-4 flex items-center space-x-3">
           <div className="w-12 h-12 bg-neutral-200 rounded-lg flex items-center justify-center overflow-hidden">
             {product.imageUrl ? (
-              <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+              <img
+                src={`${product.imageUrl}?v=${product.updatedAt}`}
+                alt={product.name}
+                className="w-full h-full object-cover"
+              />
             ) : (
               <FiPackage className="text-neutral-400 text-xl" />
             )}
@@ -558,6 +562,20 @@ const ProductsPage: React.FC = () => {
         </div>
       </div>
     );
+  };
+
+  const buildImageSrc = (url: string, updatedAt: Date) => {
+    if (!url) return '';
+
+    // Don't touch blob preview URLs
+    if (url.startsWith('blob:')) return url;
+
+    // If it's already a normal http URL, return without version
+    if (url.startsWith('http')) return url;
+
+    // Fallback (optional, if you ever store relative paths)
+   const imgUrl = `${url}?v=${updatedAt}`;
+    return imgUrl
   };
 
   if (!whatsappData?.catalogId) return <CatalogWarning />;
@@ -640,8 +658,8 @@ const ProductsPage: React.FC = () => {
         {pagination && pagination?.totalPages > 1 && (
           <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-neutral-200 space-y-3 sm:space-y-0">
             <div className="text-sm text-neutral-500">
-              Showing {Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems)} of {pagination.totalItems}{' '}
-              products
+              Showing {Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems)} of{' '}
+              {pagination.totalItems} products
             </div>
 
             <div className="flex space-x-2">
@@ -689,7 +707,11 @@ const ProductsPage: React.FC = () => {
                 <div className="flex items-center space-x-4">
                   <div className="w-20 h-20 bg-neutral-200 rounded-lg flex items-center justify-center overflow-hidden">
                     {editingProduct.imageUrl ? (
-                      <img src={editingProduct.imageUrl} alt="Product" className="w-full h-full object-cover" />
+                      <img
+                        src={buildImageSrc(editingProduct.imageUrl, editingProduct.updatedAt!)}
+                        alt="Product"
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
                       <FiImage className="text-neutral-400 text-2xl" />
                     )}
