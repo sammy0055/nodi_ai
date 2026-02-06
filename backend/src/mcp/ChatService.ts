@@ -133,6 +133,14 @@ export class ChatService extends MCPChatBot {
   }) {
     const planOrg = await this.getOrganization();
     const OPENAI_API_KEY = appConfig.mcpKeys.openaiKey;
+    const chatHistory = new ChatHistoryManager();
+    const customer = await this.getCustomerData();
+    const conversation = await chatHistory.getConversationsByCustomerId(customer.id, this.organizationId);
+    
+    await chatHistory.addMessage(
+      { conversationId: conversation?.id!, organizationId: this.organizationId },
+      { role: 'user', content: userMessage }
+    );
 
     const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
     const systemPrompt = createValidationSystemPrompt({ organizationData: planOrg });
@@ -145,6 +153,11 @@ export class ChatService extends MCPChatBot {
       ],
     });
 
+    await chatHistory.addMessage(
+      { conversationId: conversation?.id!, organizationId: this.organizationId },
+      { role: 'assistant', content: res.output_text }
+    );
+    
     return {
       data: {
         type: 'message',
@@ -156,9 +169,7 @@ export class ChatService extends MCPChatBot {
   public async processQuery(userMessage: string) {
     const planOrg = await this.getOrganization();
     const customer = await this.getCustomerData();
-    console.log('🏃🏼🤔====================================');
-    console.log(planOrg, customer);
-    console.log('====================================');
+
     let systemPrompt: string;
     if (customer.status !== 'active') {
       return await this.processValidationQuery({
