@@ -132,18 +132,18 @@ export class ChatService extends MCPChatBot {
     assistantMessage: any;
   }) {
     const planOrg = await this.getOrganization();
+     const systemPrompt = createValidationSystemPrompt({ organizationData: planOrg });
     const OPENAI_API_KEY = appConfig.mcpKeys.openaiKey;
     const chatHistory = new ChatHistoryManager();
-    const customer = await this.getCustomerData();
-    const conversation = await chatHistory.getConversationsByCustomerId(customer.id, this.organizationId);
-    
+    const conversation = await this.getAndCreateConversationIfNotExist(systemPrompt);
+
     await chatHistory.addMessage(
-      { conversationId: conversation?.id!, organizationId: this.organizationId },
+      { conversationId: conversation.id!, organizationId: this.organizationId },
       { role: 'user', content: userMessage }
     );
 
     const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
-    const systemPrompt = createValidationSystemPrompt({ organizationData: planOrg });
+   
     const res = await openai.responses.create({
       model: this.llm_model,
       input: [
@@ -157,7 +157,7 @@ export class ChatService extends MCPChatBot {
       { conversationId: conversation?.id!, organizationId: this.organizationId },
       { role: 'assistant', content: res.output_text }
     );
-    
+
     return {
       data: {
         type: 'message',
@@ -199,6 +199,18 @@ export class ChatService extends MCPChatBot {
       //   userMessage,
       //   assistantMessage: JSON.stringify(serviceSchedule),
       // });
+      const chatHistory = new ChatHistoryManager();
+      const planOrg = await this.getOrganization();
+     const systemPrompt = createValidationSystemPrompt({ organizationData: planOrg });
+      const conversation = await this.getAndCreateConversationIfNotExist(systemPrompt);
+      await chatHistory.addMessage(
+        { conversationId: conversation?.id!, organizationId: this.organizationId },
+        { role: 'user', content: userMessage }
+      );
+      await chatHistory.addMessage(
+        { conversationId: conversation?.id!, organizationId: this.organizationId },
+        { role: 'assistant', content: 'الخدمة مغلقة حالياً' }
+      );
       return {
         data: {
           type: 'message',
