@@ -26,6 +26,7 @@ import { UserService } from '../../../services/userService';
 import type { Pagination } from '../../../types/customer';
 import { useValidateUserRolesAndPermissions } from '../../../hooks/validateUserRoleAndPermissions';
 import { useGetOrdersOnInterval } from '../../../hooks/orders';
+import type { User } from '../../../types/users';
 
 // Order status object
 export const OrderStatusTypes = {
@@ -152,6 +153,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
   const [selectedSource, setSelectedSource] = useState<string>('all');
   const [_, setAssignToUserId] = useState<string>('');
   const [orderStats, setOrderStats] = useState<OrderStats>();
+  const [users, setUsers] = useState<User[]>([]);
   const { isUserPermissionsValid } = useValidateUserRolesAndPermissions(currentUser!);
   const processingTime = useProcessingTime(selectedOrder!);
   const { updateOrder, updateOrderStatus, getOrders, getOrderStatsPerAsignedUser } = new OrderService();
@@ -219,7 +221,8 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
       setSelectedOrder(data.orders.data[0] || null);
       setLoading(false);
       setPagination(data.orders.pagination);
-      getData(data)
+      setUsers(data.users);
+      getData(data);
     }
   }, [data]);
 
@@ -310,6 +313,12 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
         return;
       }
       if (newStatus === 'delivered') {
+        const userToUpdate = users.find((u) => u.id === currentUser?.id);
+        if (!userToUpdate) {
+          alert('asigned user does not exist');
+          setAssignToUserId('');
+          return;
+        }
         if (!orderToUpdate) {
           alert('order not found');
           return;
@@ -323,6 +332,11 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
         };
 
         await updateOrder(updatedOrder);
+        await updateUser({
+          ...userToUpdate,
+          activeOrderCount: (userToUpdate.activeOrderCount || 1) - 1,
+          lastActive: new Date(),
+        });
         setOrders((prevOrders) => prevOrders.map((order) => (order.id === updatedOrder.id ? updatedOrder : order)));
         setSelectedOrder(updatedOrder);
       }
@@ -574,7 +588,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
                 >
                   <Icon className={isActive ? tab.textColor : 'text-gray-500'} size={20} />
                   <span className={`text-sm font-medium ${isActive ? tab.textColor : 'text-gray-700'}`}>
-                    {tab.label} {orderStats?.statusCounts.find(stats => stats.status === tab.id)?.count || 0}
+                    {tab.label} {orderStats?.statusCounts.find((stats) => stats.status === tab.id)?.count || 0}
                   </span>
                 </button>
               );

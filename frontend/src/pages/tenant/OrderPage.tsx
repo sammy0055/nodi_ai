@@ -449,6 +449,14 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
         return;
       }
       if (newStatus === 'delivered') {
+        const userToUpdate = users.find((u) => u.id === currentUser?.id);
+        if (!userToUpdate) {
+          alert('asigned user does not exist');
+          setShowAssignmentModal(false);
+          setOrderToAssign(null);
+          setAssignToUserId('');
+          return;
+        }
         if (!orderToUpdate) {
           alert('order not found');
           return;
@@ -459,6 +467,12 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
           estimatedCompletionTime: processingTime,
           status: newStatus,
           completedAt: new Date(),
+        });
+
+        await updateUser({
+          ...userToUpdate,
+          activeOrderCount: (userToUpdate.activeOrderCount || 1) - 1,
+          lastActive: new Date(),
         });
       }
       await updateOrderStatus({ orderId, status: newStatus });
