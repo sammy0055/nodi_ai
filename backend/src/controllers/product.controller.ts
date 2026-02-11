@@ -1,3 +1,4 @@
+// import { ProductOptionChoiceModel } from '../models/product-option-choice.model';
 import { ProductService } from '../services/product.service';
 import { Pagination } from '../types/common-types';
 import { File } from '../types/file';
@@ -18,7 +19,11 @@ export class ProductController {
     return await ProductService.getProduct(productId, user);
   }
   static async getProducts(user: Pick<User, 'id' | 'organizationId'>, pagination: Pagination, searchQuery: string) {
-    return await ProductService.getProducts(user, pagination, searchQuery);
+    const products = await ProductService.getProducts(user, pagination, searchQuery);
+    // const productIds = products.data.map(p => p.id)
+    // if(productIds.length === 0 || !productIds) return products
+    // const options = await ProductOptionChoiceModel.findAll({where:{}})
+    return products;
   }
   static async syncWhatsappCatalogToDB(user: Pick<User, 'id' | 'organizationId'>) {
     return await ProductService.syncWhatsappCatalogToDB(user);

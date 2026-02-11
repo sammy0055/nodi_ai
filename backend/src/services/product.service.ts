@@ -3,6 +3,8 @@ import { syncMetaCatalogToDB } from '../helpers/sync_whatsapp_catalop_with_db';
 import { WhatsappCatalogHelper } from '../helpers/whatsapp-catalog';
 import { validateFile } from '../middleware/validation/file';
 import { sequelize } from '../models/db';
+import { ProductOptionChoiceModel } from '../models/product-option-choice.model';
+import { ProductOptionModel } from '../models/product-option.model';
 import { ProductModel } from '../models/products.model';
 import { WhatSappSettingsModel } from '../models/whatsapp-settings.model';
 import { Pagination } from '../types/common-types';
@@ -183,7 +185,7 @@ export class ProductService {
 
       if (!oldProduct) throw new Error('product not found');
 
-     const imagePath = oldProduct.filePath;
+      const imagePath = oldProduct.filePath;
 
       // 🔹 Delete from Meta catalog (external)
       await WhatsappCatalogHelper.deleteMetaCatalogItem({ itemId: oldProduct.metaProductId }, whatsappData);
@@ -232,6 +234,21 @@ export class ProductService {
       where,
       offset,
       limit,
+      distinct: true, // important
+      include: [
+        {
+          model: ProductOptionModel,
+          as: 'options',
+          separate: true, // 👈 prevents join duplication
+          include: [
+            {
+              model: ProductOptionChoiceModel,
+              as: 'choices',
+            },
+          ],
+        },
+      ],
+
       order: searchQuery
         ? [
             // rank by relevance if searching
