@@ -14,6 +14,7 @@ import { User } from '../types/users';
 import { Op, literal, Transaction } from 'sequelize';
 import { ProductOptionService } from './product-option.service';
 import { ProductOptionChoiceService } from './productOptionChoice.service';
+import { ProductOption } from '../types/product-option';
 
 interface ProductPayload extends IProduct {
   options: {
@@ -143,17 +144,20 @@ export class ProductService {
       });
 
       // update product options and choices if exist
-      if (product.options && product.options.length !== 0) {
-        console.log('==============😶‍🌫️product.options======================');
-        console.log(product.options);
-        console.log('====================================');
-        const optionChoices = product.options.flatMap((item) => item.choices || []);
-        await ProductOptionService.updateOptions(product.options, transaction);
-        if (optionChoices && optionChoices.length !== 0) {
-          console.log('==============😶‍🌫️optionChoices======================');
-          console.log(optionChoices);
+      if (product.options) {
+        const productOptions = JSON.parse(product.options as any) as ProductOption[];
+        if (productOptions.length !== 0) {
+          console.log('==============😶‍🌫️product.options======================');
+          console.log(productOptions);
           console.log('====================================');
-          await ProductOptionChoiceService.updateChoices(optionChoices);
+          const optionChoices = productOptions.flatMap((item) => item.choices || []);
+          await ProductOptionService.updateOptions(productOptions, transaction);
+          if (optionChoices && optionChoices.length !== 0) {
+            console.log('==============😶‍🌫️optionChoices======================');
+            console.log(optionChoices);
+            console.log('====================================');
+            await ProductOptionChoiceService.updateChoices(optionChoices);
+          }
         }
       }
 
