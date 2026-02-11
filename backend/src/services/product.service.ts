@@ -203,11 +203,6 @@ export class ProductService {
       const oldProduct = (await ProductModel.findOne({
         where: { id: productId, organizationId: user.organizationId },
         transaction,
-        include: {
-          model: ProductOptionModel,
-          as: 'options',
-          include: [{ model: ProductOptionChoiceModel, as: 'choices' }],
-        },
         lock: transaction.LOCK.UPDATE,
       })) as any;
 
@@ -224,20 +219,26 @@ export class ProductService {
         transaction,
       });
 
-      // update product options and choices if exist
-      if (oldProduct?.options) {
-        const productOptions = oldProduct?.options;
-        if (productOptions.length !== 0) {
-          const optionChoices = productOptions.flatMap((item: any) => item.choices || []);
-          await ProductOptionModel.destroy({
-            where: { productId },
-            transaction,
-          });
-          if (optionChoices && optionChoices.length !== 0) {
-            const optionIds = productOptions.map((op: any) => op.id);
-            await ProductOptionChoiceModel.destroy({ where: { productOptionId: { [Op.in]: optionIds } }, transaction });
-          }
-        }
+      // fetch options + choices separately (no FOR UPDATE needed)
+      const productOptions = await ProductOptionModel.findAll({
+        where: { productId },
+        include: [{ model: ProductOptionChoiceModel, as: 'choices' }],
+        transaction,
+      });
+
+      // delete product options and choices if exist
+      if (productOptions.length) {
+        const optionIds = productOptions.map((op) => op.id);
+
+        await ProductOptionChoiceModel.destroy({
+          where: { productOptionId: { [Op.in]: optionIds } },
+          transaction,
+        });
+
+        await ProductOptionModel.destroy({
+          where: { id: { [Op.in]: optionIds } },
+          transaction,
+        });
       }
 
       await transaction.commit();
