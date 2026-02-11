@@ -9,7 +9,7 @@ export class ProductController {
   static async createProduct(product: IProduct, user: Pick<User, 'id' | 'organizationId'>, file: File) {
     return await ProductService.createProduct(product, user, file);
   }
-  static async updateProduct(product: IProduct, user: Pick<User, 'id' | 'organizationId'>, file: File) {
+  static async updateProduct(product: any, user: Pick<User, 'id' | 'organizationId'>, file: File) {
     return await ProductService.updateProduct(product, user, file);
   }
   static async removeProduct(productId: string, user: Pick<User, 'id' | 'organizationId'>) {

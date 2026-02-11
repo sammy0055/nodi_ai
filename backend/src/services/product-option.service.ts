@@ -1,4 +1,4 @@
-import { Op } from 'sequelize';
+import { Op, Transaction } from 'sequelize';
 import { ProductOptionModel } from '../models/product-option.model';
 import { ProductOption } from '../types/product-option';
 import { User } from '../types/users';
@@ -12,14 +12,16 @@ export class ProductOptionService {
     return await ProductOptionModel.create(data);
   }
 
-  static async updateOptions(data: any | any[]) {
+  static async updateOptions(data: any | any[], transaction?: Transaction) {
     const items = Array.isArray(data) ? data : [data];
 
     const updated = await Promise.all(
       items.map(async (item) => {
         const choice = await ProductOptionModel.findByPk(item.id);
         if (!choice) throw new Error(`Product option with id ${item.id} not found`);
-        return await choice.update(item); // already returns updated row
+        const where: any = {};
+        if (transaction) where.transaction = transaction;
+        return await choice.update(item, where); // already returns updated row
       })
     );
 

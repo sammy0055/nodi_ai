@@ -1,3 +1,4 @@
+import { Transaction } from 'sequelize';
 import { ProductOptionChoiceModel } from '../models/product-option-choice.model';
 import { ProductOptionChoice } from '../types/product-option';
 import { User } from '../types/users';
@@ -11,14 +12,16 @@ export class ProductOptionChoiceService {
     return await ProductOptionChoiceModel.create(data);
   }
 
-  static async updateChoices(data: any | any[]) {
+  static async updateChoices(data: any | any[], transaction?: Transaction) {
     const items = Array.isArray(data) ? data : [data];
 
     const updated = await Promise.all(
       items.map(async (item) => {
         const choice = await ProductOptionChoiceModel.findByPk(item.id);
         if (!choice) throw new Error(`Choice with id ${item.id} not found`);
-        return await choice.update(item); // already returns updated row
+        const where: any = {};
+        if (transaction) where.transaction = transaction;
+        return await choice.update(item, where); // already returns updated row
       })
     );
 

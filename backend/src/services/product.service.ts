@@ -12,6 +12,16 @@ import { File } from '../types/file';
 import { IProduct } from '../types/product';
 import { User } from '../types/users';
 import { Op, literal, Transaction } from 'sequelize';
+import { ProductOptionService } from './product-option.service';
+import { ProductOptionChoiceService } from './productOptionChoice.service';
+
+interface ProductPayload extends IProduct {
+  options: {
+    productId: string;
+    id: string;
+    choices: { id: string; productOptionId: string }[];
+  }[];
+}
 
 export class ProductService {
   static async createProduct(product: IProduct, user: Pick<User, 'id' | 'organizationId'>, file: File) {
@@ -86,7 +96,7 @@ export class ProductService {
     }
   }
 
-  static async updateProduct(product: IProduct, user: Pick<User, 'id' | 'organizationId'>, file?: File) {
+  static async updateProduct(product: ProductPayload, user: Pick<User, 'id' | 'organizationId'>, file?: File) {
     const transaction: Transaction = await sequelize.transaction();
     const manageImageFile = new ImageUploadHelper();
 
@@ -131,6 +141,21 @@ export class ProductService {
         returning: true,
         transaction,
       });
+
+      // update product options and choices if exist
+      if (product.options && product.options.length !== 0) {
+        console.log('==============😶‍🌫️product.options======================');
+        console.log(product.options);
+        console.log('====================================');
+        const optionChoices = product.options.flatMap((item) => item.choices || []);
+        await ProductOptionService.updateOptions(product.options, transaction);
+        if (optionChoices && optionChoices.length !== 0) {
+          console.log('==============😶‍🌫️optionChoices======================');
+          console.log(optionChoices);
+          console.log('====================================');
+          await ProductOptionChoiceService.updateChoices(optionChoices);
+        }
+      }
 
       const updatedProduct = updatedRows[0].get({ plain: true });
 
