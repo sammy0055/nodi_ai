@@ -39,6 +39,7 @@ export class ProductService {
     formData.append('currency', data.currency);
     formData.append('status', data.status);
     formData.append('sku', data.sku);
+    if (data.options) formData.append('options', JSON.stringify(data.options));
     const response = await fetch(`${API_ROUTES.UPDATE_PRODUCT}/${data.id}`, {
       method: 'PUT',
       body: formData,

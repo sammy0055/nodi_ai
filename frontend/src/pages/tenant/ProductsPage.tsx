@@ -25,8 +25,8 @@ import {
 import { ProductService } from '../../services/productService';
 import {
   useOrgValue,
-  useProductOptionSetRecoilState,
-  useProductOptionValue,
+  // useProductOptionSetRecoilState, // to be deleted
+  // useProductOptionValue,
   useProductsSetRecoilState,
   useProductsValue,
   useUserValue,
@@ -54,7 +54,7 @@ const ProductOptionsManager: React.FC<{
   options: ProductOption[];
   onOptionsChange: (options: ProductOption[]) => void;
 }> = ({ productId, options, onOptionsChange }) => {
-  const productOptions = options.filter((opt) => opt.productId === productId);
+  const productOptions = options || [];
   const { addProductOption, addProductOptionChoice, deleteProductChoice, deleteProductOption } = new ProductService();
   const addOption = async () => {
     const newOption: ProductOption = {
@@ -79,7 +79,7 @@ const ProductOptionsManager: React.FC<{
       ...data,
       choices: [choice],
     };
-    onOptionsChange([...options, newOptionAndChoice]);
+    onOptionsChange([...productOptions, newOptionAndChoice]);
   };
 
   const updateOption = (optionId: string, updates: Partial<ProductOption>) => {
@@ -153,13 +153,13 @@ const ProductOptionsManager: React.FC<{
         </Button>
       </div>
 
-      {productOptions.length === 0 ? (
+      {productOptions?.length === 0 ? (
         <div className="text-center py-6 text-neutral-500 border-2 border-dashed border-neutral-300 rounded-lg">
           <FiPackage className="mx-auto text-3xl mb-2" />
           <p>No options added yet</p>
         </div>
       ) : (
-        productOptions.map((option) => (
+        productOptions?.map((option) => (
           <div key={option.id} className="border border-neutral-200 rounded-lg p-4">
             <div className="flex justify-between items-start mb-3">
               <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -261,8 +261,8 @@ const ProductsPage: React.FC = () => {
   };
   const products = useProductsValue();
   const setProducts = useProductsSetRecoilState();
-  const productOptions = useProductOptionValue();
-  const setProductOptions = useProductOptionSetRecoilState();
+  // const productOptions = useProductOptionValue();
+  // const setProductOptions = useProductOptionSetRecoilState();
   const whatsappData = useWhatsappValue();
   const organization = useOrgValue();
   const [searchTerm, setSearchTerm] = useState('');
@@ -280,11 +280,8 @@ const ProductsPage: React.FC = () => {
     updateProduct,
     deleteProduct,
     searchProducts,
-    updateProductOption,
-    updateProductChoice,
     getProducts,
     syncMetaCatalogToDB,
-    getProductOptions,
   } = new ProductService();
 
   // Pagination
@@ -309,20 +306,12 @@ const ProductsPage: React.FC = () => {
     }
   }, []);
 
-  const getProductOption = async (products: Product[]) => {
-    try {
-      const productIds = products.map((p) => p.id);
-      const data = await getProductOptions(productIds);
-      setProductOptions(data.data as any);
-    } catch (error) {
-      alert('something went wrong');
-    }
-  };
+
   // load initial products
   useEffect(() => {
     if (data) {
       setProducts(data.products.data);
-      getProductOption(data.products.data);
+      // getProductOption(data.products.data);
       setPagination(data.products.pagination);
     }
   }, [data]);
@@ -342,8 +331,6 @@ const ProductsPage: React.FC = () => {
       if (window.confirm('Are you sure you want to delete this product?')) {
         await deleteProduct(productId);
         setProducts(products.filter((product) => product.id !== productId));
-        // Also remove associated options
-        setProductOptions(productOptions.filter((opt) => opt.productId !== productId));
       }
     } catch (error: any) {
       console.error(error.message);
@@ -389,23 +376,11 @@ const ProductsPage: React.FC = () => {
           }
         }
         // Update existing product
-        const { data } = await updateProduct(editingProduct as Product);
-        if (productOptions.length !== 0) {
-          const productOption = productOptions.filter((op) => op.productId === selectedProduct.id);
-          const optionChoices = productOptions.flatMap((item) => item.choices || []);
-          const { data } = await updateProductOption(productOption as any);
-          if (optionChoices.length !== 0) {
-            const { data: choiceData } = await updateProductChoice(optionChoices as any);
-            setProductOptions((prevState) => [...prevState, { ...data, choices: choiceData as any }]);
-            setShowProductModal(false);
-            setEditingProduct({});
-            return;
-          }
-
-          setProductOptions((prevState) => [...prevState, data]);
-        }
-
-        setProducts(products.map((p) => (p.id === selectedProduct.id ? { ...(data as Product) } : p)));
+        await updateProduct(editingProduct as Product);
+        setProducts((prevState) => prevState.map((p) => (p.id === editingProduct.id ? (editingProduct as any) : p)));
+        setShowProductModal(false);
+        setEditingProduct({});
+   
       } else {
         // Add new product
         const { data } = await addProduct(editingProduct as Product);
@@ -442,12 +417,17 @@ const ProductsPage: React.FC = () => {
   const handlePagination = async (currentPage: number) => {
     try {
       const { data } = await getProducts(currentPage);
-      await getProductOption([...products, ...data.data]);
+      // await getProductOption([...products, ...data.data]);
       setProducts((prev) => [...prev, ...data.data]);
       setPagination(data.pagination);
     } catch (error: any) {
       alert('something went wrong, try again');
     }
+  };
+
+
+  const updateProductOptions = (options: any) => {
+    setEditingProduct((prevState) => ({ ...prevState, options: options || [] }));
   };
 
   const getStatusColor = (status: any) => {
@@ -501,7 +481,7 @@ const ProductsPage: React.FC = () => {
 
   // Product Row Component
   const ProductRow: React.FC<{ product: Product }> = ({ product }) => {
-    const productOpts = productOptions?.filter((opt) => opt.productId === product.id);
+    // const productOpts = productOptions?.filter((opt) => opt.productId === product.id);
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center p-4 border-b border-neutral-200 hover:bg-neutral-50">
@@ -521,7 +501,7 @@ const ProductsPage: React.FC = () => {
           <div className="min-w-0 flex-1">
             <h4 className="font-medium text-neutral-900 truncate">{product.name}</h4>
             <p className="text-sm text-neutral-500 truncate">{product.sku}</p>
-            <p className="text-xs text-neutral-400">{productOpts.length} options</p>
+            <p className="text-xs text-neutral-400">{product?.options?.length} options</p>
           </div>
         </div>
 
@@ -574,8 +554,8 @@ const ProductsPage: React.FC = () => {
     if (url.startsWith('http')) return url;
 
     // Fallback (optional, if you ever store relative paths)
-   const imgUrl = `${url}?v=${updatedAt}`;
-    return imgUrl
+    const imgUrl = `${url}?v=${updatedAt}`;
+    return imgUrl;
   };
 
   if (!whatsappData?.catalogId) return <CatalogWarning />;
@@ -783,8 +763,8 @@ const ProductsPage: React.FC = () => {
               {editingProduct.id && (
                 <ProductOptionsManager
                   productId={editingProduct.id}
-                  options={productOptions}
-                  onOptionsChange={setProductOptions}
+                  options={editingProduct.options!}
+                  onOptionsChange={updateProductOptions}
                 />
               )}
 
