@@ -195,28 +195,10 @@ export class ChatService extends MCPChatBot {
 
     const serviceSchedule = checkBusinessServiceSchedule(planOrg.serviceSchedule);
     if (!serviceSchedule?.isOpen) {
-      // return await this.processValidationQuery({
-      //   userMessage,
-      //   assistantMessage: JSON.stringify(serviceSchedule),
-      // });
-      const chatHistory = new ChatHistoryManager();
-      const planOrg = await this.getOrganization();
-     const systemPrompt = createValidationSystemPrompt({ organizationData: planOrg });
-      const conversation = await this.getAndCreateConversationIfNotExist(systemPrompt);
-      await chatHistory.addMessage(
-        { conversationId: conversation?.id!, organizationId: this.organizationId },
-        { role: 'user', content: userMessage }
-      );
-      await chatHistory.addMessage(
-        { conversationId: conversation?.id!, organizationId: this.organizationId },
-        { role: 'assistant', content: 'الخدمة مغلقة حالياً' }
-      );
-      return {
-        data: {
-          type: 'message',
-          response: 'الخدمة مغلقة حالياً',
-        },
-      };
+      return await this.processValidationQuery({
+        userMessage,
+        assistantMessage: JSON.stringify(serviceSchedule),
+      });
     }
 
     systemPrompt = createSystemPrompt({
