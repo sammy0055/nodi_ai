@@ -147,16 +147,10 @@ export class ProductService {
       if (product.options) {
         const productOptions = JSON.parse(product.options as any) as ProductOption[];
         if (productOptions.length !== 0) {
-          console.log('==============😶‍🌫️product.options======================');
-          console.log(productOptions);
-          console.log('====================================');
           const optionChoices = productOptions.flatMap((item) => item.choices || []);
           await ProductOptionService.updateOptions(productOptions, transaction);
           if (optionChoices && optionChoices.length !== 0) {
-            console.log('==============😶‍🌫️optionChoices======================');
-            console.log(optionChoices);
-            console.log('====================================');
-            await ProductOptionChoiceService.updateChoices(optionChoices);
+            await ProductOptionChoiceService.updateChoices(optionChoices, transaction);
           }
         }
       }
@@ -206,11 +200,16 @@ export class ProductService {
 
       if (!whatsappData?.catalogId) throw new Error("you don't have an active catalog, kindly create one");
 
-      const oldProduct = await ProductModel.findOne({
+      const oldProduct = (await ProductModel.findOne({
         where: { id: productId, organizationId: user.organizationId },
         transaction,
+        include: {
+          model: ProductOptionModel,
+          as: 'options',
+          include: [{ model: ProductOptionChoiceModel, as: 'choices' }],
+        },
         lock: transaction.LOCK.UPDATE,
-      });
+      })) as any;
 
       if (!oldProduct) throw new Error('product not found');
 
@@ -224,6 +223,22 @@ export class ProductService {
         where: { id: productId },
         transaction,
       });
+
+      // update product options and choices if exist
+      if (oldProduct?.options) {
+        const productOptions = oldProduct?.options;
+        if (productOptions.length !== 0) {
+          const optionChoices = productOptions.flatMap((item: any) => item.choices || []);
+          await ProductOptionModel.destroy({
+            where: { productId },
+            transaction,
+          });
+          if (optionChoices && optionChoices.length !== 0) {
+            const optionIds = productOptions.map((op: any) => op.id);
+            await ProductOptionChoiceModel.destroy({ where: { productOptionId: { [Op.in]: optionIds } }, transaction });
+          }
+        }
+      }
 
       await transaction.commit();
 
