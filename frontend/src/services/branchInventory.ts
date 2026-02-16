@@ -49,16 +49,29 @@ export class BranchInventoryService {
     });
   }
 
-  async searchInvotory(
-    searchTerm: string
-  ): Promise<{ data: { data: IBranchInventory[]; pagination: any }; message: string }> {
-    const response = await fetch(`${API_ROUTES.GET_BRANCH_INVENTORIES}?search=${searchTerm}`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+  async searchInvotory({
+    search,
+    branch,
+    isActive,
+    quantityOnHand,
+    quantityReserved,
+  }: {
+    search?: string;
+    branch?: string;
+    isActive?: string;
+    quantityReserved?: number;
+    quantityOnHand?: number;
+  }): Promise<{ data: { data: IBranchInventory[]; pagination: any }; message: string }> {
+    const response = await fetch(
+      `${API_ROUTES.GET_BRANCH_INVENTORIES}?search=${search}&branch=${encodeURIComponent(branch || '')}&isActive=${encodeURIComponent(isActive || '')}&quantityOnHand=${quantityOnHand}&quantityReserved=${quantityReserved}`,
+      {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
     if (!response.ok) {
       let errorMessage = `${response.status} ${response.statusText}`;

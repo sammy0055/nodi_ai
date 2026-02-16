@@ -160,6 +160,9 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
 
   const getData = async (data: any) => {
     const stats = await getOrderStatsPerAsignedUser(data.currentUser.id);
+    console.log('==================stats==================');
+    console.log(stats);
+    console.log('====================================');
     setOrderStats(stats.data);
   };
   // Tabs configuration
@@ -226,7 +229,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
     }
   }, [data]);
 
-  useGetOrdersOnInterval(data, activeTab, { setPagination });
+  useGetOrdersOnInterval(data, activeTab, { setPagination, setOrderStats });
 
   useEffect(() => {
     handlePagination(pagination?.currentPage || 1);
@@ -401,6 +404,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
       setCurrentUser(
         (prev) => ({ ...prev, activeOrderCount: (prev?.activeOrderCount || 0) + 1, lastActive: new Date() }) as any
       );
+      setActiveTab("processing")
     } catch (error) {
       console.error('Error assigning order:', error);
       alert('Failed to assign order. Please try again.');

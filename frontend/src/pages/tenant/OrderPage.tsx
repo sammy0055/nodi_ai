@@ -562,7 +562,7 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
             u.id === userId ? { ...u, activeOrderCount: (u.activeOrderCount || 0) + 1, lastActive: new Date() } : u
           )
         );
-
+        setSelectedTab("processing");
         setShowAssignmentModal(false);
         setOrderToAssign(null);
         setAssignToUserId('');
@@ -614,6 +614,7 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
             u.id === order.assignedUserId ? { ...u, activeOrderCount: Math.max(0, (u.activeOrderCount || 1) - 1) } : u
           )
         );
+        setSelectedTab("pending")
       } catch (error) {
         console.error('Error unassigning order:', error);
         alert('Failed to unassign order. Please try again.');

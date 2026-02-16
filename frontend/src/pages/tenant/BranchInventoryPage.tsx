@@ -181,7 +181,7 @@ const BranchInventoryPage: React.FC = () => {
 
   useEffect(() => {
     const fn = async () => {
-      const { data } = await searchInvotory(searchTerm);
+      const { data } = await searchInvotory({ search: searchTerm });
       setInventory(data.data); // now filteredProducts is an array
     };
 
@@ -211,12 +211,12 @@ const BranchInventoryPage: React.FC = () => {
       case 'sellingPrice':
         if (!value && value !== 0) return 'Selling price is required';
         if (value < 0) return 'Selling price cannot be negative';
-        if (value > 1000000) return 'Selling price is too high';
+        if (value > 100000000) return 'Selling price is too high';
         break;
 
       case 'quantityOnHand':
         if (value < 0) return 'Quantity on hand cannot be negative';
-        if (value > 100000) return 'Quantity is too high';
+        if (value > 100000000) return 'Quantity is too high';
         break;
 
       case 'quantityReserved':
@@ -303,9 +303,9 @@ const BranchInventoryPage: React.FC = () => {
   };
 
   const handleDeleteInventory = async (inventoryId: string) => {
-     if (!isUserRoleValid('super-admin')) {
-    if (!isUserPermissionsValid(["inventory.delete"])) navigate(-1);
-  }
+    if (!isUserRoleValid('super-admin')) {
+      if (!isUserPermissionsValid(['inventory.delete'])) navigate(-1);
+    }
     try {
       if (window.confirm('Are you sure you want to delete this inventory entry?')) {
         await deleteInventory(inventoryId);
@@ -360,18 +360,6 @@ const BranchInventoryPage: React.FC = () => {
     setShowProductDropdown(false);
   };
 
-  const getBranchName = (branchId: string) => {
-    return branches.find((b) => b.id === branchId)?.name || 'Unknown Branch';
-  };
-
-  const getProductName = (productId: string) => {
-    return products.find((p) => p.id === productId)?.name || 'Unknown Product';
-  };
-
-  const getProductSku = (productId: string) => {
-    return products.find((p) => p.id === productId)?.sku || 'N/A';
-  };
-
   const getStatusColor = (isActive: boolean) => {
     return isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
   };
@@ -406,7 +394,7 @@ const BranchInventoryPage: React.FC = () => {
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center space-x-2">
-            <h4 className="font-medium text-neutral-900 truncate">{getProductName(item.productId)}</h4>
+            <h4 className="font-medium text-neutral-900 truncate">{item.product?.name}</h4>
             <span
               className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
                 item.isActive
@@ -417,9 +405,9 @@ const BranchInventoryPage: React.FC = () => {
           </div>
           <p className="text-sm text-neutral-500 truncate flex items-center">
             <FiMapPin className="mr-1 text-neutral-400" size={12} />
-            {getBranchName(item.branchId)}
+            {item.branch?.name}
           </p>
-          <p className="text-xs text-neutral-400">SKU: {getProductSku(item.productId)}</p>
+          <p className="text-xs text-neutral-400">SKU: {item.product?.sku || 'N/A'}</p>
         </div>
       </div>
 

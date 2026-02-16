@@ -126,8 +126,8 @@ const BranchesPage: React.FC = () => {
 
       case 'phone':
         if (!value || value.trim().length === 0) return 'Phone number is required';
-        if (!/^\+?[\d\s\-()]+$/.test(value)) return 'Please enter a valid phone number';
-        if (value.replace(/\D/g, '').length < 10) return 'Phone number must be at least 10 digits';
+        // if (!/^\+?[\d\s\-()]+$/.test(value)) return 'Please enter a valid phone number';
+        if (value.replace(/\D/g, '').length < 4) return 'Phone number must be at least 4 digits';
         break;
 
       case 'email':

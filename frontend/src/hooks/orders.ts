@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { OrderService, type GetOrderParams } from '../services/orderService';
 import type { OrderStatus } from '../pages/tenant/OrderPage';
-import { useOrdersSetRecoilState } from '../store/authAtoms';
+import { useOrdersSetRecoilState, useUserValue } from '../store/authAtoms';
 
 interface Arguments {
   setPagination?: any;
+  setOrderStats?: any;
 }
 export const useGetOrdersOnInterval = (
   response: any,
@@ -14,7 +15,8 @@ export const useGetOrdersOnInterval = (
   const intervalRef = useRef<number | null>(null);
   const [dataset, setDataSet] = useState<any>({});
   const setOrders = useOrdersSetRecoilState();
-  const { getOrders } = new OrderService();
+  const currentUser = useUserValue();
+  const { getOrders, getOrderStatsPerAsignedUser } = new OrderService();
 
   useEffect(() => {
     const getOrderOnInterval = async () => {
@@ -25,6 +27,11 @@ export const useGetOrdersOnInterval = (
         }
 
         const data = await getOrders(filter);
+        if (currentUser?.id) {
+          const stats = await getOrderStatsPerAsignedUser(currentUser.id);
+          args?.setOrderStats(stats.data);
+        }
+
         setOrders(data.data.data);
         if (args?.setPagination) args.setPagination(data.data.pagination);
         setDataSet({ ...response, orders: data.data });

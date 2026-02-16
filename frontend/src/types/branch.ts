@@ -25,7 +25,8 @@ export interface IBranchInventory {
   isActive: boolean;
   isAllBranchSelected?: boolean;
   isAllProductSelected?: boolean;
-  product?: { id: string; currency: string };
+  product?: { id: string; currency: string; name: string; sku: string };
+  branch?: { id: string; name: string };
 }
 
 export interface IZone {
