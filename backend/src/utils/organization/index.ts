@@ -45,7 +45,7 @@ interface ServiceStatusResponse {
 
 export function checkBusinessServiceSchedule(
   schedule: ServiceSchedule[],
-  timeZone: string // e.g. "Africa/Lagos"
+  timeZone = "UTC" // e.g. "Africa/Lagos"
 ): ServiceStatusResponse {
 
   if (!Array.isArray(schedule)) {

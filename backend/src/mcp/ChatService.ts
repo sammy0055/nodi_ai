@@ -193,7 +193,7 @@ export class ChatService extends MCPChatBot {
       });
     }
 
-    const serviceSchedule = checkBusinessServiceSchedule(planOrg.serviceSchedule);
+    const serviceSchedule = checkBusinessServiceSchedule(planOrg.serviceSchedule, planOrg.timeZone!);
     if (!serviceSchedule?.isOpen) {
       return await this.processValidationQuery({
         userMessage,
