@@ -368,7 +368,6 @@ export class OrderService {
     const ALL_STATUSES = Object.values(OrderStatusTypes); // adjust to your real statuses
 
     const statusWhere: any = { organizationId: user.organizationId! };
-    if (assignedUserId) statusWhere.assignedUserId = assignedUserId;
     if (assignedUserId) {
       statusWhere[Op.or] = [
         { status: OrderStatusTypes.PENDING }, // ignore assignedUserId
