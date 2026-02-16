@@ -221,7 +221,7 @@ const CustomersPage: React.FC = () => {
       setCustomers(data.data.data);
       setPagination(data?.data?.pagination);
     };
-    if (debouncedSearchTerm) Fn();
+   Fn();
   }, [debouncedSearchTerm]);
 
   const getSourceIcon = (source: string) => {

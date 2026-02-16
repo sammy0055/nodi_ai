@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   FiClock,
   FiPlus,
@@ -24,10 +24,17 @@ export interface ServiceSchedule {
 
 interface ServiceScheduleFormProps {
   initialSchedule?: ServiceSchedule[];
-  onScheduleChange?: (schedule: ServiceSchedule[]) => void;
+  timeZone?: string; // current selected timezone (must not be empty)
+  onScheduleChange?: (schedule: ServiceSchedule[], timeZone:string) => void;
+  onTimezoneChange?: (timezone: string) => void; // callback when timezone changes
 }
 
-const ServiceScheduleForm: React.FC<ServiceScheduleFormProps> = ({ initialSchedule = [], onScheduleChange }) => {
+const ServiceScheduleForm: React.FC<ServiceScheduleFormProps> = ({
+  initialSchedule = [],
+  timeZone = "UTC",
+  onScheduleChange,
+  onTimezoneChange,
+}) => {
   // Days of week configuration with colors
   const daysOfWeek = [
     { id: 'monday', label: 'Monday', short: 'MON', color: 'bg-blue-100 text-blue-800' },
@@ -56,6 +63,9 @@ const ServiceScheduleForm: React.FC<ServiceScheduleFormProps> = ({ initialSchedu
   const [expandedDay, setExpandedDay] = useState<string | null>('monday');
   const [showAllDays, setShowAllDays] = useState(false);
 
+  // State for timezone (sync with prop)
+  const [selectedTimezone, setSelectedTimezone] = useState(timeZone);
+
   // Time options for dropdown
   const timeOptions = Array.from({ length: 24 * 4 }, (_, i) => {
     const hour = Math.floor(i / 4);
@@ -66,6 +76,48 @@ const ServiceScheduleForm: React.FC<ServiceScheduleFormProps> = ({ initialSchedu
     const time12 = `${hour12}:${minute.toString().padStart(2, '0')} ${ampm}`;
     return { value: time24, label: time12 };
   });
+
+  // Sync internal timezone state with prop
+  useEffect(() => {
+    setSelectedTimezone(timeZone);
+  }, [timeZone]);
+
+  // Generate timezone options (using Intl if available, else fallback list)
+  const getTimezoneOptions = (): { value: string; label: string }[] => {
+    try {
+      // Use Intl API if supported (modern browsers)
+      if (typeof Intl !== 'undefined' && Intl.supportedValuesOf) {
+        const timezones = Intl.supportedValuesOf('timeZone');
+        return timezones.map(tz => ({ value: tz, label: tz.replace(/_/g, ' ') }));
+      }
+    } catch (e) {
+      // fall through to fallback
+    }
+    // Fallback list of common timezones (non-empty)
+    const fallbackTimezones = [
+      'UTC',
+      'America/New_York',
+      'America/Chicago',
+      'America/Denver',
+      'America/Los_Angeles',
+      'Europe/London',
+      'Europe/Paris',
+      'Asia/Tokyo',
+      'Asia/Shanghai',
+      'Australia/Sydney',
+      'Pacific/Auckland',
+    ];
+    return fallbackTimezones.map(tz => ({ value: tz, label: tz.replace(/_/g, ' ') }));
+  };
+
+  const timezoneOptions = getTimezoneOptions();
+
+  // Handle timezone change
+  const handleTimezoneChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newTz = e.target.value;
+    setSelectedTimezone(newTz);
+    onTimezoneChange?.(newTz);
+  };
 
   // Toggle day expansion
   const toggleExpandDay = (dayId: string) => {
@@ -90,13 +142,14 @@ const ServiceScheduleForm: React.FC<ServiceScheduleFormProps> = ({ initialSchedu
   const saveEditing = () => {
     if (!editingDay) return;
 
-    const updatedSchedule = schedule
-      .map((day) => (day.dayOfWeek === editingDay ? { ...day, hours: tempHours.length > 0 ? tempHours : [] } : day))
+    const updatedSchedule = schedule.map((day) =>
+      day.dayOfWeek === editingDay ? { ...day, hours: tempHours.length > 0 ? tempHours : [] } : day
+    );
 
     setSchedule(updatedSchedule);
     setEditingDay(null);
     setTempHours([]);
-    onScheduleChange?.(updatedSchedule);
+    onScheduleChange?.(updatedSchedule, selectedTimezone);
   };
 
   // Add time slot
@@ -139,10 +192,12 @@ const ServiceScheduleForm: React.FC<ServiceScheduleFormProps> = ({ initialSchedu
   // Toggle day active status
   const toggleDayActive = (dayId: string) => {
     const updatedSchedule = schedule.map((day) =>
-      day.dayOfWeek === dayId ? { ...day, hours: day.hours.length > 0 ? [] : [{ open: '09:00', close: '17:00' }] } : day
+      day.dayOfWeek === dayId
+        ? { ...day, hours: day.hours.length > 0 ? [] : [{ open: '09:00', close: '17:00' }] }
+        : day
     );
     setSchedule(updatedSchedule);
-    onScheduleChange?.(updatedSchedule);
+    onScheduleChange?.(updatedSchedule, selectedTimezone);
   };
 
   // Set all days to default hours
@@ -152,7 +207,7 @@ const ServiceScheduleForm: React.FC<ServiceScheduleFormProps> = ({ initialSchedu
       hours: [{ open: '09:00', close: '17:00' }],
     }));
     setSchedule(updatedSchedule);
-    onScheduleChange?.(updatedSchedule);
+    onScheduleChange?.(updatedSchedule, selectedTimezone);
   };
 
   // Clear all days
@@ -162,7 +217,7 @@ const ServiceScheduleForm: React.FC<ServiceScheduleFormProps> = ({ initialSchedu
       hours: [],
     }));
     setSchedule(updatedSchedule);
-    onScheduleChange?.(updatedSchedule);
+    onScheduleChange?.(updatedSchedule, selectedTimezone);
   };
 
   // Calculate statistics
@@ -190,13 +245,32 @@ const ServiceScheduleForm: React.FC<ServiceScheduleFormProps> = ({ initialSchedu
               <p className="text-gray-600">Manage your business operating hours</p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" onClick={clearAllDays} className="border-gray-300">
-              Clear All
-            </Button>
-            <Button variant="outline" size="sm" onClick={setAllDays}>
-              Set Weekdays
-            </Button>
+
+          {/* Timezone Selector and Action Buttons */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+            <div className="flex items-center space-x-2">
+              <FiClock className="text-gray-500" size={18} />
+              <select
+                value={selectedTimezone}
+                onChange={handleTimezoneChange}
+                className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                {timezoneOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Button variant="outline" size="sm" onClick={clearAllDays} className="border-gray-300">
+                Clear All
+              </Button>
+              <Button variant="outline" size="sm" onClick={setAllDays}>
+                Set Weekdays
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -543,14 +617,17 @@ const ServiceScheduleForm: React.FC<ServiceScheduleFormProps> = ({ initialSchedu
         <div className="mt-8 pt-6 border-t border-gray-200">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div className="text-sm text-gray-600">
-              <p>Changes take effect immediately. All times are in your local timezone.</p>
+              <p>
+                Changes take effect immediately. All times are displayed in{' '}
+                <span className="font-medium">{selectedTimezone.replace(/_/g, ' ')}</span>.
+              </p>
             </div>
             <div className="flex items-center space-x-3">
               <Button
                 variant="outline"
                 onClick={() => {
                   setSchedule(defaultSchedule);
-                  onScheduleChange?.(defaultSchedule);
+                  onScheduleChange?.(defaultSchedule, selectedTimezone);
                 }}
                 className="border-gray-300"
               >
@@ -559,7 +636,7 @@ const ServiceScheduleForm: React.FC<ServiceScheduleFormProps> = ({ initialSchedu
               <Button
                 onClick={() => {
                   // Save all changes
-                  onScheduleChange?.(schedule);
+                  onScheduleChange?.(schedule, selectedTimezone);
                 }}
                 className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
               >

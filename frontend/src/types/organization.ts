@@ -33,6 +33,7 @@ export interface IOrganization {
   frequentlyAskedQuestions: FAQItem[];
   serviceSchedule: ServiceSchedule[];
   reviewTimer: number | null;
+  timeZone?:string
 }
 
 export interface OrganizationPayload extends IOrganization {

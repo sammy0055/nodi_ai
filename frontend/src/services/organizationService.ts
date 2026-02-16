@@ -59,10 +59,13 @@ export class OrganizationService {
     });
   }
 
-  async setOrgServiceSchedule(data: ServiceSchedule[]): Promise<{ data: IOrganization; message: string }> {
+  async setOrgServiceSchedule(
+    serviceSchedules: ServiceSchedule[],
+    timeZone: string
+  ): Promise<{ data: IOrganization; message: string }> {
     return await ApiClient('SET_ORG_SERVICE_SCHEDULE', {
       method: 'POST',
-      body: data,
+      body: { serviceSchedules, timeZone },
     });
   }
 }

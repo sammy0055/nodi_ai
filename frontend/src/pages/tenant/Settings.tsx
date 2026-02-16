@@ -365,7 +365,7 @@ const SettingsPage: React.FC = () => {
     setRolePermissions(new Set());
   };
 
-  const handleSetServiceSchedule = async (data: ServiceSchedule[]) => {
+  const handleSetServiceSchedule = async (data: ServiceSchedule[], timeZone:string) => {
     try {
       if (!isUserRoleValid('super-admin')) {
         if (!isUserPermissionsValid(['service_schedule.update'])) {
@@ -373,7 +373,7 @@ const SettingsPage: React.FC = () => {
           return;
         }
       }
-      await setOrgServiceSchedule(data);
+      await setOrgServiceSchedule(data, timeZone);
       alert('service schedule save successfully');
     } catch (error: any) {
       alert('something went wrong, please try again');
@@ -1055,6 +1055,7 @@ const SettingsPage: React.FC = () => {
       <ServiceScheduleForm
         initialSchedule={data?.organization?.serviceSchedule}
         onScheduleChange={handleSetServiceSchedule}
+        timeZone={data?.organization?.timeZone}
       />
     </div>
   );
