@@ -44,43 +44,58 @@ interface ServiceStatusResponse {
 }
 
 export function checkBusinessServiceSchedule(
-  schedule: ServiceSchedule[]
+  schedule: ServiceSchedule[],
+  timeZone: string // e.g. "Africa/Lagos"
 ): ServiceStatusResponse {
-  const now = new Date();
-  const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-  const currentDay = dayNames[now.getDay()];
-  const currentTime = now.toTimeString().slice(0, 5); // "HH:mm"
 
   if (!Array.isArray(schedule)) {
     return {
       isOpen: false,
-      currentDay,
-      currentTime,
+      currentDay: '',
+      currentTime: '',
       message: "Invalid schedule format."
     };
   }
 
-  const todaySchedule = schedule.find(
-    (s) => s.dayOfWeek?.toLowerCase() === currentDay
-  );
+  const now = new Date();
 
-  // Helper: parse time string to minutes since midnight
+  // Get current time in user's timezone
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    weekday: 'long',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+
+  const parts = formatter.formatToParts(now);
+
+  const currentDay = parts.find(p => p.type === 'weekday')?.value.toLowerCase()!;
+  const hour = parts.find(p => p.type === 'hour')?.value!;
+  const minute = parts.find(p => p.type === 'minute')?.value!;
+  const currentTime = `${hour}:${minute}`;
+
   const timeToMinutes = (timeStr: string): number => {
     const [h, m] = timeStr.split(':').map(Number);
     return h * 60 + m;
   };
 
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const nowMinutes = timeToMinutes(currentTime);
 
-  // Check if currently open
+  const todaySchedule = schedule.find(
+    s => s.dayOfWeek?.toLowerCase() === currentDay
+  );
+
   let isOpen = false;
-  if (todaySchedule?.hours) {
+
+  // ✅ Check if currently open
+  if (todaySchedule?.hours?.length) {
     for (const slot of todaySchedule.hours) {
       const openMin = timeToMinutes(slot.open);
       const closeMin = timeToMinutes(slot.close);
 
       if (closeMin <= openMin) {
-        // Overnight: e.g., 22:00–02:00 → spans midnight
+        // Overnight schedule (e.g. 22:00–02:00)
         if (nowMinutes >= openMin || nowMinutes < closeMin) {
           isOpen = true;
           break;
@@ -97,15 +112,14 @@ export function checkBusinessServiceSchedule(
   let nextOpen: { day: string; time: string } | undefined;
 
   if (!isOpen) {
-    // 🔍 First: check if service opens LATER TODAY
+    // 🔍 Check later today
     if (todaySchedule?.hours?.length) {
-      // Find the next opening slot TODAY that starts after current time
       const futureSlotsToday = todaySchedule.hours
         .filter(slot => {
           const openMin = timeToMinutes(slot.open);
-          // For overnight slots, "open" is yesterday — skip for same-day future
           const closeMin = timeToMinutes(slot.close);
-          if (closeMin <= openMin) return false; // overnight → not a same-day future open
+
+          if (closeMin <= openMin) return false; // skip overnight
           return openMin > nowMinutes;
         })
         .sort((a, b) => timeToMinutes(a.open) - timeToMinutes(b.open));
@@ -115,18 +129,30 @@ export function checkBusinessServiceSchedule(
       }
     }
 
-    // 🔍 If not opening later today, check upcoming days (including tomorrow onward)
+    // 🔍 Check next days
     if (!nextOpen) {
       for (let i = 1; i <= 7; i++) {
-        const checkDate = new Date(now);
-        checkDate.setDate(now.getDate() + i);
-        const checkDay = dayNames[checkDate.getDay()];
+        const futureDate = new Date(now);
 
-        const daySchedule = schedule.find(s => s.dayOfWeek?.toLowerCase() === checkDay);
+        // Move date safely in user timezone logic
+        futureDate.setUTCDate(now.getUTCDate() + i);
+
+        const futureFormatter = new Intl.DateTimeFormat('en-US', {
+          timeZone,
+          weekday: 'long'
+        });
+
+        const futureDay = futureFormatter.format(futureDate).toLowerCase();
+
+        const daySchedule = schedule.find(
+          s => s.dayOfWeek?.toLowerCase() === futureDay
+        );
+
         if (daySchedule?.hours?.length) {
-          // Use the first opening time of that day
-          const firstSlot = daySchedule.hours[0];
-          nextOpen = { day: checkDay, time: firstSlot.open };
+          nextOpen = {
+            day: futureDay,
+            time: daySchedule.hours[0].open
+          };
           break;
         }
       }
@@ -141,7 +167,11 @@ export function checkBusinessServiceSchedule(
     message: isOpen
       ? `Service is currently open.`
       : nextOpen
-        ? `Service is closed. Next open: ${nextOpen.day.charAt(0).toUpperCase() + nextOpen.day.slice(1)} at ${nextOpen.time}.`
-        : `Service is temporarity closed.`
+        ? `Service is closed. Next open: ${capitalize(nextOpen.day)} at ${nextOpen.time}.`
+        : `Service is temporarily closed.`
   };
+}
+
+function capitalize(text: string) {
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }

@@ -25,6 +25,7 @@ class OrganizationsModel
   declare frequentlyAskedQuestions: OrgReviewQuestions[];
   declare serviceSchedule: ServiceSchedule[];
   declare reviewTimer: number | null;
+  declare timeZone: string | null;
   static associate(models: DbModels) {
     //hasMany The foreign key is on the other model (the one being linked).
     this.hasMany(models.BranchesModel, { foreignKey: 'organizationId' });
@@ -101,6 +102,7 @@ OrganizationsModel.init(
     serviceSchedule: { type: DataTypes.JSONB, defaultValue: [] },
     frequentlyAskedQuestions: { type: DataTypes.JSONB, defaultValue: [] },
     reviewTimer: { type: DataTypes.INTEGER, allowNull: true },
+    timeZone: { type: DataTypes.STRING, allowNull: true },
   },
   {
     sequelize,

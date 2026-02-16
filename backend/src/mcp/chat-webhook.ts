@@ -131,9 +131,6 @@ async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) 
     const chat = await ChatService.init(userPhoneNumber, whatsappBusinessId);
     const res = await chat.processQuery(userMessage);
     const response = res.data;
-    console.log('================res.data====================');
-    console.log(response);
-    console.log('====================================');
     switch (response.type) {
       case 'message':
         await chat.sendWhatSappMessage({ recipientPhoneNumber: userPhoneNumber, message: response.response });

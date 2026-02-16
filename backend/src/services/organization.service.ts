@@ -179,9 +179,12 @@ export class OrganizationService {
     return plainOrg;
   }
 
-  static async setServiceSchedule(data: ServiceSchedule[], user: Pick<User, 'id' | 'organizationId'>) {
+  static async setServiceSchedule(
+    data: { serviceSchedules: ServiceSchedule[]; timeZone: string },
+    user: Pick<User, 'id' | 'organizationId'>
+  ) {
     const [_, updatedOrg] = await OrganizationsModel.update(
-      { serviceSchedule: data },
+      { serviceSchedule: data.serviceSchedules, timeZone: data.timeZone },
       { where: { id: user.organizationId! }, returning: true, individualHooks: true }
     );
 
