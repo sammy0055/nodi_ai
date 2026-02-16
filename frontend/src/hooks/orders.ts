@@ -6,6 +6,7 @@ import { useOrdersSetRecoilState, useUserValue } from '../store/authAtoms';
 interface Arguments {
   setPagination?: any;
   setOrderStats?: any;
+  isAdmin?: boolean;
 }
 export const useGetOrdersOnInterval = (
   response: any,
@@ -29,6 +30,11 @@ export const useGetOrdersOnInterval = (
         const data = await getOrders(filter);
         if (currentUser?.id) {
           const stats = await getOrderStatsPerAsignedUser(currentUser.id);
+          args?.setOrderStats(stats.data);
+        } 
+        
+        if(args?.isAdmin){
+          const stats = await getOrderStatsPerAsignedUser();
           args?.setOrderStats(stats.data);
         }
 

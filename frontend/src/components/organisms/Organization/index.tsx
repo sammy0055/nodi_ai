@@ -315,7 +315,11 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
         alert('can not change order status, order is already completed');
         return;
       }
+      if (newStatus === 'cancelled') {
+        setActiveTab('cancelled');
+      }
       if (newStatus === 'delivered') {
+        setActiveTab('delivered');
         const userToUpdate = users.find((u) => u.id === currentUser?.id);
         if (!userToUpdate) {
           alert('asigned user does not exist');
@@ -404,7 +408,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
       setCurrentUser(
         (prev) => ({ ...prev, activeOrderCount: (prev?.activeOrderCount || 0) + 1, lastActive: new Date() }) as any
       );
-      setActiveTab("processing")
+      setActiveTab('processing');
     } catch (error) {
       console.error('Error assigning order:', error);
       alert('Failed to assign order. Please try again.');

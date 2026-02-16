@@ -426,7 +426,7 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
       getData();
     }
   }, [data]);
-  useGetOrdersOnInterval(data, selectedTab, { setPagination });
+  useGetOrdersOnInterval(data, selectedTab, { setPagination, setOrderStats, isAdmin: true });
   useEffect(() => {
     const Fn = async () => {
       const data = await getOrders({ page: 1, searchTerm });
@@ -449,6 +449,7 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
         return;
       }
       if (newStatus === 'delivered') {
+        setSelectedTab("delivered")
         const userToUpdate = users.find((u) => u.id === currentUser?.id);
         if (!userToUpdate) {
           alert('asigned user does not exist');
@@ -562,7 +563,7 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
             u.id === userId ? { ...u, activeOrderCount: (u.activeOrderCount || 0) + 1, lastActive: new Date() } : u
           )
         );
-        setSelectedTab("processing");
+        setSelectedTab('processing');
         setShowAssignmentModal(false);
         setOrderToAssign(null);
         setAssignToUserId('');
@@ -614,7 +615,7 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
             u.id === order.assignedUserId ? { ...u, activeOrderCount: Math.max(0, (u.activeOrderCount || 1) - 1) } : u
           )
         );
-        setSelectedTab("pending")
+        setSelectedTab('pending');
       } catch (error) {
         console.error('Error unassigning order:', error);
         alert('Failed to unassign order. Please try again.');
