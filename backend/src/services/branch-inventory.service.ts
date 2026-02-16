@@ -184,30 +184,38 @@ export class BranchInventoryService {
   static async getBranchInventories(
     user: Pick<User, 'id' | 'organizationId'>,
     { offset, limit, page }: Pagination,
-    search?: string
+    {
+      search,
+      branch,
+      quantityOnHand,
+      quantityReserved,
+      isActive,
+    }: { search?: string; branch?: string; isActive?: string; quantityReserved?: number; quantityOnHand?: number }
   ) {
+    const where: any = { organizationId: user.organizationId! };
+    if (branch) where.search = branch;
+    if (isActive) where.isActive = isActive;
+    if (quantityOnHand) where.quantityOnHand;
+    if (quantityReserved) where.quantityReserved;
+
+    if (search?.trim()) {
+      where[Op.and] = [
+        {
+          [Op.or]: [
+            literal(`
+          to_tsvector('english', coalesce("product"."name", ''))
+          @@ plainto_tsquery('english', '${search}')
+        `),
+            literal(`
+          to_tsvector('english', coalesce("branch"."name", ''))
+          @@ plainto_tsquery('english', '${search}')
+        `),
+          ],
+        },
+      ];
+    }
     const { rows: inventories, count: totalItems } = await BranchInventoryModel.findAndCountAll({
-      where: {
-        organizationId: user.organizationId!,
-        ...(search && search.trim() !== ''
-          ? {
-              [Op.and]: [
-                {
-                  [Op.or]: [
-                    literal(`
-                  to_tsvector('english', coalesce("product"."name", ''))
-                  @@ plainto_tsquery('english', '${search}')
-                `),
-                    literal(`
-                  to_tsvector('english', coalesce("branch"."name", ''))
-                  @@ plainto_tsquery('english', '${search}')
-                `),
-                  ],
-                },
-              ],
-            }
-          : {}),
-      },
+      where,
       include: [
         {
           model: ProductModel,

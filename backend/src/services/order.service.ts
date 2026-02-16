@@ -369,6 +369,14 @@ export class OrderService {
 
     const statusWhere: any = { organizationId: user.organizationId! };
     if (assignedUserId) statusWhere.assignedUserId = assignedUserId;
+    if (assignedUserId) {
+      statusWhere[Op.or] = [
+        { status: OrderStatusTypes.PENDING }, // ignore assignedUserId
+        {
+          [Op.and]: [{ status: { [Op.ne]: OrderStatusTypes.PENDING } }, { assignedUserId }],
+        },
+      ];
+    }
     const [rawStatusCounts, assignedCount, allOrdersCount] = await Promise.all([
       OrderModel.findAll({
         attributes: ['status', [fn('COUNT', col('id')), 'count']],

@@ -45,13 +45,21 @@ branchInventoryRoute.post('/update', authMiddleware, async (req, res) => {
 
 branchInventoryRoute.get('/get-inventories', authMiddleware, async (req, res) => {
   const page = parseInt(req.query.page as string) || 1;
-  const limit = parseInt(req.query.limit as string) || 5;
-  const search = req.query.search as string;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const search = req.query.search as any;
+  const isActive = req.query.isActive as string;
+  const branch = req.query.branch as string;
+  const quantityReserved = req.query.quantityReserved && (Number(req.query.quantityReserved) as any);
+  const quantityOnHand = req.query.quantityOnHand && (Number(req.query.quantityOnHand) as any);
 
   // calculate offset
   const offset = (page - 1) * limit;
   try {
-    const data = await BranchInventoryService.getBranchInventories(req.user!, { page, limit, offset }, search);
+    const data = await BranchInventoryService.getBranchInventories(
+      req.user!,
+      { page, limit, offset },
+      { search, isActive, quantityReserved, quantityOnHand }
+    );
     const response: APIResponseFormat<any> = {
       message: 'branch-inventory updated successfully',
       data,
