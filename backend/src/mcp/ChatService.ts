@@ -132,7 +132,7 @@ export class ChatService extends MCPChatBot {
     assistantMessage: any;
   }) {
     const planOrg = await this.getOrganization();
-     const systemPrompt = createValidationSystemPrompt({ organizationData: planOrg });
+    const systemPrompt = createValidationSystemPrompt({ organizationData: planOrg });
     const OPENAI_API_KEY = appConfig.mcpKeys.openaiKey;
     const chatHistory = new ChatHistoryManager();
     const conversation = await this.getAndCreateConversationIfNotExist(systemPrompt);
@@ -143,7 +143,7 @@ export class ChatService extends MCPChatBot {
     );
 
     const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
-   
+
     const res = await openai.responses.create({
       model: this.llm_model,
       input: [
@@ -321,6 +321,9 @@ export class ChatService extends MCPChatBot {
   }
 
   async sendWhatSappFlowInteractiveMessage(args: SendWhatSappFlowProps) {
+    console.log('😶‍🌫️===============sendWhatSappFlowInteractiveMessage=====================');
+    console.log(JSON.stringify(args));
+    console.log('====================================');
     const body = {
       messaging_product: 'whatsapp',
       to: args.recipientPhoneNumber,
