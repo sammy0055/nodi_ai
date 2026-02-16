@@ -321,9 +321,6 @@ export class ChatService extends MCPChatBot {
   }
 
   async sendWhatSappFlowInteractiveMessage(args: SendWhatSappFlowProps) {
-    console.log('😶‍🌫️===============sendWhatSappFlowInteractiveMessage=====================');
-    console.log(JSON.stringify(args));
-    console.log('====================================');
     const body = {
       messaging_product: 'whatsapp',
       to: args.recipientPhoneNumber,

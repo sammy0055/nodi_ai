@@ -162,6 +162,9 @@ export const getAllZonesAndAreas = async (server: McpServer) => {
           flowId: flow?.type === 'flow' && flow?.data.flowId,
           flowName: flow?.type === 'flow' && flow?.data.flowName,
         };
+        console.error('🏃🏼👌🏼===============get_all_zones_and_areas=====================');
+        console.error(params.organizationId, zones);
+        console.error('====================================');
         return {
           content: [{ type: 'text', text: JSON.stringify(data), mimeType: 'application/json' }],
         };
