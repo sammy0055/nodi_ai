@@ -151,7 +151,7 @@ For conversational replies, questions, explanations, order summaries.
 ## 3. \`area-and-zone-flow\` type
 **Only after customer chooses delivery.**
 **Steps:**
-1. Call \`get_all_zones_and_areas\` tool always, do not use from chat-history, call the tool always (HARD)
+1. Call \`get_all_zones_and_areas\` tool always, do not use from chat-history, call the tool always and use its response (HARD)
 2. Use exact tool data for: \`zones\`, \`areas\`, \`flowId\`, \`flowName\`
 3. Generate these fields yourself (in customer's language):
   - \`headingText\` (max 30 chars)
