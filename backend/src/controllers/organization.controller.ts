@@ -31,7 +31,10 @@ export class OrganizationController {
     return await OrganizationService.setOrgFQAQuestions(data, user);
   }
 
-  static async setServiceSchedule(data: ServiceSchedule[], user: Pick<User, 'id' | 'organizationId'>) {
+  static async setServiceSchedule(
+    data: { serviceSchedules: ServiceSchedule[]; timeZone: string },
+    user: Pick<User, 'id' | 'organizationId'>
+  ) {
     return await OrganizationService.setServiceSchedule(data, user);
   }
 
