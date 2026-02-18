@@ -367,7 +367,7 @@ const mockServiceScheduleData = [
 // console.log('====================================');
 // console.log(slots);
 // console.log('====================================');
-summarize();
+// summarize();
 // testMcp('hello');
 // run();
 // createWhsappFlow();

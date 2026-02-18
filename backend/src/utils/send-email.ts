@@ -1,9 +1,10 @@
 import { SMTPClient } from 'emailjs';
 
 const client = new SMTPClient({
-  user: process.env.EMAIL_USER,
-  password: process.env.EMAIL_PASS,
-  host: 'smtp.gmail.com',
+  user: 'no-reply@credobyte.com', // process.env.EMAIL_USER,
+  password: 'X@922539828402ol', // process.env.EMAIL_PASS,
+  host: 'smtp.office365.com',
+  port: 587, //smtp.gmail.com
   ssl: true,
 });
 
