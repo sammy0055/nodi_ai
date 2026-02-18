@@ -241,8 +241,8 @@ const createWhsappFlow = async () => {
 };
 
 const summarize = async () => {
-  const { summarizeConversationById } = new ChatHistoryManager();
-  const summary = await summarizeConversationById('conv_6926ce4f0d5c8197ae42ec29689de984036cc7ca7044cece');
+  const { summarizeConversationById, insertConverationItem } = new ChatHistoryManager();
+  const summary = await summarizeConversationById('conv_699576114d788197a339fde51e06037e0bfc05443bedf996');
   console.log(summary);
 };
 
@@ -367,7 +367,7 @@ const mockServiceScheduleData = [
 // console.log('====================================');
 // console.log(slots);
 // console.log('====================================');
-// summarize();
+summarize();
 // testMcp('hello');
 // run();
 // createWhsappFlow();

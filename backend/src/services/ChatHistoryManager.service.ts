@@ -76,9 +76,9 @@ export class ChatHistoryManager {
     const openai = new OpenAI({ apiKey: appConfig.mcpKeys.openaiKey });
     console.error('🏃🏼 processing chat summary', conversationId);
 
-    const items = await openai.conversations.items.list(conversationId);
-
+    const items = await openai.conversations.items.list(conversationId, { order: 'desc', limit: 100 });
     const chatHistory = items.data
+      .reverse()
       .filter((item) => item.type === 'message')
       .filter((msg) => msg.role === 'user' || msg.role === 'assistant') // only the two we want
       .map((msg) => {
@@ -91,9 +91,9 @@ export class ChatHistoryManager {
         return { role: msg.role, content: text };
       })
       .filter((m) => m.content !== '');
-    console.error('====================================');
-    console.error('chatHistory', chatHistory);
-    console.error('====================================');
+    // console.error('====================================');
+    // console.error('chatHistory', chatHistory);
+    // console.error('====================================');
 
     const response = await openai.responses.create({
       model: 'gpt-5',
@@ -137,10 +137,18 @@ export class ChatHistoryManager {
     const openai = new OpenAI({ apiKey: appConfig.mcpKeys.openaiKey });
     // get all items
     console.error('🏃🏼 processing chat summary insert', conversationId);
-    const items = await openai.conversations.items.list(conversationId);
-    for (const item of items.data) {
-      // each item has its own id
-      if (item.id) await openai.conversations.items.delete(conversationId, item.id as any);
+    while (true) {
+      const items = await openai.conversations.items.list(conversationId);
+
+      if (!items.data || items.data.length === 0) {
+        break; // nothing left
+      }
+
+      for (const item of items.data) {
+        if (item.id) {
+          await openai.conversations.items.delete(item.id, { conversation_id: conversationId });
+        }
+      }
     }
 
     await openai.conversations.items.create(conversationId, {
@@ -174,7 +182,7 @@ export class ChatHistoryManager {
 
   async insertConverationItem(convId: string, item: string) {
     const openai = new OpenAI({ apiKey: appConfig.mcpKeys.openaiKey });
-   return await openai.conversations.items.create(convId, {
+    return await openai.conversations.items.create(convId, {
       items: [
         {
           type: 'message',
