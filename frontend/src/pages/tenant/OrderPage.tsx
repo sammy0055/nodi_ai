@@ -419,10 +419,10 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
 
   useEffect(() => {
     if (Object.keys(data).length !== 0) {
-      setOrders(data.orders.data);
-      setPagination(data.orders.pagination);
-      setUsers(data.users);
-      setCurrentUser(data.currentUser);
+      setOrders(data.orders?.data);
+      setPagination(data.orders?.pagination);
+      setUsers(data?.users);
+      setCurrentUser(data?.currentUser);
       getData();
     }
   }, [data]);
@@ -449,7 +449,6 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
         return;
       }
       if (newStatus === 'delivered') {
-        setSelectedTab("delivered")
         const userToUpdate = users.find((u) => u.id === currentUser?.id);
         if (!userToUpdate) {
           alert('asigned user does not exist');
@@ -506,6 +505,7 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
           return order;
         })
       );
+      if (newStatus === 'delivered') setSelectedTab('delivered');
     } catch (error) {
       console.error('Error updating order status:', error);
       alert('Failed to update order status. Please try again.');

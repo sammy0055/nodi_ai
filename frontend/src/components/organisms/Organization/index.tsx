@@ -142,7 +142,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
   const setCurrentUser = useUserSetRecoilState();
   const setOrders = useOrdersSetRecoilState();
   // State
-  const [activeTab, setActiveTab] = useState<OrderStatus>('processing');
+  const [activeTab, setActiveTab] = useState<OrderStatus>('pending');
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [pagination, setPagination] = useState<Pagination>();
@@ -160,9 +160,6 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
 
   const getData = async (data: any) => {
     const stats = await getOrderStatsPerAsignedUser(data.currentUser.id);
-    console.log('==================stats==================');
-    console.log(stats);
-    console.log('====================================');
     setOrderStats(stats.data);
   };
   // Tabs configuration
@@ -315,11 +312,8 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
         alert('can not change order status, order is already completed');
         return;
       }
-      if (newStatus === 'cancelled') {
-        setActiveTab('cancelled');
-      }
+
       if (newStatus === 'delivered') {
-        setActiveTab('delivered');
         const userToUpdate = users.find((u) => u.id === currentUser?.id);
         if (!userToUpdate) {
           alert('asigned user does not exist');
@@ -346,6 +340,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
         });
         setOrders((prevOrders) => prevOrders.map((order) => (order.id === updatedOrder.id ? updatedOrder : order)));
         setSelectedOrder(updatedOrder);
+        setActiveTab('delivered');
       }
 
       await updateOrderStatus({ orderId, status: newStatus });
@@ -354,6 +349,9 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
       );
       setSelectedOrder({ ...selectedOrder, status: newStatus } as any);
       alert('order status updated successfully');
+      if (newStatus === 'cancelled') {
+        setActiveTab('cancelled');
+      }
     } catch (error) {
       console.error('Error updating order status:', error);
       alert('Failed to update order status. Please try again.');
@@ -960,8 +958,8 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
                                 Unit Price: {formatCurrency(item.product.price, selectedOrder.currency)}
                               </div>
                               {item?.product?.options?.length > 0 && (
-                                <div className="text-sm text-gray-500 mt-2">
-                                  Options: {item.product.options.map((opt) => opt.choice.label).join(', ')}
+                                <div className="text-xs text-neutral-500 mt-1">
+                                  {item?.product?.options?.map((opt) => `${opt?.name}: ${opt.choice.label}`).join(', ')}
                                 </div>
                               )}
                             </div>

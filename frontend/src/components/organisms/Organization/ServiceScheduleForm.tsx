@@ -25,13 +25,13 @@ export interface ServiceSchedule {
 interface ServiceScheduleFormProps {
   initialSchedule?: ServiceSchedule[];
   timeZone?: string; // current selected timezone (must not be empty)
-  onScheduleChange?: (schedule: ServiceSchedule[], timeZone:string) => void;
+  onScheduleChange?: (schedule: ServiceSchedule[], timeZone: string) => void;
   onTimezoneChange?: (timezone: string) => void; // callback when timezone changes
 }
 
 const ServiceScheduleForm: React.FC<ServiceScheduleFormProps> = ({
   initialSchedule = [],
-  timeZone = "UTC",
+  timeZone = 'UTC',
   onScheduleChange,
   onTimezoneChange,
 }) => {
@@ -64,7 +64,7 @@ const ServiceScheduleForm: React.FC<ServiceScheduleFormProps> = ({
   const [showAllDays, setShowAllDays] = useState(false);
 
   // State for timezone (sync with prop)
-  const [selectedTimezone, setSelectedTimezone] = useState(timeZone);
+  const [selectedTimezone, setSelectedTimezone] = useState(timeZone || 'UTC');
 
   // Time options for dropdown
   const timeOptions = Array.from({ length: 24 * 4 }, (_, i) => {
@@ -79,7 +79,8 @@ const ServiceScheduleForm: React.FC<ServiceScheduleFormProps> = ({
 
   // Sync internal timezone state with prop
   useEffect(() => {
-    setSelectedTimezone(timeZone);
+    const timeZones = getTimezoneOptions();
+    setSelectedTimezone(timeZone || timeZones[0].label || 'UTC');
   }, [timeZone]);
 
   // Generate timezone options (using Intl if available, else fallback list)
@@ -88,7 +89,7 @@ const ServiceScheduleForm: React.FC<ServiceScheduleFormProps> = ({
       // Use Intl API if supported (modern browsers)
       if (typeof Intl !== 'undefined' && Intl.supportedValuesOf) {
         const timezones = Intl.supportedValuesOf('timeZone');
-        return timezones.map(tz => ({ value: tz, label: tz.replace(/_/g, ' ') }));
+        return timezones.map((tz) => ({ value: tz, label: tz.replace(/_/g, ' ') }));
       }
     } catch (e) {
       // fall through to fallback
@@ -107,7 +108,7 @@ const ServiceScheduleForm: React.FC<ServiceScheduleFormProps> = ({
       'Australia/Sydney',
       'Pacific/Auckland',
     ];
-    return fallbackTimezones.map(tz => ({ value: tz, label: tz.replace(/_/g, ' ') }));
+    return fallbackTimezones.map((tz) => ({ value: tz, label: tz.replace(/_/g, ' ') }));
   };
 
   const timezoneOptions = getTimezoneOptions();
@@ -192,9 +193,7 @@ const ServiceScheduleForm: React.FC<ServiceScheduleFormProps> = ({
   // Toggle day active status
   const toggleDayActive = (dayId: string) => {
     const updatedSchedule = schedule.map((day) =>
-      day.dayOfWeek === dayId
-        ? { ...day, hours: day.hours.length > 0 ? [] : [{ open: '09:00', close: '17:00' }] }
-        : day
+      day.dayOfWeek === dayId ? { ...day, hours: day.hours.length > 0 ? [] : [{ open: '09:00', close: '17:00' }] } : day
     );
     setSchedule(updatedSchedule);
     onScheduleChange?.(updatedSchedule, selectedTimezone);
@@ -255,7 +254,7 @@ const ServiceScheduleForm: React.FC<ServiceScheduleFormProps> = ({
                 onChange={handleTimezoneChange}
                 className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                {timezoneOptions.map(option => (
+                {timezoneOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
