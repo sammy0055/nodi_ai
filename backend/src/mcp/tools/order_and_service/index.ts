@@ -5,6 +5,7 @@ import { ManageVectorStore } from '../../../helpers/vector-store';
 import { models } from '../../../models';
 import { CurrencyCode } from '../../../types/product';
 import { OrderStatusTypes } from '../../../types/order';
+import { ChatHistoryManager } from '../../../services/ChatHistoryManager.service';
 
 const { BranchesModel, OrderModel, BranchInventoryModel } = models;
 // Create order with inventory check
@@ -89,16 +90,16 @@ export const createOrder = (server: McpServer) => {
           }
 
           // summarizeConversation
-          // const { summarizeConversationById, insertConversationSummary } = new ChatHistoryManager();
-          // const conversationId = process.env.conversationId;
-          // if (!conversationId) throw new Error('conversation id is missing');
-          // const summary = await summarizeConversationById(conversationId);
-          // await insertConversationSummary({
-          //   summary: summary,
-          //   organizationId: params.organizationId,
-          //   conversationId: conversationId,
-          //   customerId: params.customerId,
-          // });
+          const { summarizeConversationById, insertConversationSummary } = new ChatHistoryManager();
+          const conversationId = process.env.conversationId;
+          if (!conversationId) throw new Error('conversation id is missing');
+          const summary = await summarizeConversationById(conversationId);
+          await insertConversationSummary({
+            summary: summary,
+            organizationId: params.organizationId,
+            conversationId: conversationId,
+            customerId: params.customerId,
+          });
         }
         return {
           content: [
