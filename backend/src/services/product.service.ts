@@ -140,6 +140,7 @@ export class ProductService {
       const [_, updatedRows] = await ProductModel.update(productWithOutId, {
         where: { id },
         returning: true,
+        hooks: true,
         transaction,
       });
 
