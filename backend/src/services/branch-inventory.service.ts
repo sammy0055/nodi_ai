@@ -186,17 +186,23 @@ export class BranchInventoryService {
     { offset, limit, page }: Pagination,
     {
       search,
-      branch,
       quantityOnHand,
       quantityReserved,
+      branchId,
       isActive,
-    }: { search?: string; branch?: string; isActive?: string; quantityReserved?: number; quantityOnHand?: number }
+    }: {
+      search?: string;
+      isActive?: string;
+      quantityReserved?: number;
+      quantityOnHand?: number;
+      branchId?: string;
+    }
   ) {
     const where: any = { organizationId: user.organizationId! };
-    if (branch) where.search = branch;
     if (isActive) where.isActive = isActive;
     if (quantityOnHand) where.quantityOnHand;
     if (quantityReserved) where.quantityReserved;
+    if (branchId && branchId !== null) where.branchId = branchId;
 
     if (search?.trim()) {
       where[Op.and] = [
