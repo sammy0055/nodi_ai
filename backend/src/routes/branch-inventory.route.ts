@@ -51,7 +51,9 @@ branchInventoryRoute.get('/get-inventories', authMiddleware, async (req, res) =>
   const branchId = req.query.branchId as string;
   const quantityReserved = req.query.quantityReserved && (Number(req.query.quantityReserved) as any);
   const quantityOnHand = req.query.quantityOnHand && (Number(req.query.quantityOnHand) as any);
-
+console.log('🌅=================branchId===================');
+console.log(branchId);
+console.log('====================================');
   // calculate offset
   const offset = (page - 1) * limit;
   try {
