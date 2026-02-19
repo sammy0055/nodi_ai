@@ -91,9 +91,9 @@ export class ChatHistoryManager {
         return { role: msg.role, content: text };
       })
       .filter((m) => m.content !== '');
-    console.error('====================================');
-    console.error('chatHistory', items.data);
-    console.error('====================================');
+    // console.error('====================================');
+    // console.error('chatHistory', items.data);
+    // console.error('====================================');
 
     const response = await openai.responses.create({
       model: 'gpt-5',
@@ -202,6 +202,7 @@ export class ChatHistoryManager {
       ],
     });
     console.error('✅ inserted summary and system prompt successfully');
+    await new Promise(res => setTimeout(res, 500));
   }
 
   // get conversations and update syetem prompt
