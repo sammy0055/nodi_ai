@@ -7,7 +7,7 @@ import { NotificationModel } from '../models/notification.model';
 import { IWhatSappSettings } from '../types/whatsapp-settings';
 import { decrypt } from '../utils/crypto-utils';
 import { run } from './migration';
-import { sendVerificationEmail } from '../utils/send-email';
+import { sendEmail, sendVerificationEmail } from '../utils/send-email';
 import { ChatHistoryManager } from '../services/ChatHistoryManager.service';
 import { templates } from '../data/templates';
 import { getWhatsappCatalog, priceToMetaFormat } from '../helpers/whatsapp-catalog';
@@ -242,7 +242,7 @@ const createWhsappFlow = async () => {
 
 const summarize = async () => {
   const { summarizeConversationById, insertConverationItem } = new ChatHistoryManager();
-  const summary = await summarizeConversationById('conv_699576114d788197a339fde51e06037e0bfc05443bedf996');
+  const summary = await summarizeConversationById('conv_69682dbcaca48194884ad3027d0b5e8b00c794c6540cfab1');
   console.log(summary);
 };
 
@@ -308,7 +308,7 @@ const listCatalogItems = async () => {
     const params = 'fields=id,retailer_id,name,price,availability,description,images&limit=100';
     let url = `https://graph.facebook.com/v23.0/${'1386344629753105'}/products?${params}`;
     const data = await getWhatsappCatalog(url);
-    
+
     console.log('====================================');
     console.log(data);
     console.log('====================================');
@@ -334,47 +334,56 @@ const createCatalogItem = async () => {
 
 const mockServiceScheduleData = [
   {
-    dayOfWeek: "monday",
-    hours: [{ open: "08:00", close: "09:00" }]
+    dayOfWeek: 'monday',
+    hours: [{ open: '08:00', close: '09:00' }],
   },
   {
-    dayOfWeek: "tuesday",
-    hours: [{ open: "09:00", close: "17:00" }]
+    dayOfWeek: 'tuesday',
+    hours: [{ open: '09:00', close: '17:00' }],
   },
   {
-    dayOfWeek: "wednesday",
-    hours: [{ open: "09:00", close: "18:00" }]
+    dayOfWeek: 'wednesday',
+    hours: [{ open: '09:00', close: '18:00' }],
   },
   {
-    dayOfWeek: "thursday",
-    hours: [{ open: "10:00", close: "19:00" }]
+    dayOfWeek: 'thursday',
+    hours: [{ open: '10:00', close: '19:00' }],
   },
   {
-    dayOfWeek: "friday",
-    hours: [{ open: "09:00", close: "21:00" }]
+    dayOfWeek: 'friday',
+    hours: [{ open: '09:00', close: '21:00' }],
   },
   {
-    dayOfWeek: "saturday",
-    hours: []
+    dayOfWeek: 'saturday',
+    hours: [],
   },
   {
-    dayOfWeek: "sunday",
-    hours: [{ open: "12:00", close: "20:00" }]
-  }
+    dayOfWeek: 'sunday',
+    hours: [{ open: '12:00', close: '20:00' }],
+  },
 ];
 
+const sendEmails = async () => {
+ try {
+   await sendEmail({ to: 'naenet05@gmail.com', subject: 'testing email', text: 'email works perfectly' });
+ } catch (error) {
+  console.log('==================error==================');
+  console.log(error);
+  console.log('====================================');
+ }
+};
+
+// sendEmails()
 // const slots = checkBusinessServiceSchedule(mockServiceScheduleData)
 // console.log('====================================');
 // console.log(slots);
 // console.log('====================================');
-// summarize();
+summarize();
 // testMcp('hello');
 // run();
 // createWhsappFlow();
 // sendMessage()
 // createCatalogItem();
 // queueProducer({ data: { hel: { d: '', dfsaf: ['dwee'] } } });
-listCatalogItems();
+// listCatalogItems();
 // getVoiceNote('1500555364366195');
-
-

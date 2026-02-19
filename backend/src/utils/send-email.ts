@@ -1,11 +1,19 @@
 import { SMTPClient } from 'emailjs';
 
+// const client = new SMTPClient({
+//   user: process.env.EMAIL_USER, // process.env.EMAIL_USER,
+//   password: process.env.EMAIL_PASS, // process.env.EMAIL_PASS,
+//   host: process.env.HOST,
+//   port: 587,
+//   tls: true,
+// });
+
 const client = new SMTPClient({
   user: 'no-reply@credobyte.com', // process.env.EMAIL_USER,
   password: 'X@922539828402ol', // process.env.EMAIL_PASS,
   host: 'smtp.office365.com',
-  port: 587, //smtp.gmail.com
-  ssl: true,
+  port: 587,
+  tls: true,
 });
 
 // Email template utility function

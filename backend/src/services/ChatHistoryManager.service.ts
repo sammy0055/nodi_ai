@@ -91,9 +91,9 @@ export class ChatHistoryManager {
         return { role: msg.role, content: text };
       })
       .filter((m) => m.content !== '');
-    // console.error('====================================');
-    // console.error('chatHistory', chatHistory);
-    // console.error('====================================');
+    console.error('====================================');
+    console.error('chatHistory', items.data);
+    console.error('====================================');
 
     const response = await openai.responses.create({
       model: 'gpt-5',
@@ -137,20 +137,50 @@ export class ChatHistoryManager {
     const openai = new OpenAI({ apiKey: appConfig.mcpKeys.openaiKey });
     // get all items
     console.error('🏃🏼 processing chat summary insert', conversationId);
+    let orderFunctionCall: any = null;
+    // 1. Find the first function_call with name "create_order"
     while (true) {
-      const items = await openai.conversations.items.list(conversationId);
+      const items = await openai.conversations.items.list(conversationId, {
+        limit: 100,
+        order: 'desc',
+      });
 
-      if (!items.data || items.data.length === 0) {
-        break; // nothing left
+      if (!items.data || items.data.length === 0) break;
+
+      for (const item of items.data) {
+        if (item.type === 'function_call' && item.name === 'create_order') {
+          orderFunctionCall = item;
+          break;
+        }
       }
+
+      if (orderFunctionCall) break;
+    }
+
+    // 2. If not found, stop here (don’t delete anything)
+    if (!orderFunctionCall) {
+      return;
+    }
+
+    // 3. Delete everything
+    while (true) {
+      const items = await openai.conversations.items.list(conversationId, {
+        limit: 100,
+        order: 'desc',
+      });
+
+      if (!items.data || items.data.length === 0) break;
 
       for (const item of items.data) {
         if (item.id) {
-          await openai.conversations.items.delete(item.id, { conversation_id: conversationId });
+          await openai.conversations.items.delete(item.id, {
+            conversation_id: conversationId,
+          });
         }
       }
     }
 
+    // 4. Recreate conversation with system + assistant + function_call
     await openai.conversations.items.create(conversationId, {
       items: [
         {
@@ -168,6 +198,7 @@ export class ChatHistoryManager {
           role: 'assistant',
           content: summary,
         },
+        orderFunctionCall, // add it back
       ],
     });
     console.error('✅ inserted summary and system prompt successfully');
