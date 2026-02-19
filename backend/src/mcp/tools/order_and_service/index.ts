@@ -76,6 +76,7 @@ export const createOrder = (server: McpServer) => {
             return { content: [{ type: 'text', text: `Product with ID: ${product.productId} is out of stock` }] };
           }
         }
+        if (params.serviceType === 'takeaway') delete params.deliveryAreaId;
         const order = await OrderModel.create(params as any);
         if (order) {
           for (const product of products) {
@@ -386,6 +387,7 @@ export const updateOrder = (server: McpServer) => {
               return { content: [{ type: 'text', text: `Product with ID: ${product.productId} is out of stock` }] };
             }
           }
+          if (params.serviceType === 'takeaway') delete params.deliveryAreaId;
           await order.update(params as any);
           for (const product of products) {
             await BranchInventoryModel.decrement('quantityOnHand', {
