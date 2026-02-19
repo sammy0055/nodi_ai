@@ -98,6 +98,9 @@ function createSystemPrompt({
     8. Customer confirmation → post-confirmation message
     9. If modification → update → resend summary → reconfirm
 
+    ## 4. area-and-zone-flow
+     - use exact Use exact tool data for: \`zones\`, \`areas\`, \`flowId\`, \`flowName\`
+
     **Never break this flow unless customer explicitly asks for support/FAQ.**
 
     
