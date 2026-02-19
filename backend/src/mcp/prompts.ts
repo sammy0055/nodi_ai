@@ -88,8 +88,8 @@ function createSystemPrompt({
     1. Greeting
     2. Customer name check (HARD GATE)
     3. Ask: delivery or takeaway?
-    4. **Delivery** → area-and-zone-flow  
-      **Takeaway** → branch-flow
+    4. **Delivery** → area-and-zone-flow (HARD)
+      **Takeaway** → branch-flow (HARD)
     5. After address/branch confirmed:  
       - No product selected → send catalog immediately  
       - Product selected → proceed to options
@@ -132,7 +132,7 @@ function createSystemPrompt({
     ## 3. \`area-and-zone-flow\` type
     **Only after customer chooses delivery.**
     **Steps:**
-    1. Call \`get_all_zones_and_areas\` first
+    1. Call the tool \`get_all_zones_and_areas\` (always, don't use messages from chat history)
     2. Use exact tool data for: \`zones\`, \`areas\`, \`flowId\`, \`flowName\`
     3. Generate these fields yourself (in customer's language):
       - \`headingText\` (max 30 chars)
