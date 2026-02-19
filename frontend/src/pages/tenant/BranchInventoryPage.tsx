@@ -50,6 +50,8 @@ const BranchInventoryPage: React.FC = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [branches, setBranches] = useState<IBranch[]>([]);
+  const [pageBranches, setPageBranches] = useState<IBranch[]>([]);
+  const [selectedPageBranch, setSelectedPageBranch] = useState<string | null>(null);
   const inventory = useBranchInventoryValue();
   const setInventory = useBranchInventorySetRecoilState();
   const [pagination, setPagination] = useState<Pagination>();
@@ -73,7 +75,7 @@ const BranchInventoryPage: React.FC = () => {
   const [showBranchDropdown, setShowBranchDropdown] = useState(false);
   const [showProductDropdown, setShowProductDropdown] = useState(false);
 
-  const { createInventory, updateInventory, deleteInventory, searchInvotory, getInventories } =
+  const { createInventory, updateInventory, deleteInventory, searchInventory, getInventories } =
     new BranchInventoryService();
 
   // load initial states
@@ -82,6 +84,7 @@ const BranchInventoryPage: React.FC = () => {
       setProducts(data.products.data);
       setInventory(data.inventory.data);
       setBranches(data.braches.data);
+      setPageBranches(data.braches.data);
       setPagination(data.inventory.pagination);
       setBranchPagination(data.braches.pagination);
       setProductPagination(data.products.pagination);
@@ -89,7 +92,6 @@ const BranchInventoryPage: React.FC = () => {
   }, [data]);
 
   // Pagination
-
   const [branchPagination, setBranchPagination] = useState<Pagination>();
   const [productPagination, setProductPagination] = useState<Pagination>();
   const ProductDropdownRefs = useRef<HTMLDivElement | null>(null);
@@ -180,13 +182,14 @@ const BranchInventoryPage: React.FC = () => {
   const [inventorySearch] = useDebounce(searchTerm, 500); // 500ms delay
 
   useEffect(() => {
+    
     const fn = async () => {
-      const { data } = await searchInvotory({ search: searchTerm });
+      const { data } = await searchInventory({ search: searchTerm, branchId: selectedPageBranch || '' });
       setInventory(data.data); // now filteredProducts is an array
     };
 
     fn();
-  }, [inventorySearch]);
+  }, [inventorySearch, selectedPageBranch]);
 
   // Validation functions
   const validateField = (name: keyof ValidationErrors, value: any): string | undefined => {
@@ -553,6 +556,24 @@ const BranchInventoryPage: React.FC = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
+          </div>
+          {/* Branch Filter Dropdown */}
+          <div className="md:w-64">
+            <select
+              className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
+              value={selectedPageBranch || ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                setSelectedPageBranch(value || '');
+              }}
+            >
+              <option value="">All Branches</option>
+              {pageBranches.map((branch) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </div>

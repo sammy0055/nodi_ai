@@ -49,21 +49,23 @@ export class BranchInventoryService {
     });
   }
 
-  async searchInvotory({
+  async searchInventory({
     search,
     branch,
     isActive,
     quantityOnHand,
     quantityReserved,
+    branchId,
   }: {
     search?: string;
     branch?: string;
     isActive?: string;
     quantityReserved?: number;
     quantityOnHand?: number;
+    branchId?: string;
   }): Promise<{ data: { data: IBranchInventory[]; pagination: any }; message: string }> {
     const response = await fetch(
-      `${API_ROUTES.GET_BRANCH_INVENTORIES}?search=${search}&branch=${encodeURIComponent(branch || '')}&isActive=${encodeURIComponent(isActive || '')}&quantityOnHand=${quantityOnHand}&quantityReserved=${quantityReserved}`,
+      `${API_ROUTES.GET_BRANCH_INVENTORIES}?search=${search}&branch=${encodeURIComponent(branch || '')}&isActive=${encodeURIComponent(isActive || '')}&quantityOnHand=${quantityOnHand}&quantityReserved=${quantityReserved}&branchId=${branchId}`,
       {
         method: 'GET',
         credentials: 'include',
