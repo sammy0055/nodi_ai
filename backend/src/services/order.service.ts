@@ -303,7 +303,7 @@ export class OrderService {
     const stats = await OrderModel.findAll({
       attributes: ['status', [fn('COUNT', col('id')), 'count'], [fn('SUM', col('totalAmount')), 'revenue']],
       group: ['status'],
-      where: { organizationId: user.organizationId!, status: 'delivered' },
+      where: { organizationId: user.organizationId! },
     });
 
     // format result
