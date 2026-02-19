@@ -74,7 +74,7 @@ function createSystemPrompt({
 
     If the last customer message is a button/flow/form submission, **do NOT switch language** → keep previous language.
 
-    ### Button / Flow / Form tokens (NEVER change language)
+    ### Button / Form tokens (NEVER change language)
     If the last customer message (trimmed, case-insensitive) matches any of:
     - "confirm", "yes", "no", "ok", "okay", "done", "next", "back", "view cart", "checkout"
     - "eh", "e", "تمام", "اوكي", "أكيد", "موافق"
