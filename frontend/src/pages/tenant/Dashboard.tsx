@@ -62,6 +62,7 @@ const DashboardPage: React.FC = () => {
   });
 
   const [processingTimes, setProcessingTimes] = useState<OrderAverageProcessingTime[]>([]);
+  const [org, setOrg] = useState<IOrganization | null>()
   const user = useUserValue();
   const { isUserPermissionsValid, isUserRoleValid } = useValidateUserRolesAndPermissions(user!);
   const [reviewStats, setReviewStats] = useState<ReviewStats>({
@@ -77,14 +78,24 @@ const DashboardPage: React.FC = () => {
       setOrderStats(data.orderStats);
       setProcessingTimes(data.orderAvgProcessStats);
       setReviewStats(data.reviewStats);
+      setOrg(data.organization)
     }
   }, [data]);
+
+  const getTeamAverageProcessingTime = () => {
+    const total = processingTimes?.reduce((sum, item) => {
+      return sum + item.averageEstimatedCompletionTime;
+    }, 0);
+
+    const average = processingTimes.length ? total / processingTimes.length : 0;
+    return average;
+  };
 
   // Format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: org?.currency || 'USD',
       minimumFractionDigits: 2,
     }).format(amount);
   };
@@ -138,7 +149,7 @@ const DashboardPage: React.FC = () => {
   // page permission protection
   if (!isUserRoleValid('super-admin')) {
     if (!isUserPermissionsValid(['dashboard.view'])) {
-      return <NotFoundPage />
+      return <NotFoundPage />;
     }
   }
 
@@ -202,7 +213,7 @@ const DashboardPage: React.FC = () => {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="text-sm text-gray-600">Avg Processing Time</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">38 min</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">{formatTime(Number(getTeamAverageProcessingTime()))}</p>
                 <p className="text-xs text-gray-500 mt-1">Across all staff</p>
               </div>
               <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center">
@@ -311,7 +322,7 @@ const DashboardPage: React.FC = () => {
             <div className="mt-6 pt-4 border-t border-gray-200">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600">Team Average</span>
-                <span className="font-bold text-gray-900">38 min</span>
+                <span className="font-bold text-gray-900">{formatTime(Number(getTeamAverageProcessingTime()))}</span>
               </div>
             </div>
           </div>

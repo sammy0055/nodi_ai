@@ -182,7 +182,6 @@ const BranchInventoryPage: React.FC = () => {
   const [inventorySearch] = useDebounce(searchTerm, 500); // 500ms delay
 
   useEffect(() => {
-    
     const fn = async () => {
       const { data } = await searchInventory({ search: searchTerm, branchId: selectedPageBranch || '' });
       setInventory(data.data); // now filteredProducts is an array
