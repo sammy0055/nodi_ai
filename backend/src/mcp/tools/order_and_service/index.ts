@@ -279,6 +279,37 @@ export const cancelOrder = (server: McpServer) => {
   );
 };
 
+export const getLastOrderDetails = (server: McpServer) => {
+  return server.registerTool(
+    'get_last_order_details',
+    {
+      title: 'get_last_order_details',
+      description: 'get the customers last order',
+      inputSchema: {
+        organizationId: z.string(),
+        customerId: z.string(),
+      },
+    },
+    async (params) => {
+      try {
+        const { customerId, organizationId } = params;
+        const order = await OrderModel.findOne({
+          where: { organizationId, customerId },
+          order: [['createdAt', 'DESC']],
+        });
+
+        if (!order) {
+          return { content: [{ type: 'text', text: 'order was not found' }] };
+        }
+
+        return { content: [{ type: 'text', text: JSON.stringify(order), mimeType: 'application/json' }] };
+      } catch (error: any) {
+        return { content: [{ type: 'text', text: 'order was not found' }] };
+      }
+    }
+  );
+};
+
 export const updateOrder = (server: McpServer) => {
   return server.registerTool(
     'update_order',

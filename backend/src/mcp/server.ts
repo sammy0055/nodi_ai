@@ -9,7 +9,14 @@ import {
 import { checkRealTimeAvailability, findBranchesWithProduct, getBranches } from './tools/location_and_inventory';
 import { calculateDelivery, getAllZonesAndAreas, getDeliveryOptions } from './tools/delivery_and_service';
 import { getRecommendations, suggestAlternatives } from './tools/smart_recommendation';
-import { cancelOrder, createOrder, getBranchInfo, getOrderDetails, updateOrder } from './tools/order_and_service';
+import {
+  cancelOrder,
+  createOrder,
+  getBranchInfo,
+  getLastOrderDetails,
+  getOrderDetails,
+  updateOrder,
+} from './tools/order_and_service';
 import { createCustomerProfile, getCustomerProfile } from './tools/customer';
 import { createReview, getOrganizationReviewQuestions } from './tools/review';
 import { getOrgFrequentlyAskedQuestion } from './tools/organization_info';
@@ -51,7 +58,8 @@ createOrder(server);
 getBranchInfo(server);
 getOrderDetails(server);
 cancelOrder(server);
-updateOrder(server)
+getLastOrderDetails(server);
+updateOrder(server);
 
 // customer
 getCustomerProfile(server);
