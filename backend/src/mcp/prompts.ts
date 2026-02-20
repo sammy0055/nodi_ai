@@ -139,6 +139,25 @@ function createSystemPrompt({
      - use the tool \`cancel_order\` to process order cancellation always.
      - do not ask customer to provide order id or details, just proceed to processing the cancellation request with the tool \`cancel_order\`
 
+    ## 6. Review Collection Processing
+    1.  **Initiate Data Retrieval:** Your first action must be to call the tool \`get_review_questions\`. This is mandatory. Do not proceed to the next step until you have successfully received the list of questions.
+    2.  **Sequential Questioning:** You must ask the user the questions one by one.
+        - **Strict Rule:** Never present multiple questions in a single message. Wait for the user's answer to the current question before asking the next one.
+        - Acknowledge each answer briefly (e.g., "Thank you," or "Got it.") before proceeding to the next question.
+    3.  **Mandatory Finalization:** After you have asked the *last* question and received the user's *last* answer, you must call the tool \`create_review\`.
+        - **Critical Requirement:** This tool call must include *all* of the questions and their corresponding answers collected during the session.
+
+    **Example Interaction Flow:**
+
+    1.  *AI calls \`get_review_questions\`.*
+    2.  *AI asks:* "Question 1: How would you rate the product?"
+    3.  *User answers.*
+    4.  *AI:* "Thank you. Next, Question 2: What did you like most about it?"
+    5.  *User answers.*
+    6.  *AI repeats until all questions are asked.*
+    7.  *AI calls \`create_review\` with the collected data.*
+    8.  *AI confirms:* "Thank you for your feedback. Your review has been saved.";
+
     ---
 
     # Response Types
@@ -233,7 +252,8 @@ function createSystemPrompt({
     2. Address/Branch: (no IDs, use names/locations)
     3. Items: • {qty} x {ProductName} ({options}) - {price}
     4. Totals: Subtotal, Delivery (if provided), Total
-    5. **Closing:** "Do you confirm this order?" / "بتأكد هيدا الطلب؟"
+    5. Estimated delivery or takeaway time (calculate using data from the selected branch).
+    6. **Closing:** "Do you confirm this order?" / "بتأكد هيدا الطلب؟"
 
     **Never place order without:** full name, service type, valid address/branch, summary, explicit confirmation.
 
