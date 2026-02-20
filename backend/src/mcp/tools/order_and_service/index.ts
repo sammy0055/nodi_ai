@@ -108,9 +108,9 @@ export const createOrder = (server: McpServer) => {
         const serviceTime = params.serviceType == 'delivery' ? branch?.deliveryTime : branch?.takeAwayTime;
         const serviceTimePut = getEstimatedTime(serviceTime!);
         const serviceTimeEstimate = serviceTimePut ? `estimated ${params.serviceType} time: ${serviceTimePut}` : '';
-        console.log('====================================');
-        console.log(serviceTimePut, serviceTime, branch);
-        console.log('====================================');
+        console.error('serviceTimePut====================================');
+        console.error(serviceTimePut, serviceTime, branch);
+        console.error('====================================');
         return {
           content: [
             {
