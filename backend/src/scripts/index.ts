@@ -14,6 +14,7 @@ import { getWhatsappCatalog, priceToMetaFormat } from '../helpers/whatsapp-catal
 import { queueProducer } from './rabbitmq';
 import { getVoiceNote } from '../helpers/download_voice_note';
 import { checkBusinessServiceSchedule } from '../utils/organization';
+import { getEstimatedTime } from '../utils/getEstimatedTime';
 
 const ddd = {
   whatsappBusinessId: '1390720013053482',
@@ -372,13 +373,15 @@ const sendEmails = async () => {
   console.log('====================================');
  }
 };
-
+// console.log('====================================');
+// console.log(getEstimatedTime("1970-01-01 03:00:00+00" as any));
+// console.log('====================================');
 // sendEmails()
 // const slots = checkBusinessServiceSchedule(mockServiceScheduleData)
 // console.log('====================================');
 // console.log(slots);
 // console.log('====================================');
-summarize();
+// summarize();
 // testMcp('hello');
 // run();
 // createWhsappFlow();

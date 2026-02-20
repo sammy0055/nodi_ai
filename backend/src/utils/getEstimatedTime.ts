@@ -1,18 +1,18 @@
 export function getEstimatedTime(deliveryTime: Date): string {
   if (!deliveryTime) return '';
-  const now = new Date();
+  const d = deliveryTime instanceof Date ? deliveryTime : new Date(deliveryTime);
+  if (isNaN(d.getTime())) return '';
 
-  const diffMs = deliveryTime.getTime() - now.getTime();
+  const totalMinutes = Math.floor(d.getTime() / (1000 * 60));
 
-  if (diffMs <= 0) return '';
-
-  const totalMinutes = Math.floor(diffMs / 60000);
-
-  const hours = Math.floor(totalMinutes / 60);
+  const days = Math.floor(totalMinutes / 1440);
+  const hours = Math.floor((totalMinutes % 1440) / 60);
   const minutes = totalMinutes % 60;
 
-  if (hours === 0) return `${minutes} mins`;
-  if (minutes === 0) return `${hours} hr${hours > 1 ? 's' : ''}`;
+  let parts = [];
+  if (days) parts.push(`${days} day${days > 1 ? 's' : ''}`);
+  if (hours) parts.push(`${hours} hr${hours > 1 ? 's' : ''}`);
+  if (minutes) parts.push(`${minutes} mins`);
 
-  return `${hours} hr${hours > 1 ? 's' : ''} ${minutes} mins`;
+  return parts.join(' ');
 }
