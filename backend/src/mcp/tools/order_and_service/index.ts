@@ -6,6 +6,7 @@ import { models } from '../../../models';
 import { CurrencyCode } from '../../../types/product';
 import { OrderStatusTypes } from '../../../types/order';
 import { ChatHistoryManager } from '../../../services/ChatHistoryManager.service';
+import { getEstimatedTime } from '../../../utils/getEstimatedTime';
 
 const { BranchesModel, OrderModel, BranchInventoryModel } = models;
 // Create order with inventory check
@@ -78,6 +79,7 @@ export const createOrder = (server: McpServer) => {
         }
         if (params.serviceType === 'takeaway') delete params.deliveryAreaId;
         const order = await OrderModel.create(params as any);
+        let serviceTimeEstimate = '';
         if (order) {
           for (const product of products) {
             await BranchInventoryModel.decrement('quantityOnHand', {
@@ -101,12 +103,18 @@ export const createOrder = (server: McpServer) => {
           //   conversationId: conversationId,
           //   customerId: params.customerId,
           // });
+
+          const branch = await BranchesModel.findByPk(params.branchId);
+          const serviceTime = params.serviceType == 'delivery' ? branch?.deliveryTime : branch?.takeAwayTime;
+          const serviceTimePut = branch ? getEstimatedTime(serviceTime!) : '';
+          serviceTimeEstimate = serviceTimePut ? `estimated service time: ${serviceTimePut}` : '';
         }
+
         return {
           content: [
             {
               type: 'text',
-              text: `Your order has being created with orderId: ${order.id}`,
+              text: `Your order has being created with orderId: ${order.id}, ${serviceTimeEstimate}`,
             },
           ],
         };
