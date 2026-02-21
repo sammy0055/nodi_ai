@@ -142,9 +142,6 @@ const SettingsPage: React.FC = () => {
     fn();
   }, []);
 
-  console.log('=================catalogRequest===================');
-  console.log(catalogRequest);
-  console.log('====================================');
   useEffect(() => {
     if (!sessionInfo) return;
     const exchangeCode = async () => {
@@ -368,7 +365,7 @@ const SettingsPage: React.FC = () => {
     setRolePermissions(new Set());
   };
 
-  const handleSetServiceSchedule = async (data: ServiceSchedule[], timeZone:string) => {
+  const handleSetServiceSchedule = async (data: ServiceSchedule[], timeZone: string) => {
     try {
       if (!isUserRoleValid('super-admin')) {
         if (!isUserPermissionsValid(['service_schedule.update'])) {
@@ -660,12 +657,40 @@ const SettingsPage: React.FC = () => {
                     Your product catalog is connected to WhatsApp. Customers can browse your products directly in
                     WhatsApp.
                   </p>
-                  {catalogRequest?.status !== 'pending' && (
+                  {/* REJECTED */}
+                  {catalogRequest?.status === 'rejected' && (
+                    <div>
+                      <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 mb-3">
+                        <FiClock className="mr-1" />
+                        Request Rejected
+                      </div>
+
+                      <p className="text-sm text-neutral-600 mb-3">Your product catalog request has been rejected.</p>
+
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <h5 className="font-medium text-blue-800 text-sm mb-2">Request Details:</h5>
+                        <pre className="text-xs text-blue-700 overflow-x-auto">
+                          {JSON.stringify(catalogRequest || {}, null, 2)}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* APPROVED OR ANY OTHER NON-PENDING STATE */}
+                  {catalogRequest && catalogRequest.status !== 'pending' && catalogRequest.status !== 'reject' && (
                     <div className="flex space-x-2">
                       <Button variant="outline" onClick={handleCatalogUpdate} isLoading={isLoading}>
                         <FiExternalLink className="mr-2" />
                         Change Catalog
                       </Button>
+                    </div>
+                  )}
+
+                  {/* PENDING */}
+                  {catalogRequest?.status === 'pending' && (
+                    <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                      <FiClock className="mr-1" />
+                      Request Pending
                     </div>
                   )}
                 </div>
@@ -708,6 +733,26 @@ const SettingsPage: React.FC = () => {
                   <Button variant="outline" className="mt-3" disabled>
                     <FiClock className="mr-2" />
                     Processing Request...
+                  </Button>
+                </div>
+              )}
+
+              {catalogRequest?.status === 'reject' && (
+                <div>
+                  <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800 mb-3">
+                    <FiClock className="mr-1" />
+                    Request Rejected
+                  </div>
+                  <p className="text-sm text-neutral-600 mb-3">Your product catalog request has being rejected.</p>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <h5 className="font-medium text-blue-800 text-sm mb-2">Request Details:</h5>
+                    <pre className="text-xs text-blue-700 overflow-x-auto">
+                      {JSON.stringify(catalogRequest || {}, null, 2)}
+                    </pre>
+                  </div>
+                  <Button variant="outline" className="mt-3">
+                    <FiClock className="mr-2" />
+                    Send New Request
                   </Button>
                 </div>
               )}
