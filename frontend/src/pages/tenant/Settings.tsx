@@ -142,6 +142,9 @@ const SettingsPage: React.FC = () => {
     fn();
   }, []);
 
+  console.log('=================catalogRequest===================');
+  console.log(catalogRequest);
+  console.log('====================================');
   useEffect(() => {
     if (!sessionInfo) return;
     const exchangeCode = async () => {

@@ -57,4 +57,11 @@ export class AdminUserService {
       body: data,
     });
   }
+
+   async rejectRequest(data: any) {
+    await AdminApiClient('ADMIN_REJECT_REQUEST', {
+      method: 'POST',
+      body: data,
+    });
+  }
 }

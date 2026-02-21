@@ -401,7 +401,7 @@ const RequestRoutePage: React.FC = () => {
   const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
   const [pagination, setPagination] = useState<Pagination>();
   const data = useLoaderData() as { requests: { data: BaseRequestAttributes[]; pagination: Pagination } };
-  const { approveRequest, updateOrganizationWABA, getRequests } = new AdminUserService();
+  const { approveRequest, rejectRequest, updateOrganizationWABA, getRequests } = new AdminUserService();
 
   useEffect(() => {
     if (!data.requests) return;
@@ -480,21 +480,33 @@ const RequestRoutePage: React.FC = () => {
     }
   };
 
-  const handleReject = (requestId: string) => {
-    setRequests((prevState) => {
-      const updatedRequest = prevState.map((req) => {
-        return req.id === requestId
-          ? {
-              ...req,
-              status: 'rejected' as 'rejected',
-              approvedAt: new Date(),
-              approvedByUserId: adminUser?.id!,
-              approvalNotes: 'Request approved',
-            }
-          : req;
+  const handleReject = async (requestId: string) => {
+    try {
+      const rejectionDAta = {
+        id: requestId,
+        status: 'rejected' as 'rejected',
+        approvedAt: new Date(),
+        approvedByUserId: adminUser?.id!,
+        approvalNotes: 'Request approved',
+      };
+      await rejectRequest(rejectionDAta);
+      setRequests((prevState) => {
+        const updatedRequest = prevState.map((req) => {
+          return req.id === requestId
+            ? {
+                ...req,
+                status: 'rejected' as 'rejected',
+                approvedAt: new Date(),
+                approvedByUserId: adminUser?.id!,
+                approvalNotes: 'Request approved',
+              }
+            : req;
+        });
+        return updatedRequest;
       });
-      return updatedRequest;
-    });
+    } catch (error: any) {
+      alert('something went wrong');
+    }
   };
 
   const toggleExpand = (requestId: string) => {
@@ -554,7 +566,6 @@ const RequestRoutePage: React.FC = () => {
 
         {/* Search and Filter - Stack vertically on mobile */}
         <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
-
           {/* Filter */}
           <div className="flex items-center space-x-2">
             <FiFilter className="text-neutral-500 hidden sm:block" />

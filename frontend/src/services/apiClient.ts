@@ -4,6 +4,7 @@ const API_BASE_URL = import.meta.env.VITE_BACKEND_PROD_APP_URL;
 export const APP_USER_API_ROUTES = {
   ADMIN_GET_REQUESTS: `${API_BASE_URL}/app-user/request/get-requests`,
   ADMIN_APPROVE_REQUEST: `${API_BASE_URL}/app-user/request/approve`,
+  ADMIN_REJECT_REQUEST: `${API_BASE_URL}/app-user/request/reject`,
   ADMIN_UPDATE_ORG_WABA: `${API_BASE_URL}/app-user/request/update-waba`,
   ADMIN_LOGIN: `${API_BASE_URL}/app-user/login`,
   GET_SUBSCRIPTION_PLANS: `${API_BASE_URL}/app-user/subscription-plan/get-subscription-plans`,
