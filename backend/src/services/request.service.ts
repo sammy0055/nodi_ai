@@ -108,6 +108,7 @@ export class RequestService {
     if (!Object.values(RelatedEntityType).includes(requestType as any)) throw new Error('wrong request type selected');
     return await RequestModel.findOne({
       where: { organizationId: user.organizationId!, requestType: requestType },
+      order: [['createdAt', 'DESC']],
     });
   }
 }
