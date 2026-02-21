@@ -20,6 +20,9 @@ export class RequestController {
   static async approveRequest(requestData: RequestAttributes, user: Pick<AdminUser, 'id' | 'email' | 'type'>) {
     return await RequestService.approveRequest(requestData, user);
   }
+    static async rejectRequest(requestData: RequestAttributes, user: Pick<AdminUser, 'id' | 'email' | 'type'>) {
+    return await RequestService.rejectRequest(requestData, user);
+  }
   static async getRequests(filters: { status: string }, { offset, limit, page }: Pagination) {
     return await RequestService.getRequests(filters, { offset, limit, page });
   }

@@ -52,6 +52,21 @@ export class RequestService {
     );
   }
 
+  static async rejectRequest(requestData: RequestAttributes, user: Pick<AdminUser, 'id' | 'email' | 'type'>) {
+    if (user.type !== 'admin') throw new Error('Unauthorized');
+    await RequestModel.update(
+      {
+        status: RequestStatus.REJECTED,
+        approvalNotes: requestData.approvalNotes,
+        approvedByUserId: user.id,
+        approvedAt: requestData.approvedAt,
+        rejectedAt: requestData.rejectedAt,
+        data: requestData.data,
+      },
+      { where: { id: requestData.id } }
+    );
+  }
+
   static async updateOrganizationWABA(
     data: Pick<IWhatSappSettings, 'organizationId' | 'whatsappBusinessId' | 'catalogId'>,
     user: Pick<AdminUser, 'id' | 'type'>
@@ -92,7 +107,7 @@ export class RequestService {
   static async getRequest(user: Pick<User, 'id' | 'organizationId'>, requestType: `${RelatedEntityType}`) {
     if (!Object.values(RelatedEntityType).includes(requestType as any)) throw new Error('wrong request type selected');
     return await RequestModel.findOne({
-      where: { organizationId: user.organizationId!, requestType: requestType, status:"pending" },
+      where: { organizationId: user.organizationId!, requestType: requestType, status: 'pending' },
     });
   }
 }

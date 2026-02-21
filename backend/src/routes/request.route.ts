@@ -44,6 +44,25 @@ requestRoute.post('/approve', validateUpdateRequestSchema(), adminAuthMiddleware
   }
 });
 
+requestRoute.post('/reject', validateUpdateRequestSchema(), adminAuthMiddleware, async (req, res) => {
+  try {
+    const data = await RequestController.rejectRequest(req.body, req.adminUser!);
+    const response: APIResponseFormat<any> = {
+      message: 'request approved successfully',
+      data,
+    };
+
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
+
 requestRoute.post('/update-waba', adminAuthMiddleware, async (req, res) => {
   try {
     const data = await RequestController.updateOrganizationWABA(req.body, req.adminUser!);
