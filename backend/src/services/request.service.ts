@@ -107,7 +107,7 @@ export class RequestService {
   static async getRequest(user: Pick<User, 'id' | 'organizationId'>, requestType: `${RelatedEntityType}`) {
     if (!Object.values(RelatedEntityType).includes(requestType as any)) throw new Error('wrong request type selected');
     return await RequestModel.findOne({
-      where: { organizationId: user.organizationId!, requestType: requestType, status: 'pending' },
+      where: { organizationId: user.organizationId!, requestType: requestType },
     });
   }
 }
