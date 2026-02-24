@@ -15,6 +15,7 @@ class CustomerModel
   declare name: string;
   declare phone: string;
   declare preferences?: Record<string, any> | undefined;
+  declare shouldUpdateChatbotSystemPrompt?: boolean | undefined;
   declare source: 'chatbot' | 'website' | 'mobile_app' | 'api';
   declare status: 'suspended' | 'active' | 'inactive';
 
@@ -53,6 +54,7 @@ CustomerModel.init(
     },
     preferences: { type: DataTypes.JSONB, allowNull: true },
     status: { type: DataTypes.ENUM('suspended', 'active', 'inactive'), defaultValue: 'active' },
+    shouldUpdateChatbotSystemPrompt: { type: DataTypes.BOOLEAN, defaultValue: false, allowNull: true },
   },
   {
     sequelize,

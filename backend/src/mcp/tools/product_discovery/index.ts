@@ -4,6 +4,9 @@ import { ManageVectorStore } from '../../../helpers/vector-store';
 import { Op } from 'sequelize';
 import { models } from '../../../models';
 import { WhatSappSettingsModel } from '../../../models/whatsapp-settings.model';
+import { appConfig } from '../../../config';
+import OpenAI from 'openai';
+import { englishTranslationPrompt } from '../../prompts';
 
 const { BranchInventoryModel, ProductModel, BranchesModel, ProductOptionModel, ProductOptionChoiceModel } = models;
 
@@ -40,11 +43,28 @@ export const searchProducts = (server: McpServer) => {
           });
           return { content: [{ type: 'text', text: JSON.stringify(products) }] };
         }
+
+        let queryText = query;
+        const OPENAI_API_KEY = appConfig.mcpKeys.openaiKey;
+        const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
+
+        if (query) {
+          const res = await openai.responses.create({
+            model: 'gpt-4.1-mini',
+            input: [
+              { role: 'system', content: englishTranslationPrompt },
+              { role: 'user', content: query },
+            ],
+          });
+
+          queryText = res.output_text;
+        }
+
         console.error('==================searchProducts tool==================');
-        console.error(query);
-        console.error('====================================');
+        console.error(queryText, query);
+        console.error('===================================='); 
         const products = await vectorStore.searchProducts({
-          query: query,
+          query: queryText,
           organizationId: organizationId,
           limit: maxResults || 10,
         });
