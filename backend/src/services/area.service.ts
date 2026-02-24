@@ -1,4 +1,6 @@
 import { AreaModel } from '../models/area.model';
+import { BranchesModel } from '../models/branches.model';
+import { ZoneModel } from '../models/zones.model';
 import { IArea } from '../types/area';
 import { Pagination } from '../types/common-types';
 import { User } from '../types/users';
@@ -41,6 +43,11 @@ export class AreaService {
       where,
       offset,
       limit,
+      distinct: true,
+      include: [
+        { model: BranchesModel, as: 'branch', attributes: ['id', 'name'] },
+        { model: ZoneModel, as: 'zone', attributes: ['id', 'name'] },
+      ],
       order: [['createdAt', 'DESC']],
     });
 
