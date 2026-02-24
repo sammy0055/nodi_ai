@@ -40,7 +40,9 @@ export const searchProducts = (server: McpServer) => {
           });
           return { content: [{ type: 'text', text: JSON.stringify(products) }] };
         }
-
+        console.error('==================searchProducts tool==================');
+        console.error(query);
+        console.error('====================================');
         const products = await vectorStore.searchProducts({
           query: query,
           organizationId: organizationId,
