@@ -14,4 +14,5 @@ export interface ICustomer {
   totalOrders?: number;
   preferences?: Record<string, any>;
   status: 'suspended' | 'active' | 'inactive';
+  shouldUpdateChatbotSystemPrompt?:boolean | null
 }

@@ -209,7 +209,7 @@ export class ChatService extends MCPChatBot {
     });
 
     const conversation = await this.getAndCreateConversationIfNotExist(systemPrompt);
-    if (planOrg.shouldUpdateChatbotSystemPrompt) {
+    if (planOrg.shouldUpdateChatbotSystemPrompt || customer.shouldUpdateChatbotSystemPrompt) {
       console.log('====================================');
       console.log('should update system prompt running');
       console.log('====================================');
@@ -236,6 +236,10 @@ export class ChatService extends MCPChatBot {
         );
 
         await OrganizationsModel.update({ shouldUpdateChatbotSystemPrompt: false }, { where: { id: planOrg.id } });
+        await CustomerModel.update(
+          { shouldUpdateChatbotSystemPrompt: false },
+          { where: { id: customer.id, organizationId: planOrg.id } }
+        );
       }
     }
     await this.connectToMcpServer(conversation.id);
