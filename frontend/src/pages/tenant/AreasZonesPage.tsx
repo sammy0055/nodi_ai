@@ -26,7 +26,7 @@ import {
 import { useDebounce } from 'use-debounce';
 import { useLoaderData, useNavigate } from 'react-router';
 import type { Pagination } from '../../types/customer';
-import type { IBranch } from '../../types/branch';
+import type { IArea, IBranch } from '../../types/branch';
 import { useClickOutside } from '../../hooks/clickOutside';
 import { CurrencyCode, CurrencySymbols } from '../../types/product';
 import { useValidateUserRolesAndPermissions } from '../../hooks/validateUserRoleAndPermissions';
@@ -36,16 +36,6 @@ export interface IZone {
   id?: string;
   organizationId?: string;
   name: string;
-}
-
-export interface IArea {
-  id?: string;
-  organizationId?: string;
-  name: string;
-  branchId: string;
-  zoneId: string;
-  deliveryTime: Date;
-  deliveryCharge: number;
 }
 
 const AreasZonesPage: React.FC = () => {
@@ -534,14 +524,6 @@ const AreasZonesPage: React.FC = () => {
     }
   };
 
-  const getBranchName = (branchId: string) => {
-    return branches?.find((b) => b.id === branchId)?.name;
-  };
-
-  const getZoneName = (zoneId: string) => {
-    return zones?.find((z) => z.id === zoneId)?.name;
-  };
-
   if (!isUserRoleValid('super-admin')) {
     if (!isUserPermissionsValid(['area.view', 'zone.view'])) navigate(-1);
   }
@@ -606,9 +588,7 @@ const AreasZonesPage: React.FC = () => {
                   </div>
                   <div>
                     <h4 className="font-medium text-neutral-900">{zone.name}</h4>
-                    <p className="text-sm text-neutral-500">
-                      {areas.filter((area) => area.zoneId === zone.id).length} areas
-                    </p>
+                    <p className="text-sm text-neutral-500">{zone.areas?.length || 0} areas</p>
                   </div>
                 </div>
                 <div className="md:col-span-4 flex justify-end space-x-2">
@@ -715,8 +695,8 @@ const AreasZonesPage: React.FC = () => {
                   <div>
                     <h4 className="font-medium text-neutral-900">{area.name}</h4>
                     <div className="text-sm text-neutral-500 space-y-1">
-                      <p>Branch: {getBranchName(area.branchId)}</p>
-                      <p>Zone: {getZoneName(area.zoneId)}</p>
+                      <p>Branch: {area.branch?.name}</p>
+                      <p>Zone: {area.zone?.name}</p>
                     </div>
                   </div>
                 </div>

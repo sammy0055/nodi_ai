@@ -33,6 +33,7 @@ export interface IZone {
   id?: string;
   organizationId?: string;
   name: string;
+  areas?: { id: string; name: string }[];
 }
 
 export interface IArea {
@@ -43,4 +44,6 @@ export interface IArea {
   zoneId: string;
   deliveryTime: Date;
   deliveryCharge: number;
+  branch?: { id: string; name: string };
+  zone?: { id: string; name: string };
 }
