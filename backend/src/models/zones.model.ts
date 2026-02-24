@@ -13,6 +13,11 @@ class ZoneModel extends Model<InferAttributes<ZoneModel>, InferCreationAttribute
       foreignKey: 'organizationId',
       as: 'organization',
     });
+
+    this.hasMany(models.AreaModel, {
+      foreignKey: 'zoneId',
+      as: 'areas',
+    });
   }
 }
 

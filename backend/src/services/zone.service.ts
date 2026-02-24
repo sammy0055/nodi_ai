@@ -1,3 +1,4 @@
+import { AreaModel } from '../models/area.model';
 import { ZoneModel } from '../models/zones.model';
 import { Pagination } from '../types/common-types';
 import { User } from '../types/users';
@@ -37,10 +38,17 @@ export class ZoneService {
 
     const { rows: zones, count: totalItems } = await ZoneModel.findAndCountAll({
       where,
-      // distinct: true, // <-- important to avoid duplicate-count from joins
+      distinct: true, // <-- important to avoid duplicate-count from joins
       // col: 'id', // optional: ensures count works on primary key
       offset,
       limit,
+      include: [
+        {
+          model: AreaModel,
+          as: 'areas',
+          attributes: ['id', 'name'],
+        },
+      ],
       order: [['createdAt', 'DESC']],
     });
 
