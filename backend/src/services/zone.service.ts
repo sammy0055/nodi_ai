@@ -33,7 +33,7 @@ export class ZoneService {
 
     // add full-text search condition if searchQuery exists
     if (searchQuery) {
-      where[Op.and] = literal(`to_tsvector('english', "name") @@ plainto_tsquery('english', '${searchQuery}')`);
+      where[Op.and] = literal(`to_tsvector('english', "Zones"."name") @@ plainto_tsquery('english', '${searchQuery}')`);
     }
 
     const { rows: zones, count: totalItems } = await ZoneModel.findAndCountAll({
