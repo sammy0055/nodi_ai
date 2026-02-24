@@ -15,8 +15,13 @@ export class AreaService {
     const { id, ...areaWithOutId } = area;
     if (!id) throw new Error('area id is required');
     const [_, updatedRows] = await AreaModel.update(areaWithOutId, { where: { id: id }, returning: true });
-    const updatedProduct = updatedRows[0].get({ plain: true }); // plain JS object
-    return updatedProduct;
+    const updatedArea = updatedRows[0].get({ plain: true }); // plain JS object
+    return await AreaModel.findByPk(updatedArea.id, {
+      include: [
+        { model: BranchesModel, as: 'branch', attributes: ['id', 'name'] },
+        { model: ZoneModel, as: 'zone', attributes: ['id', 'name'] },
+      ],
+    });
   }
   static async removeArea(areaId: string, user: Pick<User, 'id' | 'organizationId'>) {
     if (!areaId) throw new Error('area id is required');
