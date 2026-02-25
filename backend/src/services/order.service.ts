@@ -30,6 +30,82 @@ interface OrderFilters {
   status: string;
 }
 export class OrderService {
+  static async getOrderById(orderId: string, user: Pick<User, 'id' | 'organizationId'>) {
+    if (!orderId) throw new Error('order id is required');
+    const order = await OrderModel.findByPk(orderId, {
+      include: [
+        { model: CustomerModel, as: 'customer' },
+        { model: BranchesModel, as: 'branch' },
+      ], // join for customer info
+    });
+
+    if (!order) return order;
+    const plainOrder = order.get({ plain: true });
+
+    // loop through order items
+    for (let i = 0; i < plainOrder?.items.length; i++) {
+      const item = plainOrder.items[i];
+
+      if (item.productId) {
+        const product = await ProductModel.findByPk(item.productId);
+        const productData = product?.get({ plain: true }) as any;
+        if (product) {
+          if (item?.selectedOptions?.length) {
+            const selectedOptions = item.selectedOptions as selectedOptionsAttributes[];
+
+            const options = [];
+            for (const selected of selectedOptions) {
+              if (!selected.optionId) continue;
+
+              const option = await ProductOptionModel.findOne({
+                where: { id: selected.optionId, productId: product.id },
+                include: [
+                  {
+                    model: ProductOptionChoiceModel,
+                    as: 'choices',
+                    attributes: ['id', 'label', 'priceAdjustment'],
+                    where: { id: selected.choiceId },
+                  },
+                ],
+              });
+
+              if (option) {
+                const plain = option.get({ plain: true }) as any;
+                options.push({
+                  ...plain,
+                  choice: plain.choices?.[0] || null, // single object instead of array
+                });
+              }
+            }
+
+            if (options.length) productData.options = options;
+          }
+        }
+        // ✅ always attach product, even if no options
+        plainOrder.items[i].product = productData;
+        delete plainOrder.items[i].productId;
+      }
+
+      return plainOrder;
+    }
+    // attach area if present
+    if (plainOrder.deliveryAreaId) {
+      const area = await AreaModel.findByPk(plainOrder.deliveryAreaId, {
+        include: [{ model: ZoneModel, as: 'zone', attributes: ['id', 'name'] }],
+      });
+
+      if (area) {
+        const plainArea = area.get({ plain: true }) as any;
+        plainOrder.area = {
+          id: plainArea.id,
+          name: plainArea.name,
+          zone: plainArea.zone,
+        };
+      }
+    } else {
+      plainOrder.area = null;
+    }
+  }
   static async getOrders(
     user: Pick<User, 'id' | 'organizationId'>,
     { offset, limit, page }: Pagination,

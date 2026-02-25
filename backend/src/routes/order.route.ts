@@ -6,6 +6,26 @@ import { OrderService } from '../services/order.service';
 import { validateOrderSchema } from '../middleware/validation/order';
 export const orderRoute = express.Router();
 
+orderRoute.get('/get-order', authMiddleware, async (req, res) => {
+  try {
+    const id = req.query.orderId as string;
+    const data = await OrderService.getOrderById(id, req.user!);
+    const response: APIResponseFormat<any> = {
+      message: 'order retreived successfully',
+      data,
+    };
+
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: APIResponseFormat<null> = {
+      message: error.message,
+      error: error,
+    };
+    errorLogger(error);
+    res.status(500).json(response);
+  }
+});
+
 orderRoute.get('/get-all', authMiddleware, async (req, res) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
