@@ -37,6 +37,8 @@ import { useLoaderData, useNavigate } from 'react-router';
 import { PageRoutes } from '../../routes';
 import type { Pagination } from '../../types/customer';
 import { useValidateUserRolesAndPermissions } from '../../hooks/validateUserRoleAndPermissions';
+import { productOptionsTaxonomy } from '../../data/taxonomy/taxonomy';
+import type { IOrganization } from '../../types/organization';
 // Define types based on your schema
 const ProductStatusTypes = {
   ACTIVE: 'active',
@@ -52,8 +54,9 @@ const ProductOptionType = {
 const ProductOptionsManager: React.FC<{
   productId: string;
   options: ProductOption[];
+  optionsTaxonomy: string[];
   onOptionsChange: (options: ProductOption[]) => void;
-}> = ({ productId, options, onOptionsChange }) => {
+}> = ({ productId, options, optionsTaxonomy, onOptionsChange }) => {
   const productOptions = options || [];
   const { addProductOption, addProductOptionChoice, deleteProductChoice, deleteProductOption } = new ProductService();
   const addOption = async () => {
@@ -163,11 +166,20 @@ const ProductOptionsManager: React.FC<{
           <div key={option.id} className="border border-neutral-200 rounded-lg p-4">
             <div className="flex justify-between items-start mb-3">
               <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  label="Option Name"
-                  value={option.name}
-                  onChange={(e) => updateOption(option.id, { name: e.target.value })}
-                />
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-neutral-700">Option Name</label>
+                  <select
+                    className="border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    value={option.name}
+                    onChange={(e) => updateOption(option.id, { name: e.target.value })}
+                  >
+                    {optionsTaxonomy?.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
                 <div className="flex flex-col gap-1.5">
                   <label className="text-sm font-medium text-neutral-700">Option Type</label>
@@ -258,6 +270,7 @@ const ProductsPage: React.FC = () => {
   const data = useLoaderData() as {
     products: { data: Product[]; pagination: Pagination };
     productOptions: ProductOption[];
+    organization: IOrganization;
   };
   const products = useProductsValue();
   const setProducts = useProductsSetRecoilState();
@@ -265,6 +278,10 @@ const ProductsPage: React.FC = () => {
   // const setProductOptions = useProductOptionSetRecoilState();
   const whatsappData = useWhatsappValue();
   const organization = useOrgValue();
+
+  const [optionsTaxonomy, setProductOptionsTaxonomy] = useState(
+    productOptionsTaxonomy[organization.businessType] || []
+  );
   const [searchTerm, setSearchTerm] = useState('');
   const [showProductModal, setShowProductModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
@@ -275,14 +292,8 @@ const ProductsPage: React.FC = () => {
   const user = useUserValue();
   const { isUserPermissionsValid, isUserRoleValid } = useValidateUserRolesAndPermissions(user!);
   // const importFileInputRef = useRef<HTMLInputElement>(null);
-  const {
-    addProduct,
-    updateProduct,
-    deleteProduct,
-    searchProducts,
-    getProducts,
-    syncMetaCatalogToDB,
-  } = new ProductService();
+  const { addProduct, updateProduct, deleteProduct, searchProducts, getProducts, syncMetaCatalogToDB } =
+    new ProductService();
 
   // Pagination
   const [pagination, setPagination] = useState<Pagination>();
@@ -306,13 +317,13 @@ const ProductsPage: React.FC = () => {
     }
   }, []);
 
-
   // load initial products
   useEffect(() => {
     if (data) {
       setProducts(data.products.data);
       // getProductOption(data.products.data);
       setPagination(data.products.pagination);
+      setProductOptionsTaxonomy(productOptionsTaxonomy[data.organization.businessType] || []);
     }
   }, [data]);
 
@@ -380,7 +391,6 @@ const ProductsPage: React.FC = () => {
         setProducts((prevState) => prevState.map((p) => (p.id === editingProduct.id ? (editingProduct as any) : p)));
         setShowProductModal(false);
         setEditingProduct({});
-   
       } else {
         // Add new product
         const { data } = await addProduct(editingProduct as Product);
@@ -424,7 +434,6 @@ const ProductsPage: React.FC = () => {
       alert('something went wrong, try again');
     }
   };
-
 
   const updateProductOptions = (options: any) => {
     setEditingProduct((prevState) => ({ ...prevState, options: options || [] }));
@@ -764,6 +773,7 @@ const ProductsPage: React.FC = () => {
                 <ProductOptionsManager
                   productId={editingProduct.id}
                   options={editingProduct.options!}
+                  optionsTaxonomy={optionsTaxonomy}
                   onOptionsChange={updateProductOptions}
                 />
               )}

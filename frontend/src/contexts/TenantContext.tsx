@@ -79,11 +79,12 @@ export const branchContextLoader = async () => {
 
 export const productContextLoader = async () => {
   const { getProducts } = new ProductService();
-  const [productsResult] = await Promise.allSettled([getProducts()]);
+  const { getOrganization } = new OrganizationService();
+  const [productsResult, orgResult] = await Promise.allSettled([getProducts(), getOrganization()]);
 
   const products = productsResult.status === 'fulfilled' ? productsResult.value : null;
-
-  return { products: products?.data };
+  const org = orgResult.status === 'fulfilled' ? orgResult.value : null;
+  return { products: products?.data, organization: org?.data };
 };
 
 export const inventoryContextLoader = async () => {
