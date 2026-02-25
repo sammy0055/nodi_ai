@@ -15,7 +15,7 @@ class ProductOptionModel
   declare id: CreationOptional<string>;
   declare productId: string;
   declare name: string;
-  declare description: string;
+  declare description: string | undefined;
   declare type: `${ProductOptionTypes}`;
   declare isRequired: CreationOptional<boolean>;
   declare minSelection: CreationOptional<number>;

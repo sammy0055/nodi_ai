@@ -2,6 +2,7 @@ export interface ProductOption {
   id: string;
   productId: string;
   name: string; // "Size", "Toppings", "Cooking Preference"
+  description?:string
   type: 'single' | 'multiple'; // single = one choice (radio), multiple = many (checkbox)
   isRequired: boolean; // must pick at least one? (true/false)
   minSelection?: number;
