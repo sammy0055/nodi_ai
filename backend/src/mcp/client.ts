@@ -70,8 +70,8 @@ export class MCPClient extends UsageBase {
   private chatHistory: ChatHistoryManager;
 
   // llm_model = 'gpt-4.1-mini';
-  // llm_model = 'gpt-5.2';
-  llm_model = 'o4-mini';
+  llm_model = 'gpt-5.2';
+  // llm_model = 'o4-mini';
   maxIterations = 5;
   OPENAI_API_KEY = '';
 
