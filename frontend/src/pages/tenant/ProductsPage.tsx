@@ -39,6 +39,8 @@ import type { Pagination } from '../../types/customer';
 import { useValidateUserRolesAndPermissions } from '../../hooks/validateUserRoleAndPermissions';
 import { productOptionsTaxonomy } from '../../data/taxonomy/taxonomy';
 import type { IOrganization } from '../../types/organization';
+import type { ProductOptionDefinition } from '../../data/data-types';
+import { CustomSelect } from '../../components/atoms/Select';
 // Define types based on your schema
 const ProductStatusTypes = {
   ACTIVE: 'active',
@@ -54,7 +56,7 @@ const ProductOptionType = {
 const ProductOptionsManager: React.FC<{
   productId: string;
   options: ProductOption[];
-  optionsTaxonomy: string[];
+  optionsTaxonomy: ProductOptionDefinition[];
   onOptionsChange: (options: ProductOption[]) => void;
 }> = ({ productId, options, optionsTaxonomy, onOptionsChange }) => {
   const productOptions = options || [];
@@ -167,18 +169,12 @@ const ProductOptionsManager: React.FC<{
             <div className="flex justify-between items-start mb-3">
               <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-neutral-700">Option Name</label>
-                  <select
-                    className="border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  <CustomSelect
+                    label="Option Name"
                     value={option.name}
-                    onChange={(e) => updateOption(option.id, { name: e.target.value })}
-                  >
-                    {optionsTaxonomy?.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(newValue) => updateOption(option.id, { name: newValue })}
+                    options={optionsTaxonomy}
+                  />
                 </div>
 
                 <div className="flex flex-col gap-1.5">

@@ -31,3 +31,8 @@ export type BusinessType =
   | 'furniture-store'
   | 'ecommerce'
   | 'other';
+
+  export interface ProductOptionDefinition {
+  label: string;
+  description: string;
+}
