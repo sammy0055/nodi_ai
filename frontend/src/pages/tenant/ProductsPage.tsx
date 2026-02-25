@@ -172,7 +172,7 @@ const ProductOptionsManager: React.FC<{
                   <CustomSelect
                     label="Option Name"
                     value={option.name}
-                    onChange={(newValue) => updateOption(option.id, { name: newValue })}
+                    onChange={({ name, description }) => updateOption(option.id, { name, description })}
                     options={optionsTaxonomy}
                   />
                 </div>

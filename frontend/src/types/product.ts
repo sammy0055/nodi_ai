@@ -26,6 +26,7 @@ export interface ProductOption {
   id: string;
   productId: string;
   name: string;
+  description?:string
   type: 'single' | 'multiple';
   isRequired: boolean;
   minSelection?: number;

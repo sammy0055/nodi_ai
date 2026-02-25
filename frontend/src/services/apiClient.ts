@@ -95,6 +95,7 @@ export const API_ROUTES = {
   SUBSCRIBE_TO_PLAN: `${API_BASE_URL}/organization/subscription/create-checkout-session`,
   UPGRADE_SUBSCRIPTION_PLAN: `${API_BASE_URL}/organization/subscription/upgrade-subscription`,
   GET_ORDERS: `${API_BASE_URL}/organization/order/get-all`,
+  GET_ORDER: `${API_BASE_URL}/organization/order/get-order`,
   GET_ASSIGNED_ORDERS: `${API_BASE_URL}/organization/order/get-all-assigned-orders`,
   UPDATE_ORDER_STATUS: `${API_BASE_URL}/organization/order/update-order-status`,
   UPDATE_ORDER: `${API_BASE_URL}/organization/order/update-order`,

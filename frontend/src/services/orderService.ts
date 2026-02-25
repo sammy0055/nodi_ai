@@ -15,7 +15,7 @@ interface OrderStatsParams {
     count: number;
   }[];
   assignedToUser: number;
-  allOrders:number
+  allOrders: number;
 }
 export class OrderService {
   async getOrders({
@@ -27,6 +27,12 @@ export class OrderService {
       queryParams: `?search=${encodeURIComponent(searchTerm || '')}&page=${page || 1}&status=${encodeURIComponent(
         status || ''
       )}`,
+    });
+  }
+
+  async getOrder({ orderId }: { orderId: string }): Promise<{ data: IOrder, message: string }> {
+    return await ApiClient('GET_ORDER', {
+      queryParams: `?orderId=${encodeURIComponent(orderId || '')}`,
     });
   }
 

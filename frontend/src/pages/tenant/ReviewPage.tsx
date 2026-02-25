@@ -29,6 +29,7 @@ import ReviewDatePicker from '../../components/organisms/review/reviewDataPicker
 import type { Pagination } from '../../types/customer';
 import { useUserValue } from '../../store/authAtoms';
 import { useValidateUserRolesAndPermissions } from '../../hooks/validateUserRoleAndPermissions';
+import { OrderDetailsModal } from '../../components/organisms/order/orderDetailsModel';
 
 export interface OrgReviewQuestions {
   id: string;
@@ -84,6 +85,8 @@ const ReviewsPage: React.FC = () => {
   const [selectedReview, setSelectedReview] = useState<IReviews | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [reviewTime, setReviewTime] = useState<number | null>(null);
+  const [showOrderModel, setShowOrderModel] = useState(false);
+  const [orderId, setOrderId] = useState('');
   // const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
 
   const { setOrgReviewQuestions, setOrgReviewTimer, searchReviews } = new ReviewService();
@@ -223,8 +226,8 @@ const ReviewsPage: React.FC = () => {
             ? rating >= 4
               ? 'text-yellow-400 fill-yellow-400'
               : rating >= 3
-              ? 'text-yellow-500 fill-yellow-500'
-              : 'text-red-400 fill-red-400'
+                ? 'text-yellow-500 fill-yellow-500'
+                : 'text-red-400 fill-red-400'
             : 'text-gray-300'
         }`}
         size={16}
@@ -643,8 +646,8 @@ const ReviewsPage: React.FC = () => {
                             review.rating < 3
                               ? 'border-red-200 bg-red-50'
                               : review.rating === 3
-                              ? 'border-yellow-200'
-                              : 'border-green-200'
+                                ? 'border-yellow-200'
+                                : 'border-green-200'
                           }`}
                         >
                           <div className="flex flex-col md:flex-row md:items-start justify-between">
@@ -674,8 +677,8 @@ const ReviewsPage: React.FC = () => {
                                         review.rating >= 4
                                           ? 'bg-green-100 text-green-800'
                                           : review.rating === 3
-                                          ? 'bg-yellow-100 text-yellow-800'
-                                          : 'bg-red-100 text-red-800'
+                                            ? 'bg-yellow-100 text-yellow-800'
+                                            : 'bg-red-100 text-red-800'
                                       }`}
                                     >
                                       {review.rating >= 4 ? 'Positive' : review.rating === 3 ? 'Neutral' : 'Negative'}
@@ -705,8 +708,8 @@ const ReviewsPage: React.FC = () => {
                                                 item.answer === 'Yes'
                                                   ? 'text-green-600'
                                                   : item.answer === 'No'
-                                                  ? 'text-red-600'
-                                                  : 'text-yellow-600'
+                                                    ? 'text-red-600'
+                                                    : 'text-yellow-600'
                                               }`}
                                             >
                                               {item.answer || 'No answer provided'}
@@ -737,6 +740,19 @@ const ReviewsPage: React.FC = () => {
                               >
                                 <FiEye className="mr-1" />
                                 View Details
+                              </Button>
+
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setShowOrderModel(true);
+                                  setOrderId(review.orderId);
+                                }}
+                                className="border-gray-300 hover:border-gray-400 mt-1.5"
+                              >
+                                <FiEye className="mr-1" />
+                                 View Order
                               </Button>
                             </div>
                           </div>
@@ -880,8 +896,8 @@ const ReviewsPage: React.FC = () => {
                       selectedReview.rating < 3
                         ? 'bg-red-50 border border-red-200'
                         : selectedReview.rating === 3
-                        ? 'bg-yellow-50 border border-yellow-200'
-                        : 'bg-green-50 border border-green-200'
+                          ? 'bg-yellow-50 border border-yellow-200'
+                          : 'bg-green-50 border border-green-200'
                     }`}
                   >
                     <h4 className="font-medium text-gray-900 mb-3 flex items-center">
@@ -903,15 +919,15 @@ const ReviewsPage: React.FC = () => {
                             selectedReview.rating >= 4
                               ? 'bg-green-100 text-green-800'
                               : selectedReview.rating === 3
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-red-100 text-red-800'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-red-100 text-red-800'
                           }`}
                         >
                           {selectedReview.rating >= 4
                             ? 'Positive Review'
                             : selectedReview.rating === 3
-                            ? 'Neutral Review'
-                            : 'Needs Attention'}
+                              ? 'Neutral Review'
+                              : 'Needs Attention'}
                         </span>
                       </div>
                     </div>
@@ -978,8 +994,8 @@ const ReviewsPage: React.FC = () => {
                               item.answer === 'Yes'
                                 ? 'bg-green-100 text-green-800'
                                 : item.answer === 'No'
-                                ? 'bg-red-100 text-red-800'
-                                : 'bg-yellow-100 text-yellow-800'
+                                  ? 'bg-red-100 text-red-800'
+                                  : 'bg-yellow-100 text-yellow-800'
                             }`}
                           >
                             {item.answer === 'Yes' && <FiThumbsUp className="mr-2" />}
@@ -997,6 +1013,12 @@ const ReviewsPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      <OrderDetailsModal
+        orderId={orderId || ''}
+        isOpen={showOrderModel}
+        onClose={() => setShowOrderModel(false)}
+      />
     </div>
   );
 };

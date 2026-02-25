@@ -7,7 +7,7 @@ interface OptionType {
 
 interface CustomSelectProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (value: {name:string, description:string}) => void;
   options: OptionType[];
   label?: string;
 }
@@ -78,7 +78,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                   opt.label === value ? 'bg-primary-50' : ''
                 }`}
                 onClick={() => {
-                  onChange(opt.label);
+                  onChange({name:opt.label, description: opt.description!});
                   setIsOpen(false);
                 }}
               >
