@@ -48,7 +48,7 @@ export class AreaService {
 
     // add full-text search condition if searchQuery exists
     if (searchQuery) {
-      where[Op.and] = literal(`to_tsvector('english', "name") @@ plainto_tsquery('english', '${searchQuery}')`);
+      where[Op.and] = literal(`to_tsvector('english', "Areas"."name") @@ plainto_tsquery('english', '${searchQuery}')`);
     }
     const { rows: areas, count: totalItems } = await AreaModel.findAndCountAll({
       where,
