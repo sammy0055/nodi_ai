@@ -15,6 +15,7 @@ class ProductOptionModel
   declare id: CreationOptional<string>;
   declare productId: string;
   declare name: string;
+  declare description: string;
   declare type: `${ProductOptionTypes}`;
   declare isRequired: CreationOptional<boolean>;
   declare minSelection: CreationOptional<number>;
@@ -42,6 +43,7 @@ ProductOptionModel.init(
       onUpdate: 'CASCADE',
     },
     name: { type: DataTypes.STRING, allowNull: false },
+    description: { type: DataTypes.STRING, allowNull: true, defaultValue: '' },
     type: { type: DataTypes.ENUM, values: [...Object.values(ProductOptionTypes)] },
     isRequired: { type: DataTypes.BOOLEAN, defaultValue: false },
     minSelection: { type: DataTypes.INTEGER, defaultValue: 1 },
