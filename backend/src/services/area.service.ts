@@ -9,15 +9,13 @@ import { Op, literal } from 'sequelize';
 export class AreaService {
   static async createArea(area: IArea, user: Pick<User, 'id' | 'organizationId'>) {
     if (!user.organizationId) throw new Error('organization id is required');
-    return await AreaModel.create(
-      { ...area, organizationId: user.organizationId },
-      {
-        include: [
-          { model: BranchesModel, as: 'branch', attributes: ['id', 'name'] },
-          { model: ZoneModel, as: 'zone', attributes: ['id', 'name'] },
-        ],
-      }
-    );
+    const createArea = await AreaModel.create({ ...area, organizationId: user.organizationId });
+    return AreaModel.findByPk(createArea.id, {
+      include: [
+        { model: BranchesModel, as: 'branch', attributes: ['id', 'name'] },
+        { model: ZoneModel, as: 'zone', attributes: ['id', 'name'] },
+      ],
+    });
   }
   static async updateArea(area: IArea, user: Pick<User, 'id' | 'organizationId'>) {
     const { id, ...areaWithOutId } = area;
