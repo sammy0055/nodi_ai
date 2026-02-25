@@ -69,7 +69,9 @@ export class MCPClient extends UsageBase {
   protected tools: FunctionTool[] = [];
   private chatHistory: ChatHistoryManager;
 
-  llm_model = 'gpt-4.1-mini';
+  // llm_model = 'gpt-4.1-mini';
+  // llm_model = 'gpt-5.2';
+  llm_model = 'o4-mini';
   maxIterations = 5;
   OPENAI_API_KEY = '';
 
@@ -244,13 +246,7 @@ export class MCPClient extends UsageBase {
     return finalResponse;
   }
 
-  async process({
-    query,
-    organizationId,
-    customerId,
-    conversationId,
-
-  }: ProcessQueryTypes) {
+  async process({ query, organizationId, customerId, conversationId }: ProcessQueryTypes) {
     const res = await this.query({ query, organizationId, customerId, conversationId });
 
     return res;
