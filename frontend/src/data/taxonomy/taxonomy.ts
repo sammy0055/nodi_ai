@@ -27,8 +27,8 @@ export const productOptionsTaxonomy: Record<BusinessType, ProductOptionDefinitio
       description: 'Specify how the food should be cooked. Example: well done, medium rare.',
     },
     {
-      label: 'Portion Size',
-      description: 'Select portion size. Example: regular, large, family size.',
+      label: 'Size',
+      description: 'Select size. Example: regular, large, family size.',
     },
     {
       label: 'Add Sauce',
