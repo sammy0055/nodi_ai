@@ -15,6 +15,7 @@ import { queueProducer } from './rabbitmq';
 import { getVoiceNote } from '../helpers/download_voice_note';
 import { checkBusinessServiceSchedule } from '../utils/organization';
 import { getEstimatedTime } from '../utils/getEstimatedTime';
+import { ManageVectorStore } from '../helpers/vector-store';
 
 const ddd = {
   whatsappBusinessId: '1390720013053482',
@@ -365,13 +366,13 @@ const mockServiceScheduleData = [
 ];
 
 const sendEmails = async () => {
- try {
-   await sendEmail({ to: 'naenet05@gmail.com', subject: 'testing email', text: 'email works perfectly' });
- } catch (error) {
-  console.log('==================error==================');
-  console.log(error);
-  console.log('====================================');
- }
+  try {
+    await sendEmail({ to: 'naenet05@gmail.com', subject: 'testing email', text: 'email works perfectly' });
+  } catch (error) {
+    console.log('==================error==================');
+    console.log(error);
+    console.log('====================================');
+  }
 };
 // console.log('====================================');
 // console.log(getEstimatedTime("1970-01-01 03:00:00+00" as any));
@@ -390,3 +391,22 @@ const sendEmails = async () => {
 // queueProducer({ data: { hel: { d: '', dfsaf: ['dwee'] } } });
 // listCatalogItems();
 // getVoiceNote('1500555364366195');
+
+// const ttttt = async () => {
+//   try {
+//     const vectorStore = new ManageVectorStore();
+//    const result = await vectorStore.searchProducts({
+//       query: 'Sandwich Tawouk',
+//       organizationId: '73f2cd06-127c-4d08-b584-ed4eae2cd15e',
+//     });
+//     console.log('=================result===================');
+//     console.log(result);
+//     console.log('====================================');
+//   } catch (error) {
+//     console.log('===================error=================');
+//     console.log(error);
+//     console.log('====================================');
+//   }
+// };
+
+// ttttt()

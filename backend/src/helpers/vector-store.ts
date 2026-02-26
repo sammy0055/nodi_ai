@@ -77,7 +77,7 @@ export class ManageVectorStore {
   }
 
   // ✅ Search similar products by natural language query
-  async searchProducts({ query, organizationId, limit = 5 }: ProductSearchParans) {
+  async searchProducts({ query, organizationId, limit = 10 }: ProductSearchParans) {
     if (!query) {
       const producs = ProductModel.findAll({ limit });
       return producs;

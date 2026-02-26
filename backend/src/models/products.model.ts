@@ -98,6 +98,9 @@ ProductModel.init(
         await vectorStore.insertProductEmbedding(product);
       },
       beforeUpdate: async (product: ProductModel) => {
+        console.log('👌🏼=================product embedding update===================');
+        console.log(product);
+        console.log('====================================');
         const vectorStore = new ManageVectorStore();
         await vectorStore.insertProductEmbedding(product);
       },
