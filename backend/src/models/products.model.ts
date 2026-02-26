@@ -94,11 +94,14 @@ ProductModel.init(
     ],
     hooks: {
       beforeCreate: async (product: ProductModel) => {
+        console.log('👌🏼=================add product embedding update===================');
+        console.log(JSON.stringify(product));
+        console.log('====================================');
         const vectorStore = new ManageVectorStore();
         await vectorStore.insertProductEmbedding(product);
       },
       beforeUpdate: async (product: ProductModel) => {
-        console.log('👌🏼=================product embedding update===================');
+        console.log('👌🏼=================update product embedding update===================');
         console.log(JSON.stringify(product));
         console.log('====================================');
         const vectorStore = new ManageVectorStore();
