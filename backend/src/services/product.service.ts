@@ -138,7 +138,7 @@ export class ProductService {
       }
 
       // ✅ Update DB (inside transaction)
-      const [_, updatedRows] = await ProductModel.update(productWithOutId, {
+      const updatedProduct = await oldProduct.update(productWithOutId, {
         where: { id },
         returning: true,
         hooks: true,
@@ -157,9 +157,10 @@ export class ProductService {
         }
       }
 
-      const updatedProduct = updatedRows[0].get({ plain: true });
-      const vectorStore = new ManageVectorStore();
-      await vectorStore.insertProductEmbedding(updatedProduct);
+      // const updatedProduct = updatedRows[0].get({ plain: true });
+      console.log('================updatedProduct====================');
+      console.log(updatedProduct);
+      console.log('====================================');
 
       // 🔹 Update Meta catalog (external)
       await WhatsappCatalogHelper.updateMetaCatalogItem(
