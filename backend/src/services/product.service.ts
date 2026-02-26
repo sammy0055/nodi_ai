@@ -15,6 +15,7 @@ import { Op, literal, Transaction } from 'sequelize';
 import { ProductOptionService } from './product-option.service';
 import { ProductOptionChoiceService } from './productOptionChoice.service';
 import { ProductOption } from '../types/product-option';
+import { ManageVectorStore } from '../helpers/vector-store';
 
 interface ProductPayload extends IProduct {
   options: {
@@ -141,7 +142,6 @@ export class ProductService {
         where: { id },
         returning: true,
         hooks: true,
-        individualHooks: true, // 👈 important
         transaction,
       });
 
@@ -158,6 +158,8 @@ export class ProductService {
       }
 
       const updatedProduct = updatedRows[0].get({ plain: true });
+      const vectorStore = new ManageVectorStore();
+      await vectorStore.insertProductEmbedding(updatedProduct);
 
       // 🔹 Update Meta catalog (external)
       await WhatsappCatalogHelper.updateMetaCatalogItem(
