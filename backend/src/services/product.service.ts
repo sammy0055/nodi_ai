@@ -141,6 +141,7 @@ export class ProductService {
         where: { id },
         returning: true,
         hooks: true,
+        individualHooks: true, // 👈 important
         transaction,
       });
 
