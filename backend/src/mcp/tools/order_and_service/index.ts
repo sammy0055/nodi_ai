@@ -395,7 +395,7 @@ export const updateOrder = (server: McpServer) => {
             }
           }
           if (params.serviceType === 'takeaway') delete params.deliveryAreaId;
-          await order.update(params as any);
+          await order.update(params as any, { hooks: true });
           for (const product of products) {
             await BranchInventoryModel.decrement('quantityOnHand', {
               by: product.qty,

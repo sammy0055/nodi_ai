@@ -158,9 +158,6 @@ export class ProductService {
       }
 
       // const updatedProduct = updatedRows[0].get({ plain: true });
-      console.log('================updatedProduct====================');
-      console.log(updatedProduct);
-      console.log('====================================');
 
       // 🔹 Update Meta catalog (external)
       await WhatsappCatalogHelper.updateMetaCatalogItem(
