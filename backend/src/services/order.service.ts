@@ -158,7 +158,9 @@ export class OrderService {
               const options = [];
               for (const selected of selectedOptions) {
                 if (!selected.optionId) continue;
-
+                console.log('==================selected.choiceId==================', 0 + 1);
+                console.log(selected.choiceId);
+                console.log('====================================');
                 const option = await ProductOptionModel.findOne({
                   where: { id: selected.optionId, productId: product.id },
                   include: [
