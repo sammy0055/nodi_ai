@@ -1,6 +1,5 @@
 import { ChatHistoryManager } from '../services/ChatHistoryManager.service';
 import { models } from '../models';
-import { MCPChatBot } from './client';
 import { createSystemPrompt, createValidationSystemPrompt } from './prompts';
 import { decrypt } from '../utils/crypto-utils';
 import { Conversation } from '../models/conversation.model';
