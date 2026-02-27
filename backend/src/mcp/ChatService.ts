@@ -8,6 +8,7 @@ import { SubscriptionsModel } from '../models/subscriptions.model';
 import { checkBusinessServiceSchedule } from '../utils/organization';
 import { appConfig } from '../config';
 import OpenAI from 'openai';
+import { bot } from '../bot';
 
 const { CustomerModel, WhatSappSettingsModel, OrganizationsModel } = models;
 
@@ -51,7 +52,7 @@ interface SendWhatSappBranchFlowProps {
   footerText?: string;
 }
 
-export class ChatService extends MCPChatBot {
+export class ChatService {
   protected organizationId: string = '';
   protected conversationId: string = '';
   protected userPhoneNumber: string;
@@ -60,7 +61,6 @@ export class ChatService extends MCPChatBot {
   protected WhatSappBusinessPhoneNumberId: string = '';
   protected WhatSappBusinessPhoneNumber: string = '';
   constructor(userPhoneNumber: string, organizationWhatsappId: string) {
-    super();
     this.organizationWhatsappId = organizationWhatsappId;
     this.userPhoneNumber = userPhoneNumber;
   }
@@ -145,7 +145,7 @@ export class ChatService extends MCPChatBot {
     const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
     const res = await openai.responses.create({
-      model: this.llm_model,
+      model: bot.llm_model,
       input: [
         { role: 'system', content: systemPrompt },
         { role: 'assistant', content: assistantMessage },
@@ -243,7 +243,7 @@ export class ChatService extends MCPChatBot {
       }
     }
    
-    const res = await this.process({
+    const res = await bot.process({
       query: userMessage,
       systemPrompt: systemPrompt,
       organizationId: this.organizationId,

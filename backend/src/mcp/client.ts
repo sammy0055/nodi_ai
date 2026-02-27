@@ -70,7 +70,7 @@ export class MCPClient extends UsageBase {
   private chatHistory: ChatHistoryManager;
 
   // llm_model = 'gpt-4.1-mini';
-  llm_model = 'gpt-5.2';
+  public llm_model = 'gpt-5.2';
   // llm_model = 'o4-mini';
   maxIterations = 5;
   OPENAI_API_KEY = '';
@@ -193,11 +193,12 @@ export class MCPClient extends UsageBase {
       role: 'user',
       content: query.trim(),
     });
+
+    await this.openai.conversations.items.create(conversationId, { items });
+    await this.chatHistory.addMessage({ conversationId, organizationId }, { role: 'user', content: query });
     console.error('====================================');
     console.error({ query, organizationId, customerId, conversationId });
     console.error('====================================');
-    await this.openai.conversations.items.create(conversationId, { items });
-    await this.chatHistory.addMessage({ conversationId, organizationId }, { role: 'user', content: query });
     let iteration = 0;
     let finalResponse: any = '';
     let totalTokenUsed = 0;
