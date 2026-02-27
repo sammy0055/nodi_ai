@@ -193,7 +193,9 @@ export class MCPClient extends UsageBase {
       role: 'user',
       content: query.trim(),
     });
-
+    console.error('====================================');
+    console.error({ query, organizationId, customerId, conversationId });
+    console.error('====================================');
     await this.openai.conversations.items.create(conversationId, { items });
     await this.chatHistory.addMessage({ conversationId, organizationId }, { role: 'user', content: query });
     let iteration = 0;
