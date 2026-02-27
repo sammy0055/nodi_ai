@@ -16,6 +16,7 @@ import { Pagination } from '../types/common-types';
 import { IOrder, OrderStatusTypes } from '../types/order';
 import { User } from '../types/users';
 import { Op, literal, fn, col } from 'sequelize';
+import { validate as isUuid } from 'uuid';
 
 interface selectedOptionsAttributes {
   optionId: string;
@@ -157,10 +158,10 @@ export class OrderService {
 
               const options = [];
               for (const selected of selectedOptions) {
-                if (!selected.optionId) continue;
-                console.log('==================selected.choiceId==================', 0 + 1);
-                console.log(selected.choiceId);
-                console.log('====================================');
+                if (!isUuid(selected.optionId) || !isUuid(selected.choiceId)) {
+                  continue; // skip this selection safely
+                }
+              
                 const option = await ProductOptionModel.findOne({
                   where: { id: selected.optionId, productId: product.id },
                   include: [
