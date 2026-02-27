@@ -242,7 +242,7 @@ export class ChatService extends MCPChatBot {
         );
       }
     }
-    await this.connectToMcpServer(conversation.id);
+   
     const res = await this.process({
       query: userMessage,
       systemPrompt: systemPrompt,

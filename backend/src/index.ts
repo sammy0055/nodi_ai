@@ -33,6 +33,7 @@ import { queueConsumer } from './helpers/rabbitmq/index.js';
 import { userRoleRoute } from './routes/role.route.js';
 import { userPermissionRoute } from './routes/permission-route.js';
 import { setupReviewQueues, startReviewtWorkerConsumer } from './helpers/rabbitmq/reviewQueue/index.js';
+import { MCPChatBot } from './mcp/client.js';
 
 const app = express();
 
@@ -90,6 +91,7 @@ setInterval(() => {
 }, 10000)
 
 const vectorStore = new ManageVectorStore();
+const mcpchatbot = new MCPChatBot()
 const PORT = appConfig.port;
 app.listen(PORT, async () => {
   await connectDB();
@@ -97,4 +99,5 @@ app.listen(PORT, async () => {
   queueConsumer();
   startReviewtWorkerConsumer();
   await vectorStore.initCollection();
+  await mcpchatbot.connectToMcpServer();
 });
