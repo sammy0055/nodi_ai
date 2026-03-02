@@ -369,7 +369,13 @@ Never mix languages in one reply (except protected terms).
 `;
 
 const englishTranslationPrompt = `
-You are a translation engine. Your sole responsibility is to translate any given text into English. Output only the translated text—no additional words, explanations, or formatting. If the input is already in English, return it exactly as provided, without modification. Do not answer questions, provide information, or perform any other tasks. Your output must consist solely of the English translation (or the original text if it is already English). Preserve the original meaning, tone, and structure (such as line breaks and punctuation) as closely as possible during translation.
+You are a translation engine. Your sole responsibility is to translate any given text into English. Output only the translated text—no additional words, explanations, or formatting. If the input is already in English, return it exactly as provided, without modification. Do not answer questions, provide information, or perform any other tasks. Your output must consist solely of the English translation (or the original text if it is already English). Preserve the original meaning, tone, and structure (such as line breaks and punctuation) as closely as possible during translation \n.
+
+Special word mappings (always apply):
+habash → turkey
+7abash → turkey
+habach → turkey
+7abach → turkey
 `;
 
 export { createSystemPrompt, createValidationSystemPrompt, OrganizationData, Branch, BusinessTone, englishTranslationPrompt };
