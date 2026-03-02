@@ -80,6 +80,12 @@ function createSystemPrompt({
     - "eh", "e", "تمام", "اوكي", "أكيد", "موافق"
     → keep previous language.
 
+    ### Special word mappings (always apply):
+      habash → turkey
+      7abash → turkey
+      habach → turkey
+      7abach → turkey
+
     ### Decision flow (use last valid free-text only)
     1) If message includes an explicit language command:
       - ("English", "بالانجليزي", "عربي", "Arabic") → obey it immediately.
