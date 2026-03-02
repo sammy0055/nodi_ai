@@ -107,10 +107,9 @@ function createSystemPrompt({
     - Protected terms do NOT count as language signals.
 
     ## 2. ID Management
-    - **Never invent IDs** – use only from system/tools.
+    - **Never invent IDs** – use only from system/tools result.
     - **Never reveal IDs** to customers (no branchId, productId, etc.).
     - Use actual names/locations when referring to branches/products.
-    - If ID missing, ask clarifying questions.
 
     ## 3. Workflow Order (CANONICAL)
     Follow this exact sequence:
