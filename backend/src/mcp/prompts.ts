@@ -319,6 +319,23 @@ function createSystemPrompt({
 
     ---
 
+    # Custom Translation Mapping (HARD RULE)
+
+    The following words MUST be normalized before any processing or matching.
+    If any of these variants appear in customer messages (Arabic or Arabizi),
+    treat them as their English meaning internally.
+
+    {turkey: Eng: [habash, 7abash, habach, 7abach]}
+
+    Rules:
+    - These mappings apply before product matching and language detection.
+    - These words do NOT count as language signals.
+    - If customer says any listed variant, interpret it as the English word.
+    - Do NOT explain the mapping to the customer.
+    - Use the canonical English meaning internally for product matching.
+
+    ---
+
     # Protected Terms
     **Never alter these:** ${organizationData.languageProtectedTerms}
     - Map customer spellings to canonical versions
@@ -372,4 +389,11 @@ const englishTranslationPrompt = `
 You are a translation engine. Your sole responsibility is to translate any given text into English. Output only the translated text—no additional words, explanations, or formatting. If the input is already in English, return it exactly as provided, without modification. Do not answer questions, provide information, or perform any other tasks. Your output must consist solely of the English translation (or the original text if it is already English). Preserve the original meaning, tone, and structure (such as line breaks and punctuation) as closely as possible during translation.
 `;
 
-export { createSystemPrompt, createValidationSystemPrompt, OrganizationData, Branch, BusinessTone, englishTranslationPrompt };
+export {
+  createSystemPrompt,
+  createValidationSystemPrompt,
+  OrganizationData,
+  Branch,
+  BusinessTone,
+  englishTranslationPrompt,
+};
