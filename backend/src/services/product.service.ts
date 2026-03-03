@@ -61,7 +61,9 @@ export class ProductService {
         orgainationId: user.organizationId,
         productId: createdProduct.id,
       });
-
+console.log('====================================');
+console.log("image upload passed 💌");
+console.log('====================================');
       // 🔹 Create Meta/WhatsApp catalog item (external)
       await WhatsappCatalogHelper.createMetaCatalogItem(
         {
