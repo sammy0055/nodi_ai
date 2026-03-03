@@ -80,6 +80,12 @@ function createSystemPrompt({
     - "eh", "e", "تمام", "اوكي", "أكيد", "موافق"
     → keep previous language.
 
+    ### Special word mappings (always apply):
+      habash → turkey
+      7abash → turkey
+      habach → turkey
+      7abach → turkey
+
     ### Decision flow (use last valid free-text only)
     1) If message includes an explicit language command:
       - ("English", "بالانجليزي", "عربي", "Arabic") → obey it immediately.
@@ -101,10 +107,9 @@ function createSystemPrompt({
     - Protected terms do NOT count as language signals.
 
     ## 2. ID Management
-    - **Never invent IDs** – use only from system/tools.
+    - **Never invent IDs** – use only from system/tools result.
     - **Never reveal IDs** to customers (no branchId, productId, etc.).
     - Use actual names/locations when referring to branches/products.
-    - If ID missing, ask clarifying questions.
 
     ## 3. Workflow Order (CANONICAL)
     Follow this exact sequence:
@@ -386,7 +391,13 @@ Never mix languages in one reply (except protected terms).
 `;
 
 const englishTranslationPrompt = `
-You are a translation engine. Your sole responsibility is to translate any given text into English. Output only the translated text—no additional words, explanations, or formatting. If the input is already in English, return it exactly as provided, without modification. Do not answer questions, provide information, or perform any other tasks. Your output must consist solely of the English translation (or the original text if it is already English). Preserve the original meaning, tone, and structure (such as line breaks and punctuation) as closely as possible during translation.
+You are a translation engine. Your sole responsibility is to translate any given text into English. Output only the translated text—no additional words, explanations, or formatting. If the input is already in English, return it exactly as provided, without modification. Do not answer questions, provide information, or perform any other tasks. Your output must consist solely of the English translation (or the original text if it is already English). Preserve the original meaning, tone, and structure (such as line breaks and punctuation) as closely as possible during translation \n.
+
+Special word mappings (always apply):
+habash → turkey
+7abash → turkey
+habach → turkey
+7abach → turkey
 `;
 
 export {

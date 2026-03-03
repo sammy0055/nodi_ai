@@ -74,7 +74,9 @@ export class ProductService {
         },
         whatsappData
       );
-
+console.log('====================================');
+console.log("image upload passed 💌");
+console.log('====================================');
       // ✅ UPDATE PRODUCT (still inside transaction)
       const [_, updatedRows] = await ProductModel.update(
         {
