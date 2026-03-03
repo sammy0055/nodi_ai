@@ -332,6 +332,24 @@ function createSystemPrompt({
 
     {turkey: Eng: [habash, 7abash, habach, 7abach]}
 
+    {liver: Eng: [
+      kasbe, 2asbe, 2asbi, kasbi, kasbeh, kasbeeh,
+      sawda, sودة, souda, soda, saudah,
+      قصبة, قصبه
+    ]}
+
+    {soujouk: Eng: [
+      سجق, سجقّ,
+      soujouk, soujوك, soujok, sojouk, sujouk,
+      sejouk, sejou2, sjouk, sjo2, soujo2, sojo2
+    ]}
+
+    {maknek: Eng: [
+      مقانق, مقانقّ,
+      makanek, makanek, makane2, makaneek,
+      mkane2, mkanek, m2ani2, m2ane2, m2aneek
+    ]}
+
     Rules:
     - These mappings apply before product matching and language detection.
     - These words do NOT count as language signals.
