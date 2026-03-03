@@ -61,9 +61,7 @@ export class ProductService {
         orgainationId: user.organizationId,
         productId: createdProduct.id,
       });
-console.log('====================================');
-console.log("image upload passed 💌");
-console.log('====================================');
+
       // 🔹 Create Meta/WhatsApp catalog item (external)
       await WhatsappCatalogHelper.createMetaCatalogItem(
         {
@@ -76,7 +74,9 @@ console.log('====================================');
         },
         whatsappData
       );
-
+console.log('====================================');
+console.log("image upload passed 💌");
+console.log('====================================');
       // ✅ UPDATE PRODUCT (still inside transaction)
       const [_, updatedRows] = await ProductModel.update(
         {
