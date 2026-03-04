@@ -36,7 +36,7 @@ getOrgFrequentlyAskedQuestion(server);
 // product discovery tools
 searchProducts(server);
 getProductWithAvailability(server);
-getProductsByIds(server);
+// getProductsByIds(server);
 generateProductsCatalogLink(server);
 
 // location and inventory tools
