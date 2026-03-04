@@ -16,6 +16,8 @@ class CreditBalanceModel
   declare totalCredits: CreationOptional<number>;
   declare usedCredits: CreationOptional<number>;
   declare remainingCredits: CreationOptional<number>;
+   declare totalTokens: CreationOptional<number>;
+
 
   static associate(models: DbModels) {
     this.belongsTo(models.OrganizationsModel, {
@@ -59,6 +61,15 @@ CreditBalanceModel.init(
       type: DataTypes.DECIMAL(10, 2),
       get() {
         const rawValue = this.getDataValue('remainingCredits');
+        return rawValue === null ? null : parseFloat(rawValue as any);
+      },
+      allowNull: false,
+      defaultValue: 0,
+    },
+      totalTokens: {
+      type: DataTypes.DECIMAL(10, 2),
+      get() {
+        const rawValue = this.getDataValue('totalTokens');
         return rawValue === null ? null : parseFloat(rawValue as any);
       },
       allowNull: false,

@@ -88,10 +88,12 @@ export const calculateAndSubtractCredits = async (
   console.log('😘================aiTokensUsed====================');
   console.log({ aiCredits, catalogCredits, whatsappCredits, aiTokensUsed, creditUsed });
   console.log('====================================');
+  const tokenTest = aiTokensUsed || 0;
   await CreditBalanceModel.update(
     {
       usedCredits: creditRecords.usedCredits + creditUsed,
       remainingCredits: creditRecords.remainingCredits - creditUsed,
+      totalTokens: creditRecords.totalTokens + tokenTest,
     },
     { where: { organizationId: org.organizationId } }
   );
