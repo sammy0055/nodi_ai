@@ -1,22 +1,10 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import {
-  generateProductsCatalogLink,
-  getProductsByIds,
-  getProductWithAvailability,
-  searchProducts,
-} from './tools/product_discovery';
-import { checkRealTimeAvailability, findBranchesWithProduct, getBranches } from './tools/location_and_inventory';
+import { generateProductsCatalogLink, getProductWithAvailability, searchProducts } from './tools/product_discovery';
+import { checkRealTimeAvailability, getBranches } from './tools/location_and_inventory';
 import { calculateDelivery, getAllZonesAndAreas, getDeliveryOptions } from './tools/delivery_and_service';
 import { getRecommendations, suggestAlternatives } from './tools/smart_recommendation';
-import {
-  cancelOrder,
-  createOrder,
-  getBranchInfo,
-  getLastOrderDetails,
-  getOrderDetails,
-  updateOrder,
-} from './tools/order_and_service';
+import { cancelOrder, createOrder, getLastOrderDetails, updateOrder } from './tools/order_and_service';
 import { createCustomerProfile, getCustomerProfile } from './tools/customer';
 import { createReview, getOrganizationReviewQuestions } from './tools/review';
 import { getOrgFrequentlyAskedQuestion } from './tools/organization_info';
@@ -40,7 +28,7 @@ getProductWithAvailability(server);
 generateProductsCatalogLink(server);
 
 // location and inventory tools
-findBranchesWithProduct(server);
+// findBranchesWithProduct(server);
 checkRealTimeAvailability(server);
 getBranches(server);
 
@@ -55,8 +43,8 @@ suggestAlternatives(server);
 
 // order and service
 createOrder(server);
-getBranchInfo(server);
-getOrderDetails(server);
+// getBranchInfo(server);
+// getOrderDetails(server);
 cancelOrder(server);
 getLastOrderDetails(server);
 updateOrder(server);
