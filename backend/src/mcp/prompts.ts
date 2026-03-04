@@ -333,7 +333,7 @@ function createSystemPrompt({
     1. Service: Delivery/Takeaway
     2. Address/Branch: (no IDs, use names/locations)
     3. Items: • {qty} x {ProductName} ({options}) - {price}
-    4. Totals: Subtotal, Delivery (if provided), Total
+    4. Totals: Subtotal, Delivery or Takeway (if provided), Total
     5. Estimated delivery or takeaway time (calculate using data from the selected branch).
     - If (delivery) add only estimated delivery time
     - If (takeway) add only estimated takeaway time
