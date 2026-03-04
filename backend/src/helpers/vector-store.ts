@@ -100,6 +100,20 @@ export class ManageVectorStore {
     // }));
   }
 
+  async deleteProductEmbedding(productId: string, organizationId: string) {
+    await this.qdrant.delete(this.collectionName, {
+      wait: true,
+      filter: {
+        must: [
+          { key: 'id', match: { value: productId } },
+          { key: 'organizationId', match: { value: organizationId } },
+        ],
+      },
+    });
+
+    console.log(`🗑️ Product ${productId} deleted for org ${organizationId}`);
+  }
+
   async insertAreaEmbedding(
     area: Pick<IArea, 'id' | 'name' | 'deliveryCharge' | 'deliveryTime' | 'branchId' | 'zoneId'>
   ) {

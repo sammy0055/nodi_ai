@@ -28,6 +28,7 @@ interface ProductPayload extends IProduct {
 export class ProductService {
   static async createProduct(product: IProduct, user: Pick<User, 'id' | 'organizationId'>, file: File) {
     const transaction: Transaction = await sequelize.transaction();
+    let createdProduct: ProductModel | null = null; // 👈 declare here
 
     try {
       if (!user.organizationId) throw new Error('kindly create an organization to continue');
@@ -47,7 +48,7 @@ export class ProductService {
       const { id, ...restData } = product;
 
       // ✅ CREATE PRODUCT (inside transaction)
-      const createdProduct = await ProductModel.create(
+      createdProduct = await ProductModel.create(
         {
           ...restData,
           organizationId: user.organizationId,
@@ -93,6 +94,10 @@ export class ProductService {
 
       return updatedRows[0].get({ plain: true });
     } catch (error) {
+      const vectorStore = new ManageVectorStore();
+      if (createdProduct?.id && user.organizationId) {
+        await vectorStore.deleteProductEmbedding(createdProduct.id, user.organizationId!);
+      }
       await transaction.rollback();
       throw error;
     }
@@ -248,6 +253,14 @@ export class ProductService {
       // 🔹 Delete image from S3 AFTER commit (external)
       if (imagePath) {
         await manageImageFile.deleteS3ImageFile(imagePath).catch(() => {});
+      }
+
+      const vectorStore = new ManageVectorStore();
+      if (productId) {
+        console.log('====================================');
+        console.log("deleting embedding");
+        console.log('====================================');
+        await vectorStore.deleteProductEmbedding(productId, user.organizationId!);
       }
 
       return true;

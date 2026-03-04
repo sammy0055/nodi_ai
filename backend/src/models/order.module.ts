@@ -3,7 +3,6 @@ import { sequelize } from './db';
 import { DbModels } from '.';
 import { ModelNames } from './model-names';
 import { IOrder, OrderPriorityTypes, OrderSourceTypes, OrderStatusTypes } from '../types/order';
-import { ManageVectorStore } from '../helpers/vector-store';
 
 class OrderModel
   extends Model<
@@ -219,9 +218,6 @@ OrderModel.init(
           order.cancellationDeadline = deadline;
         }
 
-        const vectorStore = new ManageVectorStore();
-        await vectorStore.insertOrderEmbedding(order);
-
         const searchText = [
           order.id,
           order.branchId,
@@ -239,8 +235,7 @@ OrderModel.init(
           deadline.setMinutes(deadline.getMinutes() + order.cancelWindowMinutes);
           order.cancellationDeadline = deadline;
         }
-        const vectorStore = new ManageVectorStore();
-        await vectorStore.insertOrderEmbedding(order);
+
       },
     },
   }
