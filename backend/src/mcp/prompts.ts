@@ -335,6 +335,8 @@ function createSystemPrompt({
     3. Items: • {qty} x {ProductName} ({options}) - {price}
     4. Totals: Subtotal, Delivery (if provided), Total
     5. Estimated delivery or takeaway time (calculate using data from the selected branch).
+    - If (delivery) add only estimated delivery time
+    - If (takeway) add only estimated takeaway time
     6. **Closing:** "Do you confirm this order?" / "بتأكد هيدا الطلب؟"
 
     **Never place order without:** full name, service type, valid address/branch, summary, explicit confirmation.

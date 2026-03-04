@@ -107,8 +107,8 @@ AreaModel.init(
           await BranchesModel.update({ deliveryTime: area.deliveryTime }, { where: { id: area.branchId } });
         }
 
-        const vectorStore = new ManageVectorStore();
-        await vectorStore.insertAreaEmbedding(area);
+        // const vectorStore = new ManageVectorStore();
+        // await vectorStore.insertAreaEmbedding(area);
       },
 
       beforeUpdate: async (area: IArea) => {
@@ -116,8 +116,8 @@ AreaModel.init(
           await BranchesModel.update({ deliveryTime: area.deliveryTime }, { where: { id: area.branchId } });
         }
 
-        const vectorStore = new ManageVectorStore();
-        await vectorStore.insertAreaEmbedding(area);
+        // const vectorStore = new ManageVectorStore();
+        // await vectorStore.insertAreaEmbedding(area);
       },
     },
   }
