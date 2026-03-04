@@ -139,6 +139,9 @@ async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) 
         await chat.sendWhatSappMessage({ recipientPhoneNumber: userPhoneNumber, message: response.response });
         break;
       case 'catalog':
+        console.log('response 💌====================================');
+        console.log(response);
+        console.log('====================================');
         await chat.sendWhatSappCatalogInteractiveMessage({
           recipientPhoneNumber: userPhoneNumber,
           catalogUrl: response.catalogUrl,
