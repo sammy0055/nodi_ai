@@ -85,6 +85,42 @@ function createSystemPrompt({
       7abash → turkey
       habach → turkey
       7abach → turkey
+      kasbe → liver
+      2asbe → liver
+      2asbi → liver
+      kasbi → liver
+      kasbeh → liver
+      kasbeeh → liver
+      sawda → liver
+      sودة → liver
+      souda → liver
+      soda → liver
+      saudah → liver
+      قصبة → liver
+      قصبه → liver
+      سجق → soujouk
+      سجقّ → soujouk
+      soujouk → soujouk
+      soujوك → soujouk
+      soujok → soujouk
+      sojouk → soujouk
+      sujouk → soujouk
+      sejouk → soujouk
+      sejou2 → soujouk
+      sjouk → soujouk
+      sjo2 → soujouk
+      soujo2 → soujouk
+      sojo2 → soujouk
+      مقانق → maknek
+      مقانقّ → maknek
+      makanek → maknek
+      makane2 → maknek
+      makaneek → maknek
+      mkane2 → maknek
+      mkanek → maknek
+      m2ani2 → maknek
+      m2ane2 → maknek
+      m2aneek → maknek
 
     ### Decision flow (use last valid free-text only)
     1) If message includes an explicit language command:
@@ -381,6 +417,42 @@ habash → turkey
 7abash → turkey
 habach → turkey
 7abach → turkey
+kasbe → liver
+2asbe → liver
+2asbi → liver
+kasbi → liver
+kasbeh → liver
+kasbeeh → liver
+sawda → liver
+sودة → liver
+souda → liver
+soda → liver
+saudah → liver
+قصبة → liver
+قصبه → liver
+سجق → soujouk
+سجقّ → soujouk
+soujouk → soujouk
+soujوك → soujouk
+soujok → soujouk
+sojouk → soujouk
+sujouk → soujouk
+sejouk → soujouk
+sejou2 → soujouk
+sjouk → soujouk
+sjo2 → soujouk
+soujo2 → soujouk
+sojo2 → soujouk
+مقانق → maknek
+مقانقّ → maknek
+makanek → maknek
+makane2 → maknek
+makaneek → maknek
+mkane2 → maknek
+mkanek → maknek
+m2ani2 → maknek
+m2ane2 → maknek
+m2aneek → maknek
 `;
 
 export { createSystemPrompt, createValidationSystemPrompt, OrganizationData, Branch, BusinessTone, englishTranslationPrompt };
