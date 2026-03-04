@@ -140,11 +140,11 @@ async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) 
         break;
       case 'catalog':
         console.log('response 💌====================================');
-        console.log(response);
+        console.log(response.catalogUrl.replace('+', ''));
         console.log('====================================');
         await chat.sendWhatSappCatalogInteractiveMessage({
           recipientPhoneNumber: userPhoneNumber,
-          catalogUrl: response.catalogUrl,
+          catalogUrl: response.catalogUrl.replace('+', ''),
           productUrl: response.productUrl,
           bodyText: response.bodyText,
           buttonText: response.buttonText,
