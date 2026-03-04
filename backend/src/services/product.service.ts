@@ -77,7 +77,7 @@ export class ProductService {
       );
 
       // ✅ UPDATE PRODUCT (still inside transaction)
-      const [_, updatedRows] = await ProductModel.update(
+      const updatedRows = await createdProduct.update(
         {
           imageUrl: imgUrl,
           filePath: path,
@@ -92,7 +92,7 @@ export class ProductService {
 
       await transaction.commit();
 
-      return updatedRows[0].get({ plain: true });
+      return updatedRows
     } catch (error) {
       const vectorStore = new ManageVectorStore();
       if (createdProduct?.id && user.organizationId) {
@@ -257,9 +257,6 @@ export class ProductService {
 
       const vectorStore = new ManageVectorStore();
       if (productId) {
-        console.log('====================================');
-        console.log("deleting embedding");
-        console.log('====================================');
         await vectorStore.deleteProductEmbedding(productId, user.organizationId!);
       }
 
