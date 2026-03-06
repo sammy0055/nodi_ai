@@ -73,6 +73,6 @@ export interface IOrder {
 }
 
 export interface ScheduleDetails {
-  dateTime: string;
+  date: string;
   note: string;
 }

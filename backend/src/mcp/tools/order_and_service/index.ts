@@ -584,8 +584,8 @@ export const getCurrentDateAndTime = (server: McpServer) => {
     },
     async (params) => {
       try {
-        const org = await OrganizationsModel.findByPk(params.organizationId);
-        const timezone = org?.timeZone || 'UTC';
+        // const org = await OrganizationsModel.findByPk(params.organizationId);
+        const timezone = 'UTC';
         const dateTime = {
           now: new Date().toLocaleString('en-CA', { timeZone: timezone }),
           iso: new Date().toISOString(),
