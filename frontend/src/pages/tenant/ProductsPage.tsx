@@ -14,7 +14,7 @@ import {
   FiSave,
 } from 'react-icons/fi';
 import Input from '../../components/atoms/Input/Input';
-import Button from '../../components/atoms/Button/Button';
+import Button, { ToggleSwitch } from '../../components/atoms/Button/Button';
 import {
   type Product,
   type ProductOptionChoice,
@@ -763,6 +763,14 @@ const ProductsPage: React.FC = () => {
                 textarea
                 rows={3}
               />
+
+              <div className="p-4">
+                <ToggleSwitch
+                  checked={editingProduct.isUpSelling || false}
+                  onChange={() => setEditingProduct({ ...editingProduct, isUpSelling: !editingProduct.isUpSelling })}
+                  label="Mark as Upsell Product"
+                />
+              </div>
 
               {/* Product Options */}
               {editingProduct.id && (

@@ -49,3 +49,58 @@ const Button: React.FC<ButtonProps> = ({
 };
 
 export default Button;
+
+
+interface ToggleSwitchProps {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  disabled?: boolean;
+  label?: string;
+  id?: string;
+}
+
+export const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
+  checked,
+  onChange,
+  disabled = false,
+  label,
+  id = 'toggle',
+}) => {
+  const handleToggle = () => {
+    if (!disabled) {
+      onChange(!checked);
+    }
+  };
+
+  return (
+    <div className="flex items-center">
+      <button
+        role="switch"
+        aria-checked={checked}
+        aria-disabled={disabled}
+        id={id}
+        onClick={handleToggle}
+        className={`
+          relative inline-flex items-center h-6 rounded-full w-11
+          transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
+          ${checked ? 'bg-blue-600' : 'bg-gray-300'}
+          ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+        `}
+      >
+        <span
+          className={`
+            inline-block w-4 h-4 transform transition-transform bg-white rounded-full
+            ${checked ? 'translate-x-6' : 'translate-x-1'}
+          `}
+        />
+      </button>
+      {label && (
+        <label htmlFor={id} className="ml-3 text-sm text-gray-700 select-none">
+          {label}
+        </label>
+      )}
+    </div>
+  );
+};
+
+

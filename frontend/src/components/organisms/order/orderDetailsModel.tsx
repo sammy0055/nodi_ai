@@ -18,8 +18,8 @@ import {
   FiXCircle,
 } from 'react-icons/fi';
 import { OrderService } from '../../../services/orderService';
-import { OrderSourceTypes, type IOrder, type OrderSource, type OrderStatus } from '../Organization';
-import { OrderStatusTypes, type OrderPriority } from '../../../pages/tenant/OrderPage';
+import { OrderSourceTypes, type OrderSource, type OrderStatus } from '../Organization';
+import { OrderStatusTypes, type IOrder, type OrderPriority } from '../../../pages/tenant/OrderPage';
 // import Button from '../../../components/ui/Button'; // adjust import path as needed
 
 // Helper functions (you may already have them in a utils file)
@@ -381,7 +381,7 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ orderId, i
             <div className="bg-gray-50 rounded-lg p-4">
               <h4 className="font-medium text-gray-900 mb-4">Order Items ({orderDetails.items.length})</h4>
               <div className="space-y-3">
-                {orderDetails.items.map((item, index) => (
+                {orderDetails.items.map((item:any, index:any) => (
                   <div key={index} className="bg-white rounded-lg border border-gray-200 p-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
@@ -393,7 +393,7 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ orderId, i
                           <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
                           {item.product?.options?.length > 0 && (
                             <div className="text-xs text-neutral-500 mt-1">
-                              {item.product.options.map((opt) => `${opt?.name}: ${opt.choice.label}`).join(', ')}
+                              {item.product.options.map((opt:any) => `${opt?.name}: ${opt.choice.label}`).join(', ')}
                             </div>
                           )}
                         </div>
@@ -403,11 +403,11 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ orderId, i
                         <p className="text-xs text-gray-500">
                           Unit: {formatCurrency(Number(item.product?.price || 0), orderDetails.currency)}
                         </p>
-                        {item.product?.options?.some((opt) => parseInt(opt.choice.priceAdjustment) > 0) && (
+                        {item.product?.options?.some((opt:any) => parseInt(opt.choice.priceAdjustment) > 0) && (
                           <p className="text-xs text-neutral-500">
                             +
                             {formatCurrency(
-                              item.product.options.reduce((sum, opt) => sum + parseInt(opt.choice.priceAdjustment), 0),
+                              item.product.options.reduce((sum:any, opt:any) => sum + parseInt(opt.choice.priceAdjustment), 0),
                               orderDetails.currency
                             )}{' '}
                             options

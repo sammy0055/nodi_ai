@@ -11,6 +11,7 @@ export interface Product {
   imageUrl?: string;
   file?: File;
   options?: ProductOption[];
+  isUpSelling: boolean | null;
   updatedAt: Date;
 }
 
@@ -26,7 +27,7 @@ export interface ProductOption {
   id: string;
   productId: string;
   name: string;
-  description?:string
+  description?: string;
   type: 'single' | 'multiple';
   isRequired: boolean;
   minSelection?: number;
