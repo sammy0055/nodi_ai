@@ -1,6 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { generateProductsCatalogLink, getProductWithAvailability, searchProducts } from './tools/product_discovery';
+import { generateProductsCatalogLink, getProductsByIds, getProductWithAvailability, searchProducts } from './tools/product_discovery';
 import { checkRealTimeAvailability, getBranches } from './tools/location_and_inventory';
 import { calculateDelivery, getAllZonesAndAreas, getDeliveryOptions } from './tools/delivery_and_service';
 import { getRecommendations, getUpsellingProducts, suggestAlternatives } from './tools/smart_recommendation';
@@ -32,7 +32,7 @@ getOrgFrequentlyAskedQuestion(server);
 searchProducts(server);
 getProductWithAvailability(server);
 getUpsellingProducts(server);
-// getProductsByIds(server);
+getProductsByIds(server);
 generateProductsCatalogLink(server);
 
 // location and inventory tools
