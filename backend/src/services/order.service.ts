@@ -119,7 +119,9 @@ export class OrderService {
     const { userRole } = await getUserRoleAndPermission({ id: user.id, organizationId: user.organizationId! });
     if (userRole === UserTypes.Staff) {
       if (status) where.status = status;
-      if (status !== OrderStatusTypes.PENDING) where.assignedUserId = user.id;
+      if (![OrderStatusTypes.PENDING, OrderStatusTypes.SCHEDULED].includes(status as any)) {
+        where.assignedUserId = user.id;
+      }
     } else {
       if (status) where.status = status;
     }
@@ -161,7 +163,7 @@ export class OrderService {
                 if (!isUuid(selected.optionId) || !isUuid(selected.choiceId)) {
                   continue; // skip this selection safely
                 }
-              
+
                 const option = await ProductOptionModel.findOne({
                   where: { id: selected.optionId, productId: product.id },
                   include: [
@@ -394,6 +396,7 @@ export class OrderService {
       delivered: 0,
       cancelled: 0,
       pending: 0,
+      scheduled: 0,
     };
 
     stats.forEach((row: any) => {
@@ -449,7 +452,7 @@ export class OrderService {
     const statusWhere: any = { organizationId: user.organizationId! };
     if (assignedUserId) {
       statusWhere[Op.or] = [
-        { status: OrderStatusTypes.PENDING }, // ignore assignedUserId
+        { status: [OrderStatusTypes.PENDING, OrderStatusTypes.SCHEDULED] }, // ignore assignedUserId
         {
           [Op.and]: [{ status: { [Op.ne]: OrderStatusTypes.PENDING } }, { assignedUserId }],
         },
