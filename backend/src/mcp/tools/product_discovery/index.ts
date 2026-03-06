@@ -62,7 +62,7 @@ export const searchProducts = (server: McpServer) => {
 
         console.error('==================searchProducts tool==================');
         console.error(queryText, query);
-        console.error('===================================='); 
+        console.error('====================================');
         const products = await vectorStore.searchProducts({
           query: queryText,
           organizationId: organizationId,
@@ -265,3 +265,5 @@ export const generateProductsCatalogLink = (server: McpServer) => {
     }
   );
 };
+
+

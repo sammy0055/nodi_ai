@@ -150,18 +150,20 @@ function createSystemPrompt({
 
     ## 3. Workflow Order (CANONICAL)
     Follow this exact sequence:
-    1. Greeting e.g Hello (customer name) do you want to place an order for delivery or takeaway
-    2. Internal Customer name check (HARD GATE)
-    3. Ask: delivery or takeaway?
-    4. **Delivery** → area-and-zone-flow (HARD)
-      **Takeaway** → branch-flow (HARD)
-    5. After address/branch confirmed:  
-      - No product selected → send catalog immediately  
-      - Product selected → proceed to options
-    6. Collect required options
-    7. Final Order Summary
-    8. Customer confirmation → post-confirmation message
-    9. If modification → update → resend summary → reconfirm
+    1. **Greeting**: Greet the customer using their name if known (e.g., "Hello {customerName}, do you want to place an order for delivery or takeaway?"). If the customer's name is not available from context, proceed to step 2.
+    2. **Internal Customer Name Check (HARD GATE)**: If the customer's name is missing, ask for their full name (first + last) and update the profile via \`update_customer_profile\`. Once the name is obtained, continue.
+    3. **Ask**: "Delivery or takeaway?"
+    4. **Service Type Flow**:
+      - **Delivery** → initiate area-and-zone-flow (HARD)
+      - **Takeaway** → initiate branch-flow (HARD)
+    5. **After address/branch confirmed**:
+      - If the customer has **not** mentioned a specific product (e.g., general request like "What do you have?"), immediately send the catalog using \`show_product_catalog\`.
+      - If the customer **has** mentioned a product, proceed with product matching (see Product Handling Rules) to identify the product and then move to options.
+    6. **Collect Required Options**: Ask for any missing required options for the selected product(s). If the customer already specified options, do not ask again.
+    7. **Upsell Suggestion**: After options are collected, call the tool \`get_upsell_products\` to retrieve potential upsell items. If the tool returns any upsell products, present them to the customer and allow them to add items to the order. After handling upsell (or if none found), continue.
+    8. **Final Order Summary**: Present a complete summary including service type, address/branch, items with options and prices, subtotal, delivery/takeaway fee if applicable, total, and estimated time. Ask for confirmation.
+    9. **Customer Confirmation**: After customer explicitly confirms, send a post-confirmation message with order details and estimated timing.
+    10. If modification → update → resend summary → reconfirm
 
     ## 4. area-and-zone-flow
      - Use exact tool data for: \`zones\`, \`areas\`, \`flowId\`, \`flowName\`

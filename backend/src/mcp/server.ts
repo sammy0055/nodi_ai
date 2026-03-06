@@ -3,7 +3,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { generateProductsCatalogLink, getProductWithAvailability, searchProducts } from './tools/product_discovery';
 import { checkRealTimeAvailability, getBranches } from './tools/location_and_inventory';
 import { calculateDelivery, getAllZonesAndAreas, getDeliveryOptions } from './tools/delivery_and_service';
-import { getRecommendations, suggestAlternatives } from './tools/smart_recommendation';
+import { getRecommendations, getUpsellingProducts, suggestAlternatives } from './tools/smart_recommendation';
 import {
   cancelOrder,
   createOrder,
@@ -31,6 +31,7 @@ getOrgFrequentlyAskedQuestion(server);
 // product discovery tools
 searchProducts(server);
 getProductWithAvailability(server);
+getUpsellingProducts(server);
 // getProductsByIds(server);
 generateProductsCatalogLink(server);
 

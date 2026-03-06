@@ -5,7 +5,49 @@ import { ManageVectorStore } from '../../../helpers/vector-store';
 import { IArea } from '../../../types/area';
 import { models } from '../../../models';
 
-const { ProductModel, BranchesModel, BranchInventoryModel } = models;
+const { ProductModel, BranchesModel, BranchInventoryModel, ProductOptionChoiceModel, ProductOptionModel } = models;
+
+
+export const getUpsellingProducts = (server: McpServer) => {
+  return server.registerTool(
+    'get_upsell_products',
+    {
+      title: 'Get Premium Upsell Products',
+      description: `Returns a curated list of high-value or premium products suitable for upselling. 
+  Use this to suggest upgrades or higher-margin items that can increase order value. 
+  No input context required—returns general premium product recommendations.`,
+      inputSchema: {
+        organizationId: z.string(),
+      },
+    },
+    async ({ organizationId }) => {
+      try {
+        const upsellingProducts = await ProductModel.findAll({
+          where: { organizationId, isUpSelling: true },
+          include: [
+            { model: ProductOptionModel, as: 'options', include: [{ model: ProductOptionChoiceModel, as: 'choices' }] },
+          ],
+        });
+
+        if (upsellingProducts.length === 0) {
+          return {
+            content: [{ type: 'text', text: 'No upselling products' }],
+          };
+        }
+
+        return {
+          content: [{ type: 'text', text: JSON.stringify(upsellingProducts), mimeType: 'application/json' }],
+        };
+      } catch (error: any) {
+        console.error(`MCP-ERROR:${error.message}`);
+        return {
+          content: [{ type: 'text', text: 'Faild to get product catalog link' }],
+        };
+      }
+    }
+  );
+};
+
 // Product recommendations with availability
 export const getRecommendations = (server: McpServer) => {
   return server.registerTool(
