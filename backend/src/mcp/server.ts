@@ -4,7 +4,14 @@ import { generateProductsCatalogLink, getProductWithAvailability, searchProducts
 import { checkRealTimeAvailability, getBranches } from './tools/location_and_inventory';
 import { calculateDelivery, getAllZonesAndAreas, getDeliveryOptions } from './tools/delivery_and_service';
 import { getRecommendations, suggestAlternatives } from './tools/smart_recommendation';
-import { cancelOrder, createOrder, getLastOrderDetails, updateOrder } from './tools/order_and_service';
+import {
+  cancelOrder,
+  createOrder,
+  createScheduledOrder,
+  getCurrentDateAndTime,
+  getLastOrderDetails,
+  updateOrder,
+} from './tools/order_and_service';
 import { createCustomerProfile, getCustomerProfile } from './tools/customer';
 import { createReview, getOrganizationReviewQuestions } from './tools/review';
 import { getOrgFrequentlyAskedQuestion } from './tools/organization_info';
@@ -43,6 +50,7 @@ suggestAlternatives(server);
 
 // order and service
 createOrder(server);
+createScheduledOrder(server);
 // getBranchInfo(server);
 // getOrderDetails(server);
 cancelOrder(server);
@@ -56,6 +64,9 @@ createCustomerProfile(server);
 // review
 getOrganizationReviewQuestions(server);
 createReview(server);
+
+// utils
+getCurrentDateAndTime(server);
 
 const main = async () => {
   try {

@@ -3,9 +3,10 @@ import { IArea } from './area';
 export enum OrderStatusTypes {
   PENDING = 'pending',
   PROCESSING = 'processing',
-  SHIPPED = "shipped",
+  SHIPPED = 'shipped',
   DELIVERED = 'delivered',
   CANCELLED = 'cancelled',
+  SCHEDULED = 'scheduled',
 }
 
 export enum OrderSourceTypes {
@@ -68,4 +69,10 @@ export interface IOrder {
   cancelWindowMinutes: number;
   cancellationDeadline: Date;
   area?: IArea;
+  scheduleDetails: ScheduleDetails | null;
+}
+
+export interface ScheduleDetails {
+  dateTime: string;
+  note: string;
 }

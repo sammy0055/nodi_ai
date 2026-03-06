@@ -8,7 +8,7 @@ import { OrderStatusTypes } from '../../../types/order';
 import { ChatHistoryManager } from '../../../services/ChatHistoryManager.service';
 import { getEstimatedTime } from '../../../utils/getEstimatedTime';
 
-const { BranchesModel, OrderModel, BranchInventoryModel } = models;
+const { BranchesModel, OrderModel, BranchInventoryModel, OrganizationsModel } = models;
 // Create order with inventory check
 const currencyCodes = Object.values(CurrencyCode);
 export const createOrder = (server: McpServer) => {
@@ -79,6 +79,135 @@ export const createOrder = (server: McpServer) => {
         }
         if (params.serviceType === 'takeaway') delete params.deliveryAreaId;
         const order = await OrderModel.create(params as any);
+        if (order) {
+          for (const product of products) {
+            await BranchInventoryModel.decrement('quantityOnHand', {
+              by: product.qty,
+              where: {
+                productId: product.productId,
+                branchId: params.branchId,
+                organizationId: params.organizationId,
+              },
+            });
+          }
+
+          // summarizeConversation
+          // const { summarizeConversationById, insertConversationSummary } = new ChatHistoryManager();
+          // const conversationId = process.env.conversationId;
+          // if (!conversationId) throw new Error('conversation id is missing');
+          // const summary = await summarizeConversationById(conversationId);
+          // await insertConversationSummary({
+          //   summary: summary,
+          //   organizationId: params.organizationId,
+          //   conversationId: conversationId,
+          //   customerId: params.customerId,
+          // });
+        }
+
+        const branch = await BranchesModel.findByPk(params.branchId);
+        const serviceTime = params.serviceType == 'delivery' ? branch?.deliveryTime : branch?.takeAwayTime;
+        const serviceTimePut = getEstimatedTime(serviceTime!);
+        const serviceTimeEstimate = serviceTimePut ? `estimated ${params.serviceType} time: ${serviceTimePut}` : '';
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Your order has being created with orderId: ${order.id}, ${serviceTimeEstimate}`,
+            },
+          ],
+        };
+      } catch (error: any) {
+        console.error(`MCP-ERROR:${error.message}`);
+        return {
+          content: [
+            {
+              type: 'text',
+              text: 'Failed to create order',
+            },
+          ],
+        };
+      }
+    }
+  );
+};
+
+export const createScheduledOrder = (server: McpServer) => {
+  return server.registerTool(
+    'create_scheduled_order',
+    {
+      title: 'Create Scheduled Order',
+      description:
+        'Generates a future-dated order and locks the required inventory. Ensures items are reserved until the scheduled fulfillment date.',
+      inputSchema: {
+        title: z.string().describe('title for the order'),
+        organizationId: z.string(),
+        customerId: z.string(),
+        branchId: z.string(),
+        currency: z.enum(currencyCodes as any),
+        deliveryAreaId: z
+          .string()
+          .describe('the id of the delivery area. must be present if order is delivery.')
+          .optional(),
+        serviceType: z.enum(['delivery', 'takeaway']),
+        scheduleDetails: z.object({
+          date: z
+            .string()
+            .datetime()
+            .describe('The scheduled fulfillment date and time in ISO 8601 format (e.g., 2024-12-25T14:30:00Z)'),
+          note: z.string().describe('Special delivery instructions or notes for the order'),
+        }),
+        items: z.array(
+          z.object({
+            productId: z.string(),
+            quantity: z.number(),
+            selectedOptions: z
+              .array(
+                z.object({
+                  optionId: z.string(),
+                  optionName: z.string(),
+                  choiceId: z.string(),
+                  choiceLabel: z.string(),
+                  priceAdjustment: z.string(),
+                })
+              )
+              .optional(),
+          })
+        ),
+        subtotal: z.number(),
+        deliveryCharge: z.number(),
+        totalAmount: z.number(),
+        deliveryAreaName: z.string(),
+        shippingAddress: z
+          .string()
+          .describe('Full delivery address: street, building, floor, apartment, landmark.')
+          .optional(),
+      },
+    },
+    async (params) => {
+      const products = params.items.map((item) => ({ productId: item.productId, qty: item.quantity }));
+      try {
+        const inventoryStock = await BranchInventoryModel.findAll({
+          where: {
+            productId: {
+              [Op.in]: products.map((p) => p.productId).filter(Boolean),
+            },
+            branchId: params.branchId,
+          },
+        });
+
+        if (!inventoryStock) {
+          return { content: [{ type: 'text', text: 'No inventory available for this products' }] };
+        }
+
+        for (const product of products) {
+          const inventoryItem = inventoryStock.find((inv) => inv.productId === product.productId);
+          if (!inventoryItem || inventoryItem.quantityOnHand! < product.qty) {
+            return { content: [{ type: 'text', text: `Product with ID: ${product.productId} is out of stock` }] };
+          }
+        }
+        if (params.serviceType === 'takeaway') delete params.deliveryAreaId;
+        const order = await OrderModel.create({ ...params, status: OrderStatusTypes.SCHEDULED } as any);
         if (order) {
           for (const product of products) {
             await BranchInventoryModel.decrement('quantityOnHand', {
@@ -279,6 +408,7 @@ export const cancelOrder = (server: McpServer) => {
           content: [{ type: 'text', text: 'order cancelled successfully' }],
         };
       } catch (error: any) {
+        console.error(`MCP-ERROR:${error.message}`);
         return {
           content: [{ type: 'text', text: 'Failed to cancel order' }],
         };
@@ -312,6 +442,7 @@ export const getLastOrderDetails = (server: McpServer) => {
 
         return { content: [{ type: 'text', text: JSON.stringify(order), mimeType: 'application/json' }] };
       } catch (error: any) {
+        console.error(`MCP-ERROR:${error.message}`);
         return { content: [{ type: 'text', text: 'order was not found' }] };
       }
     }
@@ -431,8 +562,42 @@ export const updateOrder = (server: McpServer) => {
           content: [{ type: 'text', text: `kinldy contact our hotline to update your order. phone:${branch.phone}` }],
         };
       } catch (error: any) {
+        console.error(`MCP-ERROR:${error.message}`);
         return {
           content: [{ type: 'text', text: 'Failed to cancel order' }],
+        };
+      }
+    }
+  );
+};
+
+export const getCurrentDateAndTime = (server: McpServer) => {
+  return server.registerTool(
+    'get_current_time',
+    {
+      title: 'Get Current Date & Time',
+      description:
+        'Returns the current date and time in ISO 8601 format. Use this when you need to calculate relative dates (e.g., "tomorrow", "in 2 hours") or validate a user-provided schedule.',
+      inputSchema: {
+        organizationId: z.string(),
+      },
+    },
+    async (params) => {
+      try {
+        const org = await OrganizationsModel.findByPk(params.organizationId);
+        const timezone = org?.timeZone || 'UTC';
+        const dateTime = {
+          now: new Date().toLocaleString('en-CA', { timeZone: timezone }),
+          iso: new Date().toISOString(),
+          timezone,
+        };
+        return {
+          content: [{ type: 'text', text: JSON.stringify(dateTime), mimeType: 'application/json' }],
+        };
+      } catch (error: any) {
+        console.error(`MCP-ERROR:${error.message}`);
+        return {
+          content: [{ type: 'text', text: 'Failed to Get Current Date & Time' }],
         };
       }
     }

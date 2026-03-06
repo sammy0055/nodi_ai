@@ -2,7 +2,7 @@ import { DataTypes, Model, InferAttributes, InferCreationAttributes, CreationOpt
 import { sequelize } from './db';
 import { DbModels } from '.';
 import { ModelNames } from './model-names';
-import { IOrder, OrderPriorityTypes, OrderSourceTypes, OrderStatusTypes } from '../types/order';
+import { IOrder, OrderPriorityTypes, OrderSourceTypes, OrderStatusTypes, ScheduleDetails } from '../types/order';
 
 class OrderModel
   extends Model<
@@ -38,6 +38,7 @@ class OrderModel
   declare area?: any;
   declare isReviewed: boolean;
   declare reviewedAt: Date;
+  declare scheduleDetails: ScheduleDetails | null;
 
   // New fields for assignment and timing
   declare assignedUserId?: string;
@@ -123,8 +124,7 @@ OrderModel.init(
       defaultValue: OrderSourceTypes.CHATBOT,
     },
     status: {
-      type: DataTypes.ENUM,
-      values: [...Object.values(OrderStatusTypes)],
+      type: DataTypes.STRING,
       defaultValue: OrderStatusTypes.PENDING,
     },
     items: { type: DataTypes.JSONB, allowNull: false },
@@ -192,6 +192,7 @@ OrderModel.init(
     isReviewed: { type: DataTypes.BOOLEAN, defaultValue: false },
     reviewedAt: { type: DataTypes.DATE, allowNull: true },
     customerNotes: { type: DataTypes.TEXT, allowNull: true },
+    scheduleDetails: { type: DataTypes.JSONB, allowNull: true },
     searchVector: {
       type: 'TSVECTOR',
       allowNull: true,
@@ -235,7 +236,6 @@ OrderModel.init(
           deadline.setMinutes(deadline.getMinutes() + order.cancelWindowMinutes);
           order.cancellationDeadline = deadline;
         }
-
       },
     },
   }
