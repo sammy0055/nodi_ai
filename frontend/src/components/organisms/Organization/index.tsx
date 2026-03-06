@@ -18,7 +18,7 @@ import {
   FiUserCheck,
 } from 'react-icons/fi';
 import Button from '../../atoms/Button/Button';
-import type { OrderPageProps, OrderStats } from '../../../pages/tenant/OrderPage';
+import type { IOrder, OrderPageProps, OrderStats } from '../../../pages/tenant/OrderPage';
 import { useOrdersSetRecoilState, useOrdersValue, useUserSetRecoilState, useUserValue } from '../../../store/authAtoms';
 import useProcessingTime, { getOrderProcessingTime } from '../../../hooks/orderProcessingTimer';
 import { OrderService } from '../../../services/orderService';
@@ -78,61 +78,6 @@ export interface OrderItem {
     price: number;
     currency: string;
     options: OrderItemOption[];
-  };
-}
-
-export interface IOrder {
-  id: string;
-  orderNumber: string;
-  title: string;
-  customerId: string;
-  organizationId: string;
-  branchId: string;
-  status: OrderStatus;
-  source: OrderSource;
-  items: OrderItem[];
-  subtotal: number;
-  deliveryCharge: number;
-  totalAmount: number;
-  currency: string;
-  deliveryAreaId: string;
-  deliveryAreaName?: string;
-  deliveryTime?: Date;
-  shippingAddress?: string;
-  serviceType: 'delivery' | 'takeaway' | 'dine_in';
-  createdAt: Date;
-  updatedAt: Date;
-
-  // New fields for assignment and timing
-  assignedUserId?: string;
-  assignedUserName?: string;
-  assignedAt?: Date;
-  startedAt?: Date;
-  completedAt?: Date;
-  estimatedCompletionTime?: number;
-  priority: OrderPriority;
-  notes?: string;
-  customerNotes?: string;
-
-  branch: {
-    id: string;
-    name: string;
-    address?: string;
-  };
-  customer: {
-    id: string;
-    name: string;
-    phone: string;
-    email?: string;
-    avatar?: string;
-  };
-  area: {
-    id: string;
-    name: string;
-    zone: {
-      id: string;
-      name: string;
-    };
   };
 }
 
@@ -243,15 +188,12 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
       if (selectedTab !== 'pending') {
         filters.status = selectedTab;
       }
-      if (selectedTab === 'scheduled') {
-        return;
-      }
+
       if (selectedTab === 'pending') filters.status = OrderStatusTypes.PENDING;
       const response = await getOrders(filters);
 
       const newData = response.data.data;
       const pagination = response.data.pagination;
-
       setOrders((prev) => (resetData ? newData : [...prev, ...newData]));
       setSelectedOrder(response.data.data[0]);
       setPagination(pagination);
@@ -322,6 +264,10 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
         }
         if (!orderToUpdate) {
           alert('order not found');
+          return;
+        }
+        if (selectedOrder?.status === 'pending' || selectedOrder?.status === 'scheduled') {
+          alert('Order has not processed yet.');
           return;
         }
         const processingTime = getOrderProcessingTime(orderToUpdate);
@@ -880,6 +826,32 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
                       </div>
                     </div>
                   </div>
+
+                  {/* {Scheduled Order} */}
+                  {selectedOrder.scheduleDetails?.date && (
+                    <div className="bg-white rounded-lg p-4 border border-gray-200">
+                      <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                        <FiCalendar className="mr-2" />
+                        Scheduled Order Details
+                      </h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Scheduled Date:</span>
+                          <span className="font-medium">
+                            {formatDate(new Date(selectedOrder.scheduleDetails?.date!))}
+                          </span>
+                        </div>
+                        {selectedOrder.scheduleDetails?.note && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Note:</span>
+                            <span className="font-medium text-right max-w-xs">
+                              {selectedOrder.scheduleDetails?.note}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Branch Information */}
                   <div className="bg-white rounded-lg p-4 border border-gray-200">

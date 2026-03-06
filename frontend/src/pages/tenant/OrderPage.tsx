@@ -127,6 +127,7 @@ export interface IOrder {
   priority: OrderPriority;
   notes?: string;
   customerNotes?: string;
+  scheduleDetails: ScheduleDetails | null;
 
   branch: {
     id: string;
@@ -148,6 +149,11 @@ export interface IOrder {
       name: string;
     };
   };
+}
+
+export interface ScheduleDetails {
+  date: string;
+  note: string;
 }
 
 // Status Select Component - Memoized to prevent unnecessary re-renders
@@ -1459,6 +1465,31 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
                         )}
                       </div>
                     </div>
+
+                    {selectedOrder.scheduleDetails?.date && (
+                      <div className="bg-gray-50 rounded-lg p-4 mt-4">
+                        <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                          <FiCalendar className="mr-2" />
+                          Scheduled Order Details
+                        </h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Scheduled Date:</span>
+                            <span className="font-medium">
+                              {formatDate(new Date(selectedOrder.scheduleDetails?.date!))}
+                            </span>
+                          </div>
+                          {selectedOrder.scheduleDetails?.note && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Note:</span>
+                              <span className="font-medium text-right max-w-xs">
+                                {selectedOrder.scheduleDetails?.note}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                     <div className="bg-gray-50 rounded-lg p-4">
                       <h4 className="font-medium text-gray-900 mb-3 flex items-center">
