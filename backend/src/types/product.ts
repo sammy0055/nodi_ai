@@ -13,6 +13,7 @@ export interface IProduct {
   imageUrl?: string;
   filePath?: string; // path in superbase storage
   embedding?: number[];
+  isUpSelling: boolean | null
 }
 
 export enum CurrencyCode {

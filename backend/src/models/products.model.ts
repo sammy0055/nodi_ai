@@ -24,6 +24,7 @@ class ProductModel
   declare metaProductId: string;
   declare status: CreationOptional<`${ProductStatusTypes}`>;
   declare filePath: CreationOptional<string>;
+  declare isUpSelling: boolean | null;
 
   static associate(models: DbModels) {
     this.belongsTo(models.OrganizationsModel, {
@@ -76,6 +77,7 @@ ProductModel.init(
       values: [...Object.values(ProductStatusTypes)],
       defaultValue: ProductStatusTypes.ACTIVE,
     },
+    isUpSelling: { type: DataTypes.BOOLEAN, defaultValue: false },
   },
   {
     sequelize,
@@ -98,8 +100,10 @@ ProductModel.init(
         await vectorStore.insertProductEmbedding(product);
       },
       beforeUpdate: async (product: ProductModel) => {
-        const vectorStore = new ManageVectorStore();
-        await vectorStore.insertProductEmbedding(product);
+        if (product.changed('name') || product.changed('description') || product.changed('price')) {
+          const vectorStore = new ManageVectorStore();
+          await vectorStore.insertProductEmbedding(product);
+        }
       },
     },
   }
