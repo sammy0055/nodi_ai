@@ -98,7 +98,7 @@ app.listen(PORT, async () => {
   await connectDB();
   await setupReviewQueues();
   await queueConsumer();
-  await followUPQueueConsumer();
+  // await followUPQueueConsumer();
   await startReviewtWorkerConsumer();
   await vectorStore.initCollection();
   await bot.connectToMcpServer();

@@ -118,10 +118,10 @@ export class ChatService {
         customerId: customer.id,
         systemPrompt: systemPrompt,
       });
-      await Conversation.update({ followup_token: '' }, { where: { id: conv.id } });
+      await Conversation.update({ followup_token: '' }, { where: { id: conv.id } }); //invalidate followup token
       return conv?.get({ plain: true });
     }
-    await Conversation.update({ followup_token: '' }, { where: { id: conversation.id } });
+    await Conversation.update({ followup_token: '' }, { where: { id: conversation.id } }); //invalidate followup token
     return conversation;
   }
 

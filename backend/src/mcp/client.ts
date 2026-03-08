@@ -69,8 +69,8 @@ export class MCPClient extends UsageBase {
   protected tools: FunctionTool[] = [];
   private chatHistory: ChatHistoryManager;
 
- public llm_model = 'gpt-5-mini-2025-08-07';
-  // public llm_model = 'gpt-5.2';
+//  public llm_model = 'gpt-5-mini-2025-08-07';
+  public llm_model = 'gpt-5.2';
   // llm_model = 'o4-mini';
   maxIterations = 5;
   OPENAI_API_KEY = '';
