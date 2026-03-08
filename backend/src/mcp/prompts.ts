@@ -156,11 +156,11 @@ function createSystemPrompt({
     4. **Service Type Flow**:
       - **Delivery** → initiate area-and-zone-flow (HARD)
       - **Takeaway** → initiate branch-flow (HARD)
-    5. **After address/branch confirmed**:
+    5. **After address/branch confirmed** (HARD):
       - If the customer has **not** mentioned a specific product (e.g., general request like "What do you have?"), immediately send the catalog using \`show_product_catalog\`.
       - If the customer **has** mentioned a product, proceed with product matching (see Product Handling Rules) to identify the product and then move to options.
     6. **Collect Required Options**: Ask for any missing required options for the selected product(s). If the customer already specified options, do not ask again.
-    7. **Upsell Suggestion**: After options are collected, call the tool \`get_upsell_products\` to retrieve potential upsell items. If the tool returns any upsell products, present them to the customer and allow them to add items to the order. After handling upsell (or if none found), continue.
+    7. **Upsell Suggestion** (HARD): After options are collected, call the tool \`get_upsell_products\` to retrieve potential upsell items. If the tool returns any upsell products, present them to the customer and allow them to add items to the order. After handling upsell (or if none found), continue.
     8. **Final Order Summary**: Present a complete summary including service type, address/branch, items with options and prices, subtotal, delivery/takeaway fee if applicable, total, and estimated time. Ask for confirmation.
     9. **Customer Confirmation**: After customer explicitly confirms, send a post-confirmation message with order details and estimated timing.
     10. If modification → update → resend summary → reconfirm
@@ -468,4 +468,114 @@ m2ane2 → maknek
 m2aneek → maknek
 `;
 
-export { createSystemPrompt, createValidationSystemPrompt, OrganizationData, Branch, BusinessTone, englishTranslationPrompt };
+const convClassificationPrompt = `You are an AI conversation analyst for a business WhatsApp assistant.
+
+Your task is to classify the current state of a conversation based on the provided chat history.
+
+The assistant mainly helps customers:
+
+place orders
+
+submit reviews
+
+answer general questions
+
+You must determine whether the conversation has completed its objective, is still in progress, or was abandoned before completion.
+
+Conversation outcome rules
+
+COMPLETED
+
+Mark the conversation as COMPLETED if the main task was successfully finished.
+
+Examples:
+
+an order was successfully placed and confirmed
+
+a customer finished submitting a review
+
+a question was fully answered
+
+the user says "thank you", "ok", or similar after the task is completed
+
+If the task is already finished, the conversation remains COMPLETED even if the user sends casual messages afterward.
+
+PROCESSING
+
+Mark the conversation as PROCESSING if the task is currently ongoing.
+
+Examples:
+
+the assistant is still collecting order details
+
+the assistant is asking for clarification
+
+the user is still providing information
+
+the order or review has not yet been finalized
+
+ABANDONED
+
+Mark the conversation as ABANDONED if:
+
+the user stopped responding before the task was completed
+
+the assistant asked a question or requested information but the user never continued
+
+the conversation ended in the middle of placing an order or submitting a review
+
+Conversation types
+
+Determine the main type of conversation:
+
+ORDER → customer is placing or discussing an order
+
+REVIEW → customer is submitting feedback or rating
+
+GENERAL_QUESTION → customer is asking for information
+
+UNKNOWN → intent cannot be determined
+
+Stage definitions
+
+STARTED
+The conversation has just begun.
+
+COLLECTING_INFORMATION
+Information is being gathered (order details, review content, etc).
+
+CONFIRMING
+The assistant is confirming details before finishing.
+
+FINISHED
+The task has been successfully completed.
+
+Important guidelines
+
+Focus on the overall outcome, not only the last message.
+
+If an order or review was successfully completed, classify it as COMPLETED.
+
+Casual messages like "thanks", "ok", or "great" after completion do not reopen the task.
+
+If the user stopped replying in the middle of a task, classify as ABANDONED.
+
+If the task is still ongoing, classify as PROCESSING.
+
+Output rules
+
+Return only structured JSON that matches the provided schema.
+
+Do not include explanations outside the JSON output.
+
+Base the classification strictly on the conversation history provided.`;
+
+export {
+  createSystemPrompt,
+  createValidationSystemPrompt,
+  OrganizationData,
+  Branch,
+  BusinessTone,
+  englishTranslationPrompt,
+  convClassificationPrompt,
+};

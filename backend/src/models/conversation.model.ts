@@ -5,6 +5,11 @@ import { sequelize } from './db';
 import { ModelNames } from './model-names';
 import { DbModels } from '.';
 
+export enum ConversationStatus {
+  ACTIVE = 'ACTIVE',
+  COMPLETED = 'COMPLETED',
+  ABANDONED = 'ABANDONED',
+}
 interface ConversationAttributes {
   id: string;
   organizationId: string;
@@ -13,6 +18,9 @@ interface ConversationAttributes {
   tokenCount?: number;
   systemMessageId: string;
   is_active: boolean;
+  status?: `${ConversationStatus}`;
+  followup_token?: string | null;
+  userRespondedToFollowup?: boolean;
   created_at: Date;
   updated_at: Date;
 }
@@ -29,10 +37,13 @@ class Conversation
   public customerId!: string;
   public title?: string;
   public is_active!: boolean;
+  public status!: 'ACTIVE' | 'COMPLETED' | 'ABANDONED';
   public systemMessageId!: string;
   public tokenCount!: number;
   public created_at!: Date;
   public updated_at!: Date;
+  public followup_token!: string | null;
+  public userRespondedToFollowup!: boolean;
 
   static associate(models: DbModels) {
     this.belongsTo(models.OrganizationsModel, {
@@ -96,6 +107,9 @@ Conversation.init(
       defaultValue: 0,
       allowNull: false,
     },
+    status: { type: DataTypes.STRING, defaultValue: 'ACTIVE' },
+    followup_token: { type: DataTypes.STRING, allowNull: true },
+    // userRespondedToFollowup: { type: DataTypes.BOOLEAN, defaultValue: true },
     created_at: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,

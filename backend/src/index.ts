@@ -34,6 +34,7 @@ import { userRoleRoute } from './routes/role.route.js';
 import { userPermissionRoute } from './routes/permission-route.js';
 import { setupReviewQueues, startReviewtWorkerConsumer } from './helpers/rabbitmq/reviewQueue/index.js';
 import { bot } from './bot.js';
+import { followUPQueueConsumer } from './helpers/rabbitmq/followUpQueue.js';
 
 const app = express();
 
@@ -82,13 +83,13 @@ app.use('/api/app-user/permissions', userPermissionRoute);
 app.use('/api/whatsappflow', whatsappFlowRoute);
 
 setInterval(() => {
-  const m = process.memoryUsage()
+  const m = process.memoryUsage();
   console.log(
-    `[MEM] rss=${(m.rss/1024/1024).toFixed(0)}MB ` +
-    `heapUsed=${(m.heapUsed/1024/1024).toFixed(0)}MB ` +
-    `heapTotal=${(m.heapTotal/1024/1024).toFixed(0)}MB`
-  )
-}, 10000)
+    `[MEM] rss=${(m.rss / 1024 / 1024).toFixed(0)}MB ` +
+      `heapUsed=${(m.heapUsed / 1024 / 1024).toFixed(0)}MB ` +
+      `heapTotal=${(m.heapTotal / 1024 / 1024).toFixed(0)}MB`
+  );
+}, 10000);
 
 const vectorStore = new ManageVectorStore();
 
@@ -96,8 +97,9 @@ const PORT = appConfig.port;
 app.listen(PORT, async () => {
   await connectDB();
   await setupReviewQueues();
-  queueConsumer();
-  startReviewtWorkerConsumer();
+  await queueConsumer();
+  await followUPQueueConsumer();
+  await startReviewtWorkerConsumer();
   await vectorStore.initCollection();
   await bot.connectToMcpServer();
 });

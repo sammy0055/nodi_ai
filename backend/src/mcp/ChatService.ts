@@ -118,8 +118,10 @@ export class ChatService {
         customerId: customer.id,
         systemPrompt: systemPrompt,
       });
+      await Conversation.update({ followup_token: '' }, { where: { id: conv.id } });
       return conv?.get({ plain: true });
     }
+    await Conversation.update({ followup_token: '' }, { where: { id: conversation.id } });
     return conversation;
   }
 
@@ -241,7 +243,7 @@ export class ChatService {
         );
       }
     }
-   
+
     const res = await bot.process({
       query: userMessage,
       systemPrompt: systemPrompt,
@@ -249,7 +251,7 @@ export class ChatService {
       conversationId: conversation.id,
       customerId: customer.id,
     });
-    return res;
+    return { ...res, organizationId: this.organizationId, conversationId: conversation.id, customerId: customer.id };
   }
 
   async sendWhatSappMessage({ recipientPhoneNumber, message }: SendWhatSappMessageProps) {

@@ -12,8 +12,10 @@ import { Op } from 'sequelize';
 import { calculateAndSubtractCredits } from '../helpers/billing-calcuations';
 import { OrganizationsModel } from '../models/organizations.model';
 import { CustomerModel } from '../models/customer.model';
-import { createSystemPrompt } from '../mcp/prompts';
+import { convClassificationPrompt, createSystemPrompt } from '../mcp/prompts';
 import { ItemDeleteParams } from 'openai/resources/conversations/items';
+import { zodTextFormat } from 'openai/helpers/zod';
+import { z } from 'zod';
 
 export interface ChatHistoryConfig {
   maxContextTokens: number;
@@ -115,6 +117,60 @@ export class ChatHistoryManager {
     return response.output_text;
   }
 
+  async classifyConversation(conversationId: string) {
+    if (!conversationId) throw new Error('openai conversationId is required');
+
+    const structuredResponseFormat = z.object({
+      conversationType: z.enum(['ORDER', 'REVIEW', 'GENERAL_QUESTION', 'UNKNOWN']),
+      stage: z.enum(['STARTED', 'COLLECTING_INFORMATION', 'CONFIRMING', 'FINISHED']),
+      status: z.enum(['PROCESSING', 'COMPLETED', 'ABANDONED']),
+    });
+
+    const openai = new OpenAI({ apiKey: appConfig.mcpKeys.openaiKey });
+    console.log('🏃🏼 processing conversation clasification', conversationId);
+
+    const items = await openai.conversations.items.list(conversationId, { order: 'desc', limit: 100 });
+    const chatHistory = items.data
+      .reverse()
+      .filter((item) => item.type === 'message')
+      .filter((msg) => msg.role === 'user' || msg.role === 'assistant') // only the two we want
+      .map((msg) => {
+        const text = (msg.content || [])
+          .filter((c) => c.type === 'input_text' || c.type === 'output_text')
+          .map((c) => c.text)
+          .join(' ')
+          .trim();
+
+        return { role: msg.role, content: text };
+      })
+      .filter((m) => m.content !== '');
+    // console.error('====================================');
+    // console.error('chatHistory', items.data);
+    // console.error('====================================');
+
+    const response = await openai.responses.parse({
+      model: 'gpt-5',
+      input: [
+        { role: 'system', content: convClassificationPrompt },
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'input_text',
+              text: `kindly provide a classification based on the chathistory below.\n chatHistory: ${JSON.stringify(chatHistory)}`,
+            },
+          ],
+        },
+      ],
+      text: {
+        format: zodTextFormat(structuredResponseFormat, 'structured_response_extraction'),
+      },
+    });
+
+    console.error('✅ created coversation classification successfully');
+    return { response: response.output_parsed, totalToken: response.usage?.total_tokens };
+  }
+
   async insertConversationSummary({
     summary,
     conversationId,
@@ -202,7 +258,7 @@ export class ChatHistoryManager {
       ],
     });
     console.error('✅ inserted summary and system prompt successfully');
-    await new Promise(res => setTimeout(res, 500));
+    await new Promise((res) => setTimeout(res, 500));
   }
 
   // get conversations and update syetem prompt
@@ -283,8 +339,13 @@ export class ChatHistoryManager {
   }
 
   async getConversationsByCustomerId(customerId: string, organizationId: string) {
-    const conv = await Conversation.findOne({ where: { customerId: customerId, organizationId: organizationId } });
-    return conv?.get({ plain: true });
+    const conv = await Conversation.findOne({
+      where: { customerId: customerId, organizationId: organizationId },
+      order: [['createdAt', 'DESC']],
+    });
+    const convr = conv?.get({ plain: true });
+    if (!convr?.userRespondedToFollowup) return null;
+    return convr;
   }
 
   // the section below is for storing and managing chat history and context meant for LLM consumption -----------------------------------
