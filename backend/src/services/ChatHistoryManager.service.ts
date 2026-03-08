@@ -341,7 +341,7 @@ export class ChatHistoryManager {
   async getConversationsByCustomerId(customerId: string, organizationId: string) {
     const conv = await Conversation.findOne({
       where: { customerId: customerId, organizationId: organizationId },
-      order: [['createdAt', 'DESC']],
+      order: [['created_at', 'DESC']],
     });
     const convr = conv?.get({ plain: true });
     if (!convr?.userRespondedToFollowup) return null;
