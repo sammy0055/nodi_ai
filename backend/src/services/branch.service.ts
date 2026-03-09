@@ -24,6 +24,9 @@ export class BranchService {
   static async getBranch(branchId: string) {
     return await BranchesModel.findByPk(branchId);
   }
+  static async getAllBranches(user: Pick<User, 'id' | 'organizationId'>) {
+    return await BranchesModel.findAll({ where: { organizationId: user.organizationId! } });
+  }
   static async getBranches(
     user: Pick<User, 'id' | 'organizationId'>,
     { offset, limit, page }: Pagination,
