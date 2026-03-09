@@ -73,6 +73,7 @@ export const API_ROUTES = {
   DELETE_PRODUCT_CHOICE: `${API_BASE_URL}/organization/product-option-choice/delete`,
   CREATE_BRANCH: `${API_BASE_URL}/organization/branch/create-branch`,
   GET_BRANCHES: `${API_BASE_URL}/organization/branch/branches`,
+  GET_ALL_BRANCH: `${API_BASE_URL}/organization/branch/all-branches`,
   UPDATE_BRANCH: `${API_BASE_URL}/organization/branch/branches`,
   DELETE_BRANCH: `${API_BASE_URL}/organization/branch/branches`,
   CREATE_ZONE: `${API_BASE_URL}/organization/zone/create-zone`,

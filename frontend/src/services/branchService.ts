@@ -21,6 +21,10 @@ export class BranchService {
     });
   }
 
+  async getAllBranch(): Promise<{ data: IBranch; message: string }> {
+    return await ApiClient('GET_ALL_BRANCH');
+  }
+
   async updateBranch(data: IBranch): Promise<{ data: IBranch; message: string }> {
     const response = await fetch(`${API_ROUTES.UPDATE_BRANCH}/${data.id}`, {
       method: 'PUT',

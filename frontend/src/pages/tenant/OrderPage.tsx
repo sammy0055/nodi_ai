@@ -1062,7 +1062,9 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
               >
                 <FiXCircle className="mr-2" />
                 Scheduled
-                <span className="ml-2 bg-red-100 text-red-800 rounded-full px-2 py-0.5 text-xs">0</span>
+                <span className="ml-2 bg-red-100 text-red-800 rounded-full px-2 py-0.5 text-xs">
+                   {orderStats?.statusCounts.find((stats) => stats.status === OrderStatusTypes.SCHEDULED)?.count || 0}
+                </span>
               </button>
             </div>
           </div>

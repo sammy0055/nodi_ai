@@ -90,21 +90,24 @@ export const productContextLoader = async () => {
 export const inventoryContextLoader = async () => {
   const { getInventories } = new BranchInventoryService();
   const { getProducts } = new ProductService();
-  const { getBranches } = new BranchService();
-  const [inventoryResults, branchResults, productsResult] = await Promise.allSettled([
+  const { getBranches, getAllBranch } = new BranchService();
+  const [inventoryResults, branchResults, branchesResult, productsResult] = await Promise.allSettled([
     getInventories(),
     getBranches(),
+    getAllBranch(),
     getProducts(),
   ]);
 
   const inventory = inventoryResults.status === 'fulfilled' ? inventoryResults.value : null;
   const branches = branchResults.status === 'fulfilled' ? branchResults.value : null;
+  const allBranches = branchesResult.status === 'fulfilled' ? branchesResult.value : null;
   const products = productsResult.status === 'fulfilled' ? productsResult.value : null;
 
   return {
     inventory: inventory?.data,
     braches: branches?.data,
     products: products?.data,
+    allBranches: allBranches?.data,
   };
 };
 

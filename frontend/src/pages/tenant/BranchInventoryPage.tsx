@@ -42,6 +42,7 @@ const BranchInventoryPage: React.FC = () => {
     products: { data: Product[]; pagination: Pagination };
     inventory: { data: IBranchInventory[]; pagination: Pagination };
     braches: { data: IBranch[]; pagination: Pagination };
+    allBranches: IBranch[];
   };
 
   const user = useUserValue();
@@ -50,7 +51,7 @@ const BranchInventoryPage: React.FC = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [branches, setBranches] = useState<IBranch[]>([]);
-  const [pageBranches, setPageBranches] = useState<IBranch[]>([]);
+  const [allBranches, setAllBranches] = useState<IBranch[]>([]);
   const [selectedPageBranch, setSelectedPageBranch] = useState<string | null>(null);
   const inventory = useBranchInventoryValue();
   const setInventory = useBranchInventorySetRecoilState();
@@ -84,7 +85,7 @@ const BranchInventoryPage: React.FC = () => {
       setProducts(data.products.data);
       setInventory(data.inventory.data);
       setBranches(data.braches.data);
-      setPageBranches(data.braches.data);
+      setAllBranches(data.allBranches);
       setPagination(data.inventory.pagination);
       setBranchPagination(data.braches.pagination);
       setProductPagination(data.products.pagination);
@@ -567,7 +568,7 @@ const BranchInventoryPage: React.FC = () => {
               }}
             >
               <option value="">All Branches</option>
-              {pageBranches.map((branch) => (
+              {allBranches?.map((branch) => (
                 <option key={branch.id} value={branch.id}>
                   {branch.name}
                 </option>
