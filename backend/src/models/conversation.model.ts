@@ -4,6 +4,7 @@ import { sequelize } from './db';
 // import { DbModels } from '.';
 import { ModelNames } from './model-names';
 import { DbModels } from '.';
+import { boolean } from 'zod';
 
 export enum ConversationStatus {
   ACTIVE = 'ACTIVE',
@@ -20,7 +21,8 @@ interface ConversationAttributes {
   is_active: boolean;
   status?: `${ConversationStatus}`;
   followup_token?: string | null;
-  userRespondedToFollowup?: boolean;
+  // userRespondedToFollowup?: boolean;
+  followup_sent?: boolean;
   userRespondedToFollowupAt?: Date;
   created_at: Date;
   updated_at: Date;
@@ -44,7 +46,8 @@ class Conversation
   public created_at!: Date;
   public updated_at!: Date;
   public followup_token!: string | null;
-  public userRespondedToFollowup!: boolean;
+  // public userRespondedToFollowup?: boolean | undefined;
+  public followup_sent!: boolean;
   public userRespondedToFollowupAt?: Date | undefined;
 
   static associate(models: DbModels) {
@@ -111,7 +114,8 @@ Conversation.init(
     },
     status: { type: DataTypes.STRING, defaultValue: 'ACTIVE' },
     followup_token: { type: DataTypes.STRING, allowNull: true },
-    userRespondedToFollowup: { type: DataTypes.BOOLEAN, defaultValue: true },
+    // userRespondedToFollowup: { type: DataTypes.BOOLEAN, defaultValue: true },
+    followup_sent: { type: DataTypes.BOOLEAN, defaultValue: false },
     userRespondedToFollowupAt: { type: DataTypes.DATE, allowNull: true },
     created_at: {
       type: DataTypes.DATE,

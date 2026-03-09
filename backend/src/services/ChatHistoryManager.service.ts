@@ -154,9 +154,9 @@ export class ChatHistoryManager {
         return { role: msg.role, content: text };
       })
       .filter((m) => m.content !== '');
-    console.error('====================================');
-    console.error('chatHistory', chatHistory, items.data);
-    console.error('====================================');
+    // console.error('====================================');
+    // console.error('chatHistory', chatHistory, items.data);
+    // console.error('====================================');
 
     const response = await openai.responses.parse({
       model: 'gpt-5',
@@ -177,7 +177,7 @@ export class ChatHistoryManager {
       },
     });
 
-    console.error(`✅ created coversation classification successfully. status: ${response.status}`);
+    console.error(`✅ created coversation classification successfully.`);
     return { response: response.output_parsed, totalToken: response.usage?.total_tokens };
   }
 
@@ -354,7 +354,6 @@ export class ChatHistoryManager {
       order: [['created_at', 'DESC']],
     });
     const convr = conv?.get({ plain: true });
-    if (!convr?.userRespondedToFollowup) return null;
     return convr;
   }
 

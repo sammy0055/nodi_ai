@@ -138,7 +138,7 @@ export class ChatService {
     }
 
     await Conversation.update(
-      { followup_token: '', userRespondedToFollowup: true, userRespondedToFollowupAt: new Date() },
+      { followup_token: '', followup_sent: false, userRespondedToFollowupAt: new Date() },
       { where: { id: conversation.id } }
     ); //invalidate followup token
     return conversation;

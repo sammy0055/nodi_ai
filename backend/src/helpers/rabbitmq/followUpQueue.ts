@@ -38,7 +38,7 @@ export const scheduleFollowup = async (data: {
   userPhoneNumber: string;
 }) => {
   const conv = await Conversation.findOne({ where: { id: data.conversationId, organizationId: data.organizationId } });
-  if (!conv?.userRespondedToFollowup) return;
+  if (conv?.followup_sent) return;
   const { channel } = await initRabbit();
   const { classifyConversation } = new ChatHistoryManager();
 
@@ -64,7 +64,7 @@ export const scheduleFollowup = async (data: {
   await Conversation.update(
     {
       followup_token: token,
-      userRespondedToFollowup: false,
+      followup_sent: true,
     },
     {
       where: { id: data.conversationId, organizationId: data.organizationId, customerId: data.customerId },
@@ -109,11 +109,6 @@ export const followUPQueueConsumer = async () => {
       // token mismatch → user replied
 
       if (!conversation) {
-        channel.ack(msg);
-        return;
-      }
-
-      if (!conversation.userRespondedToFollowup) {
         channel.ack(msg);
         return;
       }
