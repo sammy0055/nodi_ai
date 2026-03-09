@@ -37,7 +37,7 @@ export const scheduleFollowup = async (data: {
   organizationId: string;
   userPhoneNumber: string;
 }) => {
-  const conv = await Conversation.findByPk(data.conversationId);
+  const conv = await Conversation.findOne({ where: { id: data.conversationId, organizationId: data.organizationId } });
   if (!conv?.userRespondedToFollowup) return;
   const { channel } = await initRabbit();
   const { classifyConversation } = new ChatHistoryManager();
