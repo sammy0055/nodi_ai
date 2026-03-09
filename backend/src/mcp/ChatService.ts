@@ -117,6 +117,9 @@ export class ChatService {
 
       if (diff >= 10 * 60 * 1000) {
         // 10 minutes has passed, user didn't respond to follow-up
+        console.log('====================================');
+        console.log('😂 creating new conversation after 10mins of no response');
+        console.log('====================================');
         const conv = await chatHistory.createConversation({
           organizationId: this.organizationId,
           customerId: customer.id,
