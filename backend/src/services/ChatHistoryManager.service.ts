@@ -177,7 +177,7 @@ export class ChatHistoryManager {
       },
     });
 
-    console.error('✅ created coversation classification successfully');
+    console.error(`✅ created coversation classification successfully. status: ${response.status}`);
     return { response: response.output_parsed, totalToken: response.usage?.total_tokens };
   }
 

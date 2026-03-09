@@ -31,34 +31,6 @@ export const setupFollowUPQueueProducer = async () => {
   console.log(`${RabitQueues.DELAY_REVIEW_QUEUE} queue ready`);
 };
 
-export const followUPQueueConsumer = async () => {
-  const { channel } = await initRabbit();
-
-  channel.consume(RabitQueues.FOLLOW_UP_QUEUE, async (msg) => {
-    if (!msg) return;
-
-    try {
-      const job = JSON.parse(msg.content.toString());
-
-      const conversation = await Conversation.findOne({
-        where: { id: job.conversationId },
-      });
-
-      // token mismatch → user replied
-      if (!conversation || conversation.followup_token !== job.token) {
-        channel.ack(msg);
-        return;
-      }
-
-      await processMessages(job.whatsappBusinessId, job.msg);
-      channel.ack(msg);
-    } catch (err) {
-      console.error(err);
-      channel.nack(msg);
-    }
-  });
-};
-
 export const scheduleFollowup = async (data: {
   conversationId: string;
   customerId: string;
@@ -113,5 +85,33 @@ export const scheduleFollowup = async (data: {
   channel.sendToQueue(RabitQueues.FOLLOW_UP_DELAY_QUEUE, Buffer.from(JSON.stringify(payload)), {
     expiration: delayMs.toString(),
     persistent: true,
+  });
+};
+
+export const followUPQueueConsumer = async () => {
+  const { channel } = await initRabbit();
+
+  channel.consume(RabitQueues.FOLLOW_UP_QUEUE, async (msg) => {
+    if (!msg) return;
+
+    try {
+      const job = JSON.parse(msg.content.toString());
+
+      const conversation = await Conversation.findOne({
+        where: { id: job.conversationId },
+      });
+
+      // token mismatch → user replied
+      if (conversation?.followup_token !== job.token) {
+        channel.ack(msg);
+        return;
+      }
+
+      await processMessages(job.whatsappBusinessId, job.msg);
+      channel.ack(msg);
+    } catch (err) {
+      console.error(err);
+      channel.nack(msg, false, false);
+    }
   });
 };
