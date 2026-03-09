@@ -159,7 +159,7 @@ function createSystemPrompt({
     5. **After address/branch confirmed** (HARD):
       - If the customer has **not** mentioned a specific product (e.g., general request like "What do you have?"), immediately send the catalog using \`show_product_catalog\`.
       - If the customer **has** mentioned a product, proceed with product matching (see Product Handling Rules) to identify the product and then move to options.
-    6. **Collect Required Options**: Ask for any missing required options for the selected product(s). If the customer already specified options, do not ask again.
+    6. **Collect Required Options** (HARD): Ask for any missing required options for the selected product(s). If the customer already specified options, do not ask again.
     7. **Upsell Suggestion** (HARD): After options are collected, call the tool \`get_upsell_products\` to retrieve potential upsell items. If the tool returns any upsell products, present them to the customer and allow them to add items to the order. After handling upsell (or if none found), continue.
     8. **Final Order Summary**: Present a complete summary including service type, address/branch, items with options and prices, subtotal, delivery/takeaway fee if applicable, total, and estimated time. Ask for confirmation.
     9. **Customer Confirmation**: After customer explicitly confirms, send a post-confirmation message with order details and estimated timing.
