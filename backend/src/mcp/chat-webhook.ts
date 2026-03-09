@@ -138,9 +138,9 @@ async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) 
       customerId: res.customerId,
       organizationId: res.organizationId,
     });
-    // console.log('==================response==================');
-    // console.log(response);
-    // console.log('====================================');
+    console.log('==================response==================');
+    console.log(response);
+    console.log('====================================');
     switch (response.type) {
       case 'message':
         await chat.sendWhatSappMessage({ recipientPhoneNumber: userPhoneNumber, message: response.response });

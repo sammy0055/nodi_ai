@@ -43,7 +43,7 @@ export const scheduleFollowup = async (data: {
   const { classifyConversation } = new ChatHistoryManager();
 
   const { response, totalToken } = await classifyConversation(data.conversationId);
-  if (response?.status === 'COMPLETED') return;
+  if (response?.status == 'COMPLETED') return;
   const token = uuidv4();
   // store token in DB
 
@@ -102,6 +102,12 @@ export const followUPQueueConsumer = async () => {
       });
 
       // token mismatch → user replied
+
+      if (!conversation) {
+        channel.ack(msg);
+        return;
+      }
+
       if (conversation?.followup_token !== job.token) {
         channel.ack(msg);
         return;
