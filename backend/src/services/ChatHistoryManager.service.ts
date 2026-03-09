@@ -133,7 +133,7 @@ export class ChatHistoryManager {
     const structuredResponseFormat = z.object({
       conversationType: z.enum(['ORDER', 'REVIEW', 'GENERAL_QUESTION', 'UNKNOWN']),
       stage: z.enum(['STARTED', 'COLLECTING_INFORMATION', 'CONFIRMING', 'FINISHED']),
-      status: z.enum(['PROCESSING', 'COMPLETED', 'ABANDONED']),
+      status: z.enum(['processing', 'completed', 'abandoned']),
     });
 
     const openai = new OpenAI({ apiKey: appConfig.mcpKeys.openaiKey });

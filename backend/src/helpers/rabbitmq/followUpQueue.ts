@@ -43,7 +43,12 @@ export const scheduleFollowup = async (data: {
   const { classifyConversation } = new ChatHistoryManager();
 
   const { response, totalToken } = await classifyConversation(data.conversationId);
-  if (response?.status == 'COMPLETED') return;
+  if (response?.status == 'completed') {
+    console.log('====================================');
+    console.log(`classification status completed`);
+    console.log('====================================');
+    return;
+  }
   const token = uuidv4();
   // store token in DB
 
@@ -86,6 +91,7 @@ export const scheduleFollowup = async (data: {
     expiration: delayMs.toString(),
     persistent: true,
   });
+  console.log("👍schedule successfull for follow up")
 };
 
 export const followUPQueueConsumer = async () => {
