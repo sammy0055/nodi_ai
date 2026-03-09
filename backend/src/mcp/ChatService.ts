@@ -115,7 +115,7 @@ export class ChatService {
     if (conversation?.userRespondedToFollowupAt) {
       const diff = Date.now() - new Date(conversation.userRespondedToFollowupAt).getTime();
 
-      if (diff >= 10 * 60 * 1000) {
+      if (diff >= 20 * 60 * 1000) {
         // 10 minutes has passed, user didn't respond to follow-up
         console.log('====================================');
         console.log('😂 creating new conversation after 10mins of no response');

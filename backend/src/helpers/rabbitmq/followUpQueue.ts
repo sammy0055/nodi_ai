@@ -108,6 +108,11 @@ export const followUPQueueConsumer = async () => {
         return;
       }
 
+      if (!conversation.userRespondedToFollowup) {
+        channel.ack(msg);
+        return;
+      }
+
       if (conversation?.followup_token !== job.token) {
         channel.ack(msg);
         return;
