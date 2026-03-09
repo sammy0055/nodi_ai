@@ -154,9 +154,9 @@ export class ChatHistoryManager {
         return { role: msg.role, content: text };
       })
       .filter((m) => m.content !== '');
-    // console.error('====================================');
-    // console.error('chatHistory', items.data);
-    // console.error('====================================');
+    console.error('====================================');
+    console.error('chatHistory', chatHistory, items.data);
+    console.error('====================================');
 
     const response = await openai.responses.parse({
       model: 'gpt-5',
