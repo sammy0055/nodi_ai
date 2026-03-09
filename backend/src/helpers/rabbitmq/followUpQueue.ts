@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 const { Conversation, WhatSappSettingsModel } = models;
 
-export const followUPQueueProducer = async (payload: any) => {
+export const setupFollowUPQueueProducer = async () => {
   const { channel } = await initRabbit();
 
   // exchange
@@ -16,7 +16,7 @@ export const followUPQueueProducer = async (payload: any) => {
     durable: true,
   });
 
-  await channel.assertQueue(RabitQueues.DELAY_REVIEW_QUEUE, {
+  await channel.assertQueue(RabitQueues.FOLLOW_UP_DELAY_QUEUE, {
     durable: true,
     arguments: {
       'x-dead-letter-exchange': 'followup.exchange',
@@ -27,15 +27,8 @@ export const followUPQueueProducer = async (payload: any) => {
   // real queue (worker queue)
   await channel.assertQueue(RabitQueues.FOLLOW_UP_QUEUE, { durable: true });
   await channel.bindQueue(RabitQueues.FOLLOW_UP_QUEUE, 'followup.exchange', 'followup');
-  const toMs = (mins: number) => mins * 60 * 1000;
-  const delayMs = toMs(5);
 
-  channel.sendToQueue(RabitQueues.DELAY_REVIEW_QUEUE, Buffer.from(JSON.stringify(payload)), {
-    expiration: delayMs.toString(),
-    persistent: true,
-  });
-
-  console.log(`added message to ${RabitQueues.DELAY_REVIEW_QUEUE} queue successfully`);
+  console.log(`${RabitQueues.DELAY_REVIEW_QUEUE} queue ready`);
 };
 
 export const followUPQueueConsumer = async () => {
@@ -72,6 +65,7 @@ export const scheduleFollowup = async (data: {
   organizationId: string;
   userPhoneNumber: string;
 }) => {
+  const { channel } = await initRabbit();
   const { classifyConversation } = new ChatHistoryManager();
   const { response, totalToken } = await classifyConversation(data.conversationId);
   if (response?.status === 'COMPLETED') return;
@@ -110,5 +104,11 @@ export const scheduleFollowup = async (data: {
     token,
   };
 
-  await followUPQueueProducer(payload);
+  const toMs = (mins: number) => mins * 60 * 1000;
+  const delayMs = toMs(5);
+
+  channel.sendToQueue(RabitQueues.FOLLOW_UP_DELAY_QUEUE, Buffer.from(JSON.stringify(payload)), {
+    expiration: delayMs.toString(),
+    persistent: true,
+  });
 };

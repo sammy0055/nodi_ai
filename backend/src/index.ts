@@ -34,7 +34,7 @@ import { userRoleRoute } from './routes/role.route.js';
 import { userPermissionRoute } from './routes/permission-route.js';
 import { setupReviewQueues, startReviewtWorkerConsumer } from './helpers/rabbitmq/reviewQueue/index.js';
 import { bot } from './bot.js';
-import { followUPQueueConsumer } from './helpers/rabbitmq/followUpQueue.js';
+import { followUPQueueConsumer, setupFollowUPQueueProducer } from './helpers/rabbitmq/followUpQueue.js';
 
 const app = express();
 
@@ -97,6 +97,7 @@ const PORT = appConfig.port;
 app.listen(PORT, async () => {
   await connectDB();
   await setupReviewQueues();
+  await setupFollowUPQueueProducer()
   await queueConsumer();
   await followUPQueueConsumer();
   await startReviewtWorkerConsumer();
