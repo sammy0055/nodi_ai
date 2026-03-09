@@ -16,6 +16,7 @@ import { convClassificationPrompt, createSystemPrompt } from '../mcp/prompts';
 import { ItemDeleteParams } from 'openai/resources/conversations/items';
 import { zodTextFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
+import { ResponseInputItem } from 'openai/resources/responses/responses';
 
 export interface ChatHistoryConfig {
   maxContextTokens: number;
@@ -58,8 +59,17 @@ export class ChatHistoryManager {
     title,
   }: CreateConversationProps): Promise<Conversation> {
     const openai = new OpenAI({ apiKey: appConfig.mcpKeys.openaiKey });
+    const customer = await CustomerModel.findOne({ where: { id: customerId, organizationId } });
+    const _items: any[] = [{ role: 'system', content: systemPrompt }];
+    if (customer?.name) {
+      _items.push({ role: 'assistant', content: `the customer name is ${customer?.name}` });
+    }
     const conversation = await openai.conversations.create(
-      systemPrompt ? { items: [{ role: 'system', content: systemPrompt }] } : {}
+      systemPrompt
+        ? {
+            items: _items,
+          }
+        : {}
     );
     const items = await openai.conversations.items.list(conversation.id);
     const systemMessage = items.data.find((i: any) => i.role === 'system');

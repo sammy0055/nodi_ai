@@ -65,8 +65,11 @@ export const scheduleFollowup = async (data: {
   organizationId: string;
   userPhoneNumber: string;
 }) => {
+  const conv = await Conversation.findByPk(data.conversationId);
+  if (!conv?.userRespondedToFollowup) return;
   const { channel } = await initRabbit();
   const { classifyConversation } = new ChatHistoryManager();
+
   const { response, totalToken } = await classifyConversation(data.conversationId);
   if (response?.status === 'COMPLETED') return;
   const token = uuidv4();
@@ -85,7 +88,7 @@ export const scheduleFollowup = async (data: {
   await Conversation.update(
     {
       followup_token: token,
-      //   userRespondedToFollowup: false,
+      userRespondedToFollowup: false,
     },
     {
       where: { id: data.conversationId, organizationId: data.organizationId, customerId: data.customerId },

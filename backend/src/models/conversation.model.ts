@@ -21,6 +21,7 @@ interface ConversationAttributes {
   status?: `${ConversationStatus}`;
   followup_token?: string | null;
   userRespondedToFollowup?: boolean;
+  userRespondedToFollowupAt?: Date;
   created_at: Date;
   updated_at: Date;
 }
@@ -44,6 +45,7 @@ class Conversation
   public updated_at!: Date;
   public followup_token!: string | null;
   public userRespondedToFollowup!: boolean;
+  public userRespondedToFollowupAt?: Date | undefined;
 
   static associate(models: DbModels) {
     this.belongsTo(models.OrganizationsModel, {
@@ -109,7 +111,8 @@ Conversation.init(
     },
     status: { type: DataTypes.STRING, defaultValue: 'ACTIVE' },
     followup_token: { type: DataTypes.STRING, allowNull: true },
-    // userRespondedToFollowup: { type: DataTypes.BOOLEAN, defaultValue: true },
+    userRespondedToFollowup: { type: DataTypes.BOOLEAN, defaultValue: true },
+    userRespondedToFollowupAt: { type: DataTypes.DATE, allowNull: true },
     created_at: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,

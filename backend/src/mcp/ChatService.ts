@@ -112,16 +112,32 @@ export class ChatService {
     const chatHistory = new ChatHistoryManager();
     const customer = await this.getCustomerData();
     const conversation = await chatHistory.getConversationsByCustomerId(customer.id, this.organizationId);
+    if (conversation?.userRespondedToFollowupAt) {
+      const diff = Date.now() - new Date(conversation.userRespondedToFollowupAt).getTime();
+
+      if (diff >= 10 * 60 * 1000) {
+        // 10 minutes has passed, user didn't respond to follow-up
+        const conv = await chatHistory.createConversation({
+          organizationId: this.organizationId,
+          customerId: customer.id,
+          systemPrompt: systemPrompt,
+        });
+        return conv?.get({ plain: true });
+      }
+    }
     if (!conversation) {
       const conv = await chatHistory.createConversation({
         organizationId: this.organizationId,
         customerId: customer.id,
         systemPrompt: systemPrompt,
       });
-      await Conversation.update({ followup_token: '' }, { where: { id: conv.id } }); //invalidate followup token
       return conv?.get({ plain: true });
     }
-    await Conversation.update({ followup_token: '' }, { where: { id: conversation.id } }); //invalidate followup token
+
+    await Conversation.update(
+      { followup_token: '', userRespondedToFollowup: true, userRespondedToFollowupAt: new Date() },
+      { where: { id: conversation.id } }
+    ); //invalidate followup token
     return conversation;
   }
 
