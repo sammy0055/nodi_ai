@@ -8,25 +8,38 @@ import { v4 as uuidv4 } from 'uuid';
 
 const { Conversation, WhatSappSettingsModel } = models;
 
-export const followUPQueueProducer = async () => {
+export const followUPQueueProducer = async (payload: any) => {
   const { channel } = await initRabbit();
 
   // exchange
-  await channel.assertExchange('followup.exchange', 'x-delayed-message', {
+  await channel.assertExchange('followup.exchange', 'direct', {
+    durable: true,
+  });
+
+  await channel.assertQueue(RabitQueues.DELAY_REVIEW_QUEUE, {
     durable: true,
     arguments: {
-      'x-delayed-type': 'direct',
+      'x-dead-letter-exchange': 'followup.exchange',
+      'x-dead-letter-routing-key': 'followup',
     },
   });
 
+  // real queue (worker queue)
   await channel.assertQueue(RabitQueues.FOLLOW_UP_QUEUE, { durable: true });
   await channel.bindQueue(RabitQueues.FOLLOW_UP_QUEUE, 'followup.exchange', 'followup');
+  const toMs = (mins: number) => mins * 60 * 1000;
+  const delayMs = toMs(5);
 
-  return channel;
+  channel.sendToQueue(RabitQueues.DELAY_REVIEW_QUEUE, Buffer.from(JSON.stringify(payload)), {
+    expiration: delayMs.toString(),
+    persistent: true,
+  });
+
+  console.log(`added message to ${RabitQueues.DELAY_REVIEW_QUEUE} queue successfully`);
 };
 
 export const followUPQueueConsumer = async () => {
-  const channel = await followUPQueueProducer();
+  const { channel } = await initRabbit();
 
   channel.consume(RabitQueues.FOLLOW_UP_QUEUE, async (msg) => {
     if (!msg) return;
@@ -59,7 +72,6 @@ export const scheduleFollowup = async (data: {
   organizationId: string;
   userPhoneNumber: string;
 }) => {
-
   const { classifyConversation } = new ChatHistoryManager();
   const { response, totalToken } = await classifyConversation(data.conversationId);
   if (response?.status === 'COMPLETED') return;
@@ -79,7 +91,7 @@ export const scheduleFollowup = async (data: {
   await Conversation.update(
     {
       followup_token: token,
-    //   userRespondedToFollowup: false,
+      //   userRespondedToFollowup: false,
     },
     {
       where: { id: data.conversationId, organizationId: data.organizationId, customerId: data.customerId },
@@ -98,11 +110,5 @@ export const scheduleFollowup = async (data: {
     token,
   };
 
-  const channel = await followUPQueueProducer();
-  channel.publish('followup_exchange', 'followup', Buffer.from(JSON.stringify(payload)), {
-    persistent: true,
-    headers: {
-      'x-delay': 5 * 60 * 1000, // 30 mins
-    },
-  });
+  await followUPQueueProducer(payload);
 };
