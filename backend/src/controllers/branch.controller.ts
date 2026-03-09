@@ -16,7 +16,10 @@ export class BranchController {
   static async getBranch(branchId: string) {
     return await BranchService.getBranch(branchId);
   }
-  static async getBranches(user: Pick<User, 'id' | 'organizationId'>, pagination: Pagination, search?:string) {
+  static async getAllBranch(user: Pick<User, 'id' | 'organizationId'>) {
+    return await BranchService.getAllBranches(user);
+  }
+  static async getBranches(user: Pick<User, 'id' | 'organizationId'>, pagination: Pagination, search?: string) {
     return await BranchService.getBranches(user, pagination, search);
   }
 }
