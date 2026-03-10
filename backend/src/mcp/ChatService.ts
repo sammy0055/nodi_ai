@@ -214,16 +214,15 @@ export class ChatService {
     }
 
     const serviceSchedule = checkBusinessServiceSchedule(planOrg.serviceSchedule, planOrg.timeZone! || 'UTC');
+    console.log('=================conversation===================');
+    console.log(serviceSchedule);
+    console.log('====================================');
     if (!serviceSchedule?.isOpen) {
       return await this.processValidationQuery({
         userMessage,
         assistantMessage: JSON.stringify(serviceSchedule),
       });
     }
-
-    console.log('=================conversation===================');
-    console.log(customer);
-    console.log('====================================');
 
     systemPrompt = createSystemPrompt({
       organizationData: planOrg!,
