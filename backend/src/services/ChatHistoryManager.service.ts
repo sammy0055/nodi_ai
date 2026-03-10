@@ -353,8 +353,7 @@ export class ChatHistoryManager {
       where: { customerId: customerId, organizationId: organizationId },
       order: [['created_at', 'DESC']],
     });
-    const convr = conv?.get({ plain: true });
-    return convr;
+    return conv?.get({ plain: true });
   }
 
   // the section below is for storing and managing chat history and context meant for LLM consumption -----------------------------------
