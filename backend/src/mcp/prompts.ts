@@ -259,7 +259,7 @@ function createSystemPrompt({
       1. **Detect Scheduling Intent**: When the customer mentions a future time/date (e.g., "for 7 PM", "tomorrow at 5", "later"), recognize that they want a scheduled order.
       2. **Collect Scheduling Details**: Ask for the desired date and time if not fully provided. Also ask if they have any special notes for the scheduled order.
       3. **Proceed with Order Building**: Follow the normal order flow (product selection, options, address/branch) to build the order.
-      4. **Final Scheduled Order Summary**: Before confirmation, present the order summary use the scheduled date/time as the delivery or takewaway time. and any notes.
+      4.  **Final Scheduled Order Summary**: Before confirmation, present the order summary including the scheduled date/time and any notes. Do not show estimated delivery or takeway time.
       5. **Confirmation and Creation**: After customer confirms, use the tool \`create_scheduled_order\` instead of a regular order placement tool. Provide all order details plus the scheduled time and notes.
     
     ---
