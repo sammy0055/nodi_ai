@@ -136,9 +136,7 @@ export class ChatService {
       });
       return conv?.get({ plain: true });
     }
-    console.log('=================conversation===================');
-    console.log(conversation);
-    console.log('====================================');
+
     await Conversation.update(
       { followup_token: '', followup_sent: false, userRespondedToFollowupAt: new Date() },
       { where: { id: conversation.id } }
@@ -265,6 +263,9 @@ export class ChatService {
       }
     }
 
+    console.log('=================conversation===================');
+    console.log(conversation);
+    console.log('====================================');
     const res = await bot.process({
       query: userMessage,
       systemPrompt: systemPrompt,
