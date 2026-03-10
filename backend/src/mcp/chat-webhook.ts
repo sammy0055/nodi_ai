@@ -7,7 +7,6 @@ import { AreaModel } from '../models/area.model';
 import { BranchesModel } from '../models/branches.model';
 import { queueProducer } from '../helpers/rabbitmq';
 import { getVoiceNote } from '../helpers/download_voice_note';
-import { scheduleFollowup } from '../helpers/rabbitmq/followUpQueue';
 export const chatRoute = express.Router();
 
 export interface IncomingMessageAttr {
