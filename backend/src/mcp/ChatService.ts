@@ -8,6 +8,7 @@ import { checkBusinessServiceSchedule } from '../utils/organization';
 import { appConfig } from '../config';
 import OpenAI from 'openai';
 import { bot } from '../bot';
+import { scheduleFollowup } from '../helpers/rabbitmq/followUpQueue';
 
 const { CustomerModel, WhatSappSettingsModel, OrganizationsModel } = models;
 
@@ -161,9 +162,7 @@ export class ChatService {
       { conversationId: conversation.id!, organizationId: this.organizationId },
       { role: 'user', content: userMessage }
     );
-    console.log('=================conversation===================');
-    console.log(conversation);
-    console.log('====================================');
+
     const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
     const res = await openai.responses.create({
@@ -179,9 +178,7 @@ export class ChatService {
       { conversationId: conversation?.id!, organizationId: this.organizationId },
       { role: 'assistant', content: res.output_text }
     );
-    console.log('=================addMessage===================');
-    console.log(res.output_text);
-    console.log('====================================');
+
     return {
       data: {
         type: 'message',
@@ -276,7 +273,14 @@ export class ChatService {
       conversationId: conversation.id,
       customerId: customer.id,
     });
-    return { ...res, organizationId: this.organizationId, conversationId: conversation.id, customerId: customer.id };
+
+    await scheduleFollowup({
+      userPhoneNumber: customer.phone,
+      conversationId: conversation.id,
+      customerId: customer.id,
+      organizationId: this.organizationId,
+    });
+    return res;
   }
 
   async sendWhatSappMessage({ recipientPhoneNumber, message }: SendWhatSappMessageProps) {

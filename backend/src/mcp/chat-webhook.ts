@@ -132,12 +132,6 @@ async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) 
     const chat = await ChatService.init(userPhoneNumber, whatsappBusinessId);
     const res = await chat.processQuery(userMessage);
     const response = res.data;
-    await scheduleFollowup({
-      userPhoneNumber,
-      conversationId: res.conversationId,
-      customerId: res.customerId,
-      organizationId: res.organizationId,
-    });
     // console.log('==================response==================');
     // console.log(response);
     // console.log('====================================');
