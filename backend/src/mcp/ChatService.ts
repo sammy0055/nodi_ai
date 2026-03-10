@@ -151,6 +151,9 @@ export class ChatService {
     userMessage: string;
     assistantMessage: any;
   }) {
+      console.log('=================conversation===================');
+    console.log("ccccccccccccccccccccccccc");
+    console.log('====================================');
     const planOrg = await this.getOrganization();
     const systemPrompt = createValidationSystemPrompt({ organizationData: planOrg });
     const OPENAI_API_KEY = appConfig.mcpKeys.openaiKey;
@@ -214,9 +217,7 @@ export class ChatService {
     }
 
     const serviceSchedule = checkBusinessServiceSchedule(planOrg.serviceSchedule, planOrg.timeZone! || 'UTC');
-    console.log('=================conversation===================');
-    console.log(serviceSchedule);
-    console.log('====================================');
+  
     if (!serviceSchedule?.isOpen) {
       return await this.processValidationQuery({
         userMessage,
