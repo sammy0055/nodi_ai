@@ -228,10 +228,11 @@ export class ChatService {
       assistantName: planOrg.AIAssistantName || 'Alex',
     });
 
-    const conversation = await this.getAndCreateConversationIfNotExist(systemPrompt);
     console.log('=================conversation===================');
-    console.log(conversation);
+    console.log(customer, planOrg);
     console.log('====================================');
+    const conversation = await this.getAndCreateConversationIfNotExist(systemPrompt);
+
     if (planOrg.shouldUpdateChatbotSystemPrompt || customer.shouldUpdateChatbotSystemPrompt) {
       console.log('====================================');
       console.log('should update system prompt running');
