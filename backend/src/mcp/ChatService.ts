@@ -189,9 +189,7 @@ export class ChatService {
   public async processQuery(userMessage: string) {
     const planOrg = await this.getOrganization();
     const customer = await this.getCustomerData();
-    console.log('=================conversation===================');
-    console.log(customer, planOrg);
-    console.log('====================================');
+
     let systemPrompt: string;
     if (customer.status !== 'active') {
       return await this.processValidationQuery({
@@ -214,6 +212,10 @@ export class ChatService {
         assistantMessage: `${planOrg.name} is currently not available at the moment`,
       });
     }
+
+    console.log('=================conversation===================');
+    console.log(customer);
+    console.log('====================================');
 
     const serviceSchedule = checkBusinessServiceSchedule(planOrg.serviceSchedule, planOrg.timeZone! || 'UTC');
     if (!serviceSchedule?.isOpen) {
