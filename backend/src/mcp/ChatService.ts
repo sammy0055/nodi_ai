@@ -136,7 +136,9 @@ export class ChatService {
       });
       return conv?.get({ plain: true });
     }
-
+    console.log('=================conversation===================');
+    console.log(conversation);
+    console.log('====================================');
     await Conversation.update(
       { followup_token: '', followup_sent: false, userRespondedToFollowupAt: new Date() },
       { where: { id: conversation.id } }
