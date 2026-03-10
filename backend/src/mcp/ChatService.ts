@@ -141,6 +141,9 @@ export class ChatService {
       { followup_token: '', followup_sent: false, userRespondedToFollowupAt: new Date() },
       { where: { id: conversation.id } }
     ); //invalidate followup token
+    console.log('=================conversation===================');
+    console.log(conversation);
+    console.log('====================================');
     return conversation;
   }
 
@@ -263,9 +266,6 @@ export class ChatService {
       }
     }
 
-    console.log('=================conversation===================');
-    console.log(conversation);
-    console.log('====================================');
     const res = await bot.process({
       query: userMessage,
       systemPrompt: systemPrompt,
