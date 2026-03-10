@@ -213,10 +213,6 @@ export class ChatService {
       });
     }
 
-    console.log('=================conversation===================');
-    console.log(customer);
-    console.log('====================================');
-
     const serviceSchedule = checkBusinessServiceSchedule(planOrg.serviceSchedule, planOrg.timeZone! || 'UTC');
     if (!serviceSchedule?.isOpen) {
       return await this.processValidationQuery({
@@ -224,6 +220,10 @@ export class ChatService {
         assistantMessage: JSON.stringify(serviceSchedule),
       });
     }
+
+    console.log('=================conversation===================');
+    console.log(customer);
+    console.log('====================================');
 
     systemPrompt = createSystemPrompt({
       organizationData: planOrg!,
