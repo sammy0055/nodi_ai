@@ -141,9 +141,6 @@ export class ChatService {
       { followup_token: '', followup_sent: false, userRespondedToFollowupAt: new Date() },
       { where: { id: conversation.id } }
     ); //invalidate followup token
-    console.log('=================conversation===================');
-    console.log(conversation);
-    console.log('====================================');
     return conversation;
   }
 
@@ -232,6 +229,9 @@ export class ChatService {
     });
 
     const conversation = await this.getAndCreateConversationIfNotExist(systemPrompt);
+    console.log('=================conversation===================');
+    console.log(conversation);
+    console.log('====================================');
     if (planOrg.shouldUpdateChatbotSystemPrompt || customer.shouldUpdateChatbotSystemPrompt) {
       console.log('====================================');
       console.log('should update system prompt running');
