@@ -151,15 +151,17 @@ export class ChatService {
     userMessage: string;
     assistantMessage: any;
   }) {
-      console.log('=================conversation===================');
-    console.log("ccccccccccccccccccccccccc");
-    console.log('====================================');
     const planOrg = await this.getOrganization();
     const systemPrompt = createValidationSystemPrompt({ organizationData: planOrg });
+    console.log('=================planOrg===================');
+    console.log(planOrg);
+    console.log('====================================');
     const OPENAI_API_KEY = appConfig.mcpKeys.openaiKey;
     const chatHistory = new ChatHistoryManager();
     const conversation = await this.getAndCreateConversationIfNotExist(systemPrompt);
-
+    console.log('=================conversation===================');
+    console.log('ccccccccccccccccccccccccc');
+    console.log('====================================');
     await chatHistory.addMessage(
       { conversationId: conversation.id!, organizationId: this.organizationId },
       { role: 'user', content: userMessage }
@@ -217,7 +219,7 @@ export class ChatService {
     }
 
     const serviceSchedule = checkBusinessServiceSchedule(planOrg.serviceSchedule, planOrg.timeZone! || 'UTC');
-  
+
     if (!serviceSchedule?.isOpen) {
       return await this.processValidationQuery({
         userMessage,
