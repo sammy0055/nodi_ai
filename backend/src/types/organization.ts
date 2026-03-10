@@ -36,4 +36,5 @@ export interface IOrganization {
   currency: CurrencyCode;
   reviewQuestions: OrgReviewQuestions[];
   serviceSchedule: ServiceSchedule[];
+  timeZone:string | null
 }

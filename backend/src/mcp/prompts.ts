@@ -27,6 +27,24 @@ interface CreateSystemPromptTypes {
   assistantName: string;
 }
 
+const getTimeAndDate = (timezone = 'UTC') => {
+  const now = new Date();
+
+  const dateTime = now.toLocaleString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+    timeZone: timezone,
+  });
+
+  return dateTime;
+};
+
 function createSystemPrompt({
   organizationData,
   customerData,
@@ -55,6 +73,8 @@ function createSystemPrompt({
     - **Business Type:** ${organizationData.businessType || 'Retail'}
     - **Assistant Name:** ${assistantName}
     - **Customer:** ${customerData.name} (${customerData.phone})
+
+    # Time and Date: ${getTimeAndDate(organizationData.timeZone || 'UTC')}
 
     # Core Responsibilities
     1. **Order Management** – Help find products, check availability, select options, place orders.
