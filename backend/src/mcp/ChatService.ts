@@ -153,20 +153,17 @@ export class ChatService {
   }) {
     const planOrg = await this.getOrganization();
     const systemPrompt = createValidationSystemPrompt({ organizationData: planOrg });
-    console.log('=================planOrg===================');
-    console.log(planOrg);
-    console.log('====================================');
     const OPENAI_API_KEY = appConfig.mcpKeys.openaiKey;
     const chatHistory = new ChatHistoryManager();
     const conversation = await this.getAndCreateConversationIfNotExist(systemPrompt);
-    console.log('=================conversation===================');
-    console.log('ccccccccccccccccccccccccc');
-    console.log('====================================');
+
     await chatHistory.addMessage(
       { conversationId: conversation.id!, organizationId: this.organizationId },
       { role: 'user', content: userMessage }
     );
-
+    console.log('=================conversation===================');
+    console.log(conversation);
+    console.log('====================================');
     const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
     const res = await openai.responses.create({
@@ -182,7 +179,9 @@ export class ChatService {
       { conversationId: conversation?.id!, organizationId: this.organizationId },
       { role: 'assistant', content: res.output_text }
     );
-
+    console.log('=================addMessage===================');
+    console.log(res.output_text);
+    console.log('====================================');
     return {
       data: {
         type: 'message',
