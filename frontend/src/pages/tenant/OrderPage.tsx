@@ -537,9 +537,10 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
       }
 
       try {
+        const status = ['pending', 'scheduled'].includes(order.status) ? OrderStatusTypes.PROCESSING : order.status;
         const updatedOrder: IOrder = {
           ...order,
-          status: order.status === 'pending' ? OrderStatusTypes.PROCESSING : order.status,
+          status: status,
           assignedUserId: userId,
           assignedUserName: user.name,
           assignedAt: new Date(),
@@ -1063,7 +1064,7 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
                 <FiXCircle className="mr-2" />
                 Scheduled
                 <span className="ml-2 bg-red-100 text-red-800 rounded-full px-2 py-0.5 text-xs">
-                   {orderStats?.statusCounts.find((stats) => stats.status === OrderStatusTypes.SCHEDULED)?.count || 0}
+                  {orderStats?.statusCounts.find((stats) => stats.status === OrderStatusTypes.SCHEDULED)?.count || 0}
                 </span>
               </button>
             </div>

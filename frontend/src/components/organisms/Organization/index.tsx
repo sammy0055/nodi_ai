@@ -324,9 +324,10 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
     }
 
     try {
+      const status = ['pending', 'scheduled'].includes(order.status) ? OrderStatusTypes.PROCESSING : order.status;
       const updatedOrder: IOrder = {
         ...order,
-        status: order.status === 'pending' ? OrderStatusTypes.PROCESSING : order.status,
+        status: status,
         assignedUserId: userId,
         assignedUserName: user.name,
         assignedAt: new Date(),
