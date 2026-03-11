@@ -39,7 +39,6 @@ export const scheduleFollowup = async (data: {
 }) => {
   const conv = await Conversation.findOne({
     where: { id: data.conversationId, organizationId: data.organizationId },
-    raw: true,
   });
 
   if (conv?.followup_sent === true) {
@@ -50,9 +49,7 @@ export const scheduleFollowup = async (data: {
   const { classifyConversation } = new ChatHistoryManager();
 
   const { response, totalToken } = await classifyConversation(data.conversationId);
-  console.log('==================follow up node==================');
-  console.log(response?.status, conv?.followup_sent, conv);
-  console.log('====================================');
+
   if (response?.status == 'completed') return;
 
   const token = uuidv4();
@@ -81,6 +78,9 @@ export const scheduleFollowup = async (data: {
     }
   );
 
+  console.log('==================follow up node==================');
+  console.log(response?.status, conv?.followup_sent, conv);
+  console.log('====================================');
   const waba = await WhatSappSettingsModel.findOne({ where: { organizationId: data.organizationId } });
   if (!waba) throw new Error('no waba in followup queue producer');
   const payload = {
@@ -116,6 +116,9 @@ export const followUPQueueConsumer = async () => {
         where: { id: job.conversationId },
       });
 
+      console.log('==============follow up consumer======================');
+      console.log(conversation?.get({ plain: true }));
+      console.log('====================================');
       // token mismatch → user replied
 
       if (!conversation) {
