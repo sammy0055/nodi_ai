@@ -61,22 +61,14 @@ export const scheduleFollowup = async (data: {
       { aiTokensUsed: totalToken || 0 },
       { organizationId: data.organizationId, conversationId: data.conversationId }
     );
-    await Conversation.increment(
-      { tokenCount: totalToken || 0 },
-      { where: { id: data.conversationId, organizationId: data.organizationId } }
-    );
+    await conv?.increment({ tokenCount: totalToken || 0 });
   }
 
   // Update conversation timestamp
-  await Conversation.update(
-    {
-      followup_token: token,
-      followup_sent: true,
-    },
-    {
-      where: { id: data.conversationId, organizationId: data.organizationId, customerId: data.customerId },
-    }
-  );
+  await conv?.update({
+    followup_token: token,
+    followup_sent: true,
+  });
 
   console.log('==================follow up node==================');
   console.log(response?.status, conv?.followup_sent, conv);
