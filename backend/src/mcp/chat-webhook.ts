@@ -7,6 +7,8 @@ import { AreaModel } from '../models/area.model';
 import { BranchesModel } from '../models/branches.model';
 import { queueProducer } from '../helpers/rabbitmq';
 import { getVoiceNote } from '../helpers/download_voice_note';
+import { NotificationModel } from '../models/notification.model';
+import { NotificationPriority, RelatedNotificationEntity } from '../data/data-types';
 export const chatRoute = express.Router();
 
 export interface IncomingMessageAttr {
@@ -177,6 +179,14 @@ async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) 
     }
   } catch (error: any) {
     console.log('webhook-chat-error', error);
+    await NotificationModel.create({
+      relatedEntityType: RelatedNotificationEntity.SYSTEM,
+      title: `'chat-service-error', user-phone:${userPhoneNumber}`,
+      message: error.message,
+      status: 'unread',
+      priority: NotificationPriority.HIGH,
+      recipientType: 'admin',
+    });
     // return res.status(500).json({ error: error.message });
   }
 }
