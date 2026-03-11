@@ -37,11 +37,12 @@ export const scheduleFollowup = async (data: {
   organizationId: string;
   userPhoneNumber: string;
 }) => {
-  const conv = await Conversation.findOne({
+  const convr = await Conversation.findOne({
     where: { id: data.conversationId, organizationId: data.organizationId },
   });
 
-  if (conv?.followup_sent === true) {
+  const conv = convr?.get({plain:true})
+  if (conv?.followup_sent == true) {
     console.log('Skipping followup scheduling');
     return;
   }
@@ -52,6 +53,10 @@ export const scheduleFollowup = async (data: {
 
   if (response?.status == 'completed') return;
 
+  console.log('==================follow up node==================');
+  console.log(response?.status, conv?.followup_sent, conv);
+  console.log('====================================');
+
   const token = uuidv4();
   // store token in DB
 
@@ -61,18 +66,15 @@ export const scheduleFollowup = async (data: {
       { aiTokensUsed: totalToken || 0 },
       { organizationId: data.organizationId, conversationId: data.conversationId }
     );
-    await conv?.increment({ tokenCount: totalToken || 0 });
+    await convr?.increment({ tokenCount: totalToken || 0 });
   }
 
   // Update conversation timestamp
-  await conv?.update({
+  await convr?.update({
     followup_token: token,
     followup_sent: true,
   });
 
-  console.log('==================follow up node==================');
-  console.log(response?.status, conv?.followup_sent, conv);
-  console.log('====================================');
   const waba = await WhatSappSettingsModel.findOne({ where: { organizationId: data.organizationId } });
   if (!waba) throw new Error('no waba in followup queue producer');
   const payload = {
