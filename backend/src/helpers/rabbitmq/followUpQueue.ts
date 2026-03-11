@@ -37,14 +37,18 @@ export const scheduleFollowup = async (data: {
   organizationId: string;
   userPhoneNumber: string;
 }) => {
-  const conv = await Conversation.findOne({ where: { id: data.conversationId, organizationId: data.organizationId } });
-  if (conv?.followup_sent) return;
+  const convr = await Conversation.findOne({ where: { id: data.conversationId, organizationId: data.organizationId } });
+  const conv = convr?.get({ plain: true });
+  if (conv?.followup_sent === true) {
+    console.log('Skipping followup scheduling');
+    return;
+  }
   const { channel } = await initRabbit();
   const { classifyConversation } = new ChatHistoryManager();
 
   const { response, totalToken } = await classifyConversation(data.conversationId);
   console.log('==================follow up node==================');
-  console.log(response?.status);
+  console.log(response?.status, conv?.followup_sent);
   console.log('====================================');
   if (response?.status == 'completed') return;
 
@@ -57,7 +61,10 @@ export const scheduleFollowup = async (data: {
       { aiTokensUsed: totalToken || 0 },
       { organizationId: data.organizationId, conversationId: data.conversationId }
     );
-    await Conversation.increment({ tokenCount: totalToken || 0 }, { where: { id: data.conversationId } });
+    await Conversation.increment(
+      { tokenCount: totalToken || 0 },
+      { where: { id: data.conversationId, organizationId: data.organizationId } }
+    );
   }
 
   // Update conversation timestamp
