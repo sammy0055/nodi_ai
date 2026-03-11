@@ -48,7 +48,7 @@ export const scheduleFollowup = async (data: {
 
   const { response, totalToken } = await classifyConversation(data.conversationId);
   console.log('==================follow up node==================');
-  console.log(response?.status, conv?.followup_sent);
+  console.log(response?.status, conv?.followup_sent, conv?.id);
   console.log('====================================');
   if (response?.status == 'completed') return;
 
