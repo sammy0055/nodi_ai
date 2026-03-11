@@ -37,7 +37,10 @@ export const scheduleFollowup = async (data: {
   organizationId: string;
   userPhoneNumber: string;
 }) => {
-  const convr = await Conversation.findOne({ where: { id: data.conversationId, organizationId: data.organizationId } });
+  const convr = await Conversation.findOne({
+    where: { id: data.conversationId, organizationId: data.organizationId },
+    raw: true,
+  });
   const conv = convr?.get({ plain: true });
   if (conv?.followup_sent === true) {
     console.log('Skipping followup scheduling');
@@ -48,7 +51,7 @@ export const scheduleFollowup = async (data: {
 
   const { response, totalToken } = await classifyConversation(data.conversationId);
   console.log('==================follow up node==================');
-  console.log(response?.status, conv?.followup_sent, conv?.id);
+  console.log(response?.status, conv?.followup_sent, conv);
   console.log('====================================');
   if (response?.status == 'completed') return;
 
