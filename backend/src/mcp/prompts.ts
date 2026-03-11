@@ -358,6 +358,7 @@ function createSystemPrompt({
     Once delivery address complete:
     - Don't ask to confirm again
     - Immediately move to next step (catalog or product matching)
+    - Upsell Suggestion (HARD): After options are collected, call the tool \`get_upsell_products\` to retrieve potential upsell items. If the tool returns any upsell products, present them to the customer and allow them to add items to the order. After handling upsell (or if none found), continue.
 
     ## Final Order Summary (MANDATORY)
     **Structure:**
