@@ -41,11 +41,7 @@ export const scheduleFollowup = async (data: {
     where: { id: data.conversationId, organizationId: data.organizationId },
   });
 
-  console.log('==================follow up node conv==================');
-  console.log(conv?.followup_sent, conv);
-  console.log('====================================');
-
-  if (conv?.followup_sent == true) {
+  if (conv?.followup_sent) {
     console.log('💌 Skipping followup scheduling');
     return;
   }
@@ -113,11 +109,7 @@ export const followUPQueueConsumer = async () => {
         where: { id: job.conversationId },
       });
 
-      console.log('==============follow up consumer======================');
-      console.log(conversation?.get({ plain: true }));
-      console.log('====================================');
       // token mismatch → user replied
-
       if (!conversation) {
         channel.ack(msg);
         return;
@@ -128,6 +120,7 @@ export const followUPQueueConsumer = async () => {
         return;
       }
 
+      job.msg.userRespondedToFollowUp = false
       await processMessages(job.whatsappBusinessId, job.msg);
       channel.ack(msg);
     } catch (err) {

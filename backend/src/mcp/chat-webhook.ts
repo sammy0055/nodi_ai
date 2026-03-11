@@ -128,10 +128,11 @@ chatRoute.post('/chat-webhook', async (req, res) => {
 async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) {
   const userPhoneNumber = msg.from;
   const userMessage = msg.text?.body || '';
+  const userRespondedToFollowUp = msg?.userRespondedToFollowUp;
 
   try {
     const chat = await ChatService.init(userPhoneNumber, whatsappBusinessId);
-    const res = await chat.processQuery(userMessage);
+    const res = await chat.processQuery(userMessage, { userRespondedToFollowUp: userRespondedToFollowUp });
     const response = res.data;
     // console.log('==================response==================');
     // console.log(response);

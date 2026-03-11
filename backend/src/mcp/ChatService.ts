@@ -109,7 +109,7 @@ export class ChatService {
     return customer.get({ plain: true });
   }
 
-  private async getAndCreateConversationIfNotExist(systemPrompt: string) {
+  private async getAndCreateConversationIfNotExist(systemPrompt: string, userRespondedToFollowUp = true) {
     const chatHistory = new ChatHistoryManager();
     const customer = await this.getCustomerData();
     const conversation = await chatHistory.getConversationsByCustomerId(customer.id, this.organizationId);
@@ -138,10 +138,12 @@ export class ChatService {
       return conv?.get({ plain: true });
     }
 
-    await Conversation.update(
-      { followup_token: '', followup_sent: false, userRespondedToFollowupAt: new Date() },
-      { where: { id: conversation.id } }
-    ); //invalidate followup token
+    if (userRespondedToFollowUp) {
+      await Conversation.update(
+        { followup_token: '', followup_sent: false, userRespondedToFollowupAt: new Date() },
+        { where: { id: conversation.id } }
+      ); //invalidate followup token
+    }
     return conversation;
   }
 
@@ -187,7 +189,7 @@ export class ChatService {
     };
   }
 
-  public async processQuery(userMessage: string) {
+  public async processQuery(userMessage: string, options?: { userRespondedToFollowUp?: boolean }) {
     const planOrg = await this.getOrganization();
     const customer = await this.getCustomerData();
 
@@ -230,7 +232,7 @@ export class ChatService {
       assistantName: planOrg.AIAssistantName || 'Alex',
     });
 
-    const conversation = await this.getAndCreateConversationIfNotExist(systemPrompt);
+    const conversation = await this.getAndCreateConversationIfNotExist(systemPrompt, options?.userRespondedToFollowUp);
 
     if (planOrg.shouldUpdateChatbotSystemPrompt || customer.shouldUpdateChatbotSystemPrompt) {
       console.log('====================================');

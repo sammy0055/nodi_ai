@@ -43,6 +43,7 @@ export interface WhatsAppMessage {
   interactive?: Interative;
   audio?: AudioMessage;
   type: 'text' | 'order' | 'interactive' | 'audio';
+  userRespondedToFollowUp?:boolean
 }
 
 export interface ProductItem {
