@@ -37,11 +37,11 @@ export const scheduleFollowup = async (data: {
   organizationId: string;
   userPhoneNumber: string;
 }) => {
-  const convr = await Conversation.findOne({
+  const conv = await Conversation.findOne({
     where: { id: data.conversationId, organizationId: data.organizationId },
     raw: true,
   });
-  const conv = convr?.get({ plain: true });
+
   if (conv?.followup_sent === true) {
     console.log('Skipping followup scheduling');
     return;
