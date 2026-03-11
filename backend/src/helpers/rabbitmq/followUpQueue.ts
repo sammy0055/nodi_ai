@@ -91,7 +91,7 @@ export const scheduleFollowup = async (data: {
   };
 
   const toMs = (mins: number) => mins * 60 * 1000;
-  const delayMs = toMs(5);
+  const delayMs = toMs(3);
 
   channel.sendToQueue(RabitQueues.FOLLOW_UP_DELAY_QUEUE, Buffer.from(JSON.stringify(payload)), {
     expiration: delayMs.toString(),
