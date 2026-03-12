@@ -81,7 +81,7 @@ export const scheduleFollowup = async (data: {
     whatsappBusinessId: waba.whatsappBusinessId,
     msg: {
       from: data.userPhoneNumber,
-      text: { body: `kindly send a follow up message, based on our recent conversation` },
+      text: { body: `kindly send a follow up message, based on our recent conversation. ensure to use the customers language` },
     },
     token,
   };
