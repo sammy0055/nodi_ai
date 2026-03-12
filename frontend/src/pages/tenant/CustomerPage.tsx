@@ -22,176 +22,6 @@ import { useCustomersSetRecoilState, useCustomerValue } from '../../store/authAt
 import { useLoaderData } from 'react-router';
 import { CustomerService } from '../../services/customerService';
 
-
-// export const customerss: Customer[] = [
-//   // ... your existing customer data remains the same
-//   {
-//     id: 'cust_001',
-//     organizationId: 'org_001',
-//     name: 'John Doe',
-//     phone: '+2348012345678',
-//     email: 'john@example.com',
-//     source: 'chatbot',
-//     status: 'active',
-//     preferences: { language: 'en', productInterest: 'shoes' },
-//     createdAt: new Date('2025-01-05T10:00:00Z'),
-//     lastActive: new Date('2025-02-10T14:22:00Z'),
-//     conversations: [
-//       {
-//         id: 'conv_001',
-//         title: 'Order Inquiry',
-//         messages: [
-//           {
-//             id: 'msg_001',
-//             created_at: new Date('2025-02-10T14:00:00Z'),
-//             content: 'Hi, I want to check my order status.',
-//             role: 'user',
-//             conversation_id: 'conv_001',
-//           },
-//           {
-//             id: 'msg_002',
-//             created_at: new Date('2025-02-10T14:01:00Z'),
-//             content: 'Sure, can you share your order ID?',
-//             role: 'assistant',
-//             conversation_id: 'conv_001',
-//           },
-//         ],
-//       },
-//     ],
-//   },
-//   {
-//     id: 'cust_006',
-//     organizationId: 'org_003',
-//     name: 'Kelvin Mark',
-//     phone: '+2347019988776',
-//     email: 'kelvin@example.com',
-//     source: 'website',
-//     status: 'active',
-//     createdAt: new Date('2025-02-05T09:10:00Z'),
-//     lastActive: new Date('2025-02-10T11:30:00Z'),
-//     conversations: [],
-//   },
-
-//   {
-//     id: 'cust_007',
-//     organizationId: 'org_001',
-//     name: 'Grace Ojo',
-//     phone: '+2348034567890',
-//     email: 'grace.ojo@example.com',
-//     source: 'mobile_app',
-//     status: 'inactive',
-//     preferences: { notifications: false },
-//     createdAt: new Date('2025-01-28T15:15:00Z'),
-//     lastActive: new Date('2025-02-02T12:00:00Z'),
-//     conversations: [],
-//   },
-
-//   {
-//     id: 'cust_008',
-//     organizationId: 'org_002',
-//     name: 'Emmanuel Chike',
-//     phone: '+2348094433221',
-//     email: 'emma@example.com',
-//     source: 'chatbot',
-//     status: 'suspended',
-//     createdAt: new Date('2025-02-01T10:45:00Z'),
-//     lastActive: new Date('2025-02-01T10:45:00Z'),
-//     conversations: [],
-//   },
-
-//   {
-//     id: 'cust_009',
-//     organizationId: 'org_004',
-//     name: 'Rita Johnson',
-//     phone: '+2348146677889',
-//     source: 'api',
-//     status: 'active',
-//     email: 'rita.j@example.com',
-//     preferences: { language: 'en', timezone: 'WAT' },
-//     createdAt: new Date('2025-01-10T08:00:00Z'),
-//     lastActive: new Date('2025-02-12T14:25:00Z'),
-//     conversations: [],
-//   },
-
-//   {
-//     id: 'cust_010',
-//     organizationId: 'org_003',
-//     name: 'David Ola',
-//     phone: '+2348022334455',
-//     source: 'website',
-//     status: 'inactive',
-//     createdAt: new Date('2025-02-12T13:00:00Z'),
-//     lastActive: new Date('2025-02-14T09:30:00Z'),
-//     conversations: [],
-//   },
-
-//   {
-//     id: 'cust_011',
-//     organizationId: 'org_002',
-//     name: 'Blessing Amos',
-//     phone: '+2348067788990',
-//     source: 'chatbot',
-//     status: 'active',
-//     email: 'blessing@example.com',
-//     createdAt: new Date('2025-01-25T11:00:00Z'),
-//     lastActive: new Date('2025-02-10T16:45:00Z'),
-//     conversations: [],
-//   },
-
-//   {
-//     id: 'cust_012',
-//     organizationId: 'org_001',
-//     name: 'Hassan Bello',
-//     phone: '+2348076543211',
-//     source: 'mobile_app',
-//     status: 'suspended',
-//     preferences: { theme: 'light' },
-//     createdAt: new Date('2025-01-14T09:20:00Z'),
-//     lastActive: new Date('2025-01-14T09:20:00Z'),
-//     conversations: [],
-//   },
-
-//   {
-//     id: 'cust_013',
-//     organizationId: 'org_004',
-//     name: 'Mariam Sule',
-//     phone: '+2348103344556',
-//     source: 'api',
-//     status: 'active',
-//     email: 'mariam@example.com',
-//     createdAt: new Date('2025-02-03T10:00:00Z'),
-//     lastActive: new Date('2025-02-15T15:10:00Z'),
-//     conversations: [],
-//   },
-
-//   {
-//     id: 'cust_014',
-//     organizationId: 'org_002',
-//     name: 'Patrick Ndu',
-//     phone: '+2348129988776',
-//     source: 'website',
-//     status: 'inactive',
-//     createdAt: new Date('2025-01-18T08:40:00Z'),
-//     lastActive: new Date('2025-01-22T10:00:00Z'),
-//     conversations: [],
-//   },
-
-//   {
-//     id: 'cust_015',
-//     organizationId: 'org_003',
-//     name: 'Linda Okafor',
-//     phone: '+2348026655443',
-//     source: 'chatbot',
-//     status: 'active',
-//     email: 'linda@example.com',
-//     preferences: { preferredContact: 'whatsapp' },
-//     createdAt: new Date('2025-02-11T14:00:00Z'),
-//     lastActive: new Date('2025-02-12T08:30:00Z'),
-//     conversations: [],
-//   },
-//   // ... rest of your customer data
-// ];
-
 const CustomersPage: React.FC = () => {
   const data = useLoaderData() as { customers: { data: { data: Customer[]; pagination: Pagination } } };
   const customers = useCustomerValue();
@@ -202,6 +32,10 @@ const CustomersPage: React.FC = () => {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [activeTab, setActiveTab] = useState<'details' | 'conversations'>('details');
   const [isMobileDetailView, setIsMobileDetailView] = useState(false);
+
+  // Conversation pagination state (simulated)
+  const [conversationPage, setConversationPage] = useState(1);
+  const [hasMoreConversations, setHasMoreConversations] = useState(false); // would come from API
 
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
 
@@ -221,7 +55,7 @@ const CustomersPage: React.FC = () => {
       setCustomers(data.data.data);
       setPagination(data?.data?.pagination);
     };
-   Fn();
+    Fn();
   }, [debouncedSearchTerm]);
 
   const getSourceIcon = (source: string) => {
@@ -272,6 +106,9 @@ const CustomersPage: React.FC = () => {
     setSelectedCustomer(customer);
     setSelectedConversation(null);
     setActiveTab('details');
+    // Reset conversation pagination when switching customers
+    setConversationPage(1);
+    setHasMoreConversations(false); // would be set based on API
     if (window.innerWidth < 768) {
       setIsMobileDetailView(true);
     }
@@ -285,6 +122,7 @@ const CustomersPage: React.FC = () => {
 
   const handleSelectConversation = (conversation: Conversation) => {
     setSelectedConversation(conversation);
+    // Ensure we're on conversations tab
     setActiveTab('conversations');
   };
 
@@ -298,7 +136,16 @@ const CustomersPage: React.FC = () => {
     }
   };
 
-  // Improved Chat Message Component with proper left/right alignment
+  // Simulated load more conversations
+  const handleLoadMoreConversations = () => {
+    // In real implementation, you'd fetch next page of conversations for this customer
+    // For now, we'll just increment page and pretend there's no more after first load
+    setConversationPage((prev) => prev + 1);
+    setHasMoreConversations(false); // would be set based on API response
+    console.log('Load more conversations - page:', conversationPage + 1);
+  };
+
+  // ChatMessage component with proper text wrapping
   const ChatMessage: React.FC<{ message: Message }> = ({ message }) => {
     const isUser = message.role === 'user';
 
@@ -314,16 +161,18 @@ const CustomersPage: React.FC = () => {
             {isUser ? <FiUser className="text-white text-sm" /> : <FiMessageSquare className="text-white text-sm" />}
           </div>
 
-          {/* Message Content */}
-          <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
+          {/* Message Content - with overflow protection and word break */}
+          <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} max-w-full overflow-hidden`}>
             <div
-              className={`rounded-2xl px-4 py-3 ${
+              className={`rounded-2xl px-4 py-3 max-w-full ${
                 isUser
                   ? 'bg-primary-100 text-primary-900 rounded-br-md border border-primary-200'
                   : 'bg-white text-neutral-800 border-neutral-200 shadow-sm'
               }`}
             >
-              <p className="text-sm leading-relaxed">{message.content}</p>
+              <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
+                {message.content}
+              </p>
             </div>
 
             {/* Timestamp */}
@@ -598,179 +447,196 @@ const CustomersPage: React.FC = () => {
             </div>
 
             {/* Tab Content - Scrollable */}
-            <div className="flex-1 overflow-hidden">
-              <div className="h-full overflow-y-auto bg-neutral-50">
-                {activeTab === 'details' && (
-                  <div className="p-6">
-                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                      {/* Basic Information */}
-                      <div className="bg-white rounded-lg border border-neutral-200 p-6">
-                        <h3 className="text-lg font-semibold text-neutral-900 mb-4">Customer Information</h3>
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <label className="text-neutral-600">Customer ID</label>
-                              <p className="font-medium mt-1">{selectedCustomer.id}</p>
-                            </div>
-                            <div>
-                              <label className="text-neutral-600">Source</label>
-                              <p className="font-medium mt-1 capitalize">{selectedCustomer.source.replace('_', ' ')}</p>
-                            </div>
-                            <div>
-                              <label className="text-neutral-600">Status</label>
-                              <p className="font-medium mt-1 capitalize">{selectedCustomer.status.replace('_', ' ')}</p>
-                            </div>
-                            <div>
-                              <label className="text-neutral-600">Phone</label>
-                              <p className="font-medium mt-1">{selectedCustomer.phone}</p>
-                            </div>
-                            <div>
-                              <label className="text-neutral-600">Email</label>
-                              <p className="font-medium mt-1">{selectedCustomer.email}</p>
-                            </div>
-                            <div>
-                              <label className="text-neutral-600">Member Since</label>
-                              <p className="font-medium mt-1">{formatDate(selectedCustomer.createdAt!)}</p>
-                            </div>
-                            <div>
-                              <label className="text-neutral-600">Last Active</label>
-                              <p className="font-medium mt-1">
-                                {selectedCustomer.lastActive ? formatDate(selectedCustomer.lastActive) : 'Never'}
-                              </p>
-                            </div>
+            <div className="flex-1 overflow-hidden min-h-0 bg-neutral-50">
+              {activeTab === 'details' && (
+                <div className="h-full overflow-y-auto p-6">
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    {/* Basic Information */}
+                    <div className="bg-white rounded-lg border border-neutral-200 p-6">
+                      <h3 className="text-lg font-semibold text-neutral-900 mb-4">Customer Information</h3>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <label className="text-neutral-600">Customer ID</label>
+                            <p className="font-medium mt-1">{selectedCustomer.id}</p>
                           </div>
-                        </div>
-                      </div>
-
-                      {/* Conversation Summary */}
-                      <div className="bg-white rounded-lg border border-neutral-200 p-6">
-                        <h3 className="text-lg font-semibold text-neutral-900 mb-4">Conversation Summary</h3>
-                        <div className="space-y-4">
-                          <div className="bg-primary-50 rounded-lg p-4">
-                            <div className="flex items-center justify-between">
-                              <span className="font-medium text-primary-900">Total Conversations</span>
-                              <span className="text-2xl font-bold text-primary-600">
-                                {selectedCustomer.conversations.length}
-                              </span>
-                            </div>
-                            <p className="text-sm text-primary-700 mt-1">
-                              {selectedCustomer.conversations.reduce((total, conv) => total + conv.messages.length, 0)}{' '}
-                              total messages
+                          <div>
+                            <label className="text-neutral-600">Source</label>
+                            <p className="font-medium mt-1 capitalize">{selectedCustomer.source.replace('_', ' ')}</p>
+                          </div>
+                          <div>
+                            <label className="text-neutral-600">Status</label>
+                            <p className="font-medium mt-1 capitalize">{selectedCustomer.status.replace('_', ' ')}</p>
+                          </div>
+                          <div>
+                            <label className="text-neutral-600">Phone</label>
+                            <p className="font-medium mt-1">{selectedCustomer.phone}</p>
+                          </div>
+                          <div>
+                            <label className="text-neutral-600">Email</label>
+                            <p className="font-medium mt-1">{selectedCustomer.email}</p>
+                          </div>
+                          <div>
+                            <label className="text-neutral-600">Member Since</label>
+                            <p className="font-medium mt-1">{formatDate(selectedCustomer.createdAt!)}</p>
+                          </div>
+                          <div>
+                            <label className="text-neutral-600">Last Active</label>
+                            <p className="font-medium mt-1">
+                              {selectedCustomer.lastActive ? formatDate(selectedCustomer.lastActive) : 'Never'}
                             </p>
                           </div>
-
-                          <div className="space-y-3">
-                            <h4 className="font-medium text-neutral-900">Recent Conversations</h4>
-                            {selectedCustomer.conversations.slice(0, 3).map((conversation) => (
-                              <div
-                                key={conversation.id}
-                                className="p-3 border border-neutral-200 rounded-lg hover:bg-neutral-50 cursor-pointer transition-colors"
-                                onClick={() => handleSelectConversation(conversation)}
-                              >
-                                <div className="flex justify-between items-start mb-1">
-                                  <h5 className="font-medium text-neutral-900 text-sm truncate flex-1 mr-2">
-                                    {conversation.title || 'Untitled Conversation'}
-                                  </h5>
-                                  <span className="text-xs text-neutral-500 whitespace-nowrap">
-                                    {conversation.messages.length} msg
-                                  </span>
-                                </div>
-                                {conversation.messages[0] && (
-                                  <p className="text-xs text-neutral-600 truncate">
-                                    {conversation.messages[0].content}
-                                  </p>
-                                )}
-                              </div>
-                            ))}
-                          </div>
                         </div>
                       </div>
-
-                      {/* Preferences */}
-                      {selectedCustomer.preferences && Object.keys(selectedCustomer.preferences).length > 0 && (
-                        <div className="bg-white rounded-lg border border-neutral-200 p-6 xl:col-span-2">
-                          <h3 className="text-lg font-semibold text-neutral-900 mb-4">Preferences</h3>
-                          <div className="bg-neutral-50 rounded-lg p-4">
-                            <pre className="text-sm text-neutral-700 whitespace-pre-wrap">
-                              {JSON.stringify(selectedCustomer.preferences, null, 2)}
-                            </pre>
-                          </div>
-                        </div>
-                      )}
                     </div>
-                  </div>
-                )}
 
-                {activeTab === 'conversations' && (
-                  <div className="flex flex-col h-full">
-                    {/* Conversation List */}
-                    <div className="bg-white border-b border-neutral-200 p-4 flex-shrink-0">
-                      <div className="flex space-x-2 overflow-x-auto pb-2">
+                    {/* Conversation Summary */}
+                    <div className="bg-white rounded-lg border border-neutral-200 p-6">
+                      <h3 className="text-lg font-semibold text-neutral-900 mb-4">Conversation Summary</h3>
+                      <div className="space-y-4">
+                        <div className="bg-primary-50 rounded-lg p-4">
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-primary-900">Total Conversations</span>
+                            <span className="text-2xl font-bold text-primary-600">
+                              {selectedCustomer.conversations.length}
+                            </span>
+                          </div>
+                          <p className="text-sm text-primary-700 mt-1">
+                            {selectedCustomer.conversations.reduce((total, conv) => total + conv.messages.length, 0)}{' '}
+                            total messages
+                          </p>
+                        </div>
+
+                        <div className="space-y-3">
+                          <h4 className="font-medium text-neutral-900">Recent Conversations</h4>
+                          {selectedCustomer.conversations.slice(0, 3).map((conversation) => (
+                            <div
+                              key={conversation.id}
+                              className="p-3 border border-neutral-200 rounded-lg hover:bg-neutral-50 cursor-pointer transition-colors"
+                              onClick={() => handleSelectConversation(conversation)}
+                            >
+                              <div className="flex justify-between items-start mb-1">
+                                <h5 className="font-medium text-neutral-900 text-sm truncate flex-1 mr-2">
+                                  {conversation.title || 'Untitled Conversation'}
+                                </h5>
+                                <span className="text-xs text-neutral-500 whitespace-nowrap">
+                                  {conversation.messages.length} msg
+                                </span>
+                              </div>
+                              {conversation.messages[0] && (
+                                <p className="text-xs text-neutral-600 truncate">
+                                  {conversation.messages[0].content}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Preferences */}
+                    {selectedCustomer.preferences && Object.keys(selectedCustomer.preferences).length > 0 && (
+                      <div className="bg-white rounded-lg border border-neutral-200 p-6 xl:col-span-2">
+                        <h3 className="text-lg font-semibold text-neutral-900 mb-4">Preferences</h3>
+                        <div className="bg-neutral-50 rounded-lg p-4">
+                          <pre className="text-sm text-neutral-700 whitespace-pre-wrap">
+                            {JSON.stringify(selectedCustomer.preferences, null, 2)}
+                          </pre>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'conversations' && (
+                <div className="flex flex-row h-full">
+                  {/* Left column - Vertical conversation list */}
+                  <div className="w-64 border-r border-neutral-200 bg-white flex flex-col h-full">
+                    <div className="p-4 border-b border-neutral-200">
+                      <h3 className="font-semibold text-neutral-900">All Conversations</h3>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-2">
+                      <div className="space-y-2">
                         {selectedCustomer.conversations.map((conversation) => (
                           <button
                             key={conversation.id}
                             onClick={() => handleSelectConversation(conversation)}
-                            className={`flex-shrink-0 px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                            className={`w-full text-left p-3 rounded-lg border transition-colors ${
                               selectedConversation?.id === conversation.id
-                                ? 'bg-primary-500 text-white border-primary-500'
-                                : 'bg-white text-neutral-700 border-neutral-300 hover:border-primary-300'
+                                ? 'bg-primary-50 border-primary-300'
+                                : 'border-transparent hover:bg-neutral-50'
                             }`}
                           >
-                            <div className="flex items-center space-x-2">
-                              <span className="truncate max-w-32">{conversation.title || 'Untitled'}</span>
-                              <span
-                                className={`px-1.5 py-0.5 rounded text-xs ${
-                                  selectedConversation?.id === conversation.id
-                                    ? 'bg-white text-primary-600'
-                                    : 'bg-neutral-100 text-neutral-600'
-                                }`}
-                              >
+                            <div className="flex justify-between items-start">
+                              <span className="font-medium text-sm text-neutral-900 truncate flex-1">
+                                {conversation.title || 'Untitled'}
+                              </span>
+                              <span className="ml-2 text-xs bg-neutral-200 text-neutral-700 px-1.5 py-0.5 rounded-full">
                                 {conversation.messages.length}
                               </span>
                             </div>
+                            {conversation.messages[0] && (
+                              <p className="text-xs text-neutral-500 truncate mt-1">
+                                {conversation.messages[0].content}
+                              </p>
+                            )}
                           </button>
                         ))}
                       </div>
                     </div>
+                    {/* Load more button */}
+                    {hasMoreConversations && (
+                      <div className="p-4 border-t border-neutral-200">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleLoadMoreConversations}
+                          className="w-full"
+                        >
+                          Load more conversations
+                        </Button>
+                      </div>
+                    )}
+                  </div>
 
-                    {/* Chat Area */}
-                    <div className="flex-1 overflow-hidden">
-                      {selectedConversation ? (
-                        <>
-                          {/* Chat Header */}
-                          <div className="bg-white border-b border-neutral-200 p-4 flex-shrink-0">
-                            <div>
-                              <h3 className="font-semibold text-neutral-900 text-sm">
-                                {selectedConversation.title || 'Untitled Conversation'}
-                              </h3>
-                              <p className="text-xs text-neutral-500 mt-1">
-                                {selectedConversation.messages.length} messages •{' '}
-                                {formatDate(selectedConversation.messages[0]?.created_at || new Date())}
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Messages */}
-                          <div className="h-full overflow-auto p-4">
-                            <div className="max-w-4xl mx-auto">
-                              {selectedConversation.messages.map((message) => (
-                                <ChatMessage key={message.id} message={message} />
-                              ))}
-                            </div>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="flex-1 flex items-center justify-center text-neutral-500">
-                          <div className="text-center">
-                            <FiMessageCircle className="mx-auto text-3xl text-neutral-300 mb-2" />
-                            <p className="text-sm">Select a conversation to view messages</p>
+                  {/* Right column - Messages area */}
+                  <div className="flex-1 overflow-hidden">
+                    {selectedConversation ? (
+                      <div className="flex flex-col h-full">
+                        {/* Chat Header */}
+                        <div className="bg-white border-b border-neutral-200 p-4 flex-shrink-0">
+                          <div>
+                            <h3 className="font-semibold text-neutral-900 text-sm">
+                              {selectedConversation.title || 'Untitled Conversation'}
+                            </h3>
+                            <p className="text-xs text-neutral-500 mt-1">
+                              {selectedConversation.messages.length} messages •{' '}
+                              {formatDate(selectedConversation.messages[0]?.created_at || new Date())}
+                            </p>
                           </div>
                         </div>
-                      )}
-                    </div>
+
+                        {/* Messages - scrollable with wrapping */}
+                        <div className="flex-1 overflow-y-auto overflow-x-hidden p-4">
+                          <div className="max-w-4xl mx-auto">
+                            {selectedConversation.messages.map((message) => (
+                              <ChatMessage key={message.id} message={message} />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="h-full flex items-center justify-center text-neutral-500">
+                        <div className="text-center">
+                          <FiMessageCircle className="mx-auto text-3xl text-neutral-300 mb-2" />
+                          <p className="text-sm">Select a conversation to view messages</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </>
         ) : (
