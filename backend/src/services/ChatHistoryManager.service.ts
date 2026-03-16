@@ -103,10 +103,10 @@ export class ChatHistoryManager {
         return { role: msg.role, content: text };
       })
       .filter((m) => m.content !== '');
-    // console.error('====================================');
-    // console.error('chatHistory', items.data);
-    // console.error('====================================');
-
+    console.error('====================================');
+    console.error(chatHistory);
+    console.error('====================================');
+    return;
     const response = await openai.responses.create({
       model: 'gpt-5',
       input: [
