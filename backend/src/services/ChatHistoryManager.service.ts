@@ -106,7 +106,7 @@ export class ChatHistoryManager {
     console.error('====================================');
     console.error(chatHistory);
     console.error('====================================');
-    return;
+  
     const response = await openai.responses.create({
       model: 'gpt-5',
       input: [

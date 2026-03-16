@@ -170,9 +170,7 @@ const CustomersPage: React.FC = () => {
                   : 'bg-white text-neutral-800 border-neutral-200 shadow-sm'
               }`}
             >
-              <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
-                {message.content}
-              </p>
+              <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">{message.content}</p>
             </div>
 
             {/* Timestamp */}
@@ -368,8 +366,8 @@ const CustomersPage: React.FC = () => {
                             selectedCustomer.status === 'active'
                               ? 'bg-green-100 text-green-800'
                               : selectedCustomer.status === 'suspended'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-red-100 text-red-800'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-red-100 text-red-800'
                           }`}
                         >
                           <option value="active" className="bg-white text-green-800">
@@ -524,9 +522,7 @@ const CustomersPage: React.FC = () => {
                                 </span>
                               </div>
                               {conversation.messages[0] && (
-                                <p className="text-xs text-neutral-600 truncate">
-                                  {conversation.messages[0].content}
-                                </p>
+                                <p className="text-xs text-neutral-600 truncate">{conversation.messages[0].content}</p>
                               )}
                             </div>
                           ))}
@@ -588,12 +584,7 @@ const CustomersPage: React.FC = () => {
                     {/* Load more button */}
                     {hasMoreConversations && (
                       <div className="p-4 border-t border-neutral-200">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleLoadMoreConversations}
-                          className="w-full"
-                        >
+                        <Button variant="outline" size="sm" onClick={handleLoadMoreConversations} className="w-full">
                           Load more conversations
                         </Button>
                       </div>
@@ -620,9 +611,11 @@ const CustomersPage: React.FC = () => {
                         {/* Messages - scrollable with wrapping */}
                         <div className="flex-1 overflow-y-auto overflow-x-hidden p-4">
                           <div className="max-w-4xl mx-auto">
-                            {selectedConversation.messages.map((message) => (
-                              <ChatMessage key={message.id} message={message} />
-                            ))}
+                            {[...selectedConversation.messages]
+                              .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+                              .map((message) => (
+                                <ChatMessage key={message.id} message={message} />
+                              ))}
                           </div>
                         </div>
                       </div>

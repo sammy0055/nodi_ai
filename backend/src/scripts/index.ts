@@ -375,17 +375,17 @@ const sendEmails = async () => {
   }
 };
 
-const getConversationHistory = async () => {
-  try {
-    const { summarizeConversationById } = new ChatHistoryManager();
-    await summarizeConversationById("conv_69b2d16a60b88197a57a83570464fd2c0d01593586f493c9")
-  } catch (error: any) {
-    console.log('===================error=================');
-    console.log(error);
-    console.log('====================================');
-  }
-};
-getConversationHistory()
+// const getConversationHistory = async () => {
+//   try {
+//     const { summarizeConversationById } = new ChatHistoryManager();
+//     await summarizeConversationById("conv_69b2d16a60b88197a57a83570464fd2c0d01593586f493c9")
+//   } catch (error: any) {
+//     console.log('===================error=================');
+//     console.log(error);
+//     console.log('====================================');
+//   }
+// };
+// getConversationHistory()
 // console.log('====================================');
 // console.log(getEstimatedTime("1970-01-01 03:00:00+00" as any));
 // console.log('====================================');
