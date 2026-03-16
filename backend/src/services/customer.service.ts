@@ -51,11 +51,17 @@ class CustomerService {
             ['createdAt', 'DESC'],
           ]
         : [['createdAt', 'DESC']],
-      include: [{ model: Conversation, as: 'conversations', include: [{ model: ChatMessage, as: 'messages' }] }],
+      include: [
+        {
+          model: Conversation,
+          as: 'conversations',
+          include: [{ model: ChatMessage, as: 'messages', order: [['created_at', 'ASC']] }],
+        },
+      ],
     });
 
     const totalPages = Math.ceil(totalItems / limit);
-    
+
     return {
       data: customers,
       pagination: {
