@@ -188,7 +188,7 @@ export class MCPClient extends UsageBase {
 
     // Add user message to history
     const items: ResponseInputItem[] = [];
-    if (!query) return;
+    if (!query) throw new Error("invalid chat input query");
     items.push({
       role: 'user',
       content: query.trim(),
