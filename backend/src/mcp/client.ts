@@ -69,7 +69,7 @@ export class MCPClient extends UsageBase {
   protected tools: FunctionTool[] = [];
   private chatHistory: ChatHistoryManager;
 
-//  public llm_model = 'gpt-5-mini-2025-08-07';
+  //  public llm_model = 'gpt-5-mini-2025-08-07';
   public llm_model = 'gpt-5.2';
   // llm_model = 'o4-mini';
   maxIterations = 5;
@@ -188,15 +188,15 @@ export class MCPClient extends UsageBase {
 
     // Add user message to history
     const items: ResponseInputItem[] = [];
-
+    if (!query) return;
     items.push({
       role: 'user',
       content: query.trim(),
     });
 
     await this.openai.conversations.items.create(conversationId, { items });
-    await this.chatHistory.addMessage({ conversationId, organizationId }, { role: 'user', content: JSON.stringify(query) });
-  
+    await this.chatHistory.addMessage({ conversationId, organizationId }, { role: 'user', content: query });
+
     let iteration = 0;
     let finalResponse: any = '';
     let totalTokenUsed = 0;
