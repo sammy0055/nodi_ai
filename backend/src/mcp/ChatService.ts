@@ -9,6 +9,7 @@ import { appConfig } from '../config';
 import OpenAI from 'openai';
 import { bot } from '../bot';
 import { scheduleFollowup } from '../helpers/rabbitmq/followUpQueue';
+import { ICustomer } from '../types/customers';
 
 const { CustomerModel, WhatSappSettingsModel, OrganizationsModel } = models;
 
@@ -150,9 +151,11 @@ export class ChatService {
   public async processValidationQuery({
     userMessage,
     assistantMessage,
+    customer,
   }: {
     userMessage: string;
     assistantMessage: any;
+    customer: ICustomer;
   }) {
     const planOrg = await this.getOrganization();
     const systemPrompt = createValidationSystemPrompt({ organizationData: planOrg });
@@ -181,6 +184,8 @@ export class ChatService {
       { role: 'assistant', content: res.output_text }
     );
 
+    await CustomerModel.update({ shouldUpdateChatbotSystemPrompt: true }, { where: { id: customer.id } });
+
     return {
       data: {
         type: 'message',
@@ -193,11 +198,11 @@ export class ChatService {
     const planOrg = await this.getOrganization();
     const customer = await this.getCustomerData();
 
-    let systemPrompt: string;
     if (customer.status !== 'active') {
       return await this.processValidationQuery({
         userMessage,
         assistantMessage: `you have been blocked from sending message to ${planOrg.name}`,
+        customer,
       });
     }
 
@@ -205,6 +210,7 @@ export class ChatService {
       return await this.processValidationQuery({
         userMessage,
         assistantMessage: `${planOrg.name} is currently not active at the moment`,
+        customer,
       });
     }
 
@@ -213,6 +219,7 @@ export class ChatService {
       return await this.processValidationQuery({
         userMessage,
         assistantMessage: `${planOrg.name} is currently not available at the moment`,
+        customer,
       });
     }
 
@@ -222,9 +229,11 @@ export class ChatService {
       return await this.processValidationQuery({
         userMessage,
         assistantMessage: JSON.stringify(serviceSchedule),
+        customer,
       });
     }
 
+    let systemPrompt: string;
     systemPrompt = createSystemPrompt({
       organizationData: planOrg!,
       customerData: customer,

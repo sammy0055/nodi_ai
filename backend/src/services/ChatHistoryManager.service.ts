@@ -92,7 +92,7 @@ export class ChatHistoryManager {
     const chatHistory = items.data
       .reverse()
       .filter((item) => item.type === 'message')
-      .filter((msg) => msg.role === 'user' || msg.role === 'assistant') // only the two we want
+      .filter((msg) => msg.role === 'user' || msg.role === 'assistant' || msg.role === "system") // only the two we want
       .map((msg) => {
         const text = (msg.content || [])
           .filter((c) => c.type === 'input_text' || c.type === 'output_text')
@@ -106,7 +106,7 @@ export class ChatHistoryManager {
     console.error('====================================');
     console.error(chatHistory);
     console.error('====================================');
-  
+  return
     const response = await openai.responses.create({
       model: 'gpt-5',
       input: [
