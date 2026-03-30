@@ -303,8 +303,9 @@ export const getProductOptions = (server: McpServer) => {
           (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW
         );
 
-        const result = productOptions.reduce((acc: any, item: any) => {
-          acc[item.name] = {
+        const item = productOptions;
+        const result = {
+          [item.name]: {
             visible: true,
             required: item.isRequired || false,
             label: item.name.replace(/_/g, ' '),
@@ -313,10 +314,8 @@ export const getProductOptions = (server: McpServer) => {
               id: choice.id,
               title: `${choice.label} ${choice.priceAdjustment}`,
             })),
-          };
-
-          return acc;
-        }, {});
+          },
+        };
 
         console.error('product-option-flow-result====================================');
         console.error(result);
