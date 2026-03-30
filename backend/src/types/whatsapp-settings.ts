@@ -59,6 +59,7 @@ export interface RegisterPhoneNumberArg {
 export enum WhatsappFlowLabel {
   ZONE_AND_AREAS_FLOW = 'ZONE_AND_AREAS_FLOW',
   BRANCHES_FLOW = 'BRANCHES_FLOW',
+  PRODUCT_OPTIONS_FLOW = 'PRODUCT_OPTIONS_FLOW',
 }
 export interface createWhatsappFlowArgs {
   accessToken: string;

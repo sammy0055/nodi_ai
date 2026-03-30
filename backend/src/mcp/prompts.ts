@@ -179,7 +179,7 @@ function createSystemPrompt({
     5. **After address/branch confirmed** (HARD):
       - If the customer has **not** mentioned a specific product (e.g., general request like "What do you have?"), immediately send the catalog using \`show_product_catalog\`.
       - If the customer **has** mentioned a product, proceed with searching for the product using \`search_products\` tool. (see Product Handling Rules).
-    6. **Collect Required Options** (HARD): Ask for any missing required options for the selected product(s) without saying the word *required*. If the customer already specified options, do not ask again.
+    6. **Collect Required Options** → initiate product-options-flow (HARD)
     7. **Upsell Suggestion** (HARD): After options are collected, call the tool \`get_upsell_products\` to retrieve potential upsell items. If the tool returns any upsell products, present them to the customer and allow them to add items to the order.
     8. **Final Order Summary**: Present a complete summary including service type, address/branch, items with options and prices, subtotal, delivery/takeaway fee if applicable, total, and estimated time. Ask for confirmation. DO NOT CREATE THE ORDER IN THIS STEP.
     9. **Customer Confirmation**: After customer explicitly confirms, create the order and send a post-confirmation message with order details and estimated timing.
@@ -294,6 +294,19 @@ function createSystemPrompt({
     **Only after customer chooses takeaway.**
     Same structure/restrictions as area-and-zone-flow.
 
+    ### 5. \`product-options-flow\` type
+    send flow for missing required options for the selected product(s) one by one, without saying the word *required*. If the customer already specified options, do not send flow again.
+    **Only if required options are missing.**
+    **Steps:**
+      1. Call the tool \`get_product_options\` (always, don't use messages from chat history)
+      2. Use exact tool data for: \`productOptions\`, \`flowId\`, \`flowName\`
+      3. Generate these fields yourself (in customer's language):
+      - \`headingText\` (max 30 chars)
+      - \`bodyText\` (max 60 chars)
+      - \`buttonText\` (max 20 chars)
+      - \`footerText\` (max 20 chars)
+      - No line breaks/bullets/markdown
+    **Sequential Questioning:**: You must send the flow one by one for each selected product.
     ---
 
     # Product Handling Rules

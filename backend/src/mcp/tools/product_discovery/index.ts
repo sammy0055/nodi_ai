@@ -7,6 +7,9 @@ import { WhatSappSettingsModel } from '../../../models/whatsapp-settings.model';
 import { appConfig } from '../../../config';
 import OpenAI from 'openai';
 import { englishTranslationPrompt } from '../../prompts';
+import { NotificationModel } from '../../../models/notification.model';
+import { NotificationPriority, RelatedNotificationEntity } from '../../../data/data-types';
+import { WhatsappFlowLabel } from '../../../types/whatsapp-settings';
 
 const { BranchInventoryModel, ProductModel, BranchesModel, ProductOptionModel, ProductOptionChoiceModel } = models;
 
@@ -266,4 +269,81 @@ export const generateProductsCatalogLink = (server: McpServer) => {
   );
 };
 
+export const getProductOptions = (server: McpServer) => {
+  return server.registerTool(
+    'get_product_options',
+    {
+      title: 'Get Product Options',
+      description: 'Get the product options and choices',
+      inputSchema: {
+        organizationId: z.string(),
+        productId: z.string().describe('the id of the product'),
+      },
+    },
+    async ({ productId, organizationId }) => {
+      try {
+        const options = await ProductOptionModel.findOne({
+          where: { productId: productId },
+          include: [{ model: ProductOptionChoiceModel, as: 'choices' }],
+        });
 
+        const productOptions = options?.get({ plain: true }) as any;
+
+        if (!productOptions) {
+          return {
+            content: [{ type: 'text', text: 'No options was found for this product' }],
+          };
+        }
+
+        const whatsappSettings = await WhatSappSettingsModel.findOne({
+          where: { organizationId: organizationId },
+        });
+
+        const flow = whatsappSettings?.whatsappTemplates?.find(
+          (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW
+        );
+
+        const result = productOptions.reduce((acc: any, item: any) => {
+          acc[item.name] = {
+            visible: true,
+            required: item.isRequired || false,
+            label: item.name.replace(/_/g, ' '),
+            description: item.description,
+            options: item.choices.map((choice: any) => ({
+              id: choice.id,
+              title: `${choice.label} ${choice.priceAdjustment}`,
+            })),
+          };
+
+          return acc;
+        }, {});
+
+        console.error('product-option-flow-result====================================');
+        console.error(result);
+        console.error('product-option-flow-result====================================');
+        const data = {
+          productOptions: result,
+          flowId: flow?.type === 'flow' && flow?.data.flowId,
+          flowName: flow?.type === 'flow' && flow?.data.flowName,
+        };
+
+        return {
+          content: [{ type: 'text', text: JSON.stringify(data) }],
+        };
+      } catch (error: any) {
+        console.error(`MCP-ERROR:${error.message}`);
+        await NotificationModel.create({
+          relatedEntityType: RelatedNotificationEntity.SYSTEM,
+          title: `'chat-service-error', organizationId:${organizationId}`,
+          message: error.message,
+          status: 'unread',
+          priority: NotificationPriority.HIGH,
+          recipientType: 'admin',
+        });
+        return {
+          content: [{ type: 'text', text: 'Faild to get product options' }],
+        };
+      }
+    }
+  );
+};

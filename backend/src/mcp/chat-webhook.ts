@@ -4,13 +4,17 @@ import { ChatService } from './ChatService';
 import { ProductItem, WhatsAppMessage, WhatsAppWebhookPayload } from '../types/whatsapp-webhook';
 import { ZoneModel } from '../models/zones.model';
 import { AreaModel } from '../models/area.model';
-import { BranchesModel } from '../models/branches.model';
 import { queueProducer } from '../helpers/rabbitmq';
 import { getVoiceNote } from '../helpers/download_voice_note';
 import { NotificationModel } from '../models/notification.model';
 import { NotificationPriority, RelatedNotificationEntity } from '../data/data-types';
+import { WhatsappFlowLabel } from '../types/whatsapp-settings';
+import { models } from '../models';
+import { productOptionsTaxonomy } from '../data/taxonomy';
+import { ProductModel } from '../models/products.model';
 export const chatRoute = express.Router();
 
+const { BranchesModel, ProductOptionChoiceModel, ProductOptionModel } = models;
 export interface IncomingMessageAttr {
   whatsappBusinessId: string;
   msg: WhatsAppMessage;
@@ -103,6 +107,39 @@ chatRoute.post('/chat-webhook', async (req, res) => {
 
             console.log('Got message:', msg.id, newMsg.text?.body);
             await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
+          } else if (payload.flowLabel === WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW) {
+            const optionNames = productOptionsTaxonomy.restaurant.map((i) => i.name);
+            const flatIds = Object.keys(payload)
+              .filter((key) => optionNames.includes(key))
+              .flatMap((key) => (Array.isArray(payload[key]) ? payload[key] : [payload[key]]));
+
+            console.log('==============product option choices ids ===============');
+            console.log(flatIds);
+            console.log('==============product option choices ids ===============');
+            const selectedProductOptions = await ProductOptionChoiceModel.findAll({
+              where: { id: flatIds },
+              include: [
+                {
+                  model: ProductOptionModel,
+                  as: 'productOption',
+                  attributes: ['id', 'name', 'description', 'isRequired', 'productId'],
+                },
+              ],
+            });
+            console.log('====================selectedProductOptions================');
+            console.log(selectedProductOptions);
+            console.log('====================================');
+            const newMsg = {
+              ...msg,
+              text: {
+                body: JSON.stringify({
+                  selectedProductOptions: selectedProductOptions,
+                }),
+              },
+            };
+
+            console.log('Got message:', msg.id, newMsg.text?.body);
+            await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
           } else {
             console.log('Got message:', msg.id, msg);
             await handleIncomingMessage({ whatsappBusinessId: entry.id, msg, processMessages });
@@ -169,6 +206,18 @@ async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) 
         await chat.sendWhatSappBranchFlowInteractiveMessage({
           recipientPhoneNumber: userPhoneNumber,
           branches: response?.branches,
+          flowId: response?.flowId,
+          flowName: response?.flowName,
+          headingText: response?.headingText,
+          bodyText: response?.bodyText,
+          buttonText: response.buttonText,
+          footerText: response?.footerText,
+        });
+        break;
+      case 'product-options-flow':
+        await chat.sendWhatSappProductOptionFlowInteractiveMessage({
+          recipientPhoneNumber: userPhoneNumber,
+          productOptions: response?.productOptions,
           flowId: response?.flowId,
           flowName: response?.flowName,
           headingText: response?.headingText,
