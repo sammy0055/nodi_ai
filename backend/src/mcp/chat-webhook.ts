@@ -54,6 +54,9 @@ chatRoute.post('/chat-webhook', async (req, res) => {
         if (isDuplicate(msg.id)) {
           continue;
         }
+        console.log('=====================msg===============');
+        console.log(JSON.stringify(msg));
+        console.log('====================================');
         if (msg.type === 'order') {
           const orderMessage = formatCatalogMessage(msg.order?.product_items!);
           const newMsg = {

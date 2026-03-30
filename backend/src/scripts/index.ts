@@ -175,7 +175,7 @@ const bodys = {
     action: {
       name: 'flow',
       parameters: {
-        flow_id: '2306750766466909',
+        flow_id: '1553154242576600',
         flow_message_version: '3',
         flow_cta: 'Open form',
         mode: 'published',
@@ -189,16 +189,75 @@ const bodys = {
   },
 };
 
+const actionPayload = {
+  status: 'active',
+  Add_Ingredient: {
+    visible: true,
+    required: false,
+    label: 'Add Ingredients',
+    description: 'Add an extra ingredient to the product. Example: add cheese, add bacon, add olive.',
+    options: [
+      { id: '122', title: 'garlic' },
+      { id: '1232', title: 'add bacon' },
+    ],
+  },
+  Size: {
+    visible: true,
+    required: true,
+    label: 'Size',
+    description: 'Select size. Example: regular, large, family size.',
+    options: [
+      { id: '12', title: 'Large' },
+      { id: '123', title: 'Small' },
+    ],
+  },
+};
+
+const productOptionFlowBody = {
+  messaging_product: 'whatsapp',
+  to: '2348171727284',
+  type: 'interactive',
+  interactive: {
+    type: 'flow',
+    header: {
+      type: 'text',
+      text: 'Product Option',
+    },
+    body: {
+      text: 'Tap below to choose product option.',
+    },
+    footer: {
+      text: 'open options',
+    },
+    action: {
+      name: 'flow',
+      parameters: {
+        flow_id: '1598326711435435',
+        flow_message_version: '3',
+        flow_cta: 'Open form',
+        mode: 'published',
+        flow_action: 'navigate',
+        flow_action_payload: {
+          screen: 'PRODUCT_OPTIONS_SELECTIONS',
+          data: JSON.stringify(actionPayload),
+        },
+      },
+    },
+  },
+};
+
 const sendMessage = async () => {
+  console.log("running flow send.........");
+  
   try {
-    const url = `https://graph.facebook.com/v20.0/${860816193789515}/messages`;
+    const url = `https://graph.facebook.com/v20.0/${982830794903993}/messages`;
     const res = await fetch(url, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${process.env.META_BUSINESS_SYSTEM_TOKEN}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(productOptionFlowBody),
     });
 
     if (!res.ok) {
@@ -378,14 +437,14 @@ const sendEmails = async () => {
 const getConversationHistory = async () => {
   try {
     const { summarizeConversationById } = new ChatHistoryManager();
-    await summarizeConversationById("conv_69b8ed6215408197876ebeb2eddf34db0812da941fab882d")
+    await summarizeConversationById('conv_69b8ed6215408197876ebeb2eddf34db0812da941fab882d');
   } catch (error: any) {
     console.log('===================error=================');
     console.log(error);
     console.log('====================================');
   }
 };
-getConversationHistory()
+// getConversationHistory();
 // console.log('====================================');
 // console.log(getEstimatedTime("1970-01-01 03:00:00+00" as any));
 // console.log('====================================');
@@ -398,7 +457,7 @@ getConversationHistory()
 // testMcp('hello');
 // run();
 // createWhsappFlow();
-// sendMessage()
+sendMessage()
 // createCatalogItem();
 // queueProducer({ data: { hel: { d: '', dfsaf: ['dwee'] } } });
 // listCatalogItems();
