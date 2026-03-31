@@ -53,6 +53,18 @@ interface SendWhatSappBranchFlowProps {
   footerText?: string;
 }
 
+interface SendWhatSappProductOptionsFlowProps {
+  WhatSappBusinessPhoneNumberId?: string;
+  recipientPhoneNumber: string;
+  flowId: string;
+  flowName: string;
+  productOptions: any;
+  headingText: string;
+  bodyText: string;
+  buttonText: string;
+  footerText?: string;
+}
+
 export class ChatService {
   protected organizationId: string = '';
   protected conversationId: string = '';
@@ -448,6 +460,60 @@ export class ChatService {
             flow_action_payload: {
               screen: 'BRANCH_SELECTION',
               data: JSON.stringify({ status: 'active', branches: args.branches }),
+            },
+          },
+        },
+      },
+    };
+
+    try {
+      const url = `https://graph.facebook.com/v20.0/${this.WhatSappBusinessPhoneNumberId}/messages`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.whatsappAccessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(`Error ${res.status}: ${errorData.error.message}`);
+      }
+    } catch (error: any) {
+      console.log('WHATSAPP-MESSAGE', error);
+    }
+  }
+
+  async sendWhatSappProductOptionFlowInteractiveMessage(args: SendWhatSappProductOptionsFlowProps) {
+    const body = {
+      messaging_product: 'whatsapp',
+      to: args.recipientPhoneNumber,
+      type: 'interactive',
+      interactive: {
+        type: 'flow',
+        header: {
+          type: 'text',
+          text: args?.headingText || 'Product Options',
+        },
+        body: {
+          text: args?.bodyText || 'Tap below to choose product options.',
+        },
+        footer: {
+          text: args?.footerText || 'CheeseAI Bot',
+        },
+        action: {
+          name: 'flow',
+          parameters: {
+            flow_id: args.flowId,
+            flow_message_version: '3',
+            flow_cta: args?.buttonText || 'Open form',
+            mode: 'published',
+            flow_action: 'navigate',
+            flow_action_payload: {
+              screen: 'BRANCH_SELECTION',
+              data: JSON.stringify({ status: 'active', ...args.productOptions }),
             },
           },
         },

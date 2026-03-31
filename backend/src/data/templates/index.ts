@@ -1,3 +1,5 @@
+import { WhatsappFlowLabel } from '../../types/whatsapp-settings';
+
 const prebuiltFlowJson = {
   version: '7.2',
   data_api_version: '3.0',
@@ -154,6 +156,7 @@ const prebuiltOptionsFlowJson = {
       terminal: true,
       success: true,
       data: {
+        flowLabel: { type: 'string', __example__: '' },
         // add ingredent 1
         Add_Ingredient: {
           type: 'object',
@@ -495,7 +498,7 @@ const prebuiltOptionsFlowJson = {
           // option_1 : Add_Ingredient
           {
             type: 'CheckboxGroup',
-            name: 'option_1',
+            name: 'Add_Ingredient',
             label: '${data.Add_Ingredient.label}',
             description: '${data.Add_Ingredient.description}',
             visible: '${data.Add_Ingredient.visible}',
@@ -505,7 +508,7 @@ const prebuiltOptionsFlowJson = {
           // option_2: Remove_Ingredient
           {
             type: 'CheckboxGroup',
-            name: 'option_2',
+            name: 'Remove_Ingredient',
             label: '${data.Remove_Ingredient.label}',
             description: '${data.Remove_Ingredient.description}',
             visible: '${data.Remove_Ingredient.visible}',
@@ -515,7 +518,7 @@ const prebuiltOptionsFlowJson = {
           // option_3: Add_Side
           {
             type: 'CheckboxGroup',
-            name: 'option_3',
+            name: 'Add_Side',
             label: '${data.Add_Side.label}',
             description: '${data.Add_Side.description}',
             visible: '${data.Add_Side.visible}',
@@ -525,7 +528,7 @@ const prebuiltOptionsFlowJson = {
           // option_4: Add_Drink
           {
             type: 'CheckboxGroup',
-            name: 'option_4',
+            name: 'Add_Drink',
             label: '${data.Add_Drink.label}',
             description: '${data.Add_Drink.description}',
             visible: '${data.Add_Drink.visible}',
@@ -535,7 +538,7 @@ const prebuiltOptionsFlowJson = {
           // option_5: Spice_Level
           {
             type: 'RadioButtonsGroup',
-            name: 'option_5',
+            name: 'Spice_Level',
             label: '${data.Spice_Level.label}',
             visible: '${data.Spice_Level.visible}',
             required: '${data.Spice_Level.required}',
@@ -544,7 +547,7 @@ const prebuiltOptionsFlowJson = {
           // option_6: Cooking_Preference
           {
             type: 'RadioButtonsGroup',
-            name: 'option_6',
+            name: 'Cooking_Preference',
             label: '${data.Cooking_Preference.label}',
             description: '${data.Cooking_Preference.description}',
             visible: '${data.Cooking_Preference.visible}',
@@ -554,7 +557,7 @@ const prebuiltOptionsFlowJson = {
           // option_7: Size
           {
             type: 'RadioButtonsGroup',
-            name: 'option_7',
+            name: 'Size',
             label: '${data.Size.label}',
             description: '${data.Size.description}',
             visible: '${data.Size.visible}',
@@ -564,7 +567,7 @@ const prebuiltOptionsFlowJson = {
           // option_8: Add_Sauce
           {
             type: 'CheckboxGroup',
-            name: 'option_8',
+            name: 'Add_Sauce',
             label: '${data.Add_Sauce.label}',
             description: '${data.Add_Sauce.description}',
             visible: '${data.Add_Sauce.visible}',
@@ -574,7 +577,7 @@ const prebuiltOptionsFlowJson = {
           // option_9: Remove_Sauce
           {
             type: 'CheckboxGroup',
-            name: 'option_9',
+            name: 'Remove_Sauce',
             label: '${data.Remove_Sauce.label}',
             description: '${data.Remove_Sauce.description}',
             visible: '${data.Remove_Sauce.visible}',
@@ -584,7 +587,7 @@ const prebuiltOptionsFlowJson = {
           // option_10: Extra_Protein
           {
             type: 'CheckboxGroup',
-            name: 'option_10',
+            name: 'Extra_Protein',
             label: '${data.Extra_Protein.label}',
             description: '${data.Extra_Protein.description}',
             visible: '${data.Extra_Protein.visible}',
@@ -594,7 +597,7 @@ const prebuiltOptionsFlowJson = {
           // option_11: Special_Instructions
           {
             type: 'CheckboxGroup',
-            name: 'option_11',
+            name: 'Special_Instructions',
             label: '${data.Special_Instructions.label}',
             description: '${data.Special_Instructions.description}',
             visible: '${data.Special_Instructions.visible}',
@@ -606,7 +609,20 @@ const prebuiltOptionsFlowJson = {
             label: 'Submit',
             'on-click-action': {
               name: 'complete',
-              payload: {},
+              payload: {
+                flowLabel: '${data.flowLabel}',
+                Add_Ingredient: '${form.Add_Ingredient}',
+                Remove_Ingredient: '${form.Remove_Ingredient}',
+                Add_Side: '${form.Add_Side}',
+                Add_Drink: '${form.Add_Drink}',
+                Spice_Level: '${form.Spice_Level}',
+                Cooking_Preference: '${form.Cooking_Preference}',
+                Size: '${form.Size}',
+                Add_Sauce: '${form.Add_Sauce}',
+                Remove_Sauce: '${form.Remove_Sauce}',
+                Extra_Protein: '${form.Extra_Protein}',
+                Special_Instructions: '${form.Special_Instructions}',
+              },
             },
           },
         ],
@@ -621,9 +637,6 @@ export const templates = Object.freeze({
     branchesFlow: prebuiltBranchesFlowJson,
   },
 });
-
-
-
 
 // {
 //   "version": "7.3",
