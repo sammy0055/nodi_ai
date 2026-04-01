@@ -218,7 +218,7 @@ async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) 
         await chat.sendWhatSappProductOptionFlowInteractiveMessage({
           recipientPhoneNumber: userPhoneNumber,
           productName: response.productName,
-          productOptions: response?.productOptions,
+          productOptions: response?.productOptions.items,
           flowId: response?.flowId,
           flowName: response?.flowName,
           headingText: response?.headingText,
