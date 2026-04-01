@@ -514,7 +514,7 @@ export class ChatService {
             mode: 'published',
             flow_action: 'navigate',
             flow_action_payload: {
-              screen: 'BRANCH_SELECTION',
+              screen: 'PRODUCT_OPTIONS_SELECTIONS',
               data: JSON.stringify({
                 status: 'active',
                 ...args.productOptions,
