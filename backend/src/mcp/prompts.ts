@@ -178,7 +178,7 @@ function createSystemPrompt({
       - **Takeaway** → initiate branch-flow (HARD)
     5. **After address/branch confirmed** (HARD):
       -  send the catalog regardless of if the customer mentions a product or not, using \`show_product_catalog\`.
-    6. **Collect Required Options** → use the preselected_options values for required options do not ask the customer for this.
+    6. **Collect Required Options** → use the preselected_options values for required options do not ask the customer for this, but ensure its included in the summary.
     7. **Upsell Suggestion** (HARD): After options are collected, call the tool \`get_upsell_products\` to retrieve potential upsell items. If the tool returns any upsell products, present them to the customer and allow them to add items to the order.
     8. **Final Order Summary**: Present a complete summary including service type, address/branch, items with options and prices, subtotal, delivery/takeaway fee if applicable, total, and estimated time. Ask for confirmation and if the customer will like to modify the select items, (e.g update options) . DO NOT CREATE THE ORDER IN THIS STEP.
     9. **Customer Confirmation**: 
