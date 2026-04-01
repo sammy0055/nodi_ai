@@ -216,7 +216,7 @@ async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) 
         break;
       case 'product-options-flow':
         const productOptions = response.productOptions.reduce((acc: any, item: any) => {
-          acc[item.key.replace(/\s+/g, '_')] = {
+          acc[item.key] = {
             visible: item.visible || true,
             required: item.required || false,
             label: item.label,
@@ -229,7 +229,7 @@ async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) 
 
         console.log('==================productOptions==================');
         console.log(productOptions);
-        console.log('=================productOptions===================');
+        console.log('====================productOptions================');
         await chat.sendWhatSappProductOptionFlowInteractiveMessage({
           recipientPhoneNumber: userPhoneNumber,
           productName: response.productName,
