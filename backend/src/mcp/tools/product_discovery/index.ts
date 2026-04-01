@@ -10,8 +10,16 @@ import { englishTranslationPrompt } from '../../prompts';
 import { NotificationModel } from '../../../models/notification.model';
 import { NotificationPriority, RelatedNotificationEntity } from '../../../data/data-types';
 import { WhatsappFlowLabel } from '../../../types/whatsapp-settings';
+import { currencyFormat } from 'simple-currency-format';
 
-const { BranchInventoryModel, ProductModel, BranchesModel, ProductOptionModel, ProductOptionChoiceModel } = models;
+const {
+  BranchInventoryModel,
+  ProductModel,
+  BranchesModel,
+  ProductOptionModel,
+  ProductOptionChoiceModel,
+  OrganizationsModel,
+} = models;
 
 // Search products across organization
 export const searchProducts = (server: McpServer) => {
@@ -283,6 +291,8 @@ export const getProductOptions = (server: McpServer) => {
     async ({ productId, organizationId }) => {
       try {
         const product = await ProductModel.findByPk(productId);
+        const org = await OrganizationsModel.findByPk(organizationId);
+        if (!org) throw new Error('organization id does not exist');
         if (!product) throw new Error('wrong product id');
         const options = await ProductOptionModel.findAll({
           where: { productId: productId },
@@ -303,20 +313,6 @@ export const getProductOptions = (server: McpServer) => {
           (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW
         );
 
-        // const item = options;
-        // const result = {
-        //   [item.name.replace(/\s+/g, '_')]: {
-        //     visible: true,
-        //     required: item.isRequired || false,
-        //     label: item.name.replace(/_/g, ' '),
-        //     description: item.description,
-        //     options: item.choices.map((choice: any) => ({
-        //       id: choice.id,
-        //       title: `${choice.label} ${choice.priceAdjustment}`,
-        //     })),
-        //   },
-        // };
-
         const result = options.map((item: any) => ({
           key: item.name.replace(/\s+/g, '_'),
           visible: true,
@@ -325,13 +321,10 @@ export const getProductOptions = (server: McpServer) => {
           description: item.description,
           options: item.choices.map((choice: any) => ({
             id: choice.id,
-            title: `${choice.label} ${choice.priceAdjustment}`,
+            title: `${choice.label} (${choice.priceAdjustment !== 0 && +currencyFormat(100, 'en-US', org.currency)})`,
           })),
         }));
 
-        console.error('product-option-flow-result====================================');
-        console.error(result);
-        console.error('product-option-flow-result====================================');
         const data = {
           productName: product.name,
           productOptions: result,

@@ -178,14 +178,16 @@ function createSystemPrompt({
       - **Takeaway** → initiate branch-flow (HARD)
     5. **After address/branch confirmed** (HARD):
       -  send the catalog regardless of if the customer mentions a product or not, using \`show_product_catalog\`.
-    6. **Collect Required Options** → use the preselected_options values for required options do not ask the customer for this, but ensure its included in the summary.
+    6. **Collect Required Options** (HARD): 
+      - use the preselected_options values for required options do not ask the customer for this, but ensure its included in the summary.
+      - do not ask customer if they want to add options that are not required to their items
     7. **Upsell Suggestion** (HARD): After options are collected, call the tool \`get_upsell_products\` to retrieve potential upsell items. If the tool returns any upsell products, present them to the customer and allow them to add items to the order.
     8. **Final Order Summary**: Present a complete summary including service type, address/branch, items with options and prices, subtotal, delivery/takeaway fee if applicable, total, and estimated time. Ask for confirmation and if the customer will like to modify the select items, (e.g update options) . DO NOT CREATE THE ORDER IN THIS STEP.
-    9. **Customer Confirmation**: 
+    9. **Customer Confirmation**: ask customer to confirm or modify their order
       - if customer explicitly confirms, create the order and send a post-confirmation message with order details and estimated timing.
       - if customer explicitly wants to modify product options:
-        - present the selected items for the customer to choose the ones they want update.
-        - **Collect Options**: initiate product-options-flow (HARD)
+        - present the selected items for the customer to choose the ones they want to update.
+          - **Collect Options**: initiate product-options-flow (HARD)
     10. If modification → update → resend summary → reconfirm
 
     ## 4. area-and-zone-flow
