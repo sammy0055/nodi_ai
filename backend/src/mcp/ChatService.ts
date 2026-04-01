@@ -10,6 +10,7 @@ import OpenAI from 'openai';
 import { bot } from '../bot';
 import { scheduleFollowup } from '../helpers/rabbitmq/followUpQueue';
 import { ICustomer } from '../types/customers';
+import { WhatsappFlowLabel } from '../types/whatsapp-settings';
 
 const { CustomerModel, WhatSappSettingsModel, OrganizationsModel } = models;
 
@@ -514,7 +515,12 @@ export class ChatService {
             flow_action: 'navigate',
             flow_action_payload: {
               screen: 'BRANCH_SELECTION',
-              data: JSON.stringify({ status: 'active', ...args.productOptions, productName: args.productName }),
+              data: JSON.stringify({
+                status: 'active',
+                ...args.productOptions,
+                productName: args.productName,
+                flowLabel: WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW,
+              }),
             },
           },
         },
