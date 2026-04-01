@@ -177,12 +177,15 @@ function createSystemPrompt({
       - **Delivery** → initiate area-and-zone-flow (HARD)
       - **Takeaway** → initiate branch-flow (HARD)
     5. **After address/branch confirmed** (HARD):
-      - If the customer has **not** mentioned a specific product (e.g., general request like "What do you have?"), immediately send the catalog using \`show_product_catalog\`.
-      - If the customer **has** mentioned a product, proceed with searching for the product using \`search_products\` tool. (see Product Handling Rules).
-    6. **Collect Required Options** → initiate product-options-flow (HARD)
+      -  send the catalog regardless of if the customer mentions a product or not, using \`show_product_catalog\`.
+    6. **Collect Required Options** → use the preselected_options values for required options do not ask the customer for this.
     7. **Upsell Suggestion** (HARD): After options are collected, call the tool \`get_upsell_products\` to retrieve potential upsell items. If the tool returns any upsell products, present them to the customer and allow them to add items to the order.
-    8. **Final Order Summary**: Present a complete summary including service type, address/branch, items with options and prices, subtotal, delivery/takeaway fee if applicable, total, and estimated time. Ask for confirmation. DO NOT CREATE THE ORDER IN THIS STEP.
-    9. **Customer Confirmation**: After customer explicitly confirms, create the order and send a post-confirmation message with order details and estimated timing.
+    8. **Final Order Summary**: Present a complete summary including service type, address/branch, items with options and prices, subtotal, delivery/takeaway fee if applicable, total, and estimated time. Ask for confirmation and if the customer will like to modify the select items, (e.g update options) . DO NOT CREATE THE ORDER IN THIS STEP.
+    9. **Customer Confirmation**: 
+      - if customer explicitly confirms, create the order and send a post-confirmation message with order details and estimated timing.
+      - if customer explicitly wants to modify product options:
+        - present the selected items for the customer to choose the ones they want update.
+        - **Collect Options**: initiate product-options-flow (HARD)
     10. If modification → update → resend summary → reconfirm
 
     ## 4. area-and-zone-flow
@@ -295,11 +298,11 @@ function createSystemPrompt({
     Same structure/restrictions as area-and-zone-flow.
 
     ### 5. \`product-options-flow\` type
-    send flow for missing required options for the selected product(s) one by one, without saying the word *required*. If the customer already specified options, do not send flow again.
+    send flow for options for the selected product(s) one by one, without saying the word *required*. If the customer already specified options.
     **Only if required options are missing.**
     **Steps:**
       1. Call the tool \`get_product_options\` (always, don't use messages from chat history)
-      2. Use exact tool data for: \`productOptions\`, \`flowId\`, \`flowName\`
+      2. Use exact tool data for: \`productName\`, \`productOptions\`, \`flowId\`, \`flowName\`
       3. Generate these fields yourself (in customer's language):
       - \`headingText\` (max 30 chars)
       - \`bodyText\` (max 60 chars)

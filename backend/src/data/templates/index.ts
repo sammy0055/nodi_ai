@@ -157,6 +157,7 @@ const prebuiltOptionsFlowJson = {
       success: true,
       data: {
         flowLabel: { type: 'string', __example__: '' },
+        productName:{ type: 'string', __example__: '' },
         // add ingredent 1
         Add_Ingredient: {
           type: 'object',
@@ -493,7 +494,7 @@ const prebuiltOptionsFlowJson = {
         children: [
           {
             type: 'TextHeading',
-            text: 'Select Your Preferences',
+            text: '${data.productName}',
           },
           // option_1 : Add_Ingredient
           {
@@ -635,6 +636,7 @@ export const templates = Object.freeze({
   whatsappFlow: {
     zoneAndAreaFlow: prebuiltFlowJson,
     branchesFlow: prebuiltBranchesFlowJson,
+    productOptionFlow: prebuiltOptionsFlowJson
   },
 });
 

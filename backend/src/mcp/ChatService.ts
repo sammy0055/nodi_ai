@@ -58,6 +58,7 @@ interface SendWhatSappProductOptionsFlowProps {
   recipientPhoneNumber: string;
   flowId: string;
   flowName: string;
+  productName: string;
   productOptions: any;
   headingText: string;
   bodyText: string;
@@ -513,7 +514,7 @@ export class ChatService {
             flow_action: 'navigate',
             flow_action_payload: {
               screen: 'BRANCH_SELECTION',
-              data: JSON.stringify({ status: 'active', ...args.productOptions }),
+              data: JSON.stringify({ status: 'active', ...args.productOptions, productName: args.productName }),
             },
           },
         },

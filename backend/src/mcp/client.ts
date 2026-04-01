@@ -45,9 +45,18 @@ const structuredResponseFormat = z.object({
       buttonText: z.string().describe('short action label for the card button, like “open form”'),
     }),
 
-     z.object({
+    z.object({
       type: z.literal('product-options-flow'),
-      productOptions: z.array(z.object({ id: z.string(), title: z.string() })),
+      productName: z.string().describe('the name of the selected product'),
+      productOptions: z.record(
+        z.object({
+          visible: z.boolean(),
+          required: z.boolean(),
+          label: z.string(),
+          description: z.string(),
+          options: z.array(z.object({ id: z.string(), title: z.string() })),
+        })
+      ),
       flowId: z.string(),
       flowName: z.string(),
       headingText: z.string().describe('short descriptive message that appears inside the card heading'),
@@ -199,7 +208,7 @@ export class MCPClient extends UsageBase {
 
     // Add user message to history
     const items: ResponseInputItem[] = [];
-    if (!query) throw new Error("invalid chat input query");
+    if (!query) throw new Error('invalid chat input query');
     items.push({
       role: 'user',
       content: query.trim(),
