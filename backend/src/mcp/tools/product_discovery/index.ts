@@ -282,6 +282,8 @@ export const getProductOptions = (server: McpServer) => {
     },
     async ({ productId, organizationId }) => {
       try {
+        const product = await ProductModel.findByPk(productId);
+        if (!product) throw new Error('wrong product id');
         const options = await ProductOptionModel.findOne({
           where: { productId: productId },
           include: [{ model: ProductOptionChoiceModel, as: 'choices' }],
@@ -305,7 +307,7 @@ export const getProductOptions = (server: McpServer) => {
 
         const item = productOptions;
         const result = {
-          [item.name]: {
+          [item.name.replace(/\s+/g, '_')]: {
             visible: true,
             required: item.isRequired || false,
             label: item.name.replace(/_/g, ' '),
@@ -321,10 +323,15 @@ export const getProductOptions = (server: McpServer) => {
         console.error(result);
         console.error('product-option-flow-result====================================');
         const data = {
+          productName: product.name,
           productOptions: result,
           flowId: flow?.type === 'flow' && flow?.data.flowId,
           flowName: flow?.type === 'flow' && flow?.data.flowName,
         };
+
+        console.error('product-option-flow-tool-data====================================');
+        console.error(result);
+        console.error('product-option-flow-tool-data====================================');
 
         return {
           content: [{ type: 'text', text: JSON.stringify(data) }],

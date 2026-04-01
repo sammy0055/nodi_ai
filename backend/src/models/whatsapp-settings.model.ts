@@ -64,7 +64,7 @@ WhatSappSettingsModel.init(
     timestamps: true,
     indexes: [
       {
-        fields: ['organizationId'],
+        fields: ['organizationId', "whatsappBusinessId"],
       },
     ],
     hooks: {
