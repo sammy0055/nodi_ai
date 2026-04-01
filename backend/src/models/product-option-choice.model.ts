@@ -17,7 +17,7 @@ class ProductOptionChoiceModel
   declare priceAdjustment: number;
   // declare isDefault: CreationOptional<boolean>;
   static associate(models: DbModels) {
-    this.belongsTo(models.SubscriptionsModel, {
+    this.belongsTo(models.ProductOptionModel, {
       foreignKey: 'productOptionId',
       as: 'productOption',
     });
