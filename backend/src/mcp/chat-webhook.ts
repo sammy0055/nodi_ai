@@ -226,6 +226,10 @@ async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) 
 
           return acc;
         }, {});
+
+        console.log('==================productOptions==================');
+        console.log(productOptions);
+        console.log('=================productOptions===================');
         await chat.sendWhatSappProductOptionFlowInteractiveMessage({
           recipientPhoneNumber: userPhoneNumber,
           productName: response.productName,
