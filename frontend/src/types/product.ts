@@ -32,6 +32,7 @@ export interface ProductOption {
   isRequired: boolean;
   minSelection?: number;
   maxSelection?: number;
+  preselected_options:string[]
   choices?: ProductOptionChoice[];
 }
 

@@ -68,6 +68,7 @@ const ProductOptionsManager: React.FC<{
       name: 'New Option',
       type: 'single',
       isRequired: false,
+      preselected_options: [],
     };
 
     const { data } = await addProductOption(newOption);
@@ -251,6 +252,23 @@ const ProductOptionsManager: React.FC<{
                   >
                     <FiTrash2 />
                   </Button>
+                      <div className="p-4">
+                      <ToggleSwitch
+                        checked={option.preselected_options.includes(choice.id) || false}
+                        onChange={(prev) => {
+                          const current = option.preselected_options || [];
+
+                          const currentPreselectedOption = prev
+                            ? current.includes(choice.id)
+                              ? current
+                              : [...current, choice.id]
+                            : current.filter((id) => id !== choice.id);
+
+                          updateOption(option.id, { preselected_options: currentPreselectedOption });
+                        }}
+                        label="Mark as default selection"
+                      />
+                    </div>
                 </div>
               ))}
             </div>
