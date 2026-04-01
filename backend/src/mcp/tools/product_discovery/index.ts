@@ -284,14 +284,12 @@ export const getProductOptions = (server: McpServer) => {
       try {
         const product = await ProductModel.findByPk(productId);
         if (!product) throw new Error('wrong product id');
-        const options = await ProductOptionModel.findOne({
+        const options = await ProductOptionModel.findAll({
           where: { productId: productId },
           include: [{ model: ProductOptionChoiceModel, as: 'choices' }],
         });
 
-        const productOptions = options?.get({ plain: true }) as any;
-
-        if (!productOptions) {
+        if (!options) {
           return {
             content: [{ type: 'text', text: 'No options was found for this product' }],
           };
@@ -305,19 +303,34 @@ export const getProductOptions = (server: McpServer) => {
           (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW
         );
 
-        const item = productOptions;
-        const result = {
-          [item.name.replace(/\s+/g, '_')]: {
+        // const item = options;
+        // const result = {
+        //   [item.name.replace(/\s+/g, '_')]: {
+        //     visible: true,
+        //     required: item.isRequired || false,
+        //     label: item.name.replace(/_/g, ' '),
+        //     description: item.description,
+        //     options: item.choices.map((choice: any) => ({
+        //       id: choice.id,
+        //       title: `${choice.label} ${choice.priceAdjustment}`,
+        //     })),
+        //   },
+        // };
+
+        const result = options.reduce((acc:any, item:any) => {
+          acc[item.name.replace(/\s+/g, '_')] = {
             visible: true,
-            required: item.isRequired || false,
+            required: item.isRequired,
             label: item.name.replace(/_/g, ' '),
             description: item.description,
-            options: item.choices.map((choice: any) => ({
+            options: item.choices.map((choice:any) => ({
               id: choice.id,
               title: `${choice.label} ${choice.priceAdjustment}`,
             })),
-          },
-        };
+          };
+
+          return acc;
+        }, {});
 
         console.error('product-option-flow-result====================================');
         console.error(result);
