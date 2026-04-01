@@ -17,11 +17,11 @@ export class ProductOptionService {
 
     const updated = await Promise.all(
       items.map(async (item) => {
-        const choice = await ProductOptionModel.findByPk(item.id);
-        if (!choice) throw new Error(`Product option with id ${item.id} not found`);
+        const option = await ProductOptionModel.findByPk(item.id);
+        if (!option) throw new Error(`Product option with id ${item.id} not found`);
         const where: any = {};
         if (transaction) where.transaction = transaction;
-        return await choice.update(item, where); // already returns updated row
+        return await option.update(item, where); // already returns updated row
       })
     );
 

@@ -17,6 +17,7 @@ class ProductOptionModel
   declare name: string;
   declare description: string | undefined;
   declare type: `${ProductOptionTypes}`;
+  declare preselected_options: string[] 
   declare isRequired: CreationOptional<boolean>;
   declare minSelection: CreationOptional<number>;
   declare maxSelection: CreationOptional<number>;
@@ -45,6 +46,11 @@ ProductOptionModel.init(
     name: { type: DataTypes.STRING, allowNull: false },
     description: { type: DataTypes.STRING, allowNull: true, defaultValue: '' },
     type: { type: DataTypes.ENUM, values: [...Object.values(ProductOptionTypes)] },
+    preselected_options: {
+      type: DataTypes.ARRAY(DataTypes.UUID),
+      allowNull: true,
+      defaultValue: [],
+    },
     isRequired: { type: DataTypes.BOOLEAN, defaultValue: false },
     minSelection: { type: DataTypes.INTEGER, defaultValue: 1 },
     maxSelection: { type: DataTypes.INTEGER, defaultValue: 10 },

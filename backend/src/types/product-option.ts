@@ -7,6 +7,7 @@ export interface ProductOption {
   isRequired: boolean; // must pick at least one? (true/false)
   minSelection?: number;
   maxSelection?: number;
+  preselected_options: string[] 
   choices?: ProductOptionChoice[];
 }
 
