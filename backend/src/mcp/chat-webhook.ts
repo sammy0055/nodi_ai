@@ -215,10 +215,21 @@ async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) 
         });
         break;
       case 'product-options-flow':
+        const productOptions = response.productOptions.reduce((acc: any, item: any) => {
+          acc[item.key] = {
+            visible: item.visible || true,
+            required: item.required || false,
+            label: item.label,
+            description: item.description || '',
+            options: item.options,
+          };
+
+          return acc;
+        }, {});
         await chat.sendWhatSappProductOptionFlowInteractiveMessage({
           recipientPhoneNumber: userPhoneNumber,
           productName: response.productName,
-          productOptions: response?.productOptions.items,
+          productOptions: productOptions,
           flowId: response?.flowId,
           flowName: response?.flowName,
           headingText: response?.headingText,

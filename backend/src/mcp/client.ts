@@ -48,17 +48,16 @@ const structuredResponseFormat = z.object({
     z.object({
       type: z.literal('product-options-flow'),
       productName: z.string().describe('the name of the selected product'),
-      productOptions: z.object({
-        items: z.record(
-          z.object({
-            visible: z.boolean(),
-            required: z.boolean(),
-            label: z.string(),
-            description: z.string(),
-            options: z.array(z.object({ id: z.string(), title: z.string() })),
-          })
-        ),
-      }),
+      productOptions: z.array(
+        z.object({
+          key: z.string().describe('normalized key like Add_Ingredient'),
+          visible: z.boolean(),
+          required: z.boolean(),
+          label: z.string(),
+          description: z.string(),
+          options: z.array(z.object({ id: z.string(), title: z.string() })),
+        })
+      ),
       flowId: z.string(),
       flowName: z.string(),
       headingText: z.string().describe('short descriptive message that appears inside the card heading'),

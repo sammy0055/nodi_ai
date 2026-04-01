@@ -317,20 +317,17 @@ export const getProductOptions = (server: McpServer) => {
         //   },
         // };
 
-        const result = options.reduce((acc:any, item:any) => {
-          acc[item.name.replace(/\s+/g, '_')] = {
-            visible: true,
-            required: item.isRequired,
-            label: item.name.replace(/_/g, ' '),
-            description: item.description,
-            options: item.choices.map((choice:any) => ({
-              id: choice.id,
-              title: `${choice.label} ${choice.priceAdjustment}`,
-            })),
-          };
-
-          return acc;
-        }, {});
+        const result = options.map((item: any) => ({
+          key: item.name.replace(/\s+/g, '_'),
+          visible: true,
+          required: item.isRequired,
+          label: item.name.replace(/_/g, ' '),
+          description: item.description,
+          options: item.choices.map((choice: any) => ({
+            id: choice.id,
+            title: `${choice.label} ${choice.priceAdjustment}`,
+          })),
+        }));
 
         console.error('product-option-flow-result====================================');
         console.error(result);
