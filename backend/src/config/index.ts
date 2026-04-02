@@ -35,6 +35,8 @@ export enum EnvList {
   MINIO_PUBLIC_BUCKET = 'MINIO_PUBLIC_BUCKET',
   MINIO_ROOT_USER = 'MINIO_ROOT_USER',
   MINIO_ROOT_PASSWORD = 'MINIO_ROOT_PASSWORD',
+  LOCAL_REDIS_ENDPOINT = "LOCAL_REDIS_ENDPOINT",
+  PROD_REDIS_ENDPOINT = "PROD_REDIS_ENDPOINT"
 }
 
 const env = getEnv(EnvList.NODE_ENV);
@@ -51,6 +53,7 @@ export const appConfig = {
     qdrant: env === 'dev' ? getEnv(EnvList.LOCAL_QDRANT) : getEnv(EnvList.PROD_QDRANT),
   },
   rabbitmq: env === 'dev' ? getEnv(EnvList.LOCAL_RABBITMQ) : getEnv(EnvList.PROD_RABBITMQ),
+  redis: env === 'dev' ? getEnv(EnvList.LOCAL_REDIS_ENDPOINT) : getEnv(EnvList.PROD_REDIS_ENDPOINT),
   stripe: {
     publicKey: getEnv(EnvList.STRIPE_PUBLIC_KEY),
     secretKey: getEnv(EnvList.STRIPE_SECRET_KEY),

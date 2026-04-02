@@ -2,7 +2,7 @@ import { Redis } from 'ioredis';
 import { queueProducer } from '../rabbitmq';
 import { WhatsAppMessage } from '../../types/whatsapp-webhook';
 
-const redis = new Redis();
+const redis = new Redis({});
 
 // Handle incoming WhatsApp message
 export async function handleMessage(userId: string, payload: { msg: WhatsAppMessage; whatsappBusinessId: string }) {
