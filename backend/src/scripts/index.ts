@@ -16,6 +16,7 @@ import { getVoiceNote } from '../helpers/download_voice_note';
 import { checkBusinessServiceSchedule } from '../utils/organization';
 import { getEstimatedTime } from '../utils/getEstimatedTime';
 import { ManageVectorStore } from '../helpers/vector-store';
+import { currencyFormat } from 'simple-currency-format';
 
 const ddd = {
   whatsappBusinessId: '1390720013053482',
@@ -458,7 +459,7 @@ const getConversationHistory = async () => {
 // testMcp('hello');
 // run();
 // createWhsappFlow();
-sendMessage()
+// sendMessage()
 // createCatalogItem();
 // queueProducer({ data: { hel: { d: '', dfsaf: ['dwee'] } } });
 // listCatalogItems();

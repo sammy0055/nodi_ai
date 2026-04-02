@@ -12,6 +12,7 @@ import { WhatsappFlowLabel } from '../types/whatsapp-settings';
 import { models } from '../models';
 import { productOptionsTaxonomy } from '../data/taxonomy';
 import { ProductModel } from '../models/products.model';
+import { handleMessage } from '../helpers/redis';
 export const chatRoute = express.Router();
 
 const { BranchesModel, ProductOptionChoiceModel, ProductOptionModel } = models;
@@ -227,7 +228,6 @@ async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) 
           return acc;
         }, {});
 
-
         await chat.sendWhatSappProductOptionFlowInteractiveMessage({
           recipientPhoneNumber: userPhoneNumber,
           productName: response.productName,
@@ -260,8 +260,9 @@ async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) 
 
 async function handleIncomingMessage({ whatsappBusinessId, msg, processMessages }: IncomingMessageAttr) {
   try {
-    // await processMessages(whatsappBusinessId, msg);
-    await queueProducer({ whatsappBusinessId, msg });
+    //  await queueProducer({ whatsappBusinessId, msg });
+
+    await handleMessage(msg.from, { whatsappBusinessId, msg });
   } catch (err) {
     console.error('Error processing user messages:', err);
   }

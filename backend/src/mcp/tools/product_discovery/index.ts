@@ -321,7 +321,7 @@ export const getProductOptions = (server: McpServer) => {
           description: item.description,
           options: item.choices.map((choice: any) => ({
             id: choice.id,
-            title: `${choice.label} (${choice.priceAdjustment !== 0 && +currencyFormat(100, 'en-US', org.currency)})`,
+            title: `${choice.label} ${choice.priceAdjustment !== 0 && (currencyFormat(choice.priceAdjustment, 'en-US', org.currency))}`,
           })),
         }));
 

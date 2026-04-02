@@ -35,6 +35,7 @@ import { userPermissionRoute } from './routes/permission-route.js';
 import { setupReviewQueues, startReviewtWorkerConsumer } from './helpers/rabbitmq/reviewQueue/index.js';
 import { bot } from './bot.js';
 import { followUPQueueConsumer, setupFollowUPQueueProducer } from './helpers/rabbitmq/followUpQueue.js';
+import { startExpiryListener } from './helpers/redis/index.js';
 
 const app = express();
 
@@ -102,5 +103,6 @@ app.listen(PORT, async () => {
   await followUPQueueConsumer();
   await startReviewtWorkerConsumer();
   await vectorStore.initCollection();
+  await startExpiryListener()
   await bot.connectToMcpServer();
 });
