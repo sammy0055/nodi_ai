@@ -1,8 +1,9 @@
 import { Redis } from 'ioredis';
 import { queueProducer } from '../rabbitmq';
 import { WhatsAppMessage } from '../../types/whatsapp-webhook';
+import { appConfig } from '../../config';
 
-const redis = new Redis({});
+const redis = new Redis(appConfig.redis);
 
 // Handle incoming WhatsApp message
 export async function handleMessage(userId: string, payload: { msg: WhatsAppMessage; whatsappBusinessId: string }) {
@@ -27,7 +28,7 @@ async function pushToQueue(userId: string, payload: { whatsappBusinessId: string
 export async function startExpiryListener() {
   await redis.config('SET', 'notify-keyspace-events', 'Ex');
 
-  const sub = new Redis();
+  const sub = new Redis(appConfig.redis);
   const redisDb = 0;
 
   sub.psubscribe(`__keyevent@${redisDb}__:expired`);
