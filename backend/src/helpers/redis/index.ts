@@ -78,6 +78,10 @@ function combineMessages(msgs: WhatsAppMessage[]): WhatsAppMessage | null {
     .map((m) => m.text!.body)
     .join(', ');
 
+  console.log('================combinedText from redis====================');
+  console.log(combinedText);
+  console.log('==================combinedText from redis==================');
+
   const lastMessage = msgs[msgs.length - 1];
 
   return {
