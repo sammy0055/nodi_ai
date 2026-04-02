@@ -14,6 +14,9 @@ export async function handleMessage(userId: string, payload: { msg: WhatsAppMess
   await redis.rpush(key, JSON.stringify(payload));
   await redis.rpush(backupKey, JSON.stringify(payload));
 
+  console.log('================single message in redis====================');
+  console.log(JSON.stringify(payload));
+  console.log('==================single message in redis==================');
   // TTL only on main key
   await redis.expire(key, 5);
 }
@@ -48,6 +51,9 @@ export async function startExpiryListener() {
     const whatsappBusinessId = parsed[0].whatsappBusinessId;
     const msgs: WhatsAppMessage[] = parsed.map((p) => p.msg);
 
+    console.log('================all messages in redis====================');
+    console.log(msgs);
+    console.log('==================all messages in redis==================');
     const combinedMsg = combineMessages(msgs);
     if (!combinedMsg) return;
 
