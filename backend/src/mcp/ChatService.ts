@@ -578,7 +578,9 @@ export class ChatService {
         ],
       },
     };
-
+console.log('===sendWhatSappOrderSummaryTemplateInteractiveMessage=======');
+console.log(JSON.stringify(body));
+console.log('====================================');
     try {
       const url = `https://graph.facebook.com/v20.0/${this.WhatSappBusinessPhoneNumberId}/messages`;
       const res = await fetch(url, {
