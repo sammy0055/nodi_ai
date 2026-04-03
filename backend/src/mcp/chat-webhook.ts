@@ -262,7 +262,7 @@ async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) 
         await chat.sendWhatSappOrderSummaryTemplateInteractiveMessage({
           recipientPhoneNumber: userPhoneNumber,
           templateName: response.templateName,
-          orderSummary: response.orderSummary,
+          orderSummary: response.orderSummary.replace(/\s+/g, " "),
         });
         break;
       default:

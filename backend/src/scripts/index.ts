@@ -511,7 +511,7 @@ const createWhatsappTemplate = async () => {
 const templatebody = {
   messaging_product: 'whatsapp',
   recipient_type: 'individual',
-  to: '+2348171727284',
+  to: '2348171727284',
   type: 'template',
   template: {
     name: 'order_summary_main',
@@ -525,13 +525,34 @@ const templatebody = {
           {
             type: 'text',
             parameter_name: 'order_details',
-            text: 'Jessica the order has being created',
+            text: formatWhatsAppString("Takeaway\nBranch: Miniyeh\n\nItems:\n• 1 x Caesar Salad (Remove: Shaved Parmesan Cheese) - LBP 450,000\n• 1 x Chicken Avocado Salad (Avocado, Chicken Breast) - LBP 1,170,000\n\nSubtotal: LBP 1,620,000\nTakeaway fee: LBP 0\nTotal: LBP 1,620,000\n\nEstimated takeaway time: 20 minutes\n\nDo you confirm this order? If you would like to modify any item options, tell me which item.")
           },
         ],
       },
     ],
   },
 };
+
+function formatWhatsAppString(input:string) {
+  return input
+    // remove line breaks
+    // .replace(/\r?\n+/g, " | ")
+    
+    // replace bullets with dash
+    // .replace(/•/g, "-")
+    
+    // remove commas from numbers (e.g. 1,170,000 -> 1170000)
+    // .replace(/(\d),(\d)/g, "$1$2")
+    
+    // remove extra spaces
+    .replace(/\s+/g, " ")
+    
+    // clean duplicate separators
+    // .replace(/\|\s*\|/g, "|")
+    
+    // trim edges
+    // .trim();
+}
 
 const sendMessageTemplate = async () => {
   console.log('running flow send.........');
@@ -560,7 +581,7 @@ const sendMessageTemplate = async () => {
 };
 
 // createWhatsappTemplate();
-sendMessageTemplate()
+sendMessageTemplate();
 // getConversationHistory();
 // console.log('====================================');
 // console.log(getEstimatedTime("1970-01-01 03:00:00+00" as any));
