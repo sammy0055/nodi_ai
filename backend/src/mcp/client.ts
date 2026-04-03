@@ -46,6 +46,12 @@ const structuredResponseFormat = z.object({
     }),
 
     z.object({
+      type: z.literal('order-summary-flow'),
+      templateName: z.string(),
+      orderSummary: z.string().describe('detailed summary of the order'),
+    }),
+
+    z.object({
       type: z.literal('product-options-flow'),
       productName: z.string().describe('the name of the selected product'),
       productOptions: z.array(

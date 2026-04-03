@@ -7,6 +7,7 @@ import { CurrencyCode } from '../../../types/product';
 import { OrderStatusTypes } from '../../../types/order';
 import { ChatHistoryManager } from '../../../services/ChatHistoryManager.service';
 import { getEstimatedTime } from '../../../utils/getEstimatedTime';
+import { WhatSappSettingsModel } from '../../../models/whatsapp-settings.model';
 
 const { BranchesModel, OrderModel, BranchInventoryModel, OrganizationsModel } = models;
 // Create order with inventory check
@@ -598,6 +599,42 @@ export const getCurrentDateAndTime = (server: McpServer) => {
         console.error(`MCP-ERROR:${error.message}`);
         return {
           content: [{ type: 'text', text: 'Failed to Get Current Date & Time' }],
+        };
+      }
+    }
+  );
+};
+
+export const getOrderSummaryFlow = (server: McpServer) => {
+  return server.registerTool(
+    'get_order_summary_flow',
+    {
+      title: 'Get Order Summary Template',
+      description: 'Get the Summary Template for the Order',
+      inputSchema: {
+        organizationId: z.string(),
+      },
+    },
+    async ({ organizationId }) => {
+      try {
+        const wtemplate = await WhatSappSettingsModel.findOne({ where: { organizationId } });
+        if (!wtemplate) return { content: [{ type: 'text', text: 'no order summary template for this organization' }] };
+        const order_template = wtemplate.whatsappTemplates.find(
+          (t) => t.type === 'template' && t.data.templateName === 'order_summary_main'
+        );
+        if (!order_template) {
+          return { content: [{ type: 'text', text: 'no order summary template for this organization' }] };
+        }
+
+        const data = {
+          templateName: order_template.type === 'template' && order_template.data.templateName,
+        };
+
+        return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+      } catch (error: any) {
+        console.error(`MCP-ERROR:${error.message}`);
+        return {
+          content: [{ type: 'text', text: 'Failed to get order summary template' }],
         };
       }
     }

@@ -145,6 +145,10 @@ chatRoute.post('/chat-webhook', async (req, res) => {
             console.log('Got message:', msg.id, msg);
             await handleIncomingMessage({ whatsappBusinessId: entry.id, msg, processMessages });
           }
+        } else if(msg.type === "template"){
+          console.log('===============template payload=====================');
+          console.log(JSON.stringify(msg));
+          console.log('====================================');
         } else if (msg.type === 'audio') {
           const text = await getVoiceNote(msg.audio?.id!);
           const newMsg = {
@@ -238,6 +242,13 @@ async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) 
           bodyText: response?.bodyText,
           buttonText: response.buttonText,
           footerText: response?.footerText,
+        });
+        break;
+      case 'order-summary-flow':
+        await chat.sendWhatSappOrderSummaryTemplateInteractiveMessage({
+          recipientPhoneNumber: userPhoneNumber,
+          templateName: response.templateName,
+          orderSummary: response.orderSummary,
         });
         break;
       default:

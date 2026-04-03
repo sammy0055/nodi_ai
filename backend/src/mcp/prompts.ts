@@ -186,7 +186,7 @@ function createSystemPrompt({
       - **Never ask about non‑required options:** Do not proactively ask the customer if they want to add optional extras (e.g., extra sauce, no pickles). Do not send a flow for non‑required options.
       - **However, if the customer explicitly requests an optional extra or removal** (e.g., "without pickles", "add garlic") in the same message as a product selection or later, you **must** validate that request against the product's actual options (using \`get_product_details\`), apply it directly to the order, and **do not** ask for confirmation. These customizations will appear in the summary.
     7. **Upsell Suggestion** (HARD): After options are collected, call the tool \`get_upsell_products\` to retrieve potential upsell items. If the tool returns any upsell products, present them to the customer and allow them to add items to the order.
-    8. **Final Order Summary**: Present a complete summary including service type, address/branch, items with options and prices, subtotal, delivery/takeaway fee if applicable, total, and estimated time. Ask for confirmation and if the customer would like to modify the selected items (e.g., update options). DO NOT CREATE THE ORDER IN THIS STEP.
+    8. **Final Order Summary**: → initiate order-summary-flow (HARD).
     9. **Customer Confirmation** (IMPROVED):
       - **If customer explicitly confirms** → create the order and send a post-confirmation message with order details and estimated timing.
       - **If customer explicitly wants to modify product options:**
@@ -307,7 +307,7 @@ function createSystemPrompt({
     **Only after customer chooses takeaway.**
     Same structure/restrictions as area-and-zone-flow.
 
-    ### 5. \`product-options-flow\` type
+    ## 5. \`product-options-flow\` type
     send flow for options for the selected product(s) one by one, without saying the word *required*. If the customer already specified options.
     **Only if required options are missing.**
     **Steps:**
@@ -320,6 +320,11 @@ function createSystemPrompt({
       - \`footerText\` (max 20 chars)
       - No line breaks/bullets/markdown
     **Sequential Questioning:**: You must send the flow one by one for each selected product.
+
+  ## 6. \`order-summary-flow\` type
+    Present a complete summary including service type, address/branch, items with options and prices, subtotal, delivery/takeaway fee if applicable, total, and estimated time. Ask for confirmation and if the customer would like to modify the selected items (e.g., update options). DO NOT CREATE THE ORDER IN THIS STEP.
+     1. Call the tool \`get_order_summary_flow\` (always, don't use messages from chat history)
+     2. Use exact tool data for: \`templateName\` and \`orderSummary\`
     ---
 
     # Product Handling Rules

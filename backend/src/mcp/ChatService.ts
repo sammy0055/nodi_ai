@@ -67,6 +67,12 @@ interface SendWhatSappProductOptionsFlowProps {
   footerText?: string;
 }
 
+interface SendWhatSappOrderSummaryTemplateProps {
+  recipientPhoneNumber: string;
+  templateName: string;
+  orderSummary: string;
+}
+
 export class ChatService {
   protected organizationId: string = '';
   protected conversationId: string = '';
@@ -524,6 +530,52 @@ export class ChatService {
             },
           },
         },
+      },
+    };
+
+    try {
+      const url = `https://graph.facebook.com/v20.0/${this.WhatSappBusinessPhoneNumberId}/messages`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.whatsappAccessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(`Error ${res.status}: ${errorData.error.message}`);
+      }
+    } catch (error: any) {
+      console.log('WHATSAPP-MESSAGE', error);
+    }
+  }
+
+  async sendWhatSappOrderSummaryTemplateInteractiveMessage(args: SendWhatSappOrderSummaryTemplateProps) {
+    const body = {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to: args.recipientPhoneNumber,
+      type: 'template',
+      template: {
+        name: args.templateName,
+        language: {
+          code: 'en_US',
+        },
+        components: [
+          {
+            type: 'body',
+            parameters: [
+              {
+                type: 'text',
+                parameter_name: 'order_details',
+                text: args.orderSummary,
+              },
+            ],
+          },
+        ],
       },
     };
 

@@ -10,6 +10,7 @@ import {
   createScheduledOrder,
   getCurrentDateAndTime,
   getLastOrderDetails,
+  getOrderSummaryFlow,
   updateOrder,
 } from './tools/order_and_service';
 import { createCustomerProfile, getCustomerProfile } from './tools/customer';
@@ -58,6 +59,7 @@ createScheduledOrder(server);
 cancelOrder(server);
 getLastOrderDetails(server);
 updateOrder(server);
+getOrderSummaryFlow(server)
 
 // customer
 getCustomerProfile(server);

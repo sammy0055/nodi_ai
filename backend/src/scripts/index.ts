@@ -1,22 +1,22 @@
 import 'dotenv/config';
-import { date } from 'zod';
-import { NotificationPriority, RelatedNotificationEntity } from '../data/data-types';
+// import { date } from 'zod';
+// import { NotificationPriority, RelatedNotificationEntity } from '../data/data-types';
 import { ChatService } from '../mcp/ChatService';
-import { MCPChatBot } from '../mcp/client';
-import { NotificationModel } from '../models/notification.model';
-import { IWhatSappSettings } from '../types/whatsapp-settings';
+// import { MCPChatBot } from '../mcp/client';
+// import { NotificationModel } from '../models/notification.model';
+// import { IWhatSappSettings } from '../types/whatsapp-settings';
 import { decrypt } from '../utils/crypto-utils';
-import { run } from './migration';
+// import { run } from './migration';
 import { sendEmail, sendVerificationEmail } from '../utils/send-email';
 import { ChatHistoryManager } from '../services/ChatHistoryManager.service';
 import { templates } from '../data/templates';
 import { getWhatsappCatalog, priceToMetaFormat } from '../helpers/whatsapp-catalog';
-import { queueProducer } from './rabbitmq';
-import { getVoiceNote } from '../helpers/download_voice_note';
-import { checkBusinessServiceSchedule } from '../utils/organization';
-import { getEstimatedTime } from '../utils/getEstimatedTime';
-import { ManageVectorStore } from '../helpers/vector-store';
-import { currencyFormat } from 'simple-currency-format';
+// import { queueProducer } from './rabbitmq';
+// import { getVoiceNote } from '../helpers/download_voice_note';
+// import { checkBusinessServiceSchedule } from '../utils/organization';
+// import { getEstimatedTime } from '../utils/getEstimatedTime';
+// import { ManageVectorStore } from '../helpers/vector-store';
+// import { currencyFormat } from 'simple-currency-format';
 
 const ddd = {
   whatsappBusinessId: '1390720013053482',
@@ -192,7 +192,7 @@ const bodys = {
 
 const actionPayload = {
   status: 'active',
-  flowLabel:"product_options",
+  flowLabel: 'product_options',
   Add_Ingredient: {
     visible: true,
     required: false,
@@ -249,8 +249,8 @@ const productOptionFlowBody = {
 };
 
 const sendMessage = async () => {
-  console.log("running flow send.........");
-  
+  console.log('running flow send.........');
+
   try {
     const url = `https://graph.facebook.com/v20.0/${982830794903993}/messages`;
     const res = await fetch(url, {
@@ -446,6 +446,121 @@ const getConversationHistory = async () => {
     console.log('====================================');
   }
 };
+
+const createWhatsappTemplate = async () => {
+  const url = `https://graph.facebook.com/v23.0/1993310024732307/message_templates`;
+
+  const body = {
+    name: 'order_summary_main',
+    language: 'en_US',
+    category: 'utility',
+    parameter_format: 'named',
+    components: [
+      {
+        type: 'BODY',
+        text: '. . {{order_details}} . .',
+        example: {
+          body_text_named_params: [
+            {
+              param_name: 'order_details',
+              example: 'Pablo the order has been created',
+            },
+          ],
+        },
+      },
+      {
+        type: 'BUTTONS',
+        buttons: [
+          {
+            type: 'quick_reply',
+            text: 'Confirm',
+          },
+          {
+            type: 'quick_reply',
+            text: 'Edit',
+          },
+        ],
+      },
+    ],
+  };
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.META_BUSINESS_SYSTEM_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(`Error ${res.status}: ${errorData.error.message}`);
+    }
+
+    console.log('==================data==================');
+    console.log(await res.json());
+    console.log('====================================');
+  } catch (error: any) {
+    console.log('=================error===================');
+    console.log(error);
+    console.log('====================================');
+  }
+};
+
+const templatebody = {
+  messaging_product: 'whatsapp',
+  recipient_type: 'individual',
+  to: '+2348171727284',
+  type: 'template',
+  template: {
+    name: 'order_summary_main',
+    language: {
+      code: 'en_US',
+    },
+    components: [
+      {
+        type: 'body',
+        parameters: [
+          {
+            type: 'text',
+            parameter_name: 'order_details',
+            text: 'Jessica the order has being created',
+          },
+        ],
+      },
+    ],
+  },
+};
+
+const sendMessageTemplate = async () => {
+  console.log('running flow send.........');
+
+  try {
+    const url = `https://graph.facebook.com/v20.0/${982830794903993}/messages`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.META_BUSINESS_SYSTEM_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(templatebody),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(`Error ${res.status}: ${errorData.error.message}`);
+    }
+  } catch (error: any) {
+    console.log('====================================');
+    console.log(error);
+    console.log('====================================');
+  }
+  // const data = await res.
+};
+
+// createWhatsappTemplate();
+sendMessageTemplate()
 // getConversationHistory();
 // console.log('====================================');
 // console.log(getEstimatedTime("1970-01-01 03:00:00+00" as any));
@@ -459,7 +574,7 @@ const getConversationHistory = async () => {
 // testMcp('hello');
 // run();
 // createWhsappFlow();
-// sendMessage()
+// sendMessage();
 // createCatalogItem();
 // queueProducer({ data: { hel: { d: '', dfsaf: ['dwee'] } } });
 // listCatalogItems();

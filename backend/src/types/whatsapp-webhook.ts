@@ -42,8 +42,8 @@ export interface WhatsAppMessage {
   order?: Order;
   interactive?: Interative;
   audio?: AudioMessage;
-  type: 'text' | 'order' | 'interactive' | 'audio';
-  userRespondedToFollowUp?:boolean
+  type: 'text' | 'order' | 'interactive' | 'audio' | 'template';
+  userRespondedToFollowUp?: boolean;
 }
 
 export interface ProductItem {
