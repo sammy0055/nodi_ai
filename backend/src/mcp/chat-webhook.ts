@@ -145,10 +145,24 @@ chatRoute.post('/chat-webhook', async (req, res) => {
             console.log('Got message:', msg.id, msg);
             await handleIncomingMessage({ whatsappBusinessId: entry.id, msg, processMessages });
           }
-        } else if(msg.type === "template"){
-          console.log('===============template payload=====================');
-          console.log(JSON.stringify(msg));
-          console.log('====================================');
+        } else if (msg.type === 'button') {
+          const message =
+            msg.button?.payload === 'Confirm'
+              ? 'Yes, I confirm the order'
+              : msg.button?.payload === 'Edit'
+                ? 'I want to edit the order'
+                : null;
+
+          if (!message) throw new Error('wrong message type from template button');
+          const newMsg = {
+            ...msg,
+            text: {
+              body: message,
+            },
+          };
+
+          console.log('Got message:', msg.id, msg);
+          await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
         } else if (msg.type === 'audio') {
           const text = await getVoiceNote(msg.audio?.id!);
           const newMsg = {

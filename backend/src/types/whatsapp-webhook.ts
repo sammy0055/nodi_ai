@@ -41,8 +41,12 @@ export interface WhatsAppMessage {
   };
   order?: Order;
   interactive?: Interative;
+  button?: {
+    payload: "Confirm" | "Edit";
+    text: string;
+  };
   audio?: AudioMessage;
-  type: 'text' | 'order' | 'interactive' | 'audio' | 'template';
+  type: 'text' | 'order' | 'interactive' | 'audio' | 'button';
   userRespondedToFollowUp?: boolean;
 }
 
