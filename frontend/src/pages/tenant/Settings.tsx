@@ -518,6 +518,14 @@ const SettingsPage: React.FC = () => {
               placeholder="Give your AI assistant a name"
             />
 
+            <Input
+              label="Hot Line"
+              value={orgData.hotline}
+              onChange={(e) => handleOrgChange('hotline', e.target.value)}
+              disabled={!isEditing}
+              placeholder="Enter the Hotline"
+            />
+
             {/* languageProtectedTerms */}
             <div>
               <label className="text-sm font-medium text-neutral-700 mb-2 block">languageProtectedTerms *</label>

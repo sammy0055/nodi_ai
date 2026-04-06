@@ -15,6 +15,7 @@ import {
 import { createCustomerProfile, getCustomerProfile } from './tools/customer';
 import { createReview, getOrganizationReviewQuestions } from './tools/review';
 import { getOrgFrequentlyAskedQuestion } from './tools/organization_info';
+import { getOrganizationHotline } from './tools/organization';
 
 export const server = new McpServer({
   name: 'Credobyte-MCP-Server',
@@ -62,6 +63,9 @@ updateOrder(server);
 // customer
 getCustomerProfile(server);
 createCustomerProfile(server);
+
+// organization
+getOrganizationHotline(server)
 
 // review
 getOrganizationReviewQuestions(server);

@@ -34,6 +34,7 @@ export interface IOrganization {
   serviceSchedule: ServiceSchedule[];
   reviewTimer: number | null;
   timeZone?:string
+  hotline?:string
 }
 
 export interface OrganizationPayload extends IOrganization {
