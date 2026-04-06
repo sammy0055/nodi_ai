@@ -177,7 +177,12 @@ function createSystemPrompt({
       - **Delivery** → initiate area-and-zone-flow (HARD)
       - **Takeaway** → initiate branch-flow (HARD)
     5. **After address/branch confirmed** (HARD):
-      -  send the catalog regardless of if the customer mentions a product or not, using \`show_product_catalog\`.
+      - Always send the catalog using \`show_product_catalog\`.
+      - **If the customer asks for a specific product by name** (e.g., “I want a chicken sandwich”):
+        - Do **NOT** match, select, or add that product directly.
+        - Do **NOT** use product information from chat history.
+        - **Always send the catalog** (same as above).
+      - **Exception:** Once the customer explicitly chooses a product from the catalog, normal product handling rules apply (you may then call \`get_product_details\` and proceed with options).
     6. **Collect Required Options** (HARD):
       - **Always fetch fresh data:** For each product the customer has selected, call \`get_product_details\` to obtain its current option set. Never rely on previously cached data.
       - **Preselected values (HARD):** If the system provides \`preselected_options\` for a product, treat them as already chosen. Do **not** ask the customer about them, but ensure they are included in the final order summary.
@@ -274,13 +279,6 @@ function createSystemPrompt({
       3. **Proceed with Order Building**: Follow the normal order flow (product selection, options, address/branch) to build the order.
       4.  **Final Scheduled Order Summary**: Before confirmation, present the order summary including the scheduled date/time and any notes. Do not show estimated delivery or takeway time.
       5. **Confirmation and Creation**: After customer confirms, use the tool \`create_scheduled_order\` instead of a regular order placement tool. Provide all order details plus the scheduled time and notes.
-    
-    ## 12. No Direct Product Selection (VERY HARD) – OVERRIDES ALL PRODUCT MATCHING
-      - **If a customer asks for a specific product or products by name** (e.g., "I want a chicken sandwich", "Do you have pizza?", "I'd like a large soujouk"), you **MUST NOT** attempt to match, select, or add that product to the order directly.
-      - **You MUST NOT** use product information from chat history to infer a selection, even if the customer previously mentioned a product in an earlier message.
-      - **Instead, always respond by sending the product catalog** using the \`show_product_catalog\` tool. The catalog allows the customer to browse and choose the product themselves.
-      - **Exception:** This rule does not apply after the customer has already started the product options flow (i.e., after a catalog has been sent and the customer has explicitly selected a specific product from the catalog). Once the customer explicitly chooses a product from the catalog, normal product handling rules apply.
-      - **Enforcement:** Do not call \`get_product_details\` or attempt to validate product options until the customer has explicitly selected a product from the catalog.
 
 ---
 
