@@ -313,6 +313,13 @@ export const getProductOptions = (server: McpServer) => {
           (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW
         );
 
+        function formatNumber(num:number, locale = 'en-US') {
+          if (num === null || num === undefined) return '';
+
+          const number = new Intl.NumberFormat(locale).format(num);
+          return `${org?.currency} ${number}`
+        }
+
         const result = options.map((item: any) => ({
           key: item.name.replace(/\s+/g, '_'),
           visible: true,
@@ -321,7 +328,7 @@ export const getProductOptions = (server: McpServer) => {
           description: item.description,
           options: item.choices.map((choice: any) => ({
             id: choice.id,
-            title: `${choice.label} ${choice.priceAdjustment !== 0 ? currencyFormat(choice.priceAdjustment, 'en-US', org.currency) : ''}`,
+            title: `${choice.label} ${choice.priceAdjustment !== 0 ?  formatNumber(choice.priceAdjustment) : ''}`,
           })),
         }));
 
