@@ -773,42 +773,6 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
 
   const { getOrders, getAssignedOrders, updateOrder } = useMemo(() => new OrderService(), []);
 
-  // Calculate stats for the dashboard
-  // const stats = useMemo(() => {
-  //   const allOrders = orders;
-  //   const today = new Date();
-  //   today.setHours(0, 0, 0, 0);
-
-  //   const todayOrders = allOrders.filter((o) => new Date(o.createdAt) >= today);
-  //   const processingOrders = allOrders.filter((o) => o.status === OrderStatusTypes.PROCESSING);
-  //   const pendingOrders = allOrders.filter((o) => o.status === OrderStatusTypes.PENDING);
-  //   const highPriorityOrders = allOrders.filter((o) => o.priority === 'urgent' || o.priority === 'high');
-
-  //   const totalRevenue = allOrders
-  //     .filter((o) => o.status === OrderStatusTypes.DELIVERED)
-  //     .reduce((sum, o) => sum + o.totalAmount, 0);
-
-  //   const todayRevenue = todayOrders
-  //     .filter((o) => o.status === OrderStatusTypes.DELIVERED)
-  //     .reduce((sum, o) => sum + o.totalAmount, 0);
-
-  //   // const avgProcessingTime =
-  //   //   processingOrders.length > 0
-  //   //     ? processingOrders.reduce((sum, o) => sum + (o.processingTime || 0), 0) / processingOrders.length
-  //   //     : 0;
-
-  //   return {
-  //     totalOrders: allOrders.length,
-  //     todayOrders: todayOrders.length,
-  //     processingOrders: processingOrders.length,
-  //     pendingOrders: pendingOrders.length,
-  //     totalRevenue,
-  //     todayRevenue,
-  //     avgProcessingTime: 0,
-  //     highPriorityOrders: highPriorityOrders.length,
-  //   };
-  // }, [orders]);
-
   // Filter orders based on selected tab and filters
   const fetchOrders = async (page: number, resetData = false) => {
     const filters: any = { page };
@@ -830,54 +794,6 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
     fetchOrders(page, page === 1);
   };
 
-  // const filteredOrders = useMemo(
-  //   () =>
-  //     orders.filter((order) => {
-  //       // Tab filter
-  //       let tabFilter = true;
-  //       switch (selectedTab) {
-  //         case 'all':
-  //           tabFilter = true;
-  //           break;
-  //         case 'assigned':
-  //           tabFilter = !!order.assignedUserId;
-  //           break;
-  //         case 'processing':
-  //           tabFilter = order.status === OrderStatusTypes.PROCESSING;
-  //           break;
-  //         case 'completed':
-  //           tabFilter = order.status === OrderStatusTypes.DELIVERED;
-  //           break;
-  //         case 'cancelled':
-  //           tabFilter = order.status === OrderStatusTypes.CANCELLED;
-  //           break;
-  //         case 'refunded':
-  //           tabFilter = order.status === OrderStatusTypes.REFUNDED;
-  //           break;
-  //         case 'pending':
-  //           tabFilter = order.status === OrderStatusTypes.PENDING;
-  //           break;
-  //       }
-
-  //       // Status filter
-  //       const statusFilter = selectedStatus === 'all' || order.status === selectedStatus;
-
-  //       // Priority filter
-  //       const priorityFilter = selectedPriority === 'all' || order.priority === selectedPriority;
-
-  //       // Search filter
-  //       const searchFilter =
-  //         !searchTerm ||
-  //         order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //         order.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //         order.customer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //         order.branch.name.toLowerCase().includes(searchTerm.toLowerCase());
-
-  //       return tabFilter && statusFilter && priorityFilter && searchFilter;
-  //     }),
-  //   [orders, selectedTab, selectedStatus, selectedPriority, searchTerm]
-  // );
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -888,75 +804,6 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
             <p className="text-gray-600 mt-1">Track and process customer orders in real-time</p>
           </div>
         </div>
-
-        {/* Stats Cards */}
-        {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Orders</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{stats.totalOrders}</p>
-              </div>
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
-                <FiShoppingBag className="text-blue-600" size={24} />
-              </div>
-            </div>
-            <div className="mt-3 flex items-center text-sm">
-              <FiTrendingUp className="text-green-500 mr-1" />
-              <span className="text-green-600 font-medium">{stats.todayOrders} today</span>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Processing</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{stats.processingOrders}</p>
-              </div>
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center">
-                <FiRefreshCw className="text-purple-600" size={24} />
-              </div>
-            </div>
-            <div className="mt-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Avg. Time</span>
-                <span className="font-medium text-gray-900">{formatTime(stats.avgProcessingTime)}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Revenue</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(stats.totalRevenue)}</p>
-              </div>
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center">
-                <FiDollarSign className="text-green-600" size={24} />
-              </div>
-            </div>
-            <div className="mt-3 flex items-center text-sm">
-              <span className="text-gray-600">Today: </span>
-              <span className="font-medium text-green-600 ml-2">{formatCurrency(stats.todayRevenue)}</span>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">High Priority</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{stats.highPriorityOrders}</p>
-              </div>
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center">
-                <FiAlertCircle className="text-orange-600" size={24} />
-              </div>
-            </div>
-            <div className="mt-3 flex items-center text-sm">
-              <FiClock className="text-gray-400 mr-1" />
-              <span className="text-gray-600">{stats.pendingOrders} pending</span>
-            </div>
-          </div>
-        </div> */}
 
         {/* Main Content */}
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -1537,12 +1384,14 @@ const AdminOrdersPage: React.FC<OrderPageProps> = (data) => {
                             {formatCurrency(selectedOrder.subtotal, selectedOrder.currency)}
                           </span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Delivery:</span>
-                          <span className="font-medium">
-                            {formatCurrency(selectedOrder.deliveryCharge, selectedOrder.currency)}
-                          </span>
-                        </div>
+                        {selectedOrder?.deliveryCharge !== 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Delivery:</span>
+                            <span className="font-medium">
+                              {formatCurrency(selectedOrder.deliveryCharge, selectedOrder.currency)}
+                            </span>
+                          </div>
+                        )}
                         <div className="flex justify-between border-t border-gray-200 pt-2">
                           <span className="text-gray-900 font-semibold">Total:</span>
                           <span className="text-lg font-bold text-gray-900">
