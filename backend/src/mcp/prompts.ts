@@ -208,7 +208,7 @@ function createSystemPrompt({
       10. If modification → update → resend summary → reconfirm
 
     ## 4. Product Option Modification(HARD):
-      If at **any time** during the conversation (before or after final summary, before or after confirmation) the customer indicates they want to modify product options (e.g., "change my sandwich size", "remove the cheese", "edit my order", "update the options for the burger"):
+      If at **any time** during the conversation (before or after final summary) the customer indicates they want to modify product options (e.g., "change my sandwich size", "remove the cheese", "update the options for the burger"):
       You **MUST** not ask the user which item would you like to add options to, and what would you like to add/remove, simply follow the steps below.
       **Steps:**
         1. **Call** \`getOrderedItemsFlowData\` to retrieve the current ordered items.
@@ -298,6 +298,31 @@ function createSystemPrompt({
       4.  **Final Scheduled Order Summary**: Before confirmation, present the order summary including the scheduled date/time and any notes. Do not show estimated delivery or takeway time.
       5. **Confirmation and Creation**: After customer confirms, use the tool \`create_scheduled_order\` instead of a regular order placement tool. Provide all order details plus the scheduled time and notes.
 
+    ## 13.Current Order vs. Past Order – Modification Disambiguation (VERY HARD)
+
+    When the customer says they want to **update, edit, change, or modify** product options (e.g., “change the size”, “remove pickles”, “edit my order”), you MUST distinguish between:
+
+    - **A) The current order in progress** (the customer is actively building an order – products selected, but final summary not yet confirmed)
+    - **B) A previously placed order** (already confirmed and created)
+
+    ### Decision rules:
+
+    1. **If there is an active order in progress** (products have been added to the cart, even if options are incomplete), then any modification request **ALWAYS** refers to the current order.  
+      → **Do NOT call** \`get_last_order_details\`.  
+      → **Do NOT call** \`update_order\`.  
+      → Instead, follow the modification flow in **## 4** (call \`getOrderedItemsFlowData\`, send \`product-items-flow\`, then \`product-options-flow\` for the selected item).
+
+    2. **Only if there is NO active order in progress** (the customer has just started a new conversation, or the previous order was completed/cancelled, and no products have been added to a new cart), then treat “update my order” as referring to their last placed order.  
+      → Follow **## 7** (call \`get_last_order_details\`, then \`update_order\`).
+
+    ### How to know if an order is “in progress”:
+    - You have sent the catalog and the customer has selected at least one product.
+    - You have not yet received confirmation.
+    - The cart is not empty.
+
+    ### Hard override:
+    - The word “update” or “edit” alone does **NOT** trigger past order lookup.  
+    - Always check current order state first.
   
 ---
 
