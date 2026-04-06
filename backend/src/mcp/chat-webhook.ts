@@ -141,6 +141,24 @@ chatRoute.post('/chat-webhook', async (req, res) => {
 
             console.log('Got message:', msg.id, newMsg.text?.body);
             await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
+          } else if (payload.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW) {
+            const selectedProductIds = payload.item_id;
+            const products = await ProductModel.findAll({
+              where: { id: selectedProductIds },
+              attributes: ['id', 'name'],
+            });
+
+            const newMsg = {
+              ...msg,
+              text: {
+                body: JSON.stringify({
+                  selectedProducts: products,
+                }),
+              },
+            };
+
+            console.log('Got message:', msg.id, newMsg.text?.body);
+            await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
           } else {
             console.log('Got message:', msg.id, msg);
             await handleIncomingMessage({ whatsappBusinessId: entry.id, msg, processMessages });
@@ -232,6 +250,18 @@ async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) 
           recipientPhoneNumber: userPhoneNumber,
           productName: response.productName,
           productOptions: productOptions,
+          flowId: response?.flowId,
+          flowName: response?.flowName,
+          headingText: response?.headingText,
+          bodyText: response?.bodyText,
+          buttonText: response.buttonText,
+          footerText: response?.footerText,
+        });
+        break;
+      case 'product-items-flow':
+        await chat.sendWhatSappOrderedItemsFlowInteractiveMessage({
+          recipientPhoneNumber: userPhoneNumber,
+          items: response.items,
           flowId: response?.flowId,
           flowName: response?.flowName,
           headingText: response?.headingText,

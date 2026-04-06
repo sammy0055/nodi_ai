@@ -313,11 +313,11 @@ export const getProductOptions = (server: McpServer) => {
           (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW
         );
 
-        function formatNumber(num:number, locale = 'en-US') {
+        function formatNumber(num: number, locale = 'en-US') {
           if (num === null || num === undefined) return '';
 
           const number = new Intl.NumberFormat(locale).format(num);
-          return `${org?.currency} ${number}`
+          return `${org?.currency} ${number}`;
         }
 
         const result = options.map((item: any) => ({
@@ -328,7 +328,7 @@ export const getProductOptions = (server: McpServer) => {
           description: item.description,
           options: item.choices.map((choice: any) => ({
             id: choice.id,
-            title: `${choice.label} ${choice.priceAdjustment !== 0 ?  formatNumber(choice.priceAdjustment) : ''}`,
+            title: `${choice.label} ${choice.priceAdjustment !== 0 ? formatNumber(choice.priceAdjustment) : ''}`,
           })),
         }));
 
@@ -342,6 +342,63 @@ export const getProductOptions = (server: McpServer) => {
         console.error('product-option-flow-tool-data====================================');
         console.error(result);
         console.error('product-option-flow-tool-data====================================');
+
+        return {
+          content: [{ type: 'text', text: JSON.stringify(data) }],
+        };
+      } catch (error: any) {
+        console.error(`MCP-ERROR:${error.message}`);
+        await NotificationModel.create({
+          relatedEntityType: RelatedNotificationEntity.SYSTEM,
+          title: `'chat-service-error', organizationId:${organizationId}`,
+          message: error.message,
+          status: 'unread',
+          priority: NotificationPriority.HIGH,
+          recipientType: 'admin',
+        });
+        return {
+          content: [{ type: 'text', text: 'Faild to get product options' }],
+        };
+      }
+    }
+  );
+};
+
+export const getOrderedItemsFlowData = (server: McpServer) => {
+  return server.registerTool(
+    'get_ordered_items_flow_data',
+    {
+      inputSchema: {
+        organizationId: z.string(),
+        orderedItems: z.array(
+          z.object({
+            id: z.string().describe('product id'),
+            name: z.string().describe('product name'),
+          })
+        ),
+      },
+    },
+    async ({ orderedItems, organizationId }) => {
+      try {
+        const items = orderedItems.map((i) => ({ id: i.id, title: i.name }));
+
+        const whatsappSettings = await WhatSappSettingsModel.findOne({
+          where: { organizationId: organizationId },
+        });
+
+        const flow = whatsappSettings?.whatsappTemplates?.find(
+          (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW
+        );
+
+        const data = {
+          items,
+          flowId: flow?.type === 'flow' && flow?.data.flowId,
+          flowName: flow?.type === 'flow' && flow?.data.flowName,
+        };
+
+        console.error('product-item-flow-tool-data====================================');
+        console.error(data);
+        console.error('product-item-flow-tool-data====================================');
 
         return {
           content: [{ type: 'text', text: JSON.stringify(data) }],

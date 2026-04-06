@@ -45,6 +45,17 @@ const structuredResponseFormat = z.object({
       buttonText: z.string().describe('short action label for the card button, like “open form”'),
     }),
 
+      z.object({
+      type: z.literal('product-items-flow'),
+      items: z.array(z.object({ id: z.string(), title: z.string() })),
+      flowId: z.string(),
+      flowName: z.string(),
+      headingText: z.string().describe('short descriptive message that appears inside the card heading'),
+      bodyText: z.string().describe('short descriptive message that appears inside the card body'),
+      footerText: z.string().describe('short descriptive message that appears inside the card footer'),
+      buttonText: z.string().describe('short action label for the card button, like “open form”'),
+    }),
+
     z.object({
       type: z.literal('product-options-flow'),
       productName: z.string().describe('the name of the selected product'),

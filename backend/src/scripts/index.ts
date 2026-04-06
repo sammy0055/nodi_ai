@@ -176,14 +176,14 @@ const bodys = {
     action: {
       name: 'flow',
       parameters: {
-        flow_id: '1553154242576600',
+        flow_id: '933470956093041',
         flow_message_version: '3',
         flow_cta: 'Open form',
         mode: 'published',
         flow_action: 'navigate',
         flow_action_payload: {
-          screen: 'BRANCH_SELECTION',
-          data: JSON.stringify({ status: 'active', branches: ZONES }),
+          screen: 'ITEMS_SELECTION',
+          data: JSON.stringify({ status: 'active', items: ZONES,  flowLabel: 'ADVANCE_PEOPLE' }),
         },
       },
     },
@@ -192,25 +192,16 @@ const bodys = {
 
 const actionPayload = {
   status: 'active',
-  flowLabel:"product_options",
   Add_Ingredient: {
     visible: true,
     required: false,
     label: 'Add Ingredients',
     description: 'Add an extra ingredient to the product. Example: add cheese, add bacon, add olive.',
-    options: [
+    flowLabel: 'ADVANCE_PEOPLE',
+    items: [
       { id: '122', title: 'garlic' },
       { id: '1232', title: 'add bacon' },
-    ],
-  },
-  Size: {
-    visible: true,
-    required: true,
-    label: 'Size',
-    description: 'Select size. Example: regular, large, family size.',
-    options: [
-      { id: '12', title: 'Large' },
-      { id: '123', title: 'Small' },
+      { id: '1232', title: 'welcome onboard' },
     ],
   },
 };
@@ -234,13 +225,13 @@ const productOptionFlowBody = {
     action: {
       name: 'flow',
       parameters: {
-        flow_id: '1598326711435435',
+        flow_id: '933470956093041',
         flow_message_version: '3',
         flow_cta: 'Open form',
         mode: 'published',
         flow_action: 'navigate',
         flow_action_payload: {
-          screen: 'PRODUCT_OPTIONS_SELECTIONS',
+          screen: 'ITEMS_SELECTION',
           data: JSON.stringify(actionPayload),
         },
       },
@@ -249,8 +240,8 @@ const productOptionFlowBody = {
 };
 
 const sendMessage = async () => {
-  console.log("running flow send.........");
-  
+  console.log('running flow send.........');
+
   try {
     const url = `https://graph.facebook.com/v20.0/${982830794903993}/messages`;
     const res = await fetch(url, {
@@ -259,7 +250,7 @@ const sendMessage = async () => {
         Authorization: `Bearer ${process.env.META_BUSINESS_SYSTEM_TOKEN}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(productOptionFlowBody),
+      body: JSON.stringify(bodys),
     });
 
     if (!res.ok) {
@@ -446,6 +437,8 @@ const getConversationHistory = async () => {
     console.log('====================================');
   }
 };
+
+sendMessage();
 // getConversationHistory();
 // console.log('====================================');
 // console.log(getEstimatedTime("1970-01-01 03:00:00+00" as any));
