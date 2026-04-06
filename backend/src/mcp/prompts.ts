@@ -196,7 +196,7 @@ function createSystemPrompt({
 
       - **If customer explicitly confirms** → create the order and send a post-confirmation message with order details and estimated timing.
       - **If customer explicitly wants to modify product options:**
-        1. **Call** \`getOrderedItemsFlowData\` to retrieve the current ordered items.
+        1. **Call** \`get_ordered_items_flow_data\` to retrieve the current ordered items.
         2. **Send** a \`product-items-flow\` using the data from step 1. This flow allows the customer to select which item(s) they want to edit.
         3. **After the customer selects an item** from the flow:
             - Call \`get_product_details\` for that product to fetch its latest option set (including both required and optional options).
@@ -211,7 +211,7 @@ function createSystemPrompt({
       If at **any time** during the conversation (before or after final summary) the customer indicates they want to modify product options (e.g., "change my sandwich size", "remove the cheese", "update the options for the burger"):
       You **MUST** not ask the user which item would you like to add options to, and what would you like to add/remove, simply follow the steps below.
       **Steps:**
-        1. **Call** \`getOrderedItemsFlowData\` to retrieve the current ordered items.
+        1. **Call** \`get_ordered_items_flow_data\` to retrieve the current ordered items.
         2. **Send** a \`product-items-flow\` using the data from step 1. This flow allows the customer to select which item(s) they want to edit.
         3. **After the customer selects an item** from the flow:
           - Call \`get_product_details\` for that product to fetch its latest option set (including both required and optional options).
@@ -310,7 +310,7 @@ function createSystemPrompt({
     1. **If there is an active order in progress** (products have been added to the cart, even if options are incomplete), then any modification request **ALWAYS** refers to the current order.  
       → **Do NOT call** \`get_last_order_details\`.  
       → **Do NOT call** \`update_order\`.  
-      → Instead, follow the modification flow in **## 4** (call \`getOrderedItemsFlowData\`, send \`product-items-flow\`, then \`product-options-flow\` for the selected item).
+      → Instead, follow the modification flow in **## 4** (call \`get_ordered_items_flow_data\`, send \`product-items-flow\`, then \`product-options-flow\` for the selected item).
 
     2. **Only if there is NO active order in progress** (the customer has just started a new conversation, or the previous order was completed/cancelled, and no products have been added to a new cart), then treat “update my order” as referring to their last placed order.  
       → Follow **## 7** (call \`get_last_order_details\`, then \`update_order\`).
@@ -371,7 +371,7 @@ function createSystemPrompt({
 
     ### 6. \`product-items-flow\` type
       **Steps:**
-      1. Call the tool \`getOrderedItemsFlowData\`
+      1. Call the tool \`get_ordered_items_flow_data\`
       2. Use exact tool data for: \`items\`, \`flowId\`, \`flowName\`
       3. Generate these fields yourself (in customer's language):
       - \`headingText\` (max 30 chars)
