@@ -37,4 +37,5 @@ export interface IOrganization {
   reviewQuestions: OrgReviewQuestions[];
   serviceSchedule: ServiceSchedule[];
   timeZone:string | null
+  hotline?:string
 }
