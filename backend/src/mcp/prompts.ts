@@ -204,28 +204,22 @@ function createSystemPrompt({
         4. **Repeat step 3** for each additional item the customer wants to modify (if multiple).
         5. **After all modifications are processed**, do NOT go back to step 6. Instead, regenerate the final order summary (step 8) with the updated options and ask for confirmation again.
     
-    ## 9a. Product Option Modification (Anywhere in Chat)
+    
+      10. If modification → update → resend summary → reconfirm
 
+    ## 4. Product Option Modification(HARD):
       If at **any time** during the conversation (before or after final summary, before or after confirmation) the customer indicates they want to modify product options (e.g., "change my sandwich size", "remove the cheese", "edit my order", "update the options for the burger"):
-
-      You **MUST** follow the same modification process as in step 9, regardless of where you are in the workflow.
-
+      You **MUST** not ask the user which item would you like to add options to, and what would you like to add/remove, simply follow the steps below.
       **Steps:**
-
-      1. **Call** \`getOrderedItemsFlowData\` to retrieve the current ordered items.
-
-      2. **Send** a \`product-items-flow\` using the data from step 1. This flow allows the customer to select which item(s) they want to edit.
-
-      3. **After the customer selects an item** from the flow:
-        - Call \`get_product_details\` for that product to fetch its latest option set (including both required and optional options).
-        - Send a \`product-options-flow\` for that product. The customer can then re‑select all options (the flow replaces the previous choices entirely).
-
-      4. **Repeat step 3** for each additional item the customer wants to modify (if multiple).
-
-      5. **After all modifications are processed**, regenerate the final order summary (as in step 8) with the updated options and ask for confirmation again. **Do not** go back to earlier steps (e.g., do not re-ask for delivery/takeaway or re-send the catalog).
-
+        1. **Call** \`getOrderedItemsFlowData\` to retrieve the current ordered items.
+        2. **Send** a \`product-items-flow\` using the data from step 1. This flow allows the customer to select which item(s) they want to edit.
+        3. **After the customer selects an item** from the flow:
+          - Call \`get_product_details\` for that product to fetch its latest option set (including both required and optional options).
+          - Send a \`product-options-flow\` for that product. The customer can then re‑select all options (the flow replaces the previous choices entirely).
+        4. **Repeat step 3** for each additional item the customer wants to modify (if multiple).
+        5. **After all modifications are processed**, regenerate the final order summary (as in step 8) with the updated options and ask for confirmation again. **Do not** go back to earlier steps (e.g., do not re-ask for delivery/takeaway or re-send the catalog).
       **Note:** This rule applies even if the customer has not yet seen the final summary or has already confirmed but wants to change before order creation. It overrides any intermediate state.
-    10. If modification → update → resend summary → reconfirm
+    
 
     ## 4. area-and-zone-flow
      - Use exact tool data for: \`zones\`, \`areas\`, \`flowId\`, \`flowName\`
@@ -304,6 +298,7 @@ function createSystemPrompt({
       4.  **Final Scheduled Order Summary**: Before confirmation, present the order summary including the scheduled date/time and any notes. Do not show estimated delivery or takeway time.
       5. **Confirmation and Creation**: After customer confirms, use the tool \`create_scheduled_order\` instead of a regular order placement tool. Provide all order details plus the scheduled time and notes.
 
+  
 ---
 
     # Response Types
