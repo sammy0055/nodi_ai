@@ -4,7 +4,7 @@ import { NotificationPriority, RelatedNotificationEntity } from '../data/data-ty
 import { ChatService } from '../mcp/ChatService';
 import { MCPChatBot } from '../mcp/client';
 import { NotificationModel } from '../models/notification.model';
-import { IWhatSappSettings } from '../types/whatsapp-settings';
+import { IWhatSappSettings, WhatsappFlowLabel } from '../types/whatsapp-settings';
 import { decrypt } from '../utils/crypto-utils';
 import { run } from './migration';
 import { sendEmail, sendVerificationEmail } from '../utils/send-email';
@@ -118,10 +118,18 @@ const body = {
   },
 };
 const ZONES = [
-  { id: 'zone_1', title: 'Zone 1' },
-  { id: 'zone_2', title: 'Zone 2' },
-  { id: 'zone_3', title: 'Zone 3' },
-  { id: 'zone_4', title: 'Zone 4' },
+  {
+    id: 'ec7eb050-f428-4be3-bfe2-e99e39b624fe',
+    title: 'Sandwich Tawouk',
+  },
+  {
+    id: 'ec7eb050-f428-4be3-bfe2-e99e39b624fe',
+    title: 'Sandwich Tawouk',
+  },
+  {
+    id: '1b808a7d-8ce9-4da2-9f00-9885b7498ea1',
+    title: 'Caesar Salad',
+  },
 ];
 const flowbody = {
   messaging_product: 'whatsapp',
@@ -183,7 +191,7 @@ const bodys = {
         flow_action: 'navigate',
         flow_action_payload: {
           screen: 'ITEMS_SELECTION',
-          data: JSON.stringify({ status: 'active', items: ZONES,  flowLabel: 'ADVANCE_PEOPLE' }),
+          data: JSON.stringify({ status: 'active', items: ZONES, flowLabel: WhatsappFlowLabel.PRODUCT_ITEMS_FLOW }),
         },
       },
     },
@@ -197,11 +205,20 @@ const actionPayload = {
     required: false,
     label: 'Add Ingredients',
     description: 'Add an extra ingredient to the product. Example: add cheese, add bacon, add olive.',
-    flowLabel: 'ADVANCE_PEOPLE',
+    flowLabel: WhatsappFlowLabel.PRODUCT_ITEMS_FLOW,
     items: [
-      { id: '122', title: 'garlic' },
-      { id: '1232', title: 'add bacon' },
-      { id: '1232', title: 'welcome onboard' },
+      {
+        id: 'ec7eb050-f428-4be3-bfe2-e99e39b624fe',
+        title: 'Sandwich Tawouk',
+      },
+      {
+        id: 'ec7eb050-f428-4be3-bfe2-e99e39b624fe',
+        title: 'Sandwich Tawouk',
+      },
+      {
+        id: '1b808a7d-8ce9-4da2-9f00-9885b7498ea1',
+        title: 'Caesar Salad',
+      },
     ],
   },
 };
@@ -457,8 +474,8 @@ function formatCatalogMessage(items: any[]): any {
 //   { "product_retailer_id": "A", "quantity": 2 },
 //   { "product_retailer_id": "B", "quantity": 1 }
 // ]));
-console.log('====================================');
-// sendMessage();
+// console.log('====================================');
+sendMessage();
 // getConversationHistory();
 // console.log('====================================');
 // console.log(getEstimatedTime("1970-01-01 03:00:00+00" as any));

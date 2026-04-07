@@ -501,6 +501,12 @@ export class ChatService {
   }
 
   async sendWhatSappOrderedItemsFlowInteractiveMessage(args: SendWhatSappOrderedItemsFlowProps) {
+    function addPrefixToIds(items: { id: string; title: string }[]) {
+      return items.map((item, index) => ({
+        ...item,
+        id: `${item.id}__${index}`, // originalId__index
+      }));
+    }
     const body = {
       messaging_product: 'whatsapp',
       to: args.recipientPhoneNumber,
@@ -529,7 +535,7 @@ export class ChatService {
               screen: 'ITEMS_SELECTION',
               data: JSON.stringify({
                 status: 'active',
-                items: args.items,
+                items: addPrefixToIds(args.items),
                 flowLabel: WhatsappFlowLabel.PRODUCT_ITEMS_FLOW,
               }),
             },
