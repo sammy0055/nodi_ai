@@ -307,8 +307,16 @@ export async function processMessages(whatsappBusinessId: string, msg: WhatsAppM
 }
 
 function formatCatalogMessage(items: ProductItem[]): string {
-  const products = items.map((i) => ({ id: i.product_retailer_id, quantity: i.quantity }));
+  const products = items.flatMap((i) =>
+    Array.from({ length: i.quantity }, () => ({
+      id: i.product_retailer_id,
+      quantity: 1,
+    }))
+  );
+
   const stringifiedProducts = JSON.stringify(products);
-  const prompt = `here is a an array of products ids and quantity a customer has selected, retrieve this products and complete the order process.\n product_ids:${stringifiedProducts}`;
+
+  const prompt = `here is a an array of products ids and quantity i have selected, retrieve this products and complete the order process.\n product_ids:${stringifiedProducts}`;
+
   return prompt;
 }

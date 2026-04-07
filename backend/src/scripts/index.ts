@@ -438,7 +438,27 @@ const getConversationHistory = async () => {
   }
 };
 
-sendMessage();
+function formatCatalogMessage(items: any[]): any {
+  const products = items.flatMap((i) =>
+    Array.from({ length: i.quantity }, () => ({
+      id: i.product_retailer_id,
+      quantity: 1,
+    }))
+  );
+
+  const stringifiedProducts = JSON.stringify(products);
+
+  const prompt = `here is a an array of products ids and quantity i have selected, retrieve this products and complete the order process.\n product_ids:${stringifiedProducts}`;
+
+  return prompt;
+}
+// console.log('====================================');
+// console.log(formatCatalogMessage([
+//   { "product_retailer_id": "A", "quantity": 2 },
+//   { "product_retailer_id": "B", "quantity": 1 }
+// ]));
+console.log('====================================');
+// sendMessage();
 // getConversationHistory();
 // console.log('====================================');
 // console.log(getEstimatedTime("1970-01-01 03:00:00+00" as any));
