@@ -272,6 +272,15 @@ async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) 
           footerText: response?.footerText,
         });
         break;
+      case 'greeting-flow':
+         await chat.sendWhatSappGreetingInteractiveMessage({
+          recipientPhoneNumber: userPhoneNumber,
+          headingText: response?.headingText,
+          bodyText: response?.bodyText,
+          buttonText: response.buttonText,
+          footerText: response?.footerText,
+        });
+        break;
       default:
         console.error('admin: wrong message type from chatbot');
         break;
