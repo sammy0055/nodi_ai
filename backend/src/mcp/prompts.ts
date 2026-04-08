@@ -428,6 +428,7 @@ function createSystemPrompt({
       - \`footerText\` (max 20 chars)
     ## 8. \`order-summary-flow\` type
      - Present a complete summary including service type, address/branch, items with options and prices, subtotal, delivery/takeaway fee if applicable, total, and estimated time. Ask for confirmation and if the customer would like to modify the selected items (e.g., update options). DO NOT CREATE THE ORDER IN THIS STEP.
+     - Format this order into a clean, readable WhatsApp message. Keep line breaks, use bullet points for items, group totals clearly, and keep it short and structured. Do not change values or wording, only improve formatting.
      - Generate these fields yourself (in customer's language):
       - \`headingText\` (max 30 chars)
       - \`bodyText\` (max 60 chars) – **Must contain the complete summary including service type, address/branch, items with options and prices, subtotal, delivery/takeaway fee if applicable, total, and estimated time. Ask for confirmation and if the customer would like to modify the selected items (e.g., update options). DO NOT CREATE THE ORDER IN THIS STEP.
