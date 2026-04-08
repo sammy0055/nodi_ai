@@ -178,6 +178,7 @@ function createSystemPrompt({
     4. **After address/branch confirmed** (HARD):
       - Always send the catalog using \`show_product_catalog\`.
       - **If the customer asks for a specific product by name** (e.g., “I want a chicken sandwich”):
+        - (VERY HARD) you **MUST** send the catalog.
         - Do **NOT** match, select, or add that product directly.
         - Do **NOT** use product information from chat history.
         - **Always send the catalog** (same as above).
