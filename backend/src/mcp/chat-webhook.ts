@@ -87,7 +87,7 @@ chatRoute.post('/chat-webhook', async (req, res) => {
             await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
           }
           if (msg?.interactive?.type === 'button_reply') {
-            const listPayload = msg?.interactive?.list_reply as any;
+            const listPayload = msg?.interactive?.button_reply as any;
             const text =
               listPayload.title === 'Confirm'
                 ? 'yes, i confirm'

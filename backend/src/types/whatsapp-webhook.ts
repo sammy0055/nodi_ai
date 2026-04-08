@@ -76,6 +76,10 @@ interface Interative {
     title: string;
     description: string;
   };
+  button_reply?: {
+    id: string;
+    title: string;
+  };
 }
 
 interface AudioMessage {
