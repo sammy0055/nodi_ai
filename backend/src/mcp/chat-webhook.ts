@@ -73,7 +73,7 @@ chatRoute.post('/chat-webhook', async (req, res) => {
           console.log('Got message:', msg.id, newMsg.text?.body);
           await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
         } else if (msg.type === 'interactive') {
-          const payload = JSON.parse(msg.interactive?.nfm_reply.response_json as any);
+         
           if (msg?.interactive?.type === 'list_reply') {
             const listPayload = JSON.parse(msg?.interactive?.list_reply as any);
 
@@ -87,6 +87,8 @@ chatRoute.post('/chat-webhook', async (req, res) => {
             console.log('Got message:', msg.id, newMsg.text?.body);
             await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
           }
+
+           const payload = JSON.parse(msg.interactive?.nfm_reply.response_json as any);
 
           if (payload?.zone_id || payload?.area_id) {
             const selectedZone = await ZoneModel.findByPk(payload?.zone_id);
