@@ -86,6 +86,27 @@ chatRoute.post('/chat-webhook', async (req, res) => {
             console.log('Got message:', msg.id, newMsg.text?.body);
             await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
           }
+          if (msg?.interactive?.type === 'button_reply') {
+            const listPayload = msg?.interactive?.list_reply as any;
+            const text =
+              listPayload.title === 'confirm'
+                ? 'yes, i confirm'
+                : listPayload.title === 'edit'
+                  ? 'i want to edit the order'
+                  : listPayload.title === 'cancel'
+                    ? 'i want to cancel the order'
+                    : null;
+            if (!text) throw new Error('wrong message title for button_reply');
+            const newMsg = {
+              ...msg,
+              text: {
+                body: text,
+              },
+            };
+
+            console.log('Got message:', msg.id, newMsg.text?.body);
+            await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
+          }
 
           const payload = JSON.parse(msg.interactive?.nfm_reply.response_json as any);
 

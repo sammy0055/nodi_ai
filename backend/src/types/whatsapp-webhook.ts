@@ -60,7 +60,7 @@ interface Order {
 }
 
 interface Interative {
-  type: 'nfm_reply' | 'list_reply';
+  type: 'nfm_reply' | 'list_reply' | 'button_reply';
   nfm_reply: {
     response_json: {
       zone_id: string;

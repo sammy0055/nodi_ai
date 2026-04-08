@@ -312,7 +312,6 @@ const reply_btn = {
           reply: {
             id: 'confirm_order',
             title: 'Confirm',
-            description:"yes, i confirm the order"
             
           },
         },
@@ -321,15 +320,13 @@ const reply_btn = {
           reply: {
             id: 'edit_order',
             title: 'Edit',
-            description:"i want to edit the order"
           },
         },
             {
           type: 'reply',
           reply: {
             id: 'cancel_order',
-            title: 'Cancel',
-            description:"cancel the order"
+            title: 'cancel',
           },
         },
       ],
