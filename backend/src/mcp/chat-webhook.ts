@@ -342,6 +342,15 @@ async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) 
           footerText: response?.footerText,
         });
         break;
+      case 'customize-order-flow':
+        await chat.sendWhatSappSingleUpsellingProductInteractiveMessage({
+          recipientPhoneNumber: userPhoneNumber,
+          headingText: response?.headingText,
+          bodyText: response?.bodyText,
+          buttonText: response.buttonText,
+          footerText: response?.footerText,
+        });
+        break;
       case 'upselling-single-item-flow':
         await chat.sendWhatSappSingleUpsellingProductInteractiveMessage({
           recipientPhoneNumber: userPhoneNumber,

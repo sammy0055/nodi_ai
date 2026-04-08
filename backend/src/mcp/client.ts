@@ -48,6 +48,14 @@ const structuredResponseFormat = z.object({
     }),
 
     z.object({
+      type: z.literal('customize-order-flow'),
+      headingText: z.string().describe('short descriptive message that appears inside the card heading'),
+      bodyText: z.string().describe('short descriptive message that appears inside the card body'),
+      footerText: z.string().describe('short descriptive message that appears inside the card footer'),
+      buttonText: z.string().describe('short action label for the card button, like “open form”'),
+    }),
+
+    z.object({
       type: z.literal('upselling-multiple-item-flow'),
       items: z.array(z.object({ id: z.string(), title: z.string() })),
       flowId: z.string(),

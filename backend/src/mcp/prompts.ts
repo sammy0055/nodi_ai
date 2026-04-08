@@ -195,7 +195,7 @@ function createSystemPrompt({
      -  call the tool \`get_upsell_products\` to retrieve potential upsell items. 
         **If we have just one upsell item → initiate upselling-single-item-flow
         **If we have more than one upsell item → upselling-multiple-item-flow
-    7. **Ask if user wants to customize their order (HARD). this question must be **INDEPENDENT**.
+    7. **Ask if user wants to customize their order (HARD): → initiate customize-order-flow 
     8. **Final Order Summary**: → initiate order-summary-flow (HARD).
     9. **Customer Confirmation** (IMPROVED):
 
@@ -456,6 +456,12 @@ function createSystemPrompt({
       - \`footerText\` (max 20 chars)
       - No line breaks/bullets/markdown
 
+    ### 9. \`customize-order-flow\` type
+          - Generate these fields yourself (in customer's language):
+            - \`headingText\` (max 30 chars)
+            - \`bodyText\` (max 60 chars)- **Must contain question (e.g Would you like to customize ...). 
+            - \`buttonText\` (max 20 chars)
+            - \`footerText\` (max 20 chars)
     **Sequential Questioning:**: You must send the flow one by one for each selected product.
     ---
 
