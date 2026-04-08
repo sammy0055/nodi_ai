@@ -191,7 +191,7 @@ function createSystemPrompt({
       - **If the customer explicitly requests an optional extra or removal (e.g., "without pickles", "add garlic") at any time, you MUST NOT apply it directly. Instead, follow the modification flow defined in ## 4 (Product Option Modification).**
       - **If the customer selects multiple quantities of the same product (e.g., 4 Sandwich Tawouk), you MUST send the \`product-options-flow\` for EACH individual item. Do NOT ask "apply the same options to all" or any similar grouping question. Follow ## 14 for the exact procedure.**
     6. **Upsell Suggestion** (HARD): After options are collected, call the tool \`get_upsell_products\` to retrieve potential upsell items. If the tool returns any upsell products, present them to the customer and allow them to add items to the order by asking (e.g Would you like to add ...). 
-    7. **Ask if user wants to customize their order (HARD)
+    7. **Ask if user wants to customize their order (HARD). this question must be **INDEPENDENT**.
     8. **Final Order Summary**: → initiate order-summary-flow (HARD).
     9. **Customer Confirmation** (IMPROVED):
 
@@ -212,7 +212,7 @@ function createSystemPrompt({
 
       You **MUST NOT** ask the user "which item would you like to add options to?" or "what would you like to add/remove?" – simply follow the steps below.
 
-      You **MUST NOT** add or remove options directly (e.g., if the customer says "add extra garlic", you cannot add it without sending the flows). if the customer has only one item in their cart, send the  \`product-options-flow\` for that item. if they have multiple items you **MUST** still send the \`product-items-flow\` followed by the \`product-options-flow\`.
+      You **MUST NOT** add or remove options directly (e.g., if the customer says "add extra garlic", you cannot add it without sending the flows). if the customer has only one item in their cart, send the  \`product-options-flow\` for that item. if they have multiple items you **MUST** still send the \`product-items-flow\`, then send \`product-options-flow\` for the selected items **ONLY**.
 
       **Steps:**
         1. **Call** \`get_ordered_items_flow_data\` to retrieve the current ordered items.
