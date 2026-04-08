@@ -335,7 +335,7 @@ async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) 
         });
         break;
       case 'upselling-multiple-item-flow':
-        await chat.sendWhatSappOrderedItemsFlowInteractiveMessage({
+        await chat.sendWhatSappKUPsellingItemsFlowInteractiveMessage({
           recipientPhoneNumber: userPhoneNumber,
           items: response.items,
           flowId: response?.flowId,
