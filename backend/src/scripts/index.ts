@@ -256,6 +256,42 @@ const productOptionFlowBody = {
   },
 };
 
+const listInterate = {
+   messaging_product: 'whatsapp',
+  recipient_type: 'individual',
+  to: '2348171727284',
+  type: 'interactive',
+  interactive: {
+    type: 'list',
+    body: {
+      text: 'Please select an item',
+    },
+    footer: {
+      text: 'Powered by your app',
+    },
+    action: {
+      button: 'View options',
+      sections: [
+        {
+          title: 'Menu',
+          rows: [
+            {
+              id: 'item_1',
+              title: 'Item 1',
+              description: 'Optional description',
+            },
+            {
+              id: 'item_2',
+              title: 'Item 2',
+              description: 'Optional description',
+            },
+          ],
+        },
+      ],
+    },
+  },
+};
+
 const sendMessage = async () => {
   console.log('running flow send.........');
 
@@ -267,7 +303,7 @@ const sendMessage = async () => {
         Authorization: `Bearer ${process.env.META_BUSINESS_SYSTEM_TOKEN}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(bodys),
+      body: JSON.stringify(listInterate),
     });
 
     if (!res.ok) {

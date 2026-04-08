@@ -4,7 +4,6 @@ import { ChatService } from './ChatService';
 import { ProductItem, WhatsAppMessage, WhatsAppWebhookPayload } from '../types/whatsapp-webhook';
 import { ZoneModel } from '../models/zones.model';
 import { AreaModel } from '../models/area.model';
-import { queueProducer } from '../helpers/rabbitmq';
 import { getVoiceNote } from '../helpers/download_voice_note';
 import { NotificationModel } from '../models/notification.model';
 import { NotificationPriority, RelatedNotificationEntity } from '../data/data-types';

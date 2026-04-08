@@ -79,6 +79,15 @@ interface SendWhatSappProductOptionsFlowProps {
   footerText?: string;
 }
 
+interface SendWhatSappGreetingsProps {
+  WhatSappBusinessPhoneNumberId?: string;
+  recipientPhoneNumber: string;
+  headingText: string;
+  bodyText: string;
+  buttonText: string;
+  footerText?: string;
+}
+
 export class ChatService {
   protected organizationId: string = '';
   protected conversationId: string = '';
@@ -599,6 +608,63 @@ export class ChatService {
               }),
             },
           },
+        },
+      },
+    };
+
+    try {
+      const url = `https://graph.facebook.com/v20.0/${this.WhatSappBusinessPhoneNumberId}/messages`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.whatsappAccessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(`Error ${res.status}: ${errorData.error.message}`);
+      }
+    } catch (error: any) {
+      console.log('WHATSAPP-MESSAGE', error);
+    }
+  }
+
+  async sendWhatSappGreetingInteractiveMessage(args: SendWhatSappGreetingsProps) {
+    const body = {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to: args.recipientPhoneNumber,
+      type: 'interactive',
+      interactive: {
+        type: 'list',
+        body: {
+          text: args.bodyText,
+        },
+        footer: {
+          text: args.footerText,
+        },
+        action: {
+          button: args.buttonText,
+          sections: [
+            {
+              title: 'Menu',
+              rows: [
+                {
+                  id: 'item_1',
+                  title: 'Item 1',
+                  description: 'Optional description',
+                },
+                {
+                  id: 'item_2',
+                  title: 'Item 2',
+                  description: 'Optional description',
+                },
+              ],
+            },
+          ],
         },
       },
     };

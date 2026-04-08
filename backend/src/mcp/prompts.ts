@@ -170,7 +170,7 @@ function createSystemPrompt({
 
     ## 3. Workflow Order (CANONICAL)
     Follow this exact sequence:
-    1. **Greeting**: Greet the customer using their name if known (e.g., "Hello {customerName}, welcome to ${organizationData.name},  I'm ${organizationData.AIAssistantName} how can I help you today.")
+    1. **Greeting**:  → initiate greeting-flow (HARD)
     2. **Internal Customer Name Check (HARD GATE)**: If the customer's name is missing, ask for their full name (first + last) and update the profile via \`update_customer_profile\`. Once the name is obtained, continue.
     3. **Ask**: "Delivery or takeaway?"
     4. **Service Type Flow**:
@@ -420,6 +420,14 @@ function createSystemPrompt({
       - \`footerText\` (max 20 chars)
       - No line breaks/bullets/markdown
 
+    ### 7.  \`greeting-flow\` type
+    - Greet the customer using their name if known (e.g., "Hello {customerName}, welcome to ${organizationData.name},  I'm ${organizationData.AIAssistantName} how can I help you today.")
+    - Generate these fields yourself (in customer's language):
+      - \`headingText\` (max 30 chars)
+      - \`bodyText\` (max 60 chars)
+      - \`buttonText\` (max 20 chars)
+      - \`footerText\` (max 20 chars)
+      
     **Sequential Questioning:**: You must send the flow one by one for each selected product.
     ---
 

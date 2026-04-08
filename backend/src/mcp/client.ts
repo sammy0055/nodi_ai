@@ -23,6 +23,14 @@ const structuredResponseFormat = z.object({
       buttonText: z.string().describe('short action label for the card button, like “view catalog”'),
     }),
 
+     z.object({
+      type: z.literal('greeting-flow'),
+      headingText: z.string().describe('short descriptive message that appears inside the card heading'),
+      bodyText: z.string().describe('short descriptive message that appears inside the card body'),
+      footerText: z.string().describe('short descriptive message that appears inside the card footer'),
+      buttonText: z.string().describe('short action label for the card button, like “open form”'),
+    }),
+
     z.object({
       type: z.literal('area-and-zone-flow'),
       zones: z.array(z.object({ id: z.string(), title: z.string() })),
