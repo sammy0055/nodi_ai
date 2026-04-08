@@ -61,6 +61,7 @@ export enum WhatsappFlowLabel {
   BRANCHES_FLOW = 'BRANCHES_FLOW',
   PRODUCT_OPTIONS_FLOW = 'PRODUCT_OPTIONS_FLOW',
   PRODUCT_ITEMS_FLOW = 'PRODUCT_ITEMS_FLOW',
+  UPSELLING_ITEMS_FLOW = 'UPSELLING_ITEMS_FLOW',
 }
 export interface createWhatsappFlowArgs {
   accessToken: string;

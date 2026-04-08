@@ -841,7 +841,7 @@ export class ChatService {
               data: JSON.stringify({
                 status: 'active',
                 items: args.items,
-                flowLabel: WhatsappFlowLabel.PRODUCT_ITEMS_FLOW,
+                flowLabel: WhatsappFlowLabel.UPSELLING_ITEMS_FLOW,
               }),
             },
           },

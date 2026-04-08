@@ -196,6 +196,23 @@ chatRoute.post('/chat-webhook', async (req, res) => {
 
             console.log('Got message:', msg.id, newMsg.text?.body);
             await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
+          } else if (payload.flowLabel === WhatsappFlowLabel.UPSELLING_ITEMS_FLOW) {
+            const products = await ProductModel.findAll({
+              where: { id: payload.item_id },
+              attributes: ['id', 'name'],
+            });
+
+            const newMsg = {
+              ...msg,
+              text: {
+                body: JSON.stringify({
+                  selectedProducts: products,
+                }),
+              },
+            };
+
+            console.log('Got message:', msg.id, newMsg.text?.body);
+            await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
           } else {
             console.log('Got message:', msg.id, msg);
             await handleIncomingMessage({ whatsappBusinessId: entry.id, msg, processMessages });

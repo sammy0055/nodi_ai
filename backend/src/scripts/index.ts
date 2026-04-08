@@ -119,16 +119,12 @@ const body = {
 };
 const ZONES = [
   {
-    id: 'ec7eb050-f428-4be3-bfe2-e99e39b624fe',
-    title: 'Sandwich Tawouk',
+    id: 'ca2e5b75-2758-4742-8471-5671a5c96996',
+    title: 'Grilled Potato',
   },
   {
-    id: 'ec7eb050-f428-4be3-bfe2-e99e39b624fe',
-    title: 'Sandwich Tawouk',
-  },
-  {
-    id: '1b808a7d-8ce9-4da2-9f00-9885b7498ea1',
-    title: 'Caesar Salad',
+    id: 'e4110762-415d-4184-85d1-322ef2a067ac',
+    title: 'Biscuit au chocolat',
   },
 ];
 const flowbody = {
@@ -150,7 +146,7 @@ const flowbody = {
     action: {
       name: 'flow',
       parameters: {
-        flow_id: '906997378318320',
+        flow_id: '933470956093041',
         flow_message_version: '3',
         flow_token: 'prod-token-001',
         flow_cta: 'Open form',
@@ -312,7 +308,6 @@ const reply_btn = {
           reply: {
             id: 'confirm_order',
             title: 'Confirm',
-            
           },
         },
         {
@@ -322,7 +317,7 @@ const reply_btn = {
             title: 'Edit',
           },
         },
-            {
+        {
           type: 'reply',
           reply: {
             id: 'cancel_order',
@@ -345,7 +340,7 @@ const sendMessage = async () => {
         Authorization: `Bearer ${process.env.META_BUSINESS_SYSTEM_TOKEN}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(reply_btn),
+      body: JSON.stringify(bodys),
     });
 
     if (!res.ok) {
