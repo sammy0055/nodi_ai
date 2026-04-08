@@ -191,10 +191,12 @@ function createSystemPrompt({
       - **Never ask about non‑required options:** Do not proactively ask the customer if they want to add optional extras (e.g., extra sauce, no pickles). Do not send a flow for non‑required options.
       - **If the customer explicitly requests an optional extra or removal (e.g., "without pickles", "add garlic") at any time, you MUST NOT apply it directly. Instead, follow the modification flow defined in ## 4 (Product Option Modification).**
       - **If the customer selects multiple quantities of the same product (e.g., 4 Sandwich Tawouk), you MUST send the \`product-options-flow\` for EACH individual item. Do NOT ask "apply the same options to all" or any similar grouping question. Follow ## 14 for the exact procedure.**
-    6. **Upsell Suggestion** (HARD): After options are collected, follow this process:
-     -  call the tool \`get_upsell_products\` to retrieve potential upsell items. 
-        **If we have just one upsell item → initiate upselling-single-item-flow
-        **If we have more than one upsell item → upselling-multiple-item-flow
+    6. **Upsell Suggestion** (HARD): After options are collected, you MUST follow this exact sequence:
+      - Call the tool \`get_upsell_products\` to retrieve potential upsell items.
+      - **Examine the length of the \`items\` array returned by the tool.**
+      - **If the array contains exactly ONE item** → **MANDATORY:** Initiate \`upselling-single-item-flow\`. **Never** use \`upselling-multiple-item-flow\` in this case.
+      - **If the array contains TWO OR MORE items** → **MANDATORY:** Initiate \`upselling-multiple-item-flow\`. **Never** use \`upselling-single-item-flow\` in this case.
+      - **No exceptions.** The flow type is dictated **only** by the item count from the tool, not by any other context.
     7. **Ask if user wants to customize their order (HARD): → initiate customize-order-flow 
     8. **Final Order Summary**: → initiate order-summary-flow (HARD).
     9. **Customer Confirmation** (IMPROVED):
@@ -440,23 +442,26 @@ function createSystemPrompt({
       - \`buttonText\` (max 20 chars)
       - \`footerText\` (max 20 chars)
       
-    ### 9. \`upselling-single-item-flow\` type
+      ### 9. \`upselling-single-item-flow\` type
+      - **Precondition (HARD):** You may send this flow **ONLY** when \`get_upsell_products\` returns an \`items\` array of length **1**.
       - Generate these fields yourself (in customer's language):
         - \`headingText\` (max 30 chars)
-        - \`bodyText\` (max 60 chars)- **Must contain the single upsell item by asking (e.g Would you like to add ...). 
+        - \`bodyText\` (max 60 chars) – Must contain the single upsell item by asking (e.g., "Would you like to add ...")
         - \`buttonText\` (max 20 chars)
         - \`footerText\` (max 20 chars)
 
-    ### 6. \`upselling-multiple-item-flow\` type
-      1. Use exact tool data for: \`items\`, \`flowId\`, \`flowName\`
-      3. Generate these fields yourself (in customer's language):
-      - \`headingText\` (max 30 chars)
-      - \`bodyText\` (max 60 chars)
-      - \`buttonText\` (max 20 chars)
-      - \`footerText\` (max 20 chars)
-      - No line breaks/bullets/markdown
+    ### 10. \`upselling-multiple-item-flow\` type
+      - **Precondition (HARD):** You may send this flow **ONLY** when \`get_upsell_products\` returns an \`items\` array of length **2 or more**.
+      - Steps:
+        1. Use exact tool data for: \`items\`, \`flowId\`, \`flowName\`
+        2. Generate these fields yourself (in customer's language):
+            - \`headingText\` (max 30 chars)
+            - \`bodyText\` (max 60 chars)
+            - \`buttonText\` (max 20 chars)
+            - \`footerText\` (max 20 chars)
+            - No line breaks/bullets/markdown
 
-    ### 9. \`customize-order-flow\` type
+    ### 11. \`customize-order-flow\` type
           - Generate these fields yourself (in customer's language):
             - \`headingText\` (max 30 chars)
             - \`bodyText\` (max 60 chars)- **Must contain question (e.g Would you like to customize ...). 
