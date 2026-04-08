@@ -75,7 +75,7 @@ chatRoute.post('/chat-webhook', async (req, res) => {
         } else if (msg.type === 'interactive') {
          
           if (msg?.interactive?.type === 'list_reply') {
-            const listPayload = JSON.parse(msg?.interactive?.list_reply as any);
+            const listPayload = msg?.interactive?.list_reply as any
 
             const newMsg = {
               ...msg,
