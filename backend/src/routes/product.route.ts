@@ -17,7 +17,12 @@ productRoute.post(
   validatecreateProductSchemaBody(),
   async (req, res) => {
     try {
-      const data = await ProductController.createProduct(req.body, req.user!, req.file!);
+      const newProduct = { ...req.body };
+      function toBoolean(value: string) {
+        return value === 'true';
+      }
+      newProduct.isUpSelling = toBoolean(req.body?.isUpSelling);
+      const data = await ProductController.createProduct(newProduct, req.user!, req.file!);
       const response: APIResponseFormat<any> = {
         message: 'product created successfully',
         data,

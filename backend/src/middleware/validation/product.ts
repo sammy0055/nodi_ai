@@ -22,7 +22,7 @@ export const productSchema = z.object({
   metaProductId: z.string().optional(),
   imageUrl: z.string().url().optional(),
   fileFullPath: z.string().optional(),
-  isUpSelling: z.boolean().optional(),
+  isUpSelling: z.string().optional(),
 });
 
 export function validatecreateProductSchemaBody() {
