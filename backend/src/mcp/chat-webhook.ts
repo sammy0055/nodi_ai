@@ -95,7 +95,7 @@ chatRoute.post('/chat-webhook', async (req, res) => {
                   ? 'i want to edit the order'
                   : listPayload.title === 'Cancel'
                     ? 'i want to cancel the order'
-                    : null;
+                    : listPayload.title;
             if (!text) throw new Error('wrong message title for button_reply');
             const newMsg = {
               ...msg,
@@ -319,6 +319,27 @@ async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) 
       case 'order-summary-flow':
         await chat.sendWhatSappOrderSummaryInteractiveMessage({
           recipientPhoneNumber: userPhoneNumber,
+          headingText: response?.headingText,
+          bodyText: response?.bodyText,
+          buttonText: response.buttonText,
+          footerText: response?.footerText,
+        });
+        break;
+      case 'upselling-single-item-flow':
+        await chat.sendWhatSappSingleUpsellingProductInteractiveMessage({
+          recipientPhoneNumber: userPhoneNumber,
+          headingText: response?.headingText,
+          bodyText: response?.bodyText,
+          buttonText: response.buttonText,
+          footerText: response?.footerText,
+        });
+        break;
+      case 'upselling-multiple-item-flow':
+        await chat.sendWhatSappOrderedItemsFlowInteractiveMessage({
+          recipientPhoneNumber: userPhoneNumber,
+          items: response.items,
+          flowId: response?.flowId,
+          flowName: response?.flowName,
           headingText: response?.headingText,
           bodyText: response?.bodyText,
           buttonText: response.buttonText,

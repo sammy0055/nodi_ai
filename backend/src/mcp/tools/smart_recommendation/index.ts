@@ -4,9 +4,16 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp';
 import { ManageVectorStore } from '../../../helpers/vector-store';
 import { IArea } from '../../../types/area';
 import { models } from '../../../models';
+import { WhatsappFlowLabel } from '../../../types/whatsapp-settings';
 
-const { ProductModel, BranchesModel, BranchInventoryModel, ProductOptionChoiceModel, ProductOptionModel } = models;
-
+const {
+  ProductModel,
+  BranchesModel,
+  BranchInventoryModel,
+  ProductOptionChoiceModel,
+  ProductOptionModel,
+  WhatSappSettingsModel,
+} = models;
 
 export const getUpsellingProducts = (server: McpServer) => {
   return server.registerTool(
@@ -35,8 +42,24 @@ export const getUpsellingProducts = (server: McpServer) => {
           };
         }
 
+        const items = upsellingProducts.map((item) => ({ id: item.id, title: item.name }));
+
+        const whatsappSettings = await WhatSappSettingsModel.findOne({
+          where: { organizationId: organizationId },
+        });
+
+        const flow = whatsappSettings?.whatsappTemplates?.find(
+          (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW
+        );
+
+        const data = {
+          items,
+          flowId: flow?.type === 'flow' && flow?.data.flowId,
+          flowName: flow?.type === 'flow' && flow?.data.flowName,
+        };
+
         return {
-          content: [{ type: 'text', text: JSON.stringify(upsellingProducts), mimeType: 'application/json' }],
+          content: [{ type: 'text', text: JSON.stringify(data), mimeType: 'application/json' }],
         };
       } catch (error: any) {
         console.error(`MCP-ERROR:${error.message}`);

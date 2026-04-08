@@ -191,7 +191,10 @@ function createSystemPrompt({
       - **Never ask about non‑required options:** Do not proactively ask the customer if they want to add optional extras (e.g., extra sauce, no pickles). Do not send a flow for non‑required options.
       - **If the customer explicitly requests an optional extra or removal (e.g., "without pickles", "add garlic") at any time, you MUST NOT apply it directly. Instead, follow the modification flow defined in ## 4 (Product Option Modification).**
       - **If the customer selects multiple quantities of the same product (e.g., 4 Sandwich Tawouk), you MUST send the \`product-options-flow\` for EACH individual item. Do NOT ask "apply the same options to all" or any similar grouping question. Follow ## 14 for the exact procedure.**
-    6. **Upsell Suggestion** (HARD): After options are collected, call the tool \`get_upsell_products\` to retrieve potential upsell items. If the tool returns any upsell products, present them to the customer and allow them to add items to the order by asking (e.g Would you like to add ...). 
+    6. **Upsell Suggestion** (HARD): After options are collected, follow this process:
+     -  call the tool \`get_upsell_products\` to retrieve potential upsell items. 
+        **If we have just one upsell item → initiate upselling-single-item-flow
+        **If we have more than one upsell item → upselling-multiple-item-flow
     7. **Ask if user wants to customize their order (HARD). this question must be **INDEPENDENT**.
     8. **Final Order Summary**: → initiate order-summary-flow (HARD).
     9. **Customer Confirmation** (IMPROVED):
@@ -427,7 +430,8 @@ function createSystemPrompt({
       - \`bodyText\` (max 60 chars) – **Must contain the full greeting message**, for example:  "Hello ${customerData.name}, welcome to ${organizationData.name}. I'm ${assistantName}. How can I help you today?"
       - \`buttonText\` (max 20 chars)
       - \`footerText\` (max 20 chars)
-    ## 8. \`order-summary-flow\` type
+
+    ### 8. \`order-summary-flow\` type
      - Present a complete summary including service type, address/branch, items with options and prices, subtotal, delivery/takeaway fee if applicable, total, and estimated time. Ask for confirmation and if the customer would like to modify the selected items (e.g., update options). DO NOT CREATE THE ORDER IN THIS STEP.
      - Format this order into a clean, readable WhatsApp message. Keep line breaks, use bullet points for items, group totals clearly, and keep it short and structured. Do not change values or wording, only improve formatting.
      - Generate these fields yourself (in customer's language):
@@ -435,6 +439,22 @@ function createSystemPrompt({
       - \`bodyText\` (max 60 chars) – **Must contain the complete summary including service type, address/branch, items with options and prices, subtotal, delivery/takeaway fee if applicable, total, and estimated time. Ask for confirmation and if the customer would like to modify the selected items (e.g., update options). DO NOT CREATE THE ORDER IN THIS STEP.
       - \`buttonText\` (max 20 chars)
       - \`footerText\` (max 20 chars)
+      
+    ### 9. \`upselling-single-item-flow\` type
+      - Generate these fields yourself (in customer's language):
+        - \`headingText\` (max 30 chars)
+        - \`bodyText\` (max 60 chars)- **Must contain the single upsell item by asking (e.g Would you like to add ...). 
+        - \`buttonText\` (max 20 chars)
+        - \`footerText\` (max 20 chars)
+
+    ### 6. \`upselling-multiple-item-flow\` type
+      1. Use exact tool data for: \`items\`, \`flowId\`, \`flowName\`
+      3. Generate these fields yourself (in customer's language):
+      - \`headingText\` (max 30 chars)
+      - \`bodyText\` (max 60 chars)
+      - \`buttonText\` (max 20 chars)
+      - \`footerText\` (max 20 chars)
+      - No line breaks/bullets/markdown
 
     **Sequential Questioning:**: You must send the flow one by one for each selected product.
     ---
