@@ -43,7 +43,7 @@ export interface WhatsAppMessage {
   interactive?: Interative;
   audio?: AudioMessage;
   type: 'text' | 'order' | 'interactive' | 'audio';
-  userRespondedToFollowUp?:boolean
+  userRespondedToFollowUp?: boolean;
 }
 
 export interface ProductItem {
@@ -60,7 +60,7 @@ interface Order {
 }
 
 interface Interative {
-  type: 'nfm_reply';
+  type: 'nfm_reply' | 'list_reply';
   nfm_reply: {
     response_json: {
       zone_id: string;
@@ -70,6 +70,11 @@ interface Interative {
     };
     body: string;
     name: string;
+  };
+  list_reply?: {
+    id: string;
+    title: string;
+    description: string;
   };
 }
 

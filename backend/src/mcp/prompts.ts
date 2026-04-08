@@ -424,10 +424,10 @@ function createSystemPrompt({
     - Greet the customer using their name if known (e.g., "Hello {customerName}, welcome to ${organizationData.name},  I'm ${organizationData.AIAssistantName} how can I help you today.")
     - Generate these fields yourself (in customer's language):
       - \`headingText\` (max 30 chars)
-      - \`bodyText\` (max 60 chars)
+      - \`bodyText\` (max 60 chars) – **Must contain the full greeting message**, for example:  "Hello ${customerData.name}, welcome to ${organizationData.name}. I'm ${assistantName}. How can I help you today?"
       - \`buttonText\` (max 20 chars)
       - \`footerText\` (max 20 chars)
-      
+
     **Sequential Questioning:**: You must send the flow one by one for each selected product.
     ---
 

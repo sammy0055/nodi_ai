@@ -320,12 +320,12 @@ export class ChatService {
       customerId: customer.id,
     });
 
-    await scheduleFollowup({
-      userPhoneNumber: customer.phone,
-      conversationId: conversation.id,
-      customerId: customer.id,
-      organizationId: this.organizationId,
-    });
+    // await scheduleFollowup({
+    //   userPhoneNumber: customer.phone,
+    //   conversationId: conversation.id,
+    //   customerId: customer.id,
+    //   organizationId: this.organizationId,
+    // });
     return res;
   }
 
@@ -654,13 +654,18 @@ export class ChatService {
               rows: [
                 {
                   id: 'item_1',
-                  title: 'Item 1',
-                  description: 'Optional description',
+                  title: 'Takeaway',
+                  description: 'I want to place an order for takeway',
                 },
                 {
                   id: 'item_2',
-                  title: 'Item 2',
-                  description: 'Optional description',
+                  title: 'Delivery',
+                  description: 'I want to place an order for delivery',
+                },
+                {
+                  id: 'item_3',
+                  title: 'Customer Service',
+                  description: 'I want to contact the your customer service',
                 },
               ],
             },
