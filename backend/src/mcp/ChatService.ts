@@ -715,7 +715,6 @@ export class ChatService {
               reply: {
                 id: 'confirm_order',
                 title: 'Confirm',
-                description: 'yes, i confirm the order',
               },
             },
             {
@@ -723,7 +722,6 @@ export class ChatService {
               reply: {
                 id: 'edit_order',
                 title: 'Edit',
-                description: 'i want to edit the order',
               },
             },
             {
@@ -731,7 +729,6 @@ export class ChatService {
               reply: {
                 id: 'cancel_order',
                 title: 'Cancel',
-                description: 'cancel the order',
               },
             },
           ],

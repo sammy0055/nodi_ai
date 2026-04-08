@@ -89,11 +89,11 @@ chatRoute.post('/chat-webhook', async (req, res) => {
           if (msg?.interactive?.type === 'button_reply') {
             const listPayload = msg?.interactive?.list_reply as any;
             const text =
-              listPayload.title === 'confirm'
+              listPayload.title === 'Confirm'
                 ? 'yes, i confirm'
-                : listPayload.title === 'edit'
+                : listPayload.title === 'Edit'
                   ? 'i want to edit the order'
-                  : listPayload.title === 'cancel'
+                  : listPayload.title === 'Cancel'
                     ? 'i want to cancel the order'
                     : null;
             if (!text) throw new Error('wrong message title for button_reply');
