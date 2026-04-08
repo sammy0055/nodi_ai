@@ -73,9 +73,8 @@ chatRoute.post('/chat-webhook', async (req, res) => {
           console.log('Got message:', msg.id, newMsg.text?.body);
           await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
         } else if (msg.type === 'interactive') {
-         
           if (msg?.interactive?.type === 'list_reply') {
-            const listPayload = msg?.interactive?.list_reply as any
+            const listPayload = msg?.interactive?.list_reply as any;
 
             const newMsg = {
               ...msg,
@@ -88,7 +87,7 @@ chatRoute.post('/chat-webhook', async (req, res) => {
             await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
           }
 
-           const payload = JSON.parse(msg.interactive?.nfm_reply.response_json as any);
+          const payload = JSON.parse(msg.interactive?.nfm_reply.response_json as any);
 
           if (payload?.zone_id || payload?.area_id) {
             const selectedZone = await ZoneModel.findByPk(payload?.zone_id);
@@ -289,6 +288,15 @@ async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) 
         break;
       case 'greeting-flow':
         await chat.sendWhatSappGreetingInteractiveMessage({
+          recipientPhoneNumber: userPhoneNumber,
+          headingText: response?.headingText,
+          bodyText: response?.bodyText,
+          buttonText: response.buttonText,
+          footerText: response?.footerText,
+        });
+        break;
+      case 'order-summary-flow':
+        await chat.sendWhatSappOrderSummaryInteractiveMessage({
           recipientPhoneNumber: userPhoneNumber,
           headingText: response?.headingText,
           bodyText: response?.bodyText,

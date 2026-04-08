@@ -693,4 +693,69 @@ export class ChatService {
       console.log('WHATSAPP-MESSAGE', error);
     }
   }
+
+  async sendWhatSappOrderSummaryInteractiveMessage(args: SendWhatSappGreetingsProps) {
+    const body = {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to: args.recipientPhoneNumber,
+      type: 'interactive',
+      interactive: {
+        type: 'button',
+        body: {
+          text: args.bodyText,
+        },
+        footer: {
+          text: args.footerText,
+        },
+        action: {
+          buttons: [
+            {
+              type: 'reply',
+              reply: {
+                id: 'confirm_order',
+                title: 'Confirm',
+                description: 'yes, i confirm the order',
+              },
+            },
+            {
+              type: 'reply',
+              reply: {
+                id: 'edit_order',
+                title: 'Edit',
+                description: 'i want to edit the order',
+              },
+            },
+            {
+              type: 'reply',
+              reply: {
+                id: 'cancel_order',
+                title: 'Cancel',
+                description: 'cancel the order',
+              },
+            },
+          ],
+        },
+      },
+    };
+
+    try {
+      const url = `https://graph.facebook.com/v20.0/${this.WhatSappBusinessPhoneNumberId}/messages`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.whatsappAccessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(`Error ${res.status}: ${errorData.error.message}`);
+      }
+    } catch (error: any) {
+      console.log('WHATSAPP-MESSAGE', error);
+    }
+  }
 }

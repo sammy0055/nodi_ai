@@ -257,7 +257,7 @@ const productOptionFlowBody = {
 };
 
 const listInterate = {
-   messaging_product: 'whatsapp',
+  messaging_product: 'whatsapp',
   recipient_type: 'individual',
   to: '2348171727284',
   type: 'interactive',
@@ -292,6 +292,51 @@ const listInterate = {
   },
 };
 
+const reply_btn = {
+  messaging_product: 'whatsapp',
+  recipient_type: 'individual',
+  to: '2348171727284',
+  type: 'interactive',
+  interactive: {
+    type: 'button',
+    body: {
+      text: 'Order summary (Takeaway)\nBranch: Miniyeh\n\nItems:\n• 1 x Makanek Franje (Add Ingredient: Garlic) – LBP 350,000\n\nTotals:\nSubtotal: LBP 350,000\nTakeaway: LBP 0\nTotal: LBP 350,000\n\nEstimated takeaway time: 20 minutes\n\nDo you confirm this order?',
+    },
+    footer: {
+      text: 'Select an option',
+    },
+    action: {
+      buttons: [
+        {
+          type: 'reply',
+          reply: {
+            id: 'confirm_order',
+            title: 'Confirm',
+            description:"yes, i confirm the order"
+            
+          },
+        },
+        {
+          type: 'reply',
+          reply: {
+            id: 'edit_order',
+            title: 'Edit',
+            description:"i want to edit the order"
+          },
+        },
+            {
+          type: 'reply',
+          reply: {
+            id: 'cancel_order',
+            title: 'Cancel',
+            description:"cancel the order"
+          },
+        },
+      ],
+    },
+  },
+};
+
 const sendMessage = async () => {
   console.log('running flow send.........');
 
@@ -303,7 +348,7 @@ const sendMessage = async () => {
         Authorization: `Bearer ${process.env.META_BUSINESS_SYSTEM_TOKEN}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(listInterate),
+      body: JSON.stringify(reply_btn),
     });
 
     if (!res.ok) {
