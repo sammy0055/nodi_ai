@@ -98,9 +98,9 @@ const PORT = appConfig.port;
 app.listen(PORT, async () => {
   await connectDB();
   await setupReviewQueues();
-  await setupFollowUPQueueProducer()
+  // await setupFollowUPQueueProducer()
   await queueConsumer();
-  await followUPQueueConsumer();
+  // await followUPQueueConsumer();
   await startReviewtWorkerConsumer();
   await vectorStore.initCollection();
   await startExpiryListener()

@@ -84,7 +84,7 @@ chatRoute.post('/chat-webhook', async (req, res) => {
             };
 
             console.log('Got message:', msg.id, newMsg.text?.body);
-            await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
+            return await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
           }
           if (msg?.interactive?.type === 'button_reply') {
             const listPayload = msg?.interactive?.button_reply as any;
@@ -105,7 +105,7 @@ chatRoute.post('/chat-webhook', async (req, res) => {
             };
 
             console.log('Got message:', msg.id, newMsg.text?.body);
-            await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
+            return await handleIncomingMessage({ whatsappBusinessId: entry.id, msg: newMsg, processMessages });
           }
 
           const payload = JSON.parse(msg.interactive?.nfm_reply.response_json as any);
