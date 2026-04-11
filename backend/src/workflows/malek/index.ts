@@ -189,7 +189,7 @@ export class MalekChatService {
     const result = await handler.call(this, workflowDraft, userMessage);
 
     // persist state update ONLY here
-    if (result.updatedDraft) {
+    if (result?.updatedDraft) {
       await setMessageInRedis(this.userPhoneNumber, {
         ...result.updatedDraft,
       } as any);
