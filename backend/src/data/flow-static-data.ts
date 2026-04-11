@@ -1,6 +1,12 @@
 type Language = 'en' | 'ar';
 
-export type FlowType = 'greeting-flow' | 'choose-lang-flow' | 'branch-flow' | 'catalog-flow';
+export type FlowType =
+  | 'greeting-flow'
+  | 'choose-lang-flow'
+  | 'branch-flow'
+  | 'catalog-flow'
+  | 'customize-order-flow'
+  | 'product-option-flow';
 
 export interface FlowContent {
   headingText: string;
@@ -23,11 +29,15 @@ export interface ChooseLangeContent {
   buttonTexts: { id: string; title: string }[];
 }
 
+export interface CustomizeOrderContent extends ChooseLangeContent {}
+
 type FlowContentMap = {
   'greeting-flow': GreetingsFlowContent;
   'choose-lang-flow': ChooseLangeContent;
   'catalog-flow': FlowContent;
   'branch-flow': FlowContent;
+  'customize-order-flow': CustomizeOrderContent;
+  'product-option-flow': FlowContent;
 };
 
 const flowContent: {
@@ -131,6 +141,42 @@ const flowContent: {
       bodyText: 'يرجى اختيار الفرع الأقرب إليك',
       footerText: 'تصفح واختر الفرع',
       buttonText: 'عرض الفروع',
+    },
+  },
+  'customize-order-flow': {
+    en: {
+      headingText: 'Customize Your Order',
+      bodyText: 'Would you like to customize your order?',
+      footerText: 'Add or modify items in your order',
+      buttonTexts: [
+        { id: 'yes', title: 'Yes' },
+        { id: 'no', title: 'No' },
+      ],
+    },
+
+    ar: {
+      headingText: 'تخصيص الطلب',
+      bodyText: 'هل ترغب في تخصيص طلبك؟',
+      footerText: 'يمكنك إضافة أو تعديل عناصر في طلبك',
+      buttonTexts: [
+        { id: 'yes', title: 'نعم' },
+        { id: 'no', title: 'لا' },
+      ],
+    },
+  },
+  'product-option-flow': {
+    en: {
+      headingText: 'Customize Your Item',
+      bodyText: 'Please select the options or modifications for your item.',
+      footerText: 'Choose from the available options',
+      buttonText: 'View Options',
+    },
+
+    ar: {
+      headingText: 'تخصيص المنتج',
+      bodyText: 'يرجى اختيار الإضافات أو التعديلات الخاصة بالمنتج',
+      footerText: 'اختر من الخيارات المتاحة',
+      buttonText: 'عرض الخيارات',
     },
   },
 };
