@@ -70,6 +70,10 @@ export enum NotificationPriority {
   URGENT = 'urgent',
 }
 
+export enum OnboardedOrganizations {
+  MALEK = '1993310024732307',
+}
+
 export enum RelatedNotificationEntity {
   Billing = 'billing',
   Product = 'product',
@@ -103,6 +107,16 @@ export enum UserRole {
   TENANT_ADMIN = 'tenant_admin',
   TENANT_USER = 'tenant_user',
   APP_ADMIN = 'app_admin',
+}
+
+export enum OrderFlowStep {
+  LANGUAGE_SELECTION = 'LANGUAGE_SELECTION',
+  SERVICE_SELECTION = 'SERVICE_SELECTION',
+  CATALOG_SELECTION = 'CATALOG_SELECTION',
+  PRODUCT_OPTIONS = 'PRODUCT_OPTIONS',
+  UPSELLING = 'UPSELLING',
+  ORDER_SUMMARY = 'ORDER_SUMMARY',
+  ORDER_COMPLETION = 'ORDER_COMPLETION',
 }
 
 export const permissions = [

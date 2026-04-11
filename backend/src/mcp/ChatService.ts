@@ -756,7 +756,7 @@ export class ChatService {
     }
   }
 
-    async sendWhatSappSingleUpsellingProductInteractiveMessage(args: SendWhatSappGreetingsProps) {
+  async sendWhatSappSingleUpsellingProductInteractiveMessage(args: SendWhatSappGreetingsProps) {
     const body = {
       messaging_product: 'whatsapp',
       recipient_type: 'individual',
@@ -811,7 +811,7 @@ export class ChatService {
     }
   }
 
-    async sendWhatSappKUPsellingItemsFlowInteractiveMessage(args: SendWhatSappOrderedItemsFlowProps) {
+  async sendWhatSappKUPsellingItemsFlowInteractiveMessage(args: SendWhatSappOrderedItemsFlowProps) {
     const body = {
       messaging_product: 'whatsapp',
       to: args.recipientPhoneNumber,

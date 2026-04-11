@@ -6,12 +6,13 @@ import { ZoneModel } from '../models/zones.model';
 import { AreaModel } from '../models/area.model';
 import { getVoiceNote } from '../helpers/download_voice_note';
 import { NotificationModel } from '../models/notification.model';
-import { NotificationPriority, RelatedNotificationEntity } from '../data/data-types';
+import { NotificationPriority, OnboardedOrganizations, RelatedNotificationEntity } from '../data/data-types';
 import { WhatsappFlowLabel } from '../types/whatsapp-settings';
 import { models } from '../models';
 import { productOptionsTaxonomy } from '../data/taxonomy';
 import { ProductModel } from '../models/products.model';
 import { handleMessage } from '../helpers/redis';
+import { handleIncommingMessageForMalek } from '../workflows/malek';
 export const chatRoute = express.Router();
 
 const { BranchesModel, ProductOptionChoiceModel, ProductOptionModel } = models;
@@ -61,6 +62,14 @@ chatRoute.post('/chat-webhook', async (req, res) => {
         console.log('=====================msg===============');
         console.log(JSON.stringify(msg));
         console.log('====================================');
+
+        // malek organization handler
+        if (entry.id === OnboardedOrganizations.MALEK) {
+          console.log('================malek====================');
+          console.log('running malek handler');
+          console.log('====================================');
+          return await handleIncommingMessageForMalek(entry.id, msg);
+        }
         if (msg.type === 'order') {
           const orderMessage = formatCatalogMessage(msg.order?.product_items!);
           const newMsg = {
@@ -257,7 +266,7 @@ async function handleMessages(whatsappBusinessId: string, msg: WhatsAppMessage) 
           body: 'hello, still waiting for your response',
         },
       };
-     return await handleIncomingMessage({ whatsappBusinessId, msg: newMsg, processMessages });
+      return await handleIncomingMessage({ whatsappBusinessId, msg: newMsg, processMessages });
     }
     console.log('==================response==================');
     console.log(response);

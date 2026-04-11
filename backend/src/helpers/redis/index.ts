@@ -2,10 +2,11 @@ import { Redis } from 'ioredis';
 import { queueProducer } from '../rabbitmq';
 import { WhatsAppMessage } from '../../types/whatsapp-webhook';
 import { appConfig } from '../../config';
+import { WorkflowDraft } from '../../workflows/malek';
 
 const redis = new Redis(appConfig.redis);
 
-// Handle incoming WhatsApp message
+// Handle incoming WhatsApp message and put in redis
 export async function handleMessage(userId: string, payload: { msg: WhatsAppMessage; whatsappBusinessId: string }) {
   const key = `user:${userId}:messages`;
   const backupKey = `user:${userId}:messages:backup`;
@@ -90,4 +91,24 @@ function combineMessages(msgs: WhatsAppMessage[]): WhatsAppMessage | null {
       body: combinedText,
     },
   };
+}
+
+// ------------ malek message handling in redis
+
+export async function setMessageInRedis(key: string, value: WorkflowDraft) {
+  // key: user phone number
+  const ttl = 20 * 60; // 20 minutes in seconds
+
+  await redis.set(key, JSON.stringify(value), 'EX', ttl);
+}
+
+export async function getMessageFromRedis(key: string) {
+  // key: user phone number
+  const data = await redis.get(key);
+  if (!data) return null;
+  return JSON.parse(data);
+}
+
+export async function deleteMessageFromRedis(key: string) {
+  await redis.del(key);
 }
