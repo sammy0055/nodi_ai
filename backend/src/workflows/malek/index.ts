@@ -197,7 +197,7 @@ export class MalekChatService {
       } as any);
     }
 
-    return result.response;
+    return result?.response;
   }
 
   // -----------------------------
@@ -250,12 +250,12 @@ export class MalekChatService {
   // STEP HANDLER
   // -----------------------------
   private async handleLanguageSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
-    console.log('====================================');
-    console.log("LANGUAGE_SELECTION");
-    console.log('====================================');
     if (msg?.interactive?.type === 'button_reply') {
       const listPayload = msg?.interactive?.button_reply as any;
       if (listPayload.id === 'en') {
+        console.log('====================================');
+        console.log('LANGUAGE_SELECTION', listPayload.id);
+        console.log('====================================');
         const flowContent = getFlowContent('greeting-flow', 'en');
         const res = await this.sendWhatSappGreetingInteractiveMessage({
           recipientPhoneNumber: this.userPhoneNumber,
@@ -293,8 +293,8 @@ export class MalekChatService {
   }
 
   private async handleServiceSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
-     console.log('====================================');
-    console.log("handleServiceSelection");
+    console.log('====================================');
+    console.log('handleServiceSelection');
     console.log('====================================');
     if (msg?.interactive?.type === 'button_reply') {
       const listPayload = msg?.interactive?.button_reply as any;
