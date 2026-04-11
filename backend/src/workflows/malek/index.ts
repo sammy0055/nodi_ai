@@ -197,7 +197,7 @@ export class MalekChatService {
       } as any);
     }
 
-    return result?.response;
+    return await result?.response;
   }
 
   // -----------------------------
