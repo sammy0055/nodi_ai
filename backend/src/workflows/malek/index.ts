@@ -466,18 +466,18 @@ export class MalekChatService {
           updatedDraft: { ...draft, lang: 'ar', step: OrderFlowStep.SERVICE_SELECTION },
           response: res,
         };
-      } else {
-        const flowContent = getFlowContent('choose-lang-flow', 'en');
-        const res = await this.sendWhatSappSChooseLangInteractiveMessage({
-          recipientPhoneNumber: this.userPhoneNumber,
-          ...flowContent,
-        });
-        return {
-          nextStep: OrderFlowStep.LANGUAGE_SELECTION,
-          updatedDraft: null,
-          response: res,
-        };
       }
+    } else {
+      const flowContent = getFlowContent('choose-lang-flow', 'en');
+      const res = await this.sendWhatSappSChooseLangInteractiveMessage({
+        recipientPhoneNumber: this.userPhoneNumber,
+        ...flowContent,
+      });
+      return {
+        nextStep: OrderFlowStep.LANGUAGE_SELECTION,
+        updatedDraft: null,
+        response: res,
+      };
     }
   }
 
@@ -565,21 +565,18 @@ export class MalekChatService {
           updatedDraft: null,
           response: res,
         };
-      } else {
-        console.log('====================================');
-        console.log('default else');
-        console.log('====================================');
-        const flowContent = getFlowContent('choose-lang-flow', 'en');
-        const res = await this.sendWhatSappSChooseLangInteractiveMessage({
-          recipientPhoneNumber: this.userPhoneNumber,
-          ...flowContent,
-        });
-        return {
-          nextStep: OrderFlowStep.SERVICE_SELECTION,
-          updatedDraft: null,
-          response: res,
-        };
       }
+    } else {
+      const flowContent = getFlowContent('choose-lang-flow', 'en');
+      const res = await this.sendWhatSappSChooseLangInteractiveMessage({
+        recipientPhoneNumber: this.userPhoneNumber,
+        ...flowContent,
+      });
+      return {
+        nextStep: OrderFlowStep.SERVICE_SELECTION,
+        updatedDraft: null,
+        response: res,
+      };
     }
   }
 
