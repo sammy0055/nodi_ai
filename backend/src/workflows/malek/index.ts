@@ -566,6 +566,9 @@ export class MalekChatService {
           response: res,
         };
       } else {
+        console.log('====================================');
+        console.log('default else');
+        console.log('====================================');
         const flowContent = getFlowContent('choose-lang-flow', 'en');
         const res = await this.sendWhatSappSChooseLangInteractiveMessage({
           recipientPhoneNumber: this.userPhoneNumber,
