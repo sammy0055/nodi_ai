@@ -4,6 +4,7 @@ export type FlowType =
   | 'greeting-flow'
   | 'choose-lang-flow'
   | 'branch-flow'
+  | 'area-and-zone-flow'
   | 'catalog-flow'
   | 'customize-order-flow'
   | 'product-option-flow';
@@ -36,6 +37,7 @@ type FlowContentMap = {
   'choose-lang-flow': ChooseLangeContent;
   'catalog-flow': FlowContent;
   'branch-flow': FlowContent;
+  'area-and-zone-flow': FlowContent;
   'customize-order-flow': CustomizeOrderContent;
   'product-option-flow': FlowContent;
 };
@@ -141,6 +143,21 @@ const flowContent: {
       bodyText: 'يرجى اختيار الفرع الأقرب إليك',
       footerText: 'تصفح واختر الفرع',
       buttonText: 'عرض الفروع',
+    },
+  },
+  'area-and-zone-flow': {
+    en: {
+      headingText: 'Select Your Area',
+      bodyText: 'Please choose your area and zone for delivery.',
+      footerText: 'Browse and select your location',
+      buttonText: 'View Areas',
+    },
+
+    ar: {
+      headingText: 'اختر المنطقة',
+      bodyText: 'يرجى اختيار المنطقة والنطاق الخاص بالتوصيل',
+      footerText: 'تصفح واختر موقعك',
+      buttonText: 'عرض المناطق',
     },
   },
   'customize-order-flow': {

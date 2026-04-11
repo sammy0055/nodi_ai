@@ -580,7 +580,7 @@ export class MalekChatService {
       flowId: flow?.type === 'flow' && flow?.data.flowId,
       flowName: flow?.type === 'flow' && flow?.data.flowName,
     };
-    const flowContent = getFlowContent('catalog-flow', draft.lang);
+    const flowContent = getFlowContent('area-and-zone-flow', draft.lang);
     const res = await this.sendWhatSappAreaAndZoneFlowInteractiveMessage({
       recipientPhoneNumber: this.userPhoneNumber,
       ...flowContent,
@@ -857,14 +857,11 @@ export class MalekChatService {
 
   private async handleCustomizeOrderSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
     console.log('====================================');
-    console.log("handleCustomizeOrderSelection");
+    console.log('handleCustomizeOrderSelection');
     console.log('====================================');
     if (msg?.interactive?.type === 'button_reply') {
       const buttonPayload = msg?.interactive?.button_reply as any;
       if (buttonPayload.id === 'yes') {
-        console.log('====================================');
-        console.log(buttonPayload);
-        console.log('====================================');
         const product = draft.selectedProducts.find((i) => i.isOptionAdded === false);
         if (product) {
           const org = await this.getOrganization();
@@ -905,7 +902,9 @@ export class MalekChatService {
             selectedProducts: updatedProducts,
             step: OrderFlowStep.PRODUCT_OPTIONS,
           };
-
+          console.log('================productOptions====================');
+          console.log(productOptions);
+          console.log('====================================');
           const flowContent = getFlowContent('product-option-flow', draft.lang);
           const enBodyText = `Please select the modifications ${product.name}`;
           const arBodyText = `يرجى اختيار التعديلات الخاصة بـ ${product.name}`;
