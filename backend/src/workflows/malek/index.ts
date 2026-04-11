@@ -293,6 +293,9 @@ export class MalekChatService {
   }
 
   private async handleServiceSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
+     console.log('====================================');
+    console.log("handleServiceSelection");
+    console.log('====================================');
     if (msg?.interactive?.type === 'button_reply') {
       const listPayload = msg?.interactive?.button_reply as any;
       if (listPayload.id === 'en') {
