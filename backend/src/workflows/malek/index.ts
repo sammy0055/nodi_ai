@@ -247,13 +247,44 @@ export class MalekChatService {
   // -----------------------------
   // STEP HANDLER
   // -----------------------------
-  private async handleLanguageSelection(draft: WorkflowDraft, userMessage: WhatsAppMessage) {
-    const flowContent = getFlowContent('choose-lang-flow', draft?.lang || 'en');
-
-    return await this.sendWhatSappSChooseLangInteractiveMessage({
-      recipientPhoneNumber: this.userPhoneNumber,
-      ...flowContent,
-    });
+  private async handleLanguageSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
+    if (msg?.interactive?.type === 'button_reply') {
+      const listPayload = msg?.interactive?.button_reply as any;
+      if (listPayload.id === 'en') {
+        const flowContent = getFlowContent('greeting-flow', 'en');
+        const res = await this.sendWhatSappGreetingInteractiveMessage({
+          recipientPhoneNumber: this.userPhoneNumber,
+          ...flowContent,
+        });
+        return {
+          nextStep: OrderFlowStep.LANGUAGE_SELECTION,
+          updatedDraft: { ...draft, lang: 'en' },
+          response: res,
+        };
+      } else if (listPayload.id === 'ar') {
+        const flowContent = getFlowContent('greeting-flow', 'ar');
+        const res = await this.sendWhatSappGreetingInteractiveMessage({
+          recipientPhoneNumber: this.userPhoneNumber,
+          ...flowContent,
+        });
+        return {
+          nextStep: OrderFlowStep.SERVICE_SELECTION,
+          updatedDraft: { ...draft, lang: 'ar' },
+          response: res,
+        };
+      } else {
+        const flowContent = getFlowContent('choose-lang-flow', 'en');
+        const res = await this.sendWhatSappSChooseLangInteractiveMessage({
+          recipientPhoneNumber: this.userPhoneNumber,
+          ...flowContent,
+        });
+        return {
+          nextStep: OrderFlowStep.LANGUAGE_SELECTION,
+          updatedDraft: null,
+          response: res,
+        };
+      }
+    }
   }
 
   private async handleServiceSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
