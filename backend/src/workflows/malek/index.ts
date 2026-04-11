@@ -856,9 +856,15 @@ export class MalekChatService {
   }
 
   private async handleCustomizeOrderSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
+    console.log('====================================');
+    console.log("handleCustomizeOrderSelection");
+    console.log('====================================');
     if (msg?.interactive?.type === 'button_reply') {
       const buttonPayload = msg?.interactive?.button_reply as any;
       if (buttonPayload.id === 'yes') {
+        console.log('====================================');
+        console.log(buttonPayload);
+        console.log('====================================');
         const product = draft.selectedProducts.find((i) => i.isOptionAdded === false);
         if (product) {
           const org = await this.getOrganization();
