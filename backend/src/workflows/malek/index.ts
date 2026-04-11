@@ -175,7 +175,9 @@ export class MalekChatService {
 
   async proceswWorkflow(userMessage: WhatsAppMessage) {
     const workflowDraft = (await getMessageFromRedis(this.userPhoneNumber)) as WorkflowDraft;
-
+    console.log('====================workflowDraft================');
+    console.log(workflowDraft);
+    console.log('====================================');
     // FIRST TIME USER
     if (!workflowDraft) {
       return await this.startWorkflow();
