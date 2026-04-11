@@ -1,8 +1,8 @@
 type Language = 'en' | 'ar';
 
-export type FlowType = 'greeting-flow' | 'choose-lang-flow';
+export type FlowType = 'greeting-flow' | 'choose-lang-flow' | 'branch-flow' | 'catalog-flow';
 
-interface FlowContent {
+export interface FlowContent {
   headingText: string;
   bodyText: string;
   footerText: string;
@@ -26,6 +26,8 @@ export interface ChooseLangeContent {
 type FlowContentMap = {
   'greeting-flow': GreetingsFlowContent;
   'choose-lang-flow': ChooseLangeContent;
+  'catalog-flow': FlowContent;
+  'branch-flow': FlowContent;
 };
 
 const flowContent: {
@@ -99,6 +101,36 @@ const flowContent: {
         { id: 'en', title: 'الإنجليزية' },
         { id: 'ar', title: 'العربية' },
       ],
+    },
+  },
+  'catalog-flow': {
+    en: {
+      headingText: 'Choose your Products',
+      bodyText: 'Please select items from our menu',
+      footerText: 'Browse and select items',
+      buttonText: 'View Menu',
+    },
+
+    ar: {
+      headingText: 'اختر منتجاتك',
+      bodyText: 'يرجى اختيار الأصناف من القائمة',
+      footerText: 'تصفح واختر من القائمة',
+      buttonText: 'عرض القائمة',
+    },
+  },
+  'branch-flow': {
+    en: {
+      headingText: 'Choose a Branch',
+      bodyText: 'Please select the branch closest to you.',
+      footerText: 'Browse and select a branch',
+      buttonText: 'View Branches',
+    },
+
+    ar: {
+      headingText: 'اختر الفرع',
+      bodyText: 'يرجى اختيار الفرع الأقرب إليك',
+      footerText: 'تصفح واختر الفرع',
+      buttonText: 'عرض الفروع',
     },
   },
 };
