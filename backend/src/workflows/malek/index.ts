@@ -12,7 +12,8 @@ import { WhatsappFlowLabel } from '../../types/whatsapp-settings';
 import { WhatsAppMessage } from '../../types/whatsapp-webhook';
 import { decrypt } from '../../utils/crypto-utils';
 
-const { CustomerModel, WhatSappSettingsModel, OrganizationsModel, ProductModel, BranchesModel, ZoneModel } = models;
+const { CustomerModel, WhatSappSettingsModel, OrganizationsModel, ProductModel, BranchesModel, ZoneModel, AreaModel } =
+  models;
 
 export const handleIncommingMessageForMalek = async (whatsappBusinessId: string, msg: WhatsAppMessage) => {
   try {
@@ -433,6 +434,77 @@ export class MalekChatService {
   }
 
   // -----------------------------
+  // STEP HANDLER dynamic functions
+  // -----------------------------
+  private async ProcessDeliveryHandler(draft: WorkflowDraft, msg: WhatsAppMessage) {
+    const zones = await ZoneModel.findAll({
+      where: { organizationId: this.organizationId },
+    });
+
+    const filteredZones = zones.map((z) => ({ id: z.id, title: z.name }));
+    const whatsappSettings = await WhatSappSettingsModel.findOne({
+      where: { organizationId: this.organizationId },
+    });
+
+    const flow = whatsappSettings?.whatsappTemplates.find(
+      (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.ZONE_AND_AREAS_FLOW
+    );
+    const areaAndZone = {
+      zones: filteredZones,
+      flowId: flow?.type === 'flow' && flow?.data.flowId,
+      flowName: flow?.type === 'flow' && flow?.data.flowName,
+    };
+    const flowContent = getFlowContent('catalog-flow', draft.lang);
+    const res = await this.sendWhatSappAreaAndZoneFlowInteractiveMessage({
+      recipientPhoneNumber: this.userPhoneNumber,
+      ...flowContent,
+      flowId: areaAndZone.flowId as string,
+      flowName: areaAndZone.flowName as string,
+      zones: areaAndZone.zones,
+    });
+    return {
+      updatedDraft: { ...draft },
+      response: res,
+    };
+  }
+  private async ProcessTakeawayHandler(draft: WorkflowDraft, msg: WhatsAppMessage) {
+    const branches = await BranchesModel.findAll({ where: { organizationId: this.organizationId } });
+
+    if (branches?.length === 0) {
+      return {
+        content: [{ type: 'text', text: 'No branch was found for this organization' }],
+      };
+    }
+
+    const filteredBranches = branches.map((z) => ({ id: z.id, title: z.name }));
+    const whatsappSettings = await WhatSappSettingsModel.findOne({
+      where: { organizationId: this.organizationId },
+    });
+
+    const flow = whatsappSettings?.whatsappTemplates?.find(
+      (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.BRANCHES_FLOW
+    );
+
+    const branchesFlowData = {
+      branches: filteredBranches,
+      flowId: flow?.type === 'flow' && flow?.data.flowId,
+      flowName: flow?.type === 'flow' && flow?.data.flowName,
+    };
+    const flowContent = getFlowContent('branch-flow', draft.lang);
+    const res = await this.sendWhatSappBranchFlowInteractiveMessage({
+      recipientPhoneNumber: this.userPhoneNumber,
+      ...flowContent,
+      flowId: branchesFlowData.flowId as string,
+      flowName: branchesFlowData.flowName as string,
+      branches: branchesFlowData.branches,
+    });
+    return {
+      updatedDraft: { ...draft },
+      response: res,
+    };
+  }
+
+  // -----------------------------
   // STEP HANDLER
   // -----------------------------
   private async handleLanguageSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
@@ -474,7 +546,6 @@ export class MalekChatService {
         ...flowContent,
       });
       return {
-        nextStep: OrderFlowStep.LANGUAGE_SELECTION,
         updatedDraft: null,
         response: res,
       };
@@ -488,70 +559,25 @@ export class MalekChatService {
     if (msg?.interactive?.type === 'list_reply') {
       const listPayload = msg?.interactive?.list_reply as any;
       if (listPayload.id === 'item_1') {
-        const branches = await BranchesModel.findAll({ where: { organizationId: this.organizationId } });
-
-        if (branches?.length === 0) {
-          return {
-            content: [{ type: 'text', text: 'No branch was found for this organization' }],
-          };
-        }
-
-        const filteredBranches = branches.map((z) => ({ id: z.id, title: z.name }));
-        const whatsappSettings = await WhatSappSettingsModel.findOne({
-          where: { organizationId: this.organizationId },
-        });
-
-        const flow = whatsappSettings?.whatsappTemplates?.find(
-          (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.BRANCHES_FLOW
-        );
-
-        const branchesFlowData = {
-          branches: filteredBranches,
-          flowId: flow?.type === 'flow' && flow?.data.flowId,
-          flowName: flow?.type === 'flow' && flow?.data.flowName,
+        const updateDraft: WorkflowDraft = {
+          ...draft,
+          step: OrderFlowStep.ADDRESS_SELECTION,
+          orderDetails: {
+            ...(draft.orderDetails ?? {}),
+            serviceType: 'takeaway',
+          },
         };
-        const flowContent = getFlowContent('branch-flow', draft.lang);
-        const res = await this.sendWhatSappBranchFlowInteractiveMessage({
-          recipientPhoneNumber: this.userPhoneNumber,
-          ...flowContent,
-          flowId: branchesFlowData.flowId as string,
-          flowName: branchesFlowData.flowName as string,
-          branches: branchesFlowData.branches,
-        });
-        return {
-          updatedDraft: { ...draft, step: OrderFlowStep.ADDRESS_SELECTION },
-          response: res,
-        };
+        return await this.ProcessTakeawayHandler(updateDraft, msg);
       } else if (listPayload.id === 'item_2') {
-        const zones = await ZoneModel.findAll({
-          where: { organizationId: this.organizationId },
-        });
-
-        const filteredZones = zones.map((z) => ({ id: z.id, title: z.name }));
-        const whatsappSettings = await WhatSappSettingsModel.findOne({
-          where: { organizationId: this.organizationId },
-        });
-
-        const flow = whatsappSettings?.whatsappTemplates.find(
-          (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.ZONE_AND_AREAS_FLOW
-        );
-        const areaAndZone = {
-          zones: filteredZones,
-          flowId: flow?.type === 'flow' && flow?.data.flowId,
-          flowName: flow?.type === 'flow' && flow?.data.flowName,
+        const updateDraft: WorkflowDraft = {
+          ...draft,
+          step: OrderFlowStep.ADDRESS_SELECTION,
+          orderDetails: {
+            ...(draft.orderDetails ?? {}),
+            serviceType: 'delivery',
+          },
         };
-        const flowContent = getFlowContent('catalog-flow', draft.lang);
-        const res = await this.sendWhatSappAreaAndZoneFlowInteractiveMessage({
-          recipientPhoneNumber: this.userPhoneNumber,
-          ...flowContent,
-          flowId: areaAndZone.flowId as string,
-          flowName: areaAndZone.flowName as string,
-          zones: areaAndZone.zones,
-        });
-        return {
-          updatedDraft: { ...draft, step: OrderFlowStep.ADDRESS_SELECTION },
-          response: res,
-        };
+        return await this.ProcessDeliveryHandler(updateDraft, msg);
       } else if (listPayload.id === 'item_3') {
         const org = await this.getOrganization();
         const enMsg = `Please contact our customer service at ${org.hotline}. If you prefer to speak with a human, you can call the same number`;
@@ -567,13 +593,12 @@ export class MalekChatService {
         };
       }
     } else {
-      const flowContent = getFlowContent('choose-lang-flow', 'en');
-      const res = await this.sendWhatSappSChooseLangInteractiveMessage({
+      const flowContent = getFlowContent('greeting-flow', draft.lang);
+      const res = await this.sendWhatSappGreetingInteractiveMessage({
         recipientPhoneNumber: this.userPhoneNumber,
         ...flowContent,
       });
       return {
-        nextStep: OrderFlowStep.SERVICE_SELECTION,
         updatedDraft: null,
         response: res,
       };
@@ -584,6 +609,88 @@ export class MalekChatService {
     console.log('====================================');
     console.log('handleAddressSelection');
     console.log('====================================');
+    const payload = msg.interactive?.nfm_reply?.response_json
+      ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
+      : null;
+    if (payload?.zone_id || payload?.area_id) {
+      const shippingAddress = payload?.note;
+
+      const updatedDraft: WorkflowDraft = {
+        ...draft,
+        orderDetails: {
+          ...(draft.orderDetails ?? {}),
+          deliveryAreaId: payload.area_id,
+          shippingAddress,
+          serviceType: 'delivery',
+        },
+      };
+
+      const getCatalogLink = async () => {
+        const orgBusinessWhatsappData = await WhatSappSettingsModel.findOne({
+          where: { organizationId: this.organizationId },
+        });
+        if (!orgBusinessWhatsappData) throw new Error('whatsapp business data could not be retrieved');
+        const product = await ProductModel.findOne({ where: { organizationId: this.organizationId } });
+
+        return {
+          catalogUrl: `https://wa.me/c/${orgBusinessWhatsappData.whatsappPhoneNumber.trim()}`.replace(/\s+/g, ''),
+          productUrl: product?.imageUrl || '',
+        };
+      };
+
+      const catalog = await getCatalogLink();
+      const flowContent = getFlowContent('catalog-flow', draft.lang);
+      const res = await this.sendWhatSappCatalogInteractiveMessage({
+        recipientPhoneNumber: this.userPhoneNumber,
+        ...flowContent,
+        ...catalog,
+      });
+      return {
+        updatedDraft: { ...updatedDraft, step: OrderFlowStep.CATALOG_SELECTION },
+        response: res,
+      };
+    } else if (payload?.branch_id) {
+      const getCatalogLink = async () => {
+        const orgBusinessWhatsappData = await WhatSappSettingsModel.findOne({
+          where: { organizationId: this.organizationId },
+        });
+        if (!orgBusinessWhatsappData) throw new Error('whatsapp business data could not be retrieved');
+        const product = await ProductModel.findOne({ where: { organizationId: this.organizationId } });
+
+        return {
+          catalogUrl: `https://wa.me/c/${orgBusinessWhatsappData.whatsappPhoneNumber.trim()}`.replace(/\s+/g, ''),
+          productUrl: product?.imageUrl || '',
+        };
+      };
+      const updatedDraft: WorkflowDraft = {
+        ...draft,
+        orderDetails: {
+          ...(draft.orderDetails ?? {}),
+          branchId: payload.branch_id,
+          serviceType: 'takeaway',
+        },
+      };
+
+      const catalog = await getCatalogLink();
+      const flowContent = getFlowContent('catalog-flow', draft.lang);
+      const res = await this.sendWhatSappCatalogInteractiveMessage({
+        recipientPhoneNumber: this.userPhoneNumber,
+        ...flowContent,
+        ...catalog,
+      });
+      return {
+        updatedDraft: { ...updatedDraft, step: OrderFlowStep.CATALOG_SELECTION },
+        response: res,
+      };
+    } else {
+      if (draft.orderDetails.serviceType === 'delivery') {
+        return await this.ProcessDeliveryHandler(draft, msg);
+      }
+
+      if (draft.orderDetails.serviceType === 'takeaway') {
+        return await this.ProcessTakeawayHandler(draft, msg);
+      }
+    }
   }
 
   private async handleCatalogSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {

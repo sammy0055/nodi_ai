@@ -17,6 +17,7 @@ import { checkBusinessServiceSchedule } from '../utils/organization';
 import { getEstimatedTime } from '../utils/getEstimatedTime';
 import { ManageVectorStore } from '../helpers/vector-store';
 import { currencyFormat } from 'simple-currency-format';
+import Redis from 'ioredis';
 
 const ddd = {
   whatsappBusinessId: '1390720013053482',
@@ -548,7 +549,7 @@ function formatCatalogMessage(items: any[]): any {
 //   { "product_retailer_id": "B", "quantity": 1 }
 // ]));
 // console.log('====================================');
-sendMessage();
+// sendMessage();
 // getConversationHistory();
 // console.log('====================================');
 // console.log(getEstimatedTime("1970-01-01 03:00:00+00" as any));
@@ -585,4 +586,26 @@ sendMessage();
 //   }
 // };
 
+// for testing -------------------
+ const getRedisMessage = async (key: string) => {
+  const redis = new Redis('redis://104.219.250.180:4015');
+  redis.on('error', (err) => {
+    console.log('Redis error:', err.message);
+  });
+  const data = await redis.get(key);
+  if (!data) return null;
+  return JSON.parse(data);
+};
+
+ const removeRedisMessage = async (key: string) => {
+  const redis = new Redis('redis://104.219.250.180:4015');
+  redis.on('error', (err) => {
+    console.log('Redis error:', err.message);
+  });
+  await redis.del(key);
+};
+
 // ttttt()
+// console.log('====================================');
+// console.log(await getRedisMessage('2348171727284'));
+// console.log('====================================');
