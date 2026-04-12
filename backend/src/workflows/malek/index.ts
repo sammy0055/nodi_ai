@@ -1026,7 +1026,7 @@ export class MalekChatService {
           ...(draft.orderDetails ?? {}),
           deliveryAreaId: selectedArea!.id,
           deliveryAreaName: selectedArea!.name,
-          deliveryTime: getEstimatedTime(selectedArea!.deliveryTime),
+          deliveryTime: getEstimatedTime(selectedArea!.deliveryTime) || '30mins',
           shippingAddress,
           serviceType: 'delivery',
         },
@@ -1051,7 +1051,7 @@ export class MalekChatService {
           ...(draft.orderDetails ?? {}),
           branchId: branch!.id,
           branchName: branch!.name,
-          deliveryTime: getEstimatedTime(branch!.takeAwayTime),
+          deliveryTime: getEstimatedTime(branch!.takeAwayTime) || '30mins',
           serviceType: 'takeaway',
         },
       };
@@ -1152,6 +1152,9 @@ export class MalekChatService {
       const buttonPayload = msg?.interactive?.button_reply as any;
       if (buttonPayload.id === 'yes') {
         const product = draft.selectedProducts.find((i) => i.isOptionAdded === false && i?.options?.length !== 0);
+        console.log('================productOptions====================');
+        console.log(product);
+        console.log('====================================');
         if (product) {
           const org = await this.getOrganization();
           const whatsappSettings = await WhatSappSettingsModel.findOne({
