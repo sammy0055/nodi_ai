@@ -607,5 +607,5 @@ function formatCatalogMessage(items: any[]): any {
 
 // ttttt()
 console.log('====================================');
-console.log(await getRedisMessage('2348171727284'));
+console.log(await removeRedisMessage('2348171727284'));
 console.log('====================================');

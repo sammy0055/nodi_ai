@@ -1104,7 +1104,11 @@ export class MalekChatService {
         ],
       });
 
-      const productItems = selectedProducts.map((i) => ({
+      // create lookup map
+      const productMap = new Map(selectedProducts.map((p) => [p.id, p]));
+      // rebuild with duplicates preserved
+      const productsWithDuplicates = product_ids.map((id) => productMap.get(id));
+      const productItems = productsWithDuplicates?.map((i:any) => ({
         productId: i.id,
         productName: i.name,
         price: i.price,
@@ -1113,7 +1117,7 @@ export class MalekChatService {
       const updatedDraft: WorkflowDraft = {
         ...draft,
         step: OrderFlowStep.CUSTOMIZE_ORDER_SELECTION,
-        selectedProducts: selectedProducts as any,
+        selectedProducts: productsWithDuplicates as any,
         orderDetails: {
           ...draft.orderDetails,
           items: productItems as any,
@@ -1151,7 +1155,7 @@ export class MalekChatService {
     if (msg?.interactive?.type === 'button_reply') {
       const buttonPayload = msg?.interactive?.button_reply as any;
       if (buttonPayload.id === 'yes') {
-        const product = draft.selectedProducts.find((i) => i.isOptionAdded === false && i?.options?.length > 0);
+        const product = draft.selectedProducts.find((i) => !i.isOptionAdded && i?.options?.length > 0);
         console.log('================product====================');
         console.log(draft.selectedProducts);
         console.log('====================================');
