@@ -1108,7 +1108,7 @@ export class MalekChatService {
       const productMap = new Map(selectedProducts.map((p) => [p.id, p]));
       // rebuild with duplicates preserved
       const productsWithDuplicates = product_ids.map((id) => productMap.get(id));
-      const productItems = productsWithDuplicates?.map((i:any) => ({
+      const productItems = productsWithDuplicates?.map((i: any) => ({
         productId: i.id,
         productName: i.name,
         price: i.price,
@@ -1157,12 +1157,6 @@ export class MalekChatService {
       const buttonPayload = msg?.interactive?.button_reply as any;
       if (buttonPayload.id === 'yes') {
         const product = draft.selectedProducts.find((i) => !i.isOptionAdded && i?.options?.length > 0);
-        console.log('================product====================');
-        console.log(draft.selectedProducts);
-        console.log('====================================');
-        console.log('================product main====================');
-        console.log(product);
-        console.log('====================================');
         if (product) {
           const org = await this.getOrganization();
           const whatsappSettings = await WhatSappSettingsModel.findOne({
@@ -1202,8 +1196,8 @@ export class MalekChatService {
             selectedProducts: updatedProducts,
             step: OrderFlowStep.OPTIONS_ITEM_COLLECTION,
           };
-          console.log('================productOptions====================');
-          console.log(productOptions);
+          console.log('==================productOptions==================');
+          console.log(JSON.stringify(productOptions));
           console.log('====================================');
           const flowContent = getFlowContent('product-option-flow', draft.lang);
           const enBodyText = `Please select the modifications ${product.name}`;
