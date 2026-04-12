@@ -1200,7 +1200,7 @@ export class MalekChatService {
           console.log(JSON.stringify(productOptions));
           console.log('====================================');
           const flowContent = getFlowContent('product-option-flow', draft.lang);
-          const enBodyText = `Please select the modifications ${product.name}`;
+          const enBodyText = `Please select the modifications for ${product.name}`;
           const arBodyText = `يرجى اختيار التعديلات الخاصة بـ ${product.name}`;
           draft.lang === 'en' ? (flowContent.bodyText = enBodyText) : (flowContent.bodyText = arBodyText);
           const res = await this.sendWhatSappProductOptionFlowInteractiveMessage({
