@@ -1153,7 +1153,7 @@ export class MalekChatService {
       if (buttonPayload.id === 'yes') {
         const product = draft.selectedProducts.find((i) => i.isOptionAdded === false && i?.options?.length > 0);
         console.log('================product====================');
-        console.log(product);
+        console.log(draft.selectedProducts);
         console.log('====================================');
         if (product) {
           const org = await this.getOrganization();
