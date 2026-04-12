@@ -549,7 +549,7 @@ function formatCatalogMessage(items: any[]): any {
 //   { "product_retailer_id": "B", "quantity": 1 }
 // ]));
 // console.log('====================================');
-// sendMessage();
+sendMessage();
 // getConversationHistory();
 // console.log('====================================');
 // console.log(getEstimatedTime("1970-01-01 03:00:00+00" as any));

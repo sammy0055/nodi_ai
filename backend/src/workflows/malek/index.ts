@@ -1180,7 +1180,7 @@ export class MalekChatService {
               required: item.isRequired,
               label: item.name.replace(/_/g, ' '),
               description: item.description,
-              options: item.choices.map((choice: any) => ({
+              items: item.choices?.map((choice: any) => ({
                 id: choice.id,
                 title: `${choice.label} ${choice.priceAdjustment !== 0 ? formatNumber(choice.priceAdjustment) : ''}`,
               })),
