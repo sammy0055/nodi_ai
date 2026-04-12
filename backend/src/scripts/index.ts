@@ -220,6 +220,87 @@ const actionPayload = {
   },
 };
 
+const productOptionsData = [
+  {
+    Remove_Ingredient: {
+      visible: true,
+      required: false,
+      label: 'Remove Ingredient',
+      description: '',
+      options: [
+        {
+          id: 'd9cadd68-6e69-41b2-97f2-0cb6ddacb3dd',
+          title: 'New Choice ',
+        },
+        {
+          id: 'c7359a0a-6c97-4214-8071-3f436e8138f5',
+          title: 'Mayo ',
+        },
+        {
+          id: '8c73a27b-1154-4897-a24b-3640a8463542',
+          title: 'Pickles ',
+        },
+        {
+          id: 'bb5035cd-3ba2-4ae7-bd57-f05982f5d816',
+          title: 'Tomato ',
+        },
+      ],
+    },
+  },
+  {
+    Add_Ingredient: {
+      visible: true,
+      required: false,
+      label: 'Add Ingredient',
+      description: 'Add an extra ingredient to the product. Example: add cheese, add bacon, add olives.',
+      options: [
+        {
+          id: '64c1c6f3-82b1-4c5f-8c66-86b9a36cd7b7',
+          title: 'Garlic ',
+        },
+        {
+          id: '8a5125aa-74bb-439b-a1d8-af8191a290be',
+          title: 'Cheese LBP 100,000',
+        },
+      ],
+    },
+  },
+  {
+    Add_Side: {
+      visible: true,
+      required: false,
+      label: 'Add Side',
+      description: 'Add a side item to the order. Example: add imported fries, add coleslaw.',
+      options: [
+        {
+          id: '55453ff6-9833-4727-8ca6-bd543c316cc0',
+          title: 'Imported fries & pepsi LBP 230,000',
+        },
+        {
+          id: '69b76caf-6b8e-4599-b5cd-1cbe7f6e1bd7',
+          title: 'Imported fries &  Diet Pepsi LBP 230,000',
+        },
+        {
+          id: 'ddc8fc23-aa29-442d-aeb0-f832ca426c21',
+          title: 'Imported fries & 7up LBP 230,000',
+        },
+        {
+          id: '664839e9-3ff2-4d7a-a61b-9568c53d0bde',
+          title: 'Imported fries & Pepsi Zero LBP 230,000',
+        },
+        {
+          id: '271c1ad6-02e9-4b32-99fc-be2a9acd4199',
+          title: 'Imported fries & Diet 7up LBP 230,000',
+        },
+      ],
+    },
+  },
+];
+
+const productOptionsObject = productOptionsData.reduce(
+  (acc, item) => ({ ...acc, ...item }),
+  {}
+);
 const productOptionFlowBody = {
   messaging_product: 'whatsapp',
   to: '2348171727284',
@@ -239,14 +320,19 @@ const productOptionFlowBody = {
     action: {
       name: 'flow',
       parameters: {
-        flow_id: '933470956093041',
+        flow_id: '1598326711435435',
         flow_message_version: '3',
         flow_cta: 'Open form',
         mode: 'published',
         flow_action: 'navigate',
         flow_action_payload: {
-          screen: 'ITEMS_SELECTION',
-          data: JSON.stringify(actionPayload),
+          screen: 'PRODUCT_OPTIONS_SELECTIONS',
+          data: JSON.stringify({
+            status: 'active',
+            ...productOptionsObject,
+            productName: 'testing prodcut',
+            flowLabel: WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW,
+          }),
         },
       },
     },
@@ -341,7 +427,7 @@ const sendMessage = async () => {
         Authorization: `Bearer ${process.env.META_BUSINESS_SYSTEM_TOKEN}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(bodys),
+      body: JSON.stringify(productOptionFlowBody),
     });
 
     if (!res.ok) {
@@ -587,7 +673,7 @@ sendMessage();
 // };
 
 // for testing -------------------
- const getRedisMessage = async (key: string) => {
+const getRedisMessage = async (key: string) => {
   const redis = new Redis('redis://104.219.250.180:4015');
   redis.on('error', (err) => {
     console.log('Redis error:', err.message);
@@ -597,7 +683,7 @@ sendMessage();
   return JSON.parse(data);
 };
 
- const removeRedisMessage = async (key: string) => {
+const removeRedisMessage = async (key: string) => {
   const redis = new Redis('redis://104.219.250.180:4015');
   redis.on('error', (err) => {
     console.log('Redis error:', err.message);
@@ -606,6 +692,6 @@ sendMessage();
 };
 
 // ttttt()
-console.log('====================================');
-console.log(await removeRedisMessage('2348171727284'));
-console.log('====================================');
+// console.log('====================================');
+// console.log(await removeRedisMessage('2348171727284'));
+// console.log('====================================');

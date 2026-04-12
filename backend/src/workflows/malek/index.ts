@@ -1180,7 +1180,7 @@ export class MalekChatService {
               required: item.isRequired,
               label: item.name.replace(/_/g, ' '),
               description: item.description,
-              items: item.choices?.map((choice: any) => ({
+              options: item.choices?.map((choice: any) => ({
                 id: choice.id,
                 title: `${choice.label} ${choice.priceAdjustment !== 0 ? formatNumber(choice.priceAdjustment) : ''}`,
               })),
@@ -1196,9 +1196,9 @@ export class MalekChatService {
             selectedProducts: updatedProducts,
             step: OrderFlowStep.OPTIONS_ITEM_COLLECTION,
           };
-          console.log('==================productOptions==================');
-          console.log(JSON.stringify(productOptions));
-          console.log('====================================');
+
+          const productOptionsObject = productOptions?.reduce((acc, item) => ({ ...acc, ...item }), {});
+
           const flowContent = getFlowContent('product-option-flow', draft.lang);
           const enBodyText = `Please select the modifications for ${product.name}`;
           const arBodyText = `يرجى اختيار التعديلات الخاصة بـ ${product.name}`;
@@ -1209,7 +1209,7 @@ export class MalekChatService {
             flowId: flow?.type === 'flow' && (flow?.data.flowId as any),
             flowName: flow?.type === 'flow' && (flow?.data.flowName as any),
             productName: product.name,
-            productOptions: productOptions,
+            productOptions: productOptionsObject,
           });
 
           return {
