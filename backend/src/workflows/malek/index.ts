@@ -938,9 +938,14 @@ export class MalekChatService {
         },
       }));
 
-      const updatedProducts = draft.selectedProducts.map((i) =>
-        i.id === product.id ? { ...i, isOptionAdded: true } : i
-      );
+      let found = false;
+      const updatedProducts = draft.selectedProducts.map((i) => {
+        if (!found && i.id === product.id) {
+          found = true;
+          return { ...i, isOptionAdded: true };
+        }
+        return i;
+      });
 
       const updatedDraft: WorkflowDraft = {
         ...draft,
