@@ -1152,7 +1152,7 @@ export class MalekChatService {
       const buttonPayload = msg?.interactive?.button_reply as any;
       if (buttonPayload.id === 'yes') {
         const product = draft.selectedProducts.find((i) => i.isOptionAdded === false && i?.options?.length > 0);
-        console.log('================productOptions====================');
+        console.log('================product====================');
         console.log(product);
         console.log('====================================');
         if (product) {
