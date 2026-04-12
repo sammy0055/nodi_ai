@@ -7,7 +7,10 @@ export type FlowType =
   | 'area-and-zone-flow'
   | 'catalog-flow'
   | 'customize-order-flow'
-  | 'product-option-flow';
+  | 'product-option-flow'
+  | 'single-upselling-flow'
+  | 'multi-upselling-flow'
+  | 'order-summary-flow';
 
 export interface FlowContent {
   headingText: string;
@@ -29,6 +32,18 @@ export interface ChooseLangeContent {
   footerText: string;
   buttonTexts: { id: string; title: string }[];
 }
+export interface SingleUpsellingContent {
+  headingText: string;
+  bodyText: string;
+  footerText: string;
+  buttonTexts: { id: string; title: string }[];
+}
+export interface OrderSummaryContent {
+  headingText: string;
+  bodyText: string;
+  footerText: string;
+  buttonTexts: { id: string; title: string }[];
+}
 
 export interface CustomizeOrderContent extends ChooseLangeContent {}
 
@@ -40,6 +55,9 @@ type FlowContentMap = {
   'area-and-zone-flow': FlowContent;
   'customize-order-flow': CustomizeOrderContent;
   'product-option-flow': FlowContent;
+  'single-upselling-flow': SingleUpsellingContent;
+  'multi-upselling-flow': FlowContent;
+  'order-summary-flow': OrderSummaryContent;
 };
 
 const flowContent: {
@@ -194,6 +212,65 @@ const flowContent: {
       bodyText: 'يرجى اختيار الإضافات أو التعديلات الخاصة بالمنتج',
       footerText: 'اختر من الخيارات المتاحة',
       buttonText: 'عرض الخيارات',
+    },
+  },
+  'single-upselling-flow': {
+    en: {
+      headingText: 'Add a Top-Selling Item',
+      bodyText: 'Would you like to add this item to your order?',
+      footerText: 'Popular add-on',
+      buttonTexts: [
+        { id: 'yes', title: 'Yes' },
+        { id: 'no', title: 'No' },
+      ],
+    },
+
+    ar: {
+      headingText: 'إضافة منتج مميز',
+      bodyText: 'هل ترغب في إضافة هذا المنتج إلى طلبك؟',
+      footerText: 'منتج شائع',
+      buttonTexts: [
+        { id: 'yes', title: 'نعم' },
+        { id: 'no', title: 'لا' },
+      ],
+    },
+  },
+
+  'multi-upselling-flow': {
+    en: {
+      headingText: 'Add More Items',
+      bodyText: 'Would you like to add more items to your order?',
+      footerText: 'Recommended for you',
+      buttonText: 'View Items',
+    },
+
+    ar: {
+      headingText: 'إضافة المزيد من المنتجات',
+      bodyText: 'هل ترغب في إضافة المزيد من المنتجات إلى طلبك؟',
+      footerText: 'موصى بها لك',
+      buttonText: 'عرض المنتجات',
+    },
+  },
+  'order-summary-flow': {
+    en: {
+      headingText: 'Order Summary',
+      bodyText: 'Here is your order summary',
+      footerText: 'Order Summary',
+      buttonTexts: [
+        { id: 'confirm', title: 'Confirm Order' },
+        { id: 'edit', title: 'Edit' },
+        { id: 'cancel', title: 'Cancel' },
+      ],
+    },
+    ar: {
+      headingText: 'ملخص الطلب',
+      bodyText: 'فيما يلي ملخص طلبك',
+      footerText: 'ملخص الطلب',
+      buttonTexts: [
+        { id: 'confirm', title: 'تأكيد الطلب' },
+        { id: 'edit', title: 'تعديل' },
+        { id: 'cancel', title: 'إلغاء' },
+      ],
     },
   },
 };
