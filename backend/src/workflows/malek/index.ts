@@ -1114,6 +1114,7 @@ export class MalekChatService {
         price: i.price,
         quantity: 1,
       }));
+      
       const updatedDraft: WorkflowDraft = {
         ...draft,
         step: OrderFlowStep.CUSTOMIZE_ORDER_SELECTION,
