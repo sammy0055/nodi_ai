@@ -1114,7 +1114,7 @@ export class MalekChatService {
         price: i.price,
         quantity: 1,
       }));
-      
+
       const updatedDraft: WorkflowDraft = {
         ...draft,
         step: OrderFlowStep.CUSTOMIZE_ORDER_SELECTION,
@@ -1159,6 +1159,9 @@ export class MalekChatService {
         const product = draft.selectedProducts.find((i) => !i.isOptionAdded && i?.options?.length > 0);
         console.log('================product====================');
         console.log(draft.selectedProducts);
+        console.log('====================================');
+        console.log('================product main====================');
+        console.log(product);
         console.log('====================================');
         if (product) {
           const org = await this.getOrganization();
