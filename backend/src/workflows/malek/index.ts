@@ -19,6 +19,7 @@ import { ProductOption } from '../../types/product-option';
 import { generateOrderText } from '../utils';
 import { extend } from 'dayjs';
 import { productOptionsTaxonomy } from '../../data/taxonomy';
+import { getEstimatedTime } from '../../utils/getEstimatedTime';
 
 const {
   CustomerModel,
@@ -1014,14 +1015,18 @@ export class MalekChatService {
     const payload = msg.interactive?.nfm_reply?.response_json
       ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
       : null;
+
     if (payload?.zone_id || payload?.area_id) {
+      const selectedArea = await AreaModel.findByPk(payload?.area_id);
       const shippingAddress = payload?.note;
 
       const updatedDraft: WorkflowDraft = {
         ...draft,
         orderDetails: {
           ...(draft.orderDetails ?? {}),
-          deliveryAreaId: payload.area_id,
+          deliveryAreaId: selectedArea!.id,
+          deliveryAreaName: selectedArea!.name,
+          deliveryTime: getEstimatedTime(selectedArea!.deliveryTime),
           shippingAddress,
           serviceType: 'delivery',
         },
@@ -1039,11 +1044,14 @@ export class MalekChatService {
         response: res,
       };
     } else if (payload?.branch_id) {
+      const branch = await BranchesModel.findByPk(payload.branch_id);
       const updatedDraft: WorkflowDraft = {
         ...draft,
         orderDetails: {
           ...(draft.orderDetails ?? {}),
-          branchId: payload.branch_id,
+          branchId: branch!.id,
+          branchName: branch!.name,
+          deliveryTime: getEstimatedTime(branch!.takeAwayTime),
           serviceType: 'takeaway',
         },
       };
@@ -1096,7 +1104,12 @@ export class MalekChatService {
         ],
       });
 
-      const productItems = selectedProducts.map((i) => ({ productId: i.id, productName: i.name, quantity: 1 }));
+      const productItems = selectedProducts.map((i) => ({
+        productId: i.id,
+        productName: i.name,
+        price: i.price,
+        quantity: 1,
+      }));
       const updatedDraft: WorkflowDraft = {
         ...draft,
         step: OrderFlowStep.CUSTOMIZE_ORDER_SELECTION,
