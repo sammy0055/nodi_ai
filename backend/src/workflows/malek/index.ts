@@ -1526,7 +1526,7 @@ export class MalekChatService {
 
         const workingProductId = optionChoices[0].productOption.productId;
         draft.orderDetails.items.forEach((i) => {
-          if (i.productId === workingProductId && i?.uniqueId === payload?.uniqueId) {
+          if (i?.uniqueId === payload?.uniqueId) {
             i.selectedOptions = selectedOption;
           }
         });
