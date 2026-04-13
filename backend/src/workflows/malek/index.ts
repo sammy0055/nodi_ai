@@ -17,7 +17,6 @@ import { decrypt } from '../../utils/crypto-utils';
 import { IProduct } from '../../types/product';
 import { ProductOption } from '../../types/product-option';
 import { generateOrderText } from '../utils';
-import { extend } from 'dayjs';
 import { productOptionsTaxonomy } from '../../data/taxonomy';
 import { getEstimatedTime } from '../../utils/getEstimatedTime';
 import { OrderModel } from '../../models/order.module';
@@ -1170,6 +1169,7 @@ export class MalekChatService {
         orderDetails: {
           ...(draft.orderDetails ?? {}),
           deliveryAreaId: selectedArea!.id,
+          branchId: selectedArea!.branchId,
           deliveryAreaName: selectedArea!.name,
           deliveryTime: getEstimatedTime(selectedArea!.deliveryTime) || '30mins',
           shippingAddress,
