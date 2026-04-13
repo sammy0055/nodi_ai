@@ -1504,6 +1504,9 @@ export class MalekChatService {
           const customer = await this.getCustomerData();
           draft.orderDetails.organizationId = customer.organizationId;
           draft.orderDetails.customerId = customer.id;
+          console.log('================orderDetails====================');
+          console.log(JSON.stringify(draft.orderDetails));
+          console.log('====================================');
           await OrderModel.create(draft.orderDetails as any);
           const res = await this.sendWhatSappMessage({
             recipientPhoneNumber: this.userPhoneNumber,
