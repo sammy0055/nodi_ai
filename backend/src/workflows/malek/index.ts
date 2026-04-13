@@ -1423,10 +1423,11 @@ export class MalekChatService {
       if (buttonPayload.id === 'yes') {
         // single upselling
         const upsellingItem = draft.upsellingProducts.map((i) => i.id);
-        const updatedDraft = await addItemToWorkflowDraft(upsellingItem);
         console.log('================updatedDraft====================');
-        console.log(updatedDraft);
+        console.log(draft.upsellingProducts);
         console.log('====================================');
+        const updatedDraft = await addItemToWorkflowDraft(upsellingItem);
+
         return await this.upsellingProductOptionsHandler(updatedDraft, msg);
       }
       if (buttonPayload.id === 'no') {
