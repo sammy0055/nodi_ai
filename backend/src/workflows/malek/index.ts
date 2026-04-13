@@ -1524,12 +1524,9 @@ export class MalekChatService {
           priceAdjustment: ch.priceAdjustment || 0,
         }));
 
-        console.log('==================payload?.uniqueId==================');
-        console.log(payload?.uniqueId);
-        console.log('====================================');
         const workingProductId = optionChoices[0].productOption.productId;
         draft.orderDetails.items.forEach((i) => {
-          if (i?.uniqueId === payload?.uniqueId) {
+          if (i.productId === workingProductId && i?.uniqueId === payload?.uniqueId) {
             i.selectedOptions = selectedOption;
           }
         });
