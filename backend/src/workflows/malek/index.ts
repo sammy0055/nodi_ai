@@ -43,7 +43,7 @@ export const handleIncommingMessageForMalek = async (whatsappBusinessId: string,
     console.log('===================malek-workflow-error=================');
     console.log(error.message);
     console.log('===================malek-workflow-error=================');
-    await deleteMessageFromRedis(msg.from)
+    await deleteMessageFromRedis(msg.from);
   }
 };
 
@@ -869,7 +869,7 @@ export class MalekChatService {
 
       const updatedDraft: WorkflowDraft = {
         ...draft,
-        step: OrderFlowStep.OPTIONS_ITEM_COLLECTION,
+        step: OrderFlowStep.UPSELLING,
         upsellingProducts: upsellingProducts as any,
       };
 
@@ -898,7 +898,7 @@ export class MalekChatService {
 
       const updatedDraft: WorkflowDraft = {
         ...draft,
-        step: OrderFlowStep.OPTIONS_ITEM_COLLECTION,
+        step: OrderFlowStep.UPSELLING,
         upsellingProducts: upsellingProducts as any,
       };
 
@@ -954,7 +954,7 @@ export class MalekChatService {
       const updatedDraft: WorkflowDraft = {
         ...draft,
         selectedProducts: updatedProducts,
-        step: OrderFlowStep.UPSELLING,
+        step: OrderFlowStep.OPTIONS_ITEM_COLLECTION,
       };
 
       const productOptionsObject = productOptions?.reduce((acc, item) => ({ ...acc, ...item }), {});
@@ -1422,9 +1422,6 @@ export class MalekChatService {
       const buttonPayload = msg?.interactive?.button_reply as any;
       if (buttonPayload.id === 'yes') {
         // single upselling
-        console.log('====================================');
-        console.log("single product");
-        console.log('====================================');
         const upsellingItem = draft.upsellingProducts.map((i) => i.id);
         const updatedDraft = await addItemToWorkflowDraft(upsellingItem);
         return await this.upsellingProductOptionsHandler(updatedDraft, msg);
