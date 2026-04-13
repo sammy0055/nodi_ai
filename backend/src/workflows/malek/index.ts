@@ -1563,7 +1563,8 @@ export class MalekChatService {
             })
           : [];
 
-      const productItems = products.map((i: any) => ({
+      const plainUpsellingProducts = products.map((p) => p.get({ plain: true }));
+      const productItems = plainUpsellingProducts.map((i: any) => ({
         productId: i.id,
         productName: i.name,
         price: i.price,
@@ -1572,7 +1573,7 @@ export class MalekChatService {
 
       const updatedDraft: WorkflowDraft = {
         ...draft,
-        upsellingProducts: products as any,
+        upsellingProducts: plainUpsellingProducts as any,
         orderDetails: {
           ...draft.orderDetails,
           items: [...(draft.orderDetails.items || []), ...(productItems as any)],
