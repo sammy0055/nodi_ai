@@ -919,7 +919,9 @@ export class MalekChatService {
       ],
     });
 
-    const items = upsellingProducts.map((item) => ({ id: item.id, title: item.name }));
+    const plainUpsellingProducts = upsellingProducts?.map((p) => p.get({ plain: true }));
+    plainUpsellingProducts?.forEach((item: any) => (item.uniqueId = randomUUID()));
+    const items = plainUpsellingProducts?.map((item) => ({ id: item.id, title: item.name }));
 
     if (items.length === 1) {
       const flowContent = getFlowContent('single-upselling-flow', draft.lang);
@@ -934,7 +936,7 @@ export class MalekChatService {
       const updatedDraft: WorkflowDraft = {
         ...draft,
         step: OrderFlowStep.UPSELLING,
-        upsellingProducts: upsellingProducts as any,
+        upsellingProducts: plainUpsellingProducts as any,
       };
 
       return {
@@ -963,7 +965,7 @@ export class MalekChatService {
       const updatedDraft: WorkflowDraft = {
         ...draft,
         step: OrderFlowStep.UPSELLING,
-        upsellingProducts: upsellingProducts as any,
+        upsellingProducts: plainUpsellingProducts as any,
       };
 
       return {
@@ -1111,7 +1113,7 @@ export class MalekChatService {
         flowName: flow?.type === 'flow' && (flow?.data.flowName as any),
         productName: upSellingProduct.name,
         productOptions: productOptionsObject,
-        uniqueId: 'hello',
+        uniqueId: upSellingProduct.uniqueId,
       });
 
       return {
