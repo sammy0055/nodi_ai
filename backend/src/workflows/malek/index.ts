@@ -40,7 +40,7 @@ export const handleIncommingMessageForMalek = async (whatsappBusinessId: string,
     const chat = await MalekChatService.init(userPhoneNumber, whatsappBusinessId);
     const res = await chat.proceswWorkflow(msg);
   } catch (error: any) {
-    await deleteMessageFromRedis(msg.from);
+    // await deleteMessageFromRedis(msg.from);
     console.log('===================malek-workflow-error=================');
     console.log(error.message);
     console.log('===================malek-workflow-error=================');
