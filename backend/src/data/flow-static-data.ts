@@ -201,19 +201,19 @@ const flowContent: {
       ],
     },
   },
-    'select-items-flow': {
+  'select-items-flow': {
     en: {
       headingText: 'Choose items to customize',
-      bodyText: 'Would you like to add more items to your order?',
-      footerText: 'Recommended for you',
+      bodyText: 'Please select the items you want to customize',
+      footerText: 'Customize items',
       buttonText: 'View Items',
     },
 
     ar: {
-      headingText: 'إضافة المزيد من المنتجات',
-      bodyText: 'هل ترغب في إضافة المزيد من المنتجات إلى طلبك؟',
-      footerText: 'موصى بها لك',
-      buttonText: 'عرض المنتجات',
+      headingText: 'اختر العناصر للتخصيص',
+      bodyText: 'يرجى اختيار العناصر التي ترغب في تخصيصها',
+      footerText: 'تخصيص العناصر',
+      buttonText: 'عرض العناصر',
     },
   },
   'product-option-flow': {

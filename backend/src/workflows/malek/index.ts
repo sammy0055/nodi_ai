@@ -533,6 +533,70 @@ export class MalekChatService {
     }
   }
 
+  async sendWhatSappItemSelectionFlowInteractiveMessage(args: SendWhatSappItemSelectionProps) {
+    function addPrefixToIds(items: { id: string; title: string }[]) {
+      return items.map((item, index) => ({
+        ...item,
+        id: `${item.id}__${index}`, // originalId__index
+      }));
+    }
+    const body = {
+      messaging_product: 'whatsapp',
+      to: args.recipientPhoneNumber,
+      type: 'interactive',
+      interactive: {
+        type: 'flow',
+        header: {
+          type: 'text',
+          text: args?.headingText || 'items',
+        },
+        body: {
+          text: args?.bodyText || 'select the item you want to edit.',
+        },
+        footer: {
+          text: args?.footerText || 'CheeseAI Bot',
+        },
+        action: {
+          name: 'flow',
+          parameters: {
+            flow_id: args.flowId,
+            flow_message_version: '3',
+            flow_cta: args?.buttonText || 'Open form',
+            mode: 'published',
+            flow_action: 'navigate',
+            flow_action_payload: {
+              screen: 'ITEMS_SELECTION',
+              data: JSON.stringify({
+                status: 'active',
+                items: addPrefixToIds(args.items),
+                flowLabel: WhatsappFlowLabel.PRODUCT_ITEMS_FLOW,
+              }),
+            },
+          },
+        },
+      },
+    };
+
+    try {
+      const url = `https://graph.facebook.com/v20.0/${this.WhatSappBusinessPhoneNumberId}/messages`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.whatsappAccessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(`Error ${res.status}: ${errorData.error.message}`);
+      }
+    } catch (error: any) {
+      console.log('WHATSAPP-MESSAGE', error);
+    }
+  }
+
   async sendWhatSappSingleUpsellingProductInteractiveMessage(args: SendWhatSappSingleUpsellingProps) {
     const body = {
       messaging_product: 'whatsapp',
@@ -689,10 +753,11 @@ export class MalekChatService {
       [OrderFlowStep.CATALOG_SELECTION]: this.handleCatalogSelection,
       [OrderFlowStep.ADDRESS_SELECTION]: this.handleAddressSelection,
       [OrderFlowStep.CUSTOMIZE_ORDER_SELECTION]: this.handleCustomizeOrderSelection,
+      [OrderFlowStep.PRODUCT_ITEMS_SELECTION]: this.handleProductItemsSelection,
       [OrderFlowStep.OPTIONS_ITEM_COLLECTION]: this.handleOptionItemSelection,
       [OrderFlowStep.UPSELLING]: this.handleUpsellingSelection,
       [OrderFlowStep.UPSELLING_OPTIONS_ITEM_COLLECTION]: this.handleUpsellingItemOptionSelection,
-      // [OrderFlowStep.PRODUCT_OPTIONS]: this.handleProductOptions,
+
       // [OrderFlowStep.ORDER_SUMMARY]: this.handleOrderSummary,
       [OrderFlowStep.ORDER_COMPLETION]: this.handleOrderCompletion,
     };
@@ -1057,6 +1122,29 @@ export class MalekChatService {
     }
   }
 
+  private async processProductItemSendingHandler(draft: WorkflowDraft, msg: WhatsAppMessage) {
+    const whatsappSettings = await WhatSappSettingsModel.findOne({
+      where: { organizationId: this.organizationId },
+    });
+
+    const flow = whatsappSettings?.whatsappTemplates?.find(
+      (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW
+    );
+    const items = draft.selectedProducts.map((i) => ({ id: i.id, title: i.name }));
+    const flowContent = getFlowContent('select-items-flow', draft.lang);
+    const res = await this.sendWhatSappItemSelectionFlowInteractiveMessage({
+      recipientPhoneNumber: this.userPhoneNumber,
+      ...flowContent,
+      flowId: flow?.type === 'flow' && (flow?.data.flowId as any),
+      flowName: flow?.type === 'flow' && (flow?.data.flowName as any),
+      items,
+    });
+    return {
+      updatedDraft: { ...draft, step: OrderFlowStep.PRODUCT_ITEMS_SELECTION },
+      response: res,
+    };
+  }
+
   // -----------------------------
   // STEP HANDLER
   // -----------------------------
@@ -1308,7 +1396,7 @@ export class MalekChatService {
     if (msg?.interactive?.type === 'button_reply') {
       const buttonPayload = msg?.interactive?.button_reply as any;
       if (buttonPayload.id === 'yes') {
-        return await this.orderModificationHandler(draft, msg);
+        return await this.processProductItemSendingHandler(draft, msg);
       }
       if (buttonPayload.id === 'no') {
         return await this.processUpsellingHandler(draft, msg);
@@ -1323,6 +1411,45 @@ export class MalekChatService {
         updatedDraft: null,
         response: res,
       };
+    }
+  }
+
+  private async handleProductItemsSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
+    try {
+      const payload = JSON.parse(msg.interactive?.nfm_reply.response_json as any);
+      if (payload.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW) {
+        function getOriginalIds(prefixedIds: string[]) {
+          return prefixedIds.map((id) => id.split('__')[0]);
+        }
+        const selectedProductIds = getOriginalIds(payload.item_id);
+        const selectedProducts = await ProductModel.findAll({
+          where: {
+            id: {
+              [Op.in]: selectedProductIds.filter(Boolean),
+            },
+            organizationId: this.organizationId,
+          },
+          include: [
+            { model: ProductOptionModel, as: 'options', include: [{ model: ProductOptionChoiceModel, as: 'choices' }] },
+          ],
+        });
+
+        // create lookup map
+        const productMap = new Map(selectedProducts.map((p) => [p.id, p]));
+        // rebuild with duplicates preserved
+        const productsWithDuplicates = selectedProductIds.map((id) => productMap.get(id));
+        const updatedDraft: WorkflowDraft = {
+          ...draft,
+          selectedProducts: productsWithDuplicates as any,
+        };
+        return await this.orderModificationHandler(updatedDraft, msg);
+      } else {
+        // send back item flow
+        return await this.processProductItemSendingHandler(draft, msg);
+      }
+    } catch (error: any) {
+      console.error('handleProductItemsSelection:', error.message);
+      throw error;
     }
   }
 
@@ -1454,7 +1581,7 @@ export class MalekChatService {
     console.log('====================================');
     const payload = JSON.parse(msg.interactive?.nfm_reply?.response_json as any);
     if (payload?.flowLabel === WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW) {
-        console.log('=================selectedProductOptionChoices===================');
+      console.log('=================selectedProductOptionChoices===================');
       console.log(payload);
       console.log('====================================');
       const optionNames = productOptionsTaxonomy.restaurant.map((i) => i.name);
@@ -1585,7 +1712,7 @@ export interface WorkflowDraft {
     totalAmount: number;
     items: {
       productId: string;
-      uniqueId:string
+      uniqueId: string;
       productName: string;
       quantity: number;
       price: number;
@@ -1649,6 +1776,13 @@ interface SendWhatSappProductOptionsFlowProps extends FlowContent {
 }
 
 interface SendWhatSappMultiUpsellingProps extends FlowContent {
+  recipientPhoneNumber: string;
+  flowId: string;
+  flowName?: string;
+  items: { id: string; title: string }[];
+}
+
+interface SendWhatSappItemSelectionProps extends FlowContent {
   recipientPhoneNumber: string;
   flowId: string;
   flowName?: string;
