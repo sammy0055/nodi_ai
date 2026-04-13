@@ -1585,6 +1585,7 @@ export interface WorkflowDraft {
     totalAmount: number;
     items: {
       productId: string;
+      uniqueId:string
       productName: string;
       quantity: number;
       price: number;

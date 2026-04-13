@@ -7,6 +7,7 @@ export type FlowType =
   | 'area-and-zone-flow'
   | 'catalog-flow'
   | 'customize-order-flow'
+  | 'select-items-flow'
   | 'product-option-flow'
   | 'single-upselling-flow'
   | 'multi-upselling-flow'
@@ -54,6 +55,7 @@ type FlowContentMap = {
   'branch-flow': FlowContent;
   'area-and-zone-flow': FlowContent;
   'customize-order-flow': CustomizeOrderContent;
+  'select-items-flow': FlowContent;
   'product-option-flow': FlowContent;
   'single-upselling-flow': SingleUpsellingContent;
   'multi-upselling-flow': FlowContent;
@@ -197,6 +199,21 @@ const flowContent: {
         { id: 'yes', title: 'نعم' },
         { id: 'no', title: 'لا' },
       ],
+    },
+  },
+    'select-items-flow': {
+    en: {
+      headingText: 'Choose items to customize',
+      bodyText: 'Would you like to add more items to your order?',
+      footerText: 'Recommended for you',
+      buttonText: 'View Items',
+    },
+
+    ar: {
+      headingText: 'إضافة المزيد من المنتجات',
+      bodyText: 'هل ترغب في إضافة المزيد من المنتجات إلى طلبك؟',
+      footerText: 'موصى بها لك',
+      buttonText: 'عرض المنتجات',
     },
   },
   'product-option-flow': {
