@@ -1503,7 +1503,7 @@ export class MalekChatService {
           const arMessage = 'تم تقديم طلبك بنجاح';
           const customer = await this.getCustomerData();
           draft.orderDetails.organizationId = customer.organizationId;
-          draft.customerId = customer.id;
+          draft.orderDetails.customerId = customer.id;
           await OrderModel.create(draft.orderDetails as any);
           const res = await this.sendWhatSappMessage({
             recipientPhoneNumber: this.userPhoneNumber,

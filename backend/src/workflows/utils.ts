@@ -82,7 +82,7 @@ export const generateOrderText = (locale: 'en' | 'ar') => (args: GenerateTextArg
     text += `${t.takeaway}\n-------------------\n`;
     text += `${t.branch}: ${branch}\n\n`;
     text += `${t.items}:\n${itemsText}\n\n`;
-    text += `${t.total}: ${format(total)}`;
+    text += `${t.total}: ${format(total)}\n\n`;
     text += `${t.eta}: ${estimatedTime}`;
   }
 
