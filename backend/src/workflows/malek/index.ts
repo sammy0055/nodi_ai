@@ -943,7 +943,7 @@ export class MalekChatService {
 
       let found = false;
       const updatedProducts = draft.selectedProducts.map((i) => {
-        if (!found && i.id === product.id && !i.isOptionAdded) {
+        if (!found && i.id === product.id && !i?.isOptionAdded) {
           found = true;
           return { ...i, isOptionAdded: true };
         }
@@ -1014,7 +1014,7 @@ export class MalekChatService {
 
       let found = false;
       const updatedProducts = draft.upsellingProducts.map((i) => {
-        if (!found && i.id === upSellingProduct.id && !i.isOptionAdded) {
+        if (!found && i.id === upSellingProduct.id && !i?.isOptionAdded) {
           found = true;
           return { ...i, isOptionAdded: true };
         }
