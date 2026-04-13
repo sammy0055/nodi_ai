@@ -1411,12 +1411,16 @@ export class MalekChatService {
       return await this.upsellingProductOptionsHandler(updatedDraft, msg);
     } else if (msg?.interactive?.type === 'button_reply') {
       const buttonPayload = msg?.interactive?.button_reply as any;
+      console.log('================buttonPayload====================');
+      console.log(buttonPayload);
+      console.log('====================================');
       if (buttonPayload.id === 'yes') {
-        // single upselling
-        const upsellingItem = draft.upsellingProducts.map((i) => i.id);
-        console.log('================updatedDraft====================');
+        console.log('================upsellingProducts====================');
         console.log(draft.upsellingProducts);
         console.log('====================================');
+        // single upselling
+        const upsellingItem = draft.upsellingProducts.map((i) => i.id);
+
         const updatedDraft = await addItemToWorkflowDraft(upsellingItem);
 
         return await this.upsellingProductOptionsHandler(updatedDraft, msg);
