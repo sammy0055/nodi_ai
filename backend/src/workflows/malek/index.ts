@@ -1368,9 +1368,6 @@ export class MalekChatService {
     console.log('====================================');
     console.log('handleUpsellingSelection');
     console.log('====================================');
-    console.log('================buttonPayload====================');
-    console.log(msg);
-    console.log('====================================');
     const addItemToWorkflowDraft = async (upsellingItemIds: string[]) => {
       const itemIds = Array.isArray(upsellingItemIds) ? upsellingItemIds : [];
 
@@ -1406,8 +1403,8 @@ export class MalekChatService {
 
       return updatedDraft;
     };
-    const payload = JSON.parse(msg.interactive?.nfm_reply?.response_json as any);
-    if (payload.flowLabel === WhatsappFlowLabel.UPSELLING_ITEMS_FLOW) {
+    const payload = JSON.parse(msg?.interactive?.nfm_reply?.response_json as any);
+    if (payload?.flowLabel === WhatsappFlowLabel.UPSELLING_ITEMS_FLOW) {
       // multi upselling
       const itemIds = Array.isArray(payload.item_id) ? payload.item_id : [];
       const updatedDraft = await addItemToWorkflowDraft(itemIds);
