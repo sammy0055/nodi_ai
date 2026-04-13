@@ -828,6 +828,12 @@ export class MalekChatService {
     const updatedDraft: WorkflowDraft = {
       ...draft,
       step: OrderFlowStep.ORDER_COMPLETION,
+      orderDetails: {
+        ...draft.orderDetails,
+        subtotal: productTotal,
+        totalAmount: total,
+        currency: org.currency,
+      },
     };
 
     return {
@@ -1168,6 +1174,7 @@ export class MalekChatService {
           deliveryTime: getEstimatedTime(selectedArea!.deliveryTime) || '30mins',
           shippingAddress,
           serviceType: 'delivery',
+          deliveryCharge: selectedArea!.deliveryCharge || 0,
         },
       };
 
@@ -1192,6 +1199,7 @@ export class MalekChatService {
           branchName: branch!.name,
           deliveryTime: getEstimatedTime(branch!.takeAwayTime) || '30mins',
           serviceType: 'takeaway',
+          deliveryCharge: 0,
         },
       };
 
