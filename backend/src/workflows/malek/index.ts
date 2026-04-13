@@ -1346,10 +1346,11 @@ export class MalekChatService {
 
       // create lookup map
       const plainProducts = selectedProducts.map((p) => p.get({ plain: true }));
-      plainProducts.forEach((item: any) => (item.uniqueId = randomUUID()));
+
       const productMap = new Map(plainProducts.map((p) => [p.id, p]));
       // rebuild with duplicates preserved
       const productsWithDuplicates = product_ids.map((id) => productMap.get(id));
+      productsWithDuplicates.forEach((item: any) => (item.uniqueId = randomUUID()));
       const productItems = productsWithDuplicates?.map((i: any) => ({
         productId: i.id,
         productName: i.name,
