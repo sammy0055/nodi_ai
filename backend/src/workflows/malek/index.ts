@@ -954,7 +954,7 @@ export class MalekChatService {
       const updatedDraft: WorkflowDraft = {
         ...draft,
         selectedProducts: updatedProducts,
-        step: OrderFlowStep.OPTIONS_ITEM_COLLECTION,
+        step: OrderFlowStep.UPSELLING,
       };
 
       const productOptionsObject = productOptions?.reduce((acc, item) => ({ ...acc, ...item }), {});
