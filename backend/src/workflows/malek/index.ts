@@ -1618,9 +1618,6 @@ export class MalekChatService {
     console.log('====================================');
     const payload = JSON.parse(msg.interactive?.nfm_reply?.response_json as any);
     if (payload?.flowLabel === WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW) {
-      console.log('=================selectedProductOptionChoices===================');
-      console.log(payload);
-      console.log('====================================');
       const optionNames = productOptionsTaxonomy.restaurant.map((i) => i.name);
       const flatIds = Object.keys(payload)
         .filter((key) => optionNames.includes(key))
@@ -1636,11 +1633,13 @@ export class MalekChatService {
           },
         ],
       });
-
+      console.log('=================selectedProductOptionChoices===================');
+      console.log(selectedProductOptionChoices);
+      console.log('====================================');
       if (selectedProductOptionChoices.length > 0) {
         const productIds = draft.orderDetails.items.map((i) => i.productId);
         const optionChoices = selectedProductOptionChoices.filter((op: any) =>
-          productIds.includes(op.productOption.productId)
+          productIds.includes(op?.productOption?.productId)
         ) as any;
 
         const selectedOption = optionChoices?.map((ch: any) => ({
