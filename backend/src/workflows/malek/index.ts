@@ -805,6 +805,7 @@ export class MalekChatService {
     const total = productTotal + (order.deliveryCharge || 0);
     const generateOrderSummaryText = generateOrderText(draft.lang);
 
+    const branch = order.branchId ? await BranchesModel.findByPk(order.branchId) : null;
     const summaryText = generateOrderSummaryText({
       total,
       items: products,
@@ -813,7 +814,12 @@ export class MalekChatService {
       address: order?.shippingAddress,
       branch: order?.branchName,
       area: order?.deliveryAreaName,
-      estimatedTime: order?.deliveryTime,
+      estimatedTime:
+        order.serviceType === 'delivery'
+          ? getEstimatedTime(order?.deliveryTime) || '30mins'
+          : branch
+            ? getEstimatedTime(branch.takeAwayTime) || '30mins'
+            : '30mins',
       currency: org.currency,
     });
 
@@ -1447,7 +1453,7 @@ export class MalekChatService {
     console.log('handleUpsellingItemOptionSelection');
     console.log('====================================');
     const payload = JSON.parse(msg.interactive?.nfm_reply?.response_json as any);
-    if (payload.flowLabel === WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW) {
+    if (payload?.flowLabel === WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW) {
       const optionNames = productOptionsTaxonomy.restaurant.map((i) => i.name);
       const flatIds = Object.keys(payload)
         .filter((key) => optionNames.includes(key))
@@ -1463,6 +1469,10 @@ export class MalekChatService {
           },
         ],
       });
+
+      console.log('=================selectedProductOptionChoices===================');
+      console.log(selectedProductOptionChoices);
+      console.log('====================================');
 
       if (selectedProductOptionChoices.length > 0) {
         const productIds = draft.orderDetails.items.map((i) => i.productId);
@@ -1568,7 +1578,7 @@ export interface WorkflowDraft {
     currency: string;
     deliveryAreaId: string;
     deliveryAreaName: string;
-    deliveryTime: string;
+    deliveryTime: Date;
     shippingAddress: string;
     serviceType: 'delivery' | 'takeaway';
     subtotal: number;
