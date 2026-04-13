@@ -43,6 +43,7 @@ export const handleIncommingMessageForMalek = async (whatsappBusinessId: string,
     console.log('===================malek-workflow-error=================');
     console.log(error.message);
     console.log('===================malek-workflow-error=================');
+    await deleteMessageFromRedis(msg.from)
   }
 };
 
@@ -1421,6 +1422,9 @@ export class MalekChatService {
       const buttonPayload = msg?.interactive?.button_reply as any;
       if (buttonPayload.id === 'yes') {
         // single upselling
+        console.log('====================================');
+        console.log("single product");
+        console.log('====================================');
         const upsellingItem = draft.upsellingProducts.map((i) => i.id);
         const updatedDraft = await addItemToWorkflowDraft(upsellingItem);
         return await this.upsellingProductOptionsHandler(updatedDraft, msg);
