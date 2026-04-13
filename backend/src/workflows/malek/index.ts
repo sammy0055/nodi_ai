@@ -36,6 +36,9 @@ const {
 export const handleIncommingMessageForMalek = async (whatsappBusinessId: string, msg: WhatsAppMessage) => {
   try {
     const userPhoneNumber = msg.from;
+    console.log('==================userPhoneNumber==================');
+    console.log(userPhoneNumber);
+    console.log('====================================');
 
     const chat = await MalekChatService.init(userPhoneNumber, whatsappBusinessId);
     const res = await chat.proceswWorkflow(msg);
@@ -802,7 +805,7 @@ export class MalekChatService {
     });
     const order = draft.orderDetails;
     const productTotal = order.items.reduce((total, item) => total + item.price * item.quantity, 0);
-    const total = productTotal + order.deliveryCharge ? order.deliveryCharge : 0;
+    const total = productTotal + (order.deliveryCharge || 0);
     const generateOrderSummaryText = generateOrderText(draft.lang);
 
     const summaryText = generateOrderSummaryText({
