@@ -48,7 +48,7 @@ export const generateOrderText = (locale: 'en' | 'ar') => (args: GenerateTextArg
       items: 'Items',
       deliveryCharge: 'Delivery Charge',
       total: 'Total',
-      eta: 'Estimated Delivery Time',
+      eta: args.type === 'delivery' ? 'Estimated Delivery Time' : 'Estimated Takeaway Time',
       branch: 'Branch',
     },
     ar: {
@@ -59,7 +59,7 @@ export const generateOrderText = (locale: 'en' | 'ar') => (args: GenerateTextArg
       items: 'الطلبات',
       deliveryCharge: 'رسوم التوصيل',
       total: 'الإجمالي',
-      eta: 'وقت التوصيل المتوقع',
+      eta: args.type === 'delivery' ? 'وقت التوصيل المتوقع' : 'وقت الاستلام المتوقع',
       branch: 'الفرع',
     },
   }[locale];
@@ -83,6 +83,7 @@ export const generateOrderText = (locale: 'en' | 'ar') => (args: GenerateTextArg
     text += `${t.branch}: ${branch}\n\n`;
     text += `${t.items}:\n${itemsText}\n\n`;
     text += `${t.total}: ${format(total)}`;
+    text += `${t.eta}: ${estimatedTime}`;
   }
 
   return text;

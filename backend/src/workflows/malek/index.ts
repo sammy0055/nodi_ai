@@ -20,6 +20,7 @@ import { generateOrderText } from '../utils';
 import { extend } from 'dayjs';
 import { productOptionsTaxonomy } from '../../data/taxonomy';
 import { getEstimatedTime } from '../../utils/getEstimatedTime';
+import { OrderModel } from '../../models/order.module';
 
 const {
   CustomerModel,
@@ -36,17 +37,14 @@ const {
 export const handleIncommingMessageForMalek = async (whatsappBusinessId: string, msg: WhatsAppMessage) => {
   try {
     const userPhoneNumber = msg.from;
-    console.log('==================userPhoneNumber==================');
-    console.log(userPhoneNumber);
-    console.log('====================================');
 
     const chat = await MalekChatService.init(userPhoneNumber, whatsappBusinessId);
     const res = await chat.proceswWorkflow(msg);
   } catch (error: any) {
+    await deleteMessageFromRedis(msg.from);
     console.log('===================malek-workflow-error=================');
     console.log(error.message);
     console.log('===================malek-workflow-error=================');
-    await deleteMessageFromRedis(msg.from);
   }
 };
 
@@ -697,7 +695,7 @@ export class MalekChatService {
       [OrderFlowStep.UPSELLING_OPTIONS_ITEM_COLLECTION]: this.handleUpsellingItemOptionSelection,
       // [OrderFlowStep.PRODUCT_OPTIONS]: this.handleProductOptions,
       // [OrderFlowStep.ORDER_SUMMARY]: this.handleOrderSummary,
-      // [OrderFlowStep.ORDER_COMPLETION]: this.handleOrderCompletion,
+      [OrderFlowStep.ORDER_COMPLETION]: this.handleOrderCompletion,
     };
 
     const handler = handlers[step];
@@ -1487,6 +1485,53 @@ export class MalekChatService {
       return await this.upsellingProductOptionsHandler(updatedDraft, msg);
     }
     return await this.upsellingProductOptionsHandler(draft, msg);
+  }
+  private async handleOrderCompletion(draft: WorkflowDraft, msg: WhatsAppMessage) {
+    try {
+      if (msg?.interactive?.type === 'button_reply') {
+        const buttonPayload = msg?.interactive?.button_reply as any;
+        if (buttonPayload.id === 'confirm') {
+          const enMessage = 'your order has being placed succesfully';
+          const arMessage = 'تم تقديم طلبك بنجاح';
+          await OrderModel.create(draft.orderDetails as any);
+          const res = await this.sendWhatSappMessage({
+            recipientPhoneNumber: this.userPhoneNumber,
+            message: draft.lang === 'en' ? enMessage : arMessage,
+          });
+          await deleteMessageFromRedis(this.userPhoneNumber);
+          return {
+            updatedDraft: null,
+            response: res,
+          };
+        } else if (buttonPayload.id === 'edit') {
+          await this.sendWhatSappMessage({
+            recipientPhoneNumber: this.userPhoneNumber,
+            message: 'edit order is comming soon for now confirm or cancel your order',
+          });
+
+          // send order summary
+          return await this.processOrderSummaryHandler(draft, msg);
+        } else if (buttonPayload.id === 'cancel') {
+          const enMessage = 'your order has being cancelled succesfully';
+          const arMessage = 'تم إلغاء طلبك بنجاح';
+          const res = await this.sendWhatSappMessage({
+            recipientPhoneNumber: this.userPhoneNumber,
+            message: draft.lang === 'en' ? enMessage : arMessage,
+          });
+          await deleteMessageFromRedis(this.userPhoneNumber);
+          return {
+            updatedDraft: null,
+            response: res,
+          };
+        } else throw new Error('Wrong Button id for OrderSummary');
+      } else {
+        // send order summary
+        return await this.processOrderSummaryHandler(draft, msg);
+      }
+    } catch (error: any) {
+      console.error('handleOrderCompletion:', error.message);
+      throw error;
+    }
   }
 }
 
