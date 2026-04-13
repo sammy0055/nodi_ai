@@ -1352,8 +1352,17 @@ export class MalekChatService {
 
       const productMap = new Map(plainProducts.map((p) => [p.id, p]));
       // rebuild with duplicates preserved
-      const productsWithDuplicates = product_ids.map((id) => productMap.get(id));
-      productsWithDuplicates.forEach((item: any) => (item.uniqueId = randomUUID()));
+      const productsWithDuplicates = product_ids
+        .map((id) => {
+          const product = productMap.get(id);
+          if (!product) return null;
+
+          return {
+            ...product, // 👈 clone fixes it
+            uniqueId: randomUUID(),
+          };
+        })
+        .filter(Boolean);
       const productItems = productsWithDuplicates?.map((i: any) => ({
         productId: i.id,
         uniqueId: i.uniqueId,
