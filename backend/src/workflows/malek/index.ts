@@ -1403,7 +1403,11 @@ export class MalekChatService {
 
       return updatedDraft;
     };
-    const payload = JSON.parse(msg?.interactive?.nfm_reply?.response_json as any);
+    let payload: any = null;
+
+    if (msg?.interactive?.nfm_reply?.response_json) {
+      payload = JSON.parse(msg.interactive.nfm_reply.response_json as any);
+    }
     if (payload?.flowLabel === WhatsappFlowLabel.UPSELLING_ITEMS_FLOW) {
       // multi upselling
       const itemIds = Array.isArray(payload.item_id) ? payload.item_id : [];
@@ -1418,7 +1422,6 @@ export class MalekChatService {
         console.log('====================================');
         // single upselling
         const upsellingItem = draft.upsellingProducts.map((i) => i.id);
-
         const updatedDraft = await addItemToWorkflowDraft(upsellingItem);
 
         return await this.upsellingProductOptionsHandler(updatedDraft, msg);
