@@ -1493,8 +1493,9 @@ export class MalekChatService {
         if (buttonPayload.id === 'confirm') {
           const enMessage = 'your order has being placed succesfully';
           const arMessage = 'تم تقديم طلبك بنجاح';
-          const org = await this.getOrganization();
-          draft.orderDetails.organizationId = org.id;
+          const customer = await this.getCustomerData();
+          draft.orderDetails.organizationId = customer.organizationId;
+          draft.customerId = customer.id;
           await OrderModel.create(draft.orderDetails as any);
           const res = await this.sendWhatSappMessage({
             recipientPhoneNumber: this.userPhoneNumber,
