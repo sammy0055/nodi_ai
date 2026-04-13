@@ -1368,6 +1368,9 @@ export class MalekChatService {
     console.log('====================================');
     console.log('handleUpsellingSelection');
     console.log('====================================');
+    console.log('================buttonPayload====================');
+    console.log(msg);
+    console.log('====================================');
     const addItemToWorkflowDraft = async (upsellingItemIds: string[]) => {
       const itemIds = Array.isArray(upsellingItemIds) ? upsellingItemIds : [];
 
@@ -1411,9 +1414,7 @@ export class MalekChatService {
       return await this.upsellingProductOptionsHandler(updatedDraft, msg);
     } else if (msg?.interactive?.type === 'button_reply') {
       const buttonPayload = msg?.interactive?.button_reply as any;
-      console.log('================buttonPayload====================');
-      console.log(buttonPayload);
-      console.log('====================================');
+
       if (buttonPayload.id === 'yes') {
         console.log('================upsellingProducts====================');
         console.log(draft.upsellingProducts);
