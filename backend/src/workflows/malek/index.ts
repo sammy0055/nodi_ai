@@ -20,6 +20,7 @@ import { generateOrderText } from '../utils';
 import { productOptionsTaxonomy } from '../../data/taxonomy';
 import { getEstimatedTime } from '../../utils/getEstimatedTime';
 import { OrderModel } from '../../models/order.module';
+import { randomUUID } from 'crypto';
 
 const {
   CustomerModel,
@@ -534,12 +535,6 @@ export class MalekChatService {
   }
 
   async sendWhatSappItemSelectionFlowInteractiveMessage(args: SendWhatSappItemSelectionProps) {
-    function addPrefixToIds(items: { id: string; title: string }[]) {
-      return items.map((item, index) => ({
-        ...item,
-        id: `${item.id}__${index}`, // originalId__index
-      }));
-    }
     const body = {
       messaging_product: 'whatsapp',
       to: args.recipientPhoneNumber,
@@ -568,7 +563,7 @@ export class MalekChatService {
               screen: 'ITEMS_SELECTION',
               data: JSON.stringify({
                 status: 'active',
-                items: addPrefixToIds(args.items),
+                items: args.items,
                 flowLabel: WhatsappFlowLabel.PRODUCT_ITEMS_FLOW,
               }),
             },
@@ -1135,7 +1130,7 @@ export class MalekChatService {
     const flow = whatsappSettings?.whatsappTemplates?.find(
       (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW
     );
-    const items = draft.selectedProducts.map((i) => ({ id: i.id, title: i.name }));
+    const items = draft.selectedProducts.map((i) => ({ id: `${i.id}_${i.uniqueId}`, title: i.name }));
     const flowContent = getFlowContent('select-items-flow', draft.lang);
     const res = await this.sendWhatSappItemSelectionFlowInteractiveMessage({
       recipientPhoneNumber: this.userPhoneNumber,
@@ -1350,7 +1345,9 @@ export class MalekChatService {
       });
 
       // create lookup map
-      const productMap = new Map(selectedProducts.map((p) => [p.id, p]));
+      const plainProducts = selectedProducts.map((p) => p.get({ plain: true }));
+      plainProducts.forEach((item: any) => (item.uniqueId = randomUUID()));
+      const productMap = new Map(plainProducts.map((p) => [p.id, p]));
       // rebuild with duplicates preserved
       const productsWithDuplicates = product_ids.map((id) => productMap.get(id));
       const productItems = productsWithDuplicates?.map((i: any) => ({
@@ -1423,10 +1420,15 @@ export class MalekChatService {
     try {
       const payload = JSON.parse(msg.interactive?.nfm_reply.response_json as any);
       if (payload.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW) {
-        function getOriginalIds(prefixedIds: string[]) {
-          return prefixedIds.map((id) => id.split('__')[0]);
+        function parsePrefixedIds(prefixedIds: string[]) {
+          return prefixedIds.map((id) => {
+            const [productId, uniqueId] = id.split('_');
+            return { productId, uniqueId };
+          });
         }
-        const selectedProductIds = getOriginalIds(payload.item_id);
+        const parsedItems = parsePrefixedIds(payload.item_id);
+
+        const selectedProductIds = parsedItems.map((i) => i.productId).filter(Boolean);
         const selectedProducts = await ProductModel.findAll({
           where: {
             id: {
@@ -1440,13 +1442,26 @@ export class MalekChatService {
         });
 
         // create lookup map
-        const plainProducts = selectedProducts.map(p => p.get({ plain: true }));
+        const plainProducts = selectedProducts.map((p) => p.get({ plain: true }));
         const productMap = new Map(plainProducts.map((p) => [p.id, p]));
         // rebuild with duplicates preserved
-        const productsWithDuplicates = selectedProductIds.map((id) => productMap.get(id));
+        // const productsWithDuplicates = selectedProductIds.map((id) => productMap.get(id));
+        const finalSelectedProducts = parsedItems
+          .map(({ productId, uniqueId }) => {
+            const product = productMap.get(productId);
+
+            if (!product) return null;
+
+            return {
+              ...product,
+              uniqueId, // 👈 attach here
+            };
+          })
+          .filter(Boolean);
+
         const updatedDraft: WorkflowDraft = {
           ...draft,
-          selectedProducts: productsWithDuplicates as any,
+          selectedProducts: finalSelectedProducts as any,
         };
         return await this.orderModificationHandler(updatedDraft, msg);
       } else {
@@ -1692,6 +1707,7 @@ export class MalekChatService {
 
 interface workingProduct extends IProduct {
   isOptionAdded: boolean;
+  uniqueId: string;
   options: ProductOption[];
 }
 
