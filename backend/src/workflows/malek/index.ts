@@ -548,22 +548,13 @@ export class MalekChatService {
           text: args.footerText,
         },
         action: {
-          buttons: [
-            {
-              type: 'reply',
-              reply: {
-                id: 'add_item',
-                title: 'Yes',
-              },
+          buttons: args.buttonTexts.map((btn) => ({
+            type: 'reply',
+            reply: {
+              id: btn.id,
+              title: btn.title,
             },
-            {
-              type: 'reply',
-              reply: {
-                id: 'no_add_item',
-                title: 'No',
-              },
-            },
-          ],
+          })),
         },
       },
     };
