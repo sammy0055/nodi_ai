@@ -449,6 +449,7 @@ export class MalekChatService {
                 ...args.productOptions,
                 productName: args.productName,
                 flowLabel: WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW,
+                uniqueId: args.uniqueId,
               }),
             },
           },
@@ -1034,6 +1035,7 @@ export class MalekChatService {
           flowName: flow?.type === 'flow' && (flow?.data.flowName as any),
           productName: product.name,
           productOptions: productOptionsObject,
+          uniqueId: product.uniqueId,
         });
 
         return {
@@ -1109,6 +1111,7 @@ export class MalekChatService {
         flowName: flow?.type === 'flow' && (flow?.data.flowName as any),
         productName: upSellingProduct.name,
         productOptions: productOptionsObject,
+        uniqueId: 'hello',
       });
 
       return {
@@ -1353,6 +1356,7 @@ export class MalekChatService {
       productsWithDuplicates.forEach((item: any) => (item.uniqueId = randomUUID()));
       const productItems = productsWithDuplicates?.map((i: any) => ({
         productId: i.id,
+        uniqueId: i.uniqueId,
         productName: i.name,
         price: i.price,
         quantity: 1,
@@ -1513,7 +1517,7 @@ export class MalekChatService {
 
         const workingProductId = optionChoices[0].productOption.productId;
         draft.orderDetails.items.forEach((i) => {
-          if (i.productId === workingProductId) {
+          if (i.productId === workingProductId && i?.uniqueId === payload?.uniqueId) {
             i.selectedOptions = selectedOption;
           }
         });
@@ -1796,6 +1800,7 @@ interface SendWhatSappProductOptionsFlowProps extends FlowContent {
   flowName?: string;
   productName: string;
   productOptions: any;
+  uniqueId: string;
 }
 
 interface SendWhatSappMultiUpsellingProps extends FlowContent {
