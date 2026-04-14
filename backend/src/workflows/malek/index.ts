@@ -753,9 +753,8 @@ export class MalekChatService {
       [OrderFlowStep.OPTIONS_ITEM_COLLECTION]: this.handleOptionItemSelection,
       [OrderFlowStep.UPSELLING]: this.handleUpsellingSelection,
       [OrderFlowStep.UPSELLING_OPTIONS_ITEM_COLLECTION]: this.handleUpsellingItemOptionSelection,
-
-      // [OrderFlowStep.ORDER_SUMMARY]: this.handleOrderSummary,
       [OrderFlowStep.ORDER_COMPLETION]: this.handleOrderCompletion,
+      [OrderFlowStep.ORDERED_ITEM_COLLECTION]: this.handleOrderedItemsSelection,
     };
 
     const handler = handlers[step];
@@ -1053,6 +1052,83 @@ export class MalekChatService {
       throw error;
     }
   }
+  private async editOrderedItemsModificationHandler(draft: WorkflowDraft, msg: WhatsAppMessage) {
+    try {
+      const product = draft.selectedProducts.find((i) => !i.isOptionAdded && i?.options?.length > 0);
+      if (product) {
+        const org = await this.getOrganization();
+        const whatsappSettings = await WhatSappSettingsModel.findOne({
+          where: { organizationId: this.organizationId },
+        });
+
+        const flow = whatsappSettings?.whatsappTemplates?.find(
+          (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW
+        );
+
+        function formatNumber(num: number, locale = 'en-US') {
+          if (num === null || num === undefined) return '';
+
+          const number = new Intl.NumberFormat(locale).format(num);
+          return `${org?.currency} ${number}`;
+        }
+
+        const productOptions = product.options.map((item: any) => ({
+          [item.name.replace(/\s+/g, '_')]: {
+            visible: true,
+            required: item.isRequired,
+            label: item.name.replace(/_/g, ' '),
+            description: item.description,
+            options: item.choices?.map((choice: any) => ({
+              id: choice.id,
+              title: `${choice.label} ${choice.priceAdjustment !== 0 ? formatNumber(choice.priceAdjustment) : ''}`,
+            })),
+          },
+        }));
+
+        let found = false;
+        const updatedProducts = draft.selectedProducts.map((i) => {
+          if (!found && i.id === product.id && !i?.isOptionAdded) {
+            found = true;
+            return { ...i, isOptionAdded: true };
+          }
+          return i;
+        });
+
+        const updatedDraft: WorkflowDraft = {
+          ...draft,
+          selectedProducts: updatedProducts,
+          step: OrderFlowStep.OPTIONS_ITEM_COLLECTION,
+        };
+
+        const productOptionsObject = productOptions?.reduce((acc, item) => ({ ...acc, ...item }), {});
+
+        const flowContent = getFlowContent('product-option-flow', draft.lang);
+        const enBodyText = `Please select the modifications for ${product.name}`;
+        const arBodyText = `يرجى اختيار التعديلات الخاصة بـ ${product.name}`;
+        draft.lang === 'en' ? (flowContent.bodyText = enBodyText) : (flowContent.bodyText = arBodyText);
+        const res = await this.sendWhatSappProductOptionFlowInteractiveMessage({
+          recipientPhoneNumber: this.userPhoneNumber,
+          ...flowContent,
+          flowId: flow?.type === 'flow' && (flow?.data.flowId as any),
+          flowName: flow?.type === 'flow' && (flow?.data.flowName as any),
+          productName: product.name,
+          productOptions: productOptionsObject,
+          uniqueId: product.uniqueId,
+        });
+
+        return {
+          updatedDraft: updatedDraft,
+          response: res,
+        };
+      }
+      if (!product) {
+        return await this.processOrderSummaryHandler(draft, msg);
+      }
+    } catch (error: any) {
+      console.error('editOrderedItemsModificationHandler:', error.message);
+      throw error;
+    }
+  }
   private async upsellingProductOptionsHandler(draft: WorkflowDraft, msg: WhatsAppMessage) {
     const upSellingProduct = draft.upsellingProducts.find((i) => !i.isOptionAdded && i?.options?.length > 0);
     if (upSellingProduct) {
@@ -1146,6 +1222,29 @@ export class MalekChatService {
     });
     return {
       updatedDraft: { ...draft, step: OrderFlowStep.PRODUCT_ITEMS_SELECTION },
+      response: res,
+    };
+  }
+
+  private async processProductOrderedItemSendingHandler(draft: WorkflowDraft, msg: WhatsAppMessage) {
+    const whatsappSettings = await WhatSappSettingsModel.findOne({
+      where: { organizationId: this.organizationId },
+    });
+
+    const flow = whatsappSettings?.whatsappTemplates?.find(
+      (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW
+    );
+    const items = draft.orderDetails.items.map((i) => ({ id: `${i.productId}_${i.uniqueId}`, title: i.productName }));
+    const flowContent = getFlowContent('select-items-flow', draft.lang);
+    const res = await this.sendWhatSappItemSelectionFlowInteractiveMessage({
+      recipientPhoneNumber: this.userPhoneNumber,
+      ...flowContent,
+      flowId: flow?.type === 'flow' && (flow?.data.flowId as any),
+      flowName: flow?.type === 'flow' && (flow?.data.flowName as any),
+      items,
+    });
+    return {
+      updatedDraft: { ...draft, step: OrderFlowStep.ORDERED_ITEM_COLLECTION },
       response: res,
     };
   }
@@ -1490,6 +1589,64 @@ export class MalekChatService {
     }
   }
 
+  private async handleOrderedItemsSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
+    try {
+      const payload = JSON.parse(msg.interactive?.nfm_reply.response_json as any);
+      if (payload.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW) {
+        function parsePrefixedIds(prefixedIds: string[]) {
+          return prefixedIds.map((id) => {
+            const [productId, uniqueId] = id.split('_');
+            return { productId, uniqueId };
+          });
+        }
+        const parsedItems = parsePrefixedIds(payload.item_id);
+
+        const selectedProductIds = parsedItems.map((i) => i.productId).filter(Boolean);
+        const selectedProducts = await ProductModel.findAll({
+          where: {
+            id: {
+              [Op.in]: selectedProductIds.filter(Boolean),
+            },
+            organizationId: this.organizationId,
+          },
+          include: [
+            { model: ProductOptionModel, as: 'options', include: [{ model: ProductOptionChoiceModel, as: 'choices' }] },
+          ],
+        });
+
+        // create lookup map
+        const plainProducts = selectedProducts.map((p) => p.get({ plain: true }));
+        const productMap = new Map(plainProducts.map((p) => [p.id, p]));
+        // rebuild with duplicates preserved
+        // const productsWithDuplicates = selectedProductIds.map((id) => productMap.get(id));
+        const finalSelectedProducts = parsedItems
+          .map(({ productId, uniqueId }) => {
+            const product = productMap.get(productId);
+
+            if (!product) return null;
+
+            return {
+              ...product,
+              uniqueId, // 👈 attach here
+            };
+          })
+          .filter(Boolean);
+
+        const updatedDraft: WorkflowDraft = {
+          ...draft,
+          selectedProducts: finalSelectedProducts as any,
+        };
+        return await this.editOrderedItemsModificationHandler(updatedDraft, msg);
+      } else {
+        // send back item flow
+        return await this.processProductOrderedItemSendingHandler(draft, msg);
+      }
+    } catch (error: any) {
+      console.error('handleOrderedItemsSelection:', error.message);
+      throw error;
+    }
+  }
+
   private async handleOptionItemSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
     console.log('====================================');
     console.log('handleOptionItemSelection');
@@ -1563,9 +1720,30 @@ export class MalekChatService {
             })
           : [];
 
-      const plainUpsellingProducts = products.map((p) => p.get({ plain: true }));
+      const upsellingP = draft.selectedProducts.filter((item) => upsellingItemIds.includes(item.id));
+
+      const upsellingMap = new Map();
+
+      upsellingP.forEach((item) => {
+        if (!upsellingMap.has(item.id)) {
+          upsellingMap.set(item.id, []);
+        }
+        upsellingMap.get(item.id).push(item.uniqueId);
+      });
+
+      const plainUpsellingProducts = products.flatMap((p) => {
+        const plain = p.get({ plain: true });
+        const uniqueIds = upsellingMap.get(plain.id) || [];
+
+        return uniqueIds.map((uniqueId: string) => ({
+          ...plain, // 👈 clone
+          uniqueId, // 👈 attach here
+        }));
+      });
+
       const productItems = plainUpsellingProducts.map((i: any) => ({
         productId: i.id,
+        uniqueId: i.uniqueId, // now available
         productName: i.name,
         price: i.price,
         quantity: 1,
@@ -1596,9 +1774,6 @@ export class MalekChatService {
       const buttonPayload = msg?.interactive?.button_reply as any;
 
       if (buttonPayload.id === 'yes') {
-        console.log('================upsellingProducts====================');
-        console.log(draft.upsellingProducts);
-        console.log('====================================');
         // single upselling
         const upsellingItem = draft.upsellingProducts.map((i) => i.id);
         const updatedDraft = await addItemToWorkflowDraft(upsellingItem);
@@ -1634,9 +1809,7 @@ export class MalekChatService {
           },
         ],
       });
-      console.log('=================selectedProductOptionChoices===================');
-      console.log(selectedProductOptionChoices);
-      console.log('====================================');
+
       if (selectedProductOptionChoices.length > 0) {
         const productIds = draft.orderDetails.items.map((i) => i.productId);
         const optionChoices = selectedProductOptionChoices.filter((op: any) =>
@@ -1690,13 +1863,7 @@ export class MalekChatService {
             response: res,
           };
         } else if (buttonPayload.id === 'edit') {
-          await this.sendWhatSappMessage({
-            recipientPhoneNumber: this.userPhoneNumber,
-            message: 'edit order is comming soon for now confirm or cancel your order',
-          });
-
-          // send order summary
-          return await this.processOrderSummaryHandler(draft, msg);
+          return await this.processProductOrderedItemSendingHandler(draft, msg);
         } else if (buttonPayload.id === 'cancel') {
           const enMessage = 'your order has being cancelled succesfully';
           const arMessage = 'تم إلغاء طلبك بنجاح';

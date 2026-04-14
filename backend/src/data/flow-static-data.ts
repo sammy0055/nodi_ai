@@ -8,6 +8,7 @@ export type FlowType =
   | 'catalog-flow'
   | 'customize-order-flow'
   | 'select-items-flow'
+  | 'select-ordered-item-flow'
   | 'product-option-flow'
   | 'single-upselling-flow'
   | 'multi-upselling-flow'
@@ -56,6 +57,7 @@ type FlowContentMap = {
   'area-and-zone-flow': FlowContent;
   'customize-order-flow': CustomizeOrderContent;
   'select-items-flow': FlowContent;
+  'select-ordered-item-flow': FlowContent;
   'product-option-flow': FlowContent;
   'single-upselling-flow': SingleUpsellingContent;
   'multi-upselling-flow': FlowContent;
@@ -213,6 +215,21 @@ const flowContent: {
       headingText: 'اختر العناصر للتخصيص',
       bodyText: 'يرجى اختيار العناصر التي ترغب في تخصيصها',
       footerText: 'تخصيص العناصر',
+      buttonText: 'عرض العناصر',
+    },
+  },
+  'select-ordered-item-flow': {
+    en: {
+      headingText: 'Choose items to edit',
+      bodyText: 'Please select the items you want to edit',
+      footerText: 'Edit items',
+      buttonText: 'View Items',
+    },
+
+    ar: {
+      headingText: 'اختر العناصر للتعديل',
+      bodyText: 'يرجى اختيار العناصر التي تريد تعديلها',
+      footerText: 'تعديل العناصر',
       buttonText: 'عرض العناصر',
     },
   },
