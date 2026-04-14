@@ -1097,7 +1097,7 @@ export class MalekChatService {
         const updatedDraft: WorkflowDraft = {
           ...draft,
           selectedProducts: updatedProducts,
-          step: OrderFlowStep.OPTIONS_ITEM_COLLECTION,
+          step: OrderFlowStep.ORDERED_ITEM_COLLECTION,
         };
 
         const productOptionsObject = productOptions?.reduce((acc, item) => ({ ...acc, ...item }), {});
@@ -1733,9 +1733,6 @@ export class MalekChatService {
         quantity: 1,
       }));
 
-      console.log('===================plainUpsellingProducts=================');
-      console.log(plainUpsellingProducts);
-      console.log('====================================');
       const updatedDraft: WorkflowDraft = {
         ...draft,
         upsellingProducts: plainUpsellingProducts as any,
