@@ -755,6 +755,7 @@ export class MalekChatService {
       [OrderFlowStep.UPSELLING_OPTIONS_ITEM_COLLECTION]: this.handleUpsellingItemOptionSelection,
       [OrderFlowStep.ORDER_COMPLETION]: this.handleOrderCompletion,
       [OrderFlowStep.ORDERED_ITEM_COLLECTION]: this.handleOrderedItemsSelection,
+      [OrderFlowStep.ORDERED_ITEM_OPTIONS_COLLECTION]: this.handleOrderedItemOptionsSelection
     };
 
     const handler = handlers[step];
@@ -1097,7 +1098,7 @@ export class MalekChatService {
         const updatedDraft: WorkflowDraft = {
           ...draft,
           selectedProducts: updatedProducts,
-          step: OrderFlowStep.ORDERED_ITEM_COLLECTION,
+          step: OrderFlowStep.ORDERED_ITEM_OPTIONS_COLLECTION,
         };
 
         const productOptionsObject = productOptions?.reduce((acc, item) => ({ ...acc, ...item }), {});
@@ -1698,6 +1699,58 @@ export class MalekChatService {
       return await this.orderModificationHandler(updatedDraft, msg);
     }
     return await this.orderModificationHandler(draft, msg);
+  }
+  private async handleOrderedItemOptionsSelection(draft: WorkflowDraft, msg: WhatsAppMessage){
+       console.log('====================================');
+    console.log('handleOrderedItemOptionsSelection');
+    console.log('====================================');
+    const payload = JSON.parse(msg.interactive?.nfm_reply?.response_json as any);
+    if (payload.flowLabel === WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW) {
+      const optionNames = productOptionsTaxonomy.restaurant.map((i) => i.name);
+      const flatIds = Object.keys(payload)
+        .filter((key) => optionNames.includes(key))
+        .flatMap((key) => (Array.isArray(payload[key]) ? payload[key] : [payload[key]]));
+
+      const selectedProductOptionChoices = await ProductOptionChoiceModel.findAll({
+        where: { id: flatIds },
+        include: [
+          {
+            model: ProductOptionModel,
+            as: 'productOption',
+            attributes: ['id', 'name', 'description', 'isRequired', 'productId'],
+          },
+        ],
+      });
+
+      if (selectedProductOptionChoices.length > 0) {
+        const productIds = draft.orderDetails.items.map((i) => i.productId);
+        const optionChoices = selectedProductOptionChoices.filter((op: any) =>
+          productIds.includes(op.productOption.productId)
+        ) as any;
+
+        const selectedOption = optionChoices?.map((ch: any) => ({
+          optionId: ch.productOption.id,
+          optionName: ch.productOption.name,
+          choiceId: ch.id,
+          choiceLabel: ch.label,
+          priceAdjustment: ch.priceAdjustment || 0,
+        }));
+
+        const workingProductId = optionChoices[0].productOption.productId;
+        draft.orderDetails.items.forEach((i) => {
+          if (i.productId === workingProductId && i?.uniqueId === payload?.uniqueId) {
+            i.selectedOptions = selectedOption;
+          }
+        });
+      }
+
+      const updatedDraft: WorkflowDraft = {
+        ...draft,
+      };
+
+      return await this.editOrderedItemsModificationHandler(updatedDraft, msg);
+    }
+    return await this.editOrderedItemsModificationHandler(draft, msg);
   }
   private async handleUpsellingSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
     console.log('====================================');
