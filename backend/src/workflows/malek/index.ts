@@ -1720,25 +1720,9 @@ export class MalekChatService {
             })
           : [];
 
-      const upsellingP = draft.selectedProducts.filter((item) => upsellingItemIds.includes(item.id));
-
-      const upsellingMap = new Map();
-
-      upsellingP.forEach((item) => {
-        if (!upsellingMap.has(item.id)) {
-          upsellingMap.set(item.id, []);
-        }
-        upsellingMap.get(item.id).push(item.uniqueId);
-      });
-
-      const plainUpsellingProducts = products.flatMap((p) => {
-        const plain = p.get({ plain: true });
-        const uniqueIds = upsellingMap.get(plain.id) || [];
-
-        return uniqueIds.map((uniqueId: string) => ({
-          ...plain, // 👈 clone
-          uniqueId, // 👈 attach here
-        }));
+      const plainUpsellingProducts = products.map((p) => p.get({ plain: true }));
+      plainUpsellingProducts.forEach((item: any) => {
+        item.uniqueId = randomUUID();
       });
 
       const productItems = plainUpsellingProducts.map((i: any) => ({
