@@ -1749,6 +1749,9 @@ export class MalekChatService {
         quantity: 1,
       }));
 
+      console.log('===================plainUpsellingProducts=================');
+      console.log(plainUpsellingProducts);
+      console.log('====================================');
       const updatedDraft: WorkflowDraft = {
         ...draft,
         upsellingProducts: plainUpsellingProducts as any,
