@@ -1530,7 +1530,10 @@ export class MalekChatService {
         response: res,
       };
     } else if (listPayload.id) {
-      if (listPayload.id === 'new') {
+      console.log('==================listPayload==================');
+      console.log(listPayload);
+      console.log('====================================');
+      if (listPayload?.id === 'new') {
         // send delivery flow
         return await this.sendAreaAndZoneForm(draft, msg);
       }
