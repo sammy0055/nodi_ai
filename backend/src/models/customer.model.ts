@@ -18,6 +18,7 @@ class CustomerModel
   declare shouldUpdateChatbotSystemPrompt?: boolean | undefined;
   declare source: 'chatbot' | 'website' | 'mobile_app' | 'api';
   declare status: 'suspended' | 'active' | 'inactive';
+  declare savedAddresses: any;
 
   static associate(models: DbModels) {
     this.belongsTo(models.OrganizationsModel, {
@@ -53,6 +54,7 @@ CustomerModel.init(
       defaultValue: CustomerSourceTypes.CHATBOT,
     },
     preferences: { type: DataTypes.JSONB, allowNull: true },
+    savedAddresses: { type: DataTypes.JSONB, defaultValue: [], allowNull: true },
     status: { type: DataTypes.ENUM('suspended', 'active', 'inactive'), defaultValue: 'active' },
     shouldUpdateChatbotSystemPrompt: { type: DataTypes.BOOLEAN, defaultValue: false, allowNull: true },
   },

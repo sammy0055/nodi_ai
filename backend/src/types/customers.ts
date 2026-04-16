@@ -14,5 +14,12 @@ export interface ICustomer {
   totalOrders?: number;
   preferences?: Record<string, any>;
   status: 'suspended' | 'active' | 'inactive';
-  shouldUpdateChatbotSystemPrompt?:boolean | null
+  shouldUpdateChatbotSystemPrompt?: boolean | null;
+  savedAddresses?: {
+    areaName: string;
+    areaId: string;
+    zoneName: string;
+    zoneId: string;
+    address: string;
+  }[];
 }

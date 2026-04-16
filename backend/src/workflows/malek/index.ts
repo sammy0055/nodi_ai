@@ -1373,6 +1373,8 @@ export class MalekChatService {
 
     if (payload?.zone_id || payload?.area_id) {
       const selectedArea = await AreaModel.findByPk(payload?.area_id);
+      const selectedZone = await ZoneModel.findByPk(payload?.zone_id);
+      const customer = await this.getCustomerData();
       const shippingAddress = payload?.note;
 
       const updatedDraft: WorkflowDraft = {
@@ -1396,6 +1398,18 @@ export class MalekChatService {
         ...flowContent,
         ...catalog,
       });
+
+      const savedAddress = customer?.savedAddresses || [];
+      savedAddress.push({
+        areaName: selectedArea?.name,
+        areaId: selectedArea?.id,
+        zoneName: selectedZone?.name,
+        zoneId: selectedZone?.id,
+        address: shippingAddress,
+        label: payload?.label || '',
+      });
+      
+      await CustomerModel.update({ savedAddresses: savedAddress }, { where: { id: customer.id } });
       return {
         updatedDraft: { ...updatedDraft, step: OrderFlowStep.CATALOG_SELECTION },
         response: res,
