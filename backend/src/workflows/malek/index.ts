@@ -21,6 +21,7 @@ import { productOptionsTaxonomy } from '../../data/taxonomy';
 import { getEstimatedTime } from '../../utils/getEstimatedTime';
 import { OrderModel } from '../../models/order.module';
 import { randomUUID } from 'crypto';
+import { checkBusinessServiceSchedule } from '../../utils/organization';
 
 const {
   CustomerModel,
@@ -39,7 +40,14 @@ export const handleIncommingMessageForMalek = async (whatsappBusinessId: string,
     const userPhoneNumber = msg.from;
 
     const chat = await MalekChatService.init(userPhoneNumber, whatsappBusinessId);
-    const res = await chat.proceswWorkflow(msg);
+    const serviceSchedule = await chat.validateServiceSchedule();
+    if (!serviceSchedule?.isOpen) {
+      return await chat.sendWhatSappMessage({
+        recipientPhoneNumber: userPhoneNumber,
+        message: serviceSchedule.message.en,
+      });
+    }
+    await chat.proceswWorkflow(msg);
   } catch (error: any) {
     // await deleteMessageFromRedis(msg.from);
     console.log('===================malek-workflow-error=================');
@@ -107,6 +115,11 @@ export class MalekChatService {
     }
 
     return customer.get({ plain: true });
+  }
+
+  async validateServiceSchedule() {
+    const planOrg = await this.getOrganization();
+    return checkBusinessServiceSchedule(planOrg.serviceSchedule, planOrg.timeZone! || 'UTC');
   }
 
   async sendWhatSappMessage({ recipientPhoneNumber, message }: SendWhatSappMessageProps) {

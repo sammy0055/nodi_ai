@@ -263,7 +263,7 @@ export class ChatService {
     if (!serviceSchedule?.isOpen) {
       return await this.processValidationQuery({
         userMessage,
-        assistantMessage: JSON.stringify(serviceSchedule),
+        assistantMessage: JSON.stringify(serviceSchedule.message),
         customer,
       });
     }

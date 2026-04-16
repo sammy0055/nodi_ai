@@ -40,20 +40,25 @@ interface ServiceStatusResponse {
     day: string;
     time: string; // e.g., "09:00"
   };
-  message: string;
+  message: {
+    en: string;
+    ar: string;
+  };
 }
 
 export function checkBusinessServiceSchedule(
   schedule: ServiceSchedule[],
-  timeZone = "UTC" // e.g. "Africa/Lagos"
+  timeZone = 'UTC' // e.g. "Africa/Lagos"
 ): ServiceStatusResponse {
-
   if (!Array.isArray(schedule)) {
     return {
       isOpen: false,
       currentDay: '',
       currentTime: '',
-      message: "Invalid schedule format."
+      message: {
+        en: 'Invalid schedule format.',
+        ar: ' تنسيق الجدول غير صالح.',
+      },
     };
   }
 
@@ -65,14 +70,14 @@ export function checkBusinessServiceSchedule(
     weekday: 'long',
     hour: '2-digit',
     minute: '2-digit',
-    hour12: false
+    hour12: false,
   });
 
   const parts = formatter.formatToParts(now);
 
-  const currentDay = parts.find(p => p.type === 'weekday')?.value.toLowerCase()!;
-  const hour = parts.find(p => p.type === 'hour')?.value!;
-  const minute = parts.find(p => p.type === 'minute')?.value!;
+  const currentDay = parts.find((p) => p.type === 'weekday')?.value.toLowerCase()!;
+  const hour = parts.find((p) => p.type === 'hour')?.value!;
+  const minute = parts.find((p) => p.type === 'minute')?.value!;
   const currentTime = `${hour}:${minute}`;
 
   const timeToMinutes = (timeStr: string): number => {
@@ -82,9 +87,7 @@ export function checkBusinessServiceSchedule(
 
   const nowMinutes = timeToMinutes(currentTime);
 
-  const todaySchedule = schedule.find(
-    s => s.dayOfWeek?.toLowerCase() === currentDay
-  );
+  const todaySchedule = schedule.find((s) => s.dayOfWeek?.toLowerCase() === currentDay);
 
   let isOpen = false;
 
@@ -115,7 +118,7 @@ export function checkBusinessServiceSchedule(
     // 🔍 Check later today
     if (todaySchedule?.hours?.length) {
       const futureSlotsToday = todaySchedule.hours
-        .filter(slot => {
+        .filter((slot) => {
           const openMin = timeToMinutes(slot.open);
           const closeMin = timeToMinutes(slot.close);
 
@@ -139,19 +142,17 @@ export function checkBusinessServiceSchedule(
 
         const futureFormatter = new Intl.DateTimeFormat('en-US', {
           timeZone,
-          weekday: 'long'
+          weekday: 'long',
         });
 
         const futureDay = futureFormatter.format(futureDate).toLowerCase();
 
-        const daySchedule = schedule.find(
-          s => s.dayOfWeek?.toLowerCase() === futureDay
-        );
+        const daySchedule = schedule.find((s) => s.dayOfWeek?.toLowerCase() === futureDay);
 
         if (daySchedule?.hours?.length) {
           nextOpen = {
             day: futureDay,
-            time: daySchedule.hours[0].open
+            time: daySchedule.hours[0].open,
           };
           break;
         }
@@ -164,11 +165,19 @@ export function checkBusinessServiceSchedule(
     currentDay,
     currentTime,
     nextOpen,
-    message: isOpen
-      ? `Service is currently open.`
-      : nextOpen
-        ? `Service is closed. Next open: ${capitalize(nextOpen.day)} at ${nextOpen.time}.`
-        : `Service is temporarily closed.`
+    message: {
+      en: isOpen
+        ? `Service is currently open.`
+        : nextOpen
+          ? `Service is closed. Next open: ${capitalize(nextOpen.day)} at ${nextOpen.time}.`
+          : `Service is temporarily closed.`,
+
+      ar: isOpen
+        ? `الخدمة مفتوحة حالياً.`
+        : nextOpen
+          ? `الخدمة مغلقة. ستفتح ${capitalize(nextOpen.day)} في ${nextOpen.time}.`
+          : `الخدمة مغلقة مؤقتاً.`,
+    },
   };
 }
 
