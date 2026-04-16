@@ -1530,21 +1530,16 @@ export class MalekChatService {
         response: res,
       };
     } else if (listPayload.id) {
-      console.log('==================listPayloaddaews==================');
-      console.log(listPayload);
-      console.log('====================================');
       if (listPayload?.id === 'new') {
         // send delivery flow
         return await this.sendAreaAndZoneForm(draft, msg);
       }
 
       const customer = await this.getCustomerData();
-      const selectedAdress = customer.savedAddresses.find((ad: any) => ad.id === listPayload.id);
+      const selectedAdress = customer.savedAddresses.find((ad: any) => ad?.id === listPayload?.id);
       if (!selectedAdress) return await this.sendAreaAndZoneForm(draft, msg);
 
-      const selectedAddress = listPayload as CustomerSavedAddress;
-      const selectedArea = await AreaModel.findByPk(selectedAddress.areaId);
-
+      const selectedArea = await AreaModel.findByPk(selectedAdress.areaId);
       const updatedDraft: WorkflowDraft = {
         ...draft,
         orderDetails: {
@@ -1553,7 +1548,7 @@ export class MalekChatService {
           branchId: selectedArea!.branchId,
           deliveryAreaName: selectedArea!.name,
           deliveryTime: (selectedArea!.deliveryTime as any) || null,
-          shippingAddress: selectedAddress.address,
+          shippingAddress: selectedAdress.address,
           serviceType: 'delivery',
           deliveryCharge: selectedArea!.deliveryCharge || 0,
         },
