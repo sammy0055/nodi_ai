@@ -5,6 +5,16 @@ export enum CustomerSourceTypes {
   API = 'api',
 }
 
+export interface CustomerSavedAddress {
+  id: string;
+  areaName: string;
+  areaId: string;
+  zoneName: string;
+  zoneId: string;
+  address: string;
+  label:string
+}
+
 export interface ICustomer {
   id: string;
   organizationId: string;
@@ -15,11 +25,5 @@ export interface ICustomer {
   preferences?: Record<string, any>;
   status: 'suspended' | 'active' | 'inactive';
   shouldUpdateChatbotSystemPrompt?: boolean | null;
-  savedAddresses?: {
-    areaName: string;
-    areaId: string;
-    zoneName: string;
-    zoneId: string;
-    address: string;
-  }[];
+  savedAddresses?: CustomerSavedAddress[];
 }

@@ -1,6 +1,7 @@
 import { Op } from 'sequelize';
 import { OrderFlowStep } from '../../data/data-types';
 import {
+  AddressListFlowContent,
   ChooseLangeContent,
   FlowContent,
   FlowType,
@@ -22,6 +23,7 @@ import { getEstimatedTime } from '../../utils/getEstimatedTime';
 import { OrderModel } from '../../models/order.module';
 import { randomUUID } from 'crypto';
 import { checkBusinessServiceSchedule } from '../../utils/organization';
+import { CustomerSavedAddress } from '../../types/customers';
 
 const {
   CustomerModel,
@@ -548,6 +550,52 @@ export class MalekChatService {
     }
   }
 
+  async sendWhatSappAddressListFlowInteractiveMessage(args: SendWhatSappSavedAddressProps) {
+    const body = {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to: args.recipientPhoneNumber,
+      type: 'interactive',
+      interactive: {
+        type: 'list',
+        body: {
+          text: args.bodyText,
+        },
+        footer: {
+          text: args.footerText,
+        },
+        action: {
+          button: args.buttonText,
+          sections: [
+            {
+              title: 'Menu',
+              rows: args.menuItems,
+            },
+          ],
+        },
+      },
+    };
+
+    try {
+      const url = `https://graph.facebook.com/v20.0/${this.WhatSappBusinessPhoneNumberId}/messages`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.whatsappAccessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(`Error ${res.status}: ${errorData.error.message}`);
+      }
+    } catch (error: any) {
+      console.log('WHATSAPP-MESSAGE', error);
+    }
+  }
+
   async sendWhatSappItemSelectionFlowInteractiveMessage(args: SendWhatSappItemSelectionProps) {
     const body = {
       messaging_product: 'whatsapp',
@@ -806,35 +854,66 @@ export class MalekChatService {
   // STEP HANDLER dynamic functions
   // -----------------------------
   private async ProcessDeliveryHandler(draft: WorkflowDraft, msg: WhatsAppMessage) {
-    const zones = await ZoneModel.findAll({
-      where: { organizationId: this.organizationId },
-    });
+    const customer = await this.getCustomerData();
+    const savedAddresses: CustomerSavedAddress[] = customer?.savedAddresses || [];
+    if (savedAddresses?.length > 0) {
+      const items = [
+        {
+          id: 'new',
+          title: 'Add new address',
+          description: 'Add New Address',
+          label: WhatsappFlowLabel.ADDRESS_LIST_ITEMS_FLOW,
+        },
+        ...savedAddresses.map((ad) => ({
+          id: ad.id,
+          title: ad.label,
+          description: ad.address,
+          label: WhatsappFlowLabel.ADDRESS_LIST_ITEMS_FLOW,
+        })),
+      ];
 
-    const filteredZones = zones.map((z) => ({ id: z.id, title: z.name }));
-    const whatsappSettings = await WhatSappSettingsModel.findOne({
-      where: { organizationId: this.organizationId },
-    });
+      const flowContent = getFlowContent('address-items-flow', draft.lang);
+      const res = await this.sendWhatSappAddressListFlowInteractiveMessage({
+        recipientPhoneNumber: this.userPhoneNumber,
+        ...flowContent,
+        menuItems: items,
+      });
 
-    const flow = whatsappSettings?.whatsappTemplates.find(
-      (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.ZONE_AND_AREAS_FLOW
-    );
-    const areaAndZone = {
-      zones: filteredZones,
-      flowId: flow?.type === 'flow' && flow?.data.flowId,
-      flowName: flow?.type === 'flow' && flow?.data.flowName,
-    };
-    const flowContent = getFlowContent('area-and-zone-flow', draft.lang);
-    const res = await this.sendWhatSappAreaAndZoneFlowInteractiveMessage({
-      recipientPhoneNumber: this.userPhoneNumber,
-      ...flowContent,
-      flowId: areaAndZone.flowId as string,
-      flowName: areaAndZone.flowName as string,
-      zones: areaAndZone.zones,
-    });
-    return {
-      updatedDraft: { ...draft },
-      response: res,
-    };
+      return {
+        updatedDraft: { ...draft },
+        response: res,
+      };
+    } else {
+      const zones = await ZoneModel.findAll({
+        where: { organizationId: this.organizationId },
+      });
+
+      const filteredZones = zones.map((z) => ({ id: z.id, title: z.name }));
+      const whatsappSettings = await WhatSappSettingsModel.findOne({
+        where: { organizationId: this.organizationId },
+      });
+
+      const flow = whatsappSettings?.whatsappTemplates.find(
+        (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.ZONE_AND_AREAS_FLOW
+      );
+      const areaAndZone = {
+        zones: filteredZones,
+        flowId: flow?.type === 'flow' && flow?.data.flowId,
+        flowName: flow?.type === 'flow' && flow?.data.flowName,
+      };
+      const flowContent = getFlowContent('area-and-zone-flow', draft.lang);
+      const res = await this.sendWhatSappAreaAndZoneFlowInteractiveMessage({
+        recipientPhoneNumber: this.userPhoneNumber,
+        ...flowContent,
+        flowId: areaAndZone.flowId as string,
+        flowName: areaAndZone.flowName as string,
+        zones: areaAndZone.zones,
+      });
+      return {
+        updatedDraft: { ...draft },
+        response: res,
+      };
+    }
   }
   private async ProcessTakeawayHandler(draft: WorkflowDraft, msg: WhatsAppMessage) {
     const branches = await BranchesModel.findAll({ where: { organizationId: this.organizationId } });
@@ -1371,11 +1450,13 @@ export class MalekChatService {
       ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
       : null;
 
+    const listPayload = msg?.interactive?.list_reply as any;
+
     if (payload?.zone_id || payload?.area_id) {
       const selectedArea = await AreaModel.findByPk(payload?.area_id);
       const selectedZone = await ZoneModel.findByPk(payload?.zone_id);
-      const customer = await this.getCustomerData();
       const shippingAddress = payload?.note;
+      const customer = await this.getCustomerData();
 
       const updatedDraft: WorkflowDraft = {
         ...draft,
@@ -1399,16 +1480,23 @@ export class MalekChatService {
         ...catalog,
       });
 
-      const savedAddress = customer?.savedAddresses || [];
+      const savedAddress: CustomerSavedAddress[] = customer?.savedAddresses || [];
+
+      // if already 7, remove oldest
+      if (savedAddress.length >= 7) {
+        savedAddress.shift(); // removes first (oldest)
+      }
+
       savedAddress.push({
-        areaName: selectedArea?.name,
-        areaId: selectedArea?.id,
-        zoneName: selectedZone?.name,
-        zoneId: selectedZone?.id,
+        id: randomUUID(),
+        areaName: selectedArea!.name,
+        areaId: selectedArea!.id,
+        zoneName: selectedZone!.name,
+        zoneId: selectedZone!.id,
         address: shippingAddress,
-        label: payload?.label || '',
+        label: payload!.label || '',
       });
-      
+
       await CustomerModel.update({ savedAddresses: savedAddress }, { where: { id: customer.id } });
       return {
         updatedDraft: { ...updatedDraft, step: OrderFlowStep.CATALOG_SELECTION },
@@ -1438,6 +1526,10 @@ export class MalekChatService {
         updatedDraft: { ...updatedDraft, step: OrderFlowStep.CATALOG_SELECTION },
         response: res,
       };
+    } else if (listPayload.label === WhatsappFlowLabel.ADDRESS_LIST_ITEMS_FLOW) {
+      console.log('====================================');
+      console.log('suprise, it worked');
+      console.log('====================================');
     } else {
       if (draft.orderDetails.serviceType === 'delivery') {
         await this.sendCustomerServiceMessage(draft);
@@ -2027,6 +2119,10 @@ interface SendWhatSappChooseLangProps extends ChooseLangeContent {
 }
 
 interface SendWhatSappGreetingsProps extends GreetingsFlowContent {
+  recipientPhoneNumber: string;
+}
+
+interface SendWhatSappSavedAddressProps extends AddressListFlowContent {
   recipientPhoneNumber: string;
 }
 

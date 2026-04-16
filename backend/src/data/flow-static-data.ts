@@ -8,6 +8,7 @@ export type FlowType =
   | 'catalog-flow'
   | 'customize-order-flow'
   | 'select-items-flow'
+  | 'address-items-flow'
   | 'select-ordered-item-flow'
   | 'product-option-flow'
   | 'single-upselling-flow'
@@ -28,6 +29,15 @@ export interface GreetingsFlowContent {
   buttonText: string;
   menuItems: { id: string; title: string; description: string }[];
 }
+
+export interface AddressListFlowContent {
+  headingText: string;
+  bodyText: string;
+  footerText: string;
+  buttonText: string;
+  menuItems: { id: string; title: string; description: string; label: string }[];
+}
+
 export interface ChooseLangeContent {
   headingText: string;
   bodyText: string;
@@ -57,6 +67,7 @@ type FlowContentMap = {
   'area-and-zone-flow': FlowContent;
   'customize-order-flow': CustomizeOrderContent;
   'select-items-flow': FlowContent;
+  'address-items-flow': AddressListFlowContent;
   'select-ordered-item-flow': FlowContent;
   'product-option-flow': FlowContent;
   'single-upselling-flow': SingleUpsellingContent;
@@ -206,6 +217,23 @@ const flowContent: {
       bodyText: 'يرجى اختيار العناصر التي ترغب في تخصيصها',
       footerText: 'تخصيص العناصر',
       buttonText: 'عرض العناصر',
+    },
+  },
+  'address-items-flow': {
+    en: {
+      headingText: 'Choose from your saved delivery addresses',
+      bodyText: 'Please select your preferred address',
+      footerText: 'Select delivery address',
+      buttonText: 'View saved addresses',
+      menuItems: [],
+    },
+
+    ar: {
+      headingText: 'اختر من عناوين التوصيل المحفوظة',
+      bodyText: 'يرجى اختيار العنوان المفضل',
+      footerText: 'اختر عنوان التوصيل',
+      buttonText: 'عرض العناوين المحفوظة',
+      menuItems: [],
     },
   },
   'select-ordered-item-flow': {
