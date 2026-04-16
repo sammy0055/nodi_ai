@@ -35,7 +35,7 @@ export interface AddressListFlowContent {
   bodyText: string;
   footerText: string;
   buttonText: string;
-  menuItems: { id: string; title: string; description: string; label: string }[];
+  menuItems: { id: string; title: string; description: string; }[];
 }
 
 export interface ChooseLangeContent {

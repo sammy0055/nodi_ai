@@ -862,13 +862,11 @@ export class MalekChatService {
           id: 'new',
           title: 'Add new address',
           description: 'Add New Address',
-          label: WhatsappFlowLabel.ADDRESS_LIST_ITEMS_FLOW,
         },
         ...savedAddresses.map((ad) => ({
           id: ad.id,
           title: ad.label,
           description: ad.address,
-          label: WhatsappFlowLabel.ADDRESS_LIST_ITEMS_FLOW,
         })),
       ];
 
@@ -884,36 +882,41 @@ export class MalekChatService {
         response: res,
       };
     } else {
-      const zones = await ZoneModel.findAll({
-        where: { organizationId: this.organizationId },
-      });
-
-      const filteredZones = zones.map((z) => ({ id: z.id, title: z.name }));
-      const whatsappSettings = await WhatSappSettingsModel.findOne({
-        where: { organizationId: this.organizationId },
-      });
-
-      const flow = whatsappSettings?.whatsappTemplates.find(
-        (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.ZONE_AND_AREAS_FLOW
-      );
-      const areaAndZone = {
-        zones: filteredZones,
-        flowId: flow?.type === 'flow' && flow?.data.flowId,
-        flowName: flow?.type === 'flow' && flow?.data.flowName,
-      };
-      const flowContent = getFlowContent('area-and-zone-flow', draft.lang);
-      const res = await this.sendWhatSappAreaAndZoneFlowInteractiveMessage({
-        recipientPhoneNumber: this.userPhoneNumber,
-        ...flowContent,
-        flowId: areaAndZone.flowId as string,
-        flowName: areaAndZone.flowName as string,
-        zones: areaAndZone.zones,
-      });
-      return {
-        updatedDraft: { ...draft },
-        response: res,
-      };
+      // send delivery flow
+      return await this.sendAreaAndZoneForm(draft, msg);
     }
+  }
+
+  private async sendAreaAndZoneForm(draft: WorkflowDraft, msg: WhatsAppMessage) {
+    const zones = await ZoneModel.findAll({
+      where: { organizationId: this.organizationId },
+    });
+
+    const filteredZones = zones.map((z) => ({ id: z.id, title: z.name }));
+    const whatsappSettings = await WhatSappSettingsModel.findOne({
+      where: { organizationId: this.organizationId },
+    });
+
+    const flow = whatsappSettings?.whatsappTemplates.find(
+      (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.ZONE_AND_AREAS_FLOW
+    );
+    const areaAndZone = {
+      zones: filteredZones,
+      flowId: flow?.type === 'flow' && flow?.data.flowId,
+      flowName: flow?.type === 'flow' && flow?.data.flowName,
+    };
+    const flowContent = getFlowContent('area-and-zone-flow', draft.lang);
+    const res = await this.sendWhatSappAreaAndZoneFlowInteractiveMessage({
+      recipientPhoneNumber: this.userPhoneNumber,
+      ...flowContent,
+      flowId: areaAndZone.flowId as string,
+      flowName: areaAndZone.flowName as string,
+      zones: areaAndZone.zones,
+    });
+    return {
+      updatedDraft: { ...draft },
+      response: res,
+    };
   }
   private async ProcessTakeawayHandler(draft: WorkflowDraft, msg: WhatsAppMessage) {
     const branches = await BranchesModel.findAll({ where: { organizationId: this.organizationId } });
@@ -1472,14 +1475,6 @@ export class MalekChatService {
         },
       };
 
-      const catalog = await this.getCatalogLink();
-      const flowContent = getFlowContent('catalog-flow', draft.lang);
-      const res = await this.sendWhatSappCatalogInteractiveMessage({
-        recipientPhoneNumber: this.userPhoneNumber,
-        ...flowContent,
-        ...catalog,
-      });
-
       const savedAddress: CustomerSavedAddress[] = customer?.savedAddresses || [];
 
       // if already 7, remove oldest
@@ -1498,6 +1493,14 @@ export class MalekChatService {
       });
 
       await CustomerModel.update({ savedAddresses: savedAddress }, { where: { id: customer.id } });
+
+      const catalog = await this.getCatalogLink();
+      const flowContent = getFlowContent('catalog-flow', draft.lang);
+      const res = await this.sendWhatSappCatalogInteractiveMessage({
+        recipientPhoneNumber: this.userPhoneNumber,
+        ...flowContent,
+        ...catalog,
+      });
       return {
         updatedDraft: { ...updatedDraft, step: OrderFlowStep.CATALOG_SELECTION },
         response: res,
@@ -1526,10 +1529,44 @@ export class MalekChatService {
         updatedDraft: { ...updatedDraft, step: OrderFlowStep.CATALOG_SELECTION },
         response: res,
       };
-    } else if (listPayload.label === WhatsappFlowLabel.ADDRESS_LIST_ITEMS_FLOW) {
-      console.log('====================================');
-      console.log('suprise, it worked');
-      console.log('====================================');
+    } else if (listPayload.id) {
+      if (listPayload.id === 'new') {
+        // send delivery flow
+        return await this.sendAreaAndZoneForm(draft, msg);
+      }
+
+      const customer = await this.getCustomerData();
+      const selectedAdress = customer.savedAddresses.find((ad: any) => ad.id === listPayload.id);
+      if (!selectedAdress) return await this.sendAreaAndZoneForm(draft, msg);
+
+      const selectedAddress = listPayload as CustomerSavedAddress;
+      const selectedArea = await AreaModel.findByPk(selectedAddress.areaId);
+
+      const updatedDraft: WorkflowDraft = {
+        ...draft,
+        orderDetails: {
+          ...(draft.orderDetails ?? {}),
+          deliveryAreaId: selectedArea!.id,
+          branchId: selectedArea!.branchId,
+          deliveryAreaName: selectedArea!.name,
+          deliveryTime: (selectedArea!.deliveryTime as any) || null,
+          shippingAddress: selectedAddress.address,
+          serviceType: 'delivery',
+          deliveryCharge: selectedArea!.deliveryCharge || 0,
+        },
+      };
+
+      const catalog = await this.getCatalogLink();
+      const flowContent = getFlowContent('catalog-flow', draft.lang);
+      const res = await this.sendWhatSappCatalogInteractiveMessage({
+        recipientPhoneNumber: this.userPhoneNumber,
+        ...flowContent,
+        ...catalog,
+      });
+      return {
+        updatedDraft: { ...updatedDraft, step: OrderFlowStep.CATALOG_SELECTION },
+        response: res,
+      };
     } else {
       if (draft.orderDetails.serviceType === 'delivery') {
         await this.sendCustomerServiceMessage(draft);
