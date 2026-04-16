@@ -70,28 +70,28 @@ const flowContent: {
   'greeting-flow': {
     en: {
       headingText: 'Choose Service Type',
-      bodyText: "Hello, welcome to Malek. I'm Malek Al Tawouk, how can I help you today?",
+      bodyText: 'Hello, welcome to Malak Al Tawouk, how can I help you today?',
       footerText: 'Takeaway or Delivery',
-      buttonText: 'Start Order',
+      buttonText: 'Choose Service',
       menuItems: [
         {
           id: 'item_1',
           title: 'Takeaway',
-          description: 'I want to place an order for takeaway',
+          description: 'I would like to place an order for takeaway',
         },
         {
           id: 'item_2',
           title: 'Delivery',
-          description: 'I want to place an order for delivery',
+          description: 'I would like to place an order for delivery',
         },
       ],
     },
 
     ar: {
       headingText: 'اختر نوع الخدمة',
-      bodyText: 'مرحبًا بك في مالك. أنا مالك التاووق، كيف يمكنني مساعدتك اليوم؟',
+      bodyText: 'مرحبًا بك في ملك الطاووق، كيف يمكنني مساعدتك اليوم؟',
       footerText: 'استلام من المطعم أو توصيل',
-      buttonText: 'ابدأ الطلب',
+      buttonText: 'اختر الخدمة',
       menuItems: [
         {
           id: 'item_1',
@@ -162,14 +162,14 @@ const flowContent: {
       headingText: 'Select Your Area',
       bodyText: 'Please choose your area and zone for delivery.',
       footerText: 'Browse and select your location',
-      buttonText: 'View Areas',
+      buttonText: 'Enter Your Address',
     },
 
     ar: {
       headingText: 'اختر المنطقة',
       bodyText: 'يرجى اختيار المنطقة والنطاق الخاص بالتوصيل',
       footerText: 'تصفح واختر موقعك',
-      buttonText: 'عرض المناطق',
+      buttonText: 'أدخل عنوانك',
     },
   },
   'customize-order-flow': {
