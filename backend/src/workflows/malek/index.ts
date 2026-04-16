@@ -755,7 +755,7 @@ export class MalekChatService {
       [OrderFlowStep.UPSELLING_OPTIONS_ITEM_COLLECTION]: this.handleUpsellingItemOptionSelection,
       [OrderFlowStep.ORDER_COMPLETION]: this.handleOrderCompletion,
       [OrderFlowStep.ORDERED_ITEM_COLLECTION]: this.handleOrderedItemsSelection,
-      [OrderFlowStep.ORDERED_ITEM_OPTIONS_COLLECTION]: this.handleOrderedItemOptionsSelection
+      [OrderFlowStep.ORDERED_ITEM_OPTIONS_COLLECTION]: this.handleOrderedItemOptionsSelection,
     };
 
     const handler = handlers[step];
@@ -778,6 +778,16 @@ export class MalekChatService {
       catalogUrl: `https://wa.me/c/${orgBusinessWhatsappData.whatsappPhoneNumber.trim()}`.replace(/\s+/g, ''),
       productUrl: product?.imageUrl || '',
     };
+  }
+
+  private async sendCustomerServiceMessage(draft: WorkflowDraft) {
+    const org = await this.getOrganization();
+    const enMsg = `Please contact our customer service at ${org.hotline}. If you prefer to speak with a human, you can call the same number`;
+    const arMsg = `يرجى التواصل مع خدمة العملاء على الرقم ${org.hotline}. إذا كنت تفضل التحدث مع أحد ممثلي الخدمة، يمكنك الاتصال بنفس الرقم`;
+    return await this.sendWhatSappMessage({
+      recipientPhoneNumber: this.userPhoneNumber,
+      message: draft.lang === 'en' ? enMsg : arMsg,
+    });
   }
   // -----------------------------
   // STEP HANDLER dynamic functions
@@ -1291,6 +1301,7 @@ export class MalekChatService {
         recipientPhoneNumber: this.userPhoneNumber,
         ...flowContent,
       });
+      await this.sendCustomerServiceMessage(draft);
       return {
         updatedDraft: null,
         response: res,
@@ -1324,19 +1335,6 @@ export class MalekChatService {
           },
         };
         return await this.ProcessDeliveryHandler(updateDraft, msg);
-      } else if (listPayload.id === 'item_3') {
-        const org = await this.getOrganization();
-        const enMsg = `Please contact our customer service at ${org.hotline}. If you prefer to speak with a human, you can call the same number`;
-        const arMsg = `يرجى التواصل مع خدمة العملاء على الرقم ${org.hotline}. إذا كنت تفضل التحدث مع أحد ممثلي الخدمة، يمكنك الاتصال بنفس الرقم`;
-        const res = await this.sendWhatSappMessage({
-          recipientPhoneNumber: this.userPhoneNumber,
-          message: draft.lang === 'en' ? enMsg : arMsg,
-        });
-        await deleteMessageFromRedis(this.userPhoneNumber);
-        return {
-          updatedDraft: null,
-          response: res,
-        };
       }
     } else {
       const flowContent = getFlowContent('greeting-flow', draft.lang);
@@ -1344,6 +1342,7 @@ export class MalekChatService {
         recipientPhoneNumber: this.userPhoneNumber,
         ...flowContent,
       });
+      await this.sendCustomerServiceMessage(draft);
       return {
         updatedDraft: null,
         response: res,
@@ -1414,10 +1413,12 @@ export class MalekChatService {
       };
     } else {
       if (draft.orderDetails.serviceType === 'delivery') {
+        await this.sendCustomerServiceMessage(draft);
         return await this.ProcessDeliveryHandler(draft, msg);
       }
 
       if (draft.orderDetails.serviceType === 'takeaway') {
+        await this.sendCustomerServiceMessage(draft);
         return await this.ProcessTakeawayHandler(draft, msg);
       }
     }
@@ -1495,11 +1496,13 @@ export class MalekChatService {
     } else {
       const catalog = await this.getCatalogLink();
       const flowContent = getFlowContent('catalog-flow', draft.lang);
+      await this.sendCustomerServiceMessage(draft);
       const res = await this.sendWhatSappCatalogInteractiveMessage({
         recipientPhoneNumber: this.userPhoneNumber,
         ...flowContent,
         ...catalog,
       });
+
       return {
         updatedDraft: null,
         response: res,
@@ -1521,6 +1524,7 @@ export class MalekChatService {
       }
     } else {
       const flowContent = getFlowContent('customize-order-flow', draft.lang);
+      await this.sendCustomerServiceMessage(draft);
       const res = await this.sendWhatSappCustomizeOrderInteractiveMessage({
         recipientPhoneNumber: this.userPhoneNumber,
         ...flowContent,
@@ -1582,6 +1586,7 @@ export class MalekChatService {
         return await this.orderModificationHandler(updatedDraft, msg);
       } else {
         // send back item flow
+        await this.sendCustomerServiceMessage(draft);
         return await this.processProductItemSendingHandler(draft, msg);
       }
     } catch (error: any) {
@@ -1640,6 +1645,7 @@ export class MalekChatService {
         return await this.editOrderedItemsModificationHandler(updatedDraft, msg);
       } else {
         // send back item flow
+        await this.sendCustomerServiceMessage(draft);
         return await this.processProductOrderedItemSendingHandler(draft, msg);
       }
     } catch (error: any) {
@@ -1698,10 +1704,12 @@ export class MalekChatService {
 
       return await this.orderModificationHandler(updatedDraft, msg);
     }
+    await this.sendCustomerServiceMessage(draft);
     return await this.orderModificationHandler(draft, msg);
   }
-  private async handleOrderedItemOptionsSelection(draft: WorkflowDraft, msg: WhatsAppMessage){
-       console.log('====================================');
+
+  private async handleOrderedItemOptionsSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
+    console.log('====================================');
     console.log('handleOrderedItemOptionsSelection');
     console.log('====================================');
     const payload = JSON.parse(msg.interactive?.nfm_reply?.response_json as any);
@@ -1752,6 +1760,7 @@ export class MalekChatService {
     }
     return await this.editOrderedItemsModificationHandler(draft, msg);
   }
+
   private async handleUpsellingSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
     console.log('====================================');
     console.log('handleUpsellingSelection');
@@ -1822,9 +1831,11 @@ export class MalekChatService {
         return await this.processOrderSummaryHandler(draft, msg);
       }
     } else {
+      await this.sendCustomerServiceMessage(draft);
       return await this.upsellingProductOptionsHandler(draft, msg);
     }
   }
+
   private async handleUpsellingItemOptionSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
     console.log('====================================');
     console.log('handleUpsellingItemOptionSelection');
@@ -1874,8 +1885,10 @@ export class MalekChatService {
       };
       return await this.upsellingProductOptionsHandler(updatedDraft, msg);
     }
+    await this.sendCustomerServiceMessage(draft);
     return await this.upsellingProductOptionsHandler(draft, msg);
   }
+
   private async handleOrderCompletion(draft: WorkflowDraft, msg: WhatsAppMessage) {
     try {
       if (msg?.interactive?.type === 'button_reply') {
@@ -1916,6 +1929,7 @@ export class MalekChatService {
         } else throw new Error('Wrong Button id for OrderSummary');
       } else {
         // send order summary
+        await this.sendCustomerServiceMessage(draft);
         return await this.processOrderSummaryHandler(draft, msg);
       }
     } catch (error: any) {

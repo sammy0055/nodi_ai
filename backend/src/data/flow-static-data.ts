@@ -84,11 +84,6 @@ const flowContent: {
           title: 'Delivery',
           description: 'I want to place an order for delivery',
         },
-        {
-          id: 'item_3',
-          title: 'Customer Service',
-          description: 'I want to contact customer service',
-        },
       ],
     },
 
@@ -108,11 +103,6 @@ const flowContent: {
           title: 'توصيل',
           description: 'أريد تقديم طلب للتوصيل',
         },
-        {
-          id: 'item_3',
-          title: 'خدمة العملاء',
-          description: 'أريد التواصل مع خدمة العملاء',
-        },
       ],
     },
   },
@@ -124,7 +114,7 @@ const flowContent: {
       footerText: '',
       buttonTexts: [
         { id: 'en', title: 'English' },
-        { id: 'ar', title: 'Arabic' },
+        { id: 'ar', title: 'العربية' },
       ],
     },
     ar: {
