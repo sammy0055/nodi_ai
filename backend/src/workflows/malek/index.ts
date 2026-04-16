@@ -1529,7 +1529,7 @@ export class MalekChatService {
         updatedDraft: { ...updatedDraft, step: OrderFlowStep.CATALOG_SELECTION },
         response: res,
       };
-    } else if (listPayload.id) {
+    } else if (listPayload?.id) {
       if (listPayload?.id === 'new') {
         // send delivery flow
         return await this.sendAreaAndZoneForm(draft, msg);
