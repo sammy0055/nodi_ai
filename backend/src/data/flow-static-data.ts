@@ -35,7 +35,7 @@ export interface AddressListFlowContent {
   bodyText: string;
   footerText: string;
   buttonText: string;
-  menuItems: { id: string; title: string; description: string; }[];
+  menuItems: { id: string; title: string; description: string }[];
 }
 
 export interface ChooseLangeContent {
@@ -311,6 +311,7 @@ const flowContent: {
       buttonTexts: [
         { id: 'confirm', title: 'Confirm Order' },
         { id: 'edit', title: 'Edit' },
+        { id: 'add', title: 'Add More Items' },
         { id: 'cancel', title: 'Cancel' },
       ],
     },
@@ -321,6 +322,7 @@ const flowContent: {
       buttonTexts: [
         { id: 'confirm', title: 'تأكيد الطلب' },
         { id: 'edit', title: 'تعديل' },
+        { id: 'add', title: 'إضافة المزيد من العناصر' },
         { id: 'cancel', title: 'إلغاء' },
       ],
     },

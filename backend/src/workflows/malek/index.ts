@@ -2068,6 +2068,18 @@ export class MalekChatService {
           };
         } else if (buttonPayload.id === 'edit') {
           return await this.processProductOrderedItemSendingHandler(draft, msg);
+        } else if (buttonPayload.id === 'add') {
+          const catalog = await this.getCatalogLink();
+          const flowContent = getFlowContent('catalog-flow', draft.lang);
+          const res = await this.sendWhatSappCatalogInteractiveMessage({
+            recipientPhoneNumber: this.userPhoneNumber,
+            ...flowContent,
+            ...catalog,
+          });
+          return {
+            updatedDraft: { ...draft, step: OrderFlowStep.CATALOG_SELECTION },
+            response: res,
+          };
         } else if (buttonPayload.id === 'cancel') {
           const enMessage = 'your order has being cancelled succesfully';
           const arMessage = 'تم إلغاء طلبك بنجاح';
