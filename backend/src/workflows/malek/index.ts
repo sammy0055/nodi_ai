@@ -1449,9 +1449,6 @@ export class MalekChatService {
       response: res,
     };
   }
-
-  private async processRemoveItemsFromExistOrder(draft: WorkflowDraft, msg: WhatsAppMessage) {}
-
   // -----------------------------
   // STEP HANDLER
   // -----------------------------
@@ -1731,7 +1728,7 @@ export class MalekChatService {
         selectedProducts: productsWithDuplicates as any,
         orderDetails: {
           ...draft.orderDetails,
-          items: productItems as any,
+          items: [...(draft?.orderDetails?.items || []), ...productItems] as any,
         },
       };
 
