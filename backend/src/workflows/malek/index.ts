@@ -1429,7 +1429,8 @@ export class MalekChatService {
     const flow = whatsappSettings?.whatsappTemplates?.find(
       (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW
     );
-    const items = draft.orderDetails.items.map((i) => ({ id: i.productId, title: i.productName }));
+
+    const items = draft.orderDetails.items.map((i) => ({ id: `${i.productId}_${i.uniqueId}`, title: i.productName }));
     const flowContent = getFlowContent('select-items-flow', draft.lang);
     const res = await this.sendWhatSappItemSelectionFlowInteractiveMessage({
       recipientPhoneNumber: this.userPhoneNumber,
@@ -2234,7 +2235,14 @@ export class MalekChatService {
       const payload = JSON.parse(msg.interactive?.nfm_reply.response_json as any);
       if (payload.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW) {
         if (payload?.item_id && payload?.item_id?.length > 0) {
-          const ids = payload?.item_id || [];
+          function parsePrefixedIds(prefixedIds: string[]) {
+            return prefixedIds.map((id) => {
+              const [productId, uniqueId] = id.split('_');
+              return { productId, uniqueId };
+            });
+          }
+          const parsedItems = parsePrefixedIds(payload.item_id) || [];
+          const ids = parsedItems.map((i) => i.productId);
           const updateOrderItems = draft.orderDetails.items.filter((i) => !ids.includes(i.productId));
           const updatedDraft: WorkflowDraft = {
             ...draft,
