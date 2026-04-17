@@ -2214,6 +2214,7 @@ export class MalekChatService {
       if (listPayload?.id === 'add') {
         return await this.processAddItemsToExistingOrder(draft, msg);
       } else if (listPayload?.id === 'remove') {
+        return await this.processRemoveOrderedItems(draft, msg);
       } else if (listPayload?.id === 'customize') {
         return await this.processProductOrderedItemSendingHandler(draft, msg);
       } else {
