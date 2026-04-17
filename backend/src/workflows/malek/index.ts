@@ -1151,6 +1151,10 @@ export class MalekChatService {
         };
       }
       if (!product) {
+        if (draft?.isAddNewProducts) {
+          return await this.processOrderSummaryHandler(draft, msg);
+        }
+
         return await this.processUpsellingHandler(draft, msg);
       }
     } catch (error: any) {
@@ -1674,6 +1678,9 @@ export class MalekChatService {
         return await this.processProductItemSendingHandler(draft, msg);
       }
       if (buttonPayload.id === 'no') {
+        if (draft?.isAddNewProducts) {
+          return await this.processOrderSummaryHandler(draft, msg);
+        }
         return await this.processUpsellingHandler(draft, msg);
       }
     } else {
@@ -2077,7 +2084,7 @@ export class MalekChatService {
             ...catalog,
           });
           return {
-            updatedDraft: { ...draft, step: OrderFlowStep.CATALOG_SELECTION },
+            updatedDraft: { ...draft, step: OrderFlowStep.CATALOG_SELECTION, isAddNewProducts: true },
             response: res,
           };
         } else if (buttonPayload.id === 'cancel') {
@@ -2118,6 +2125,7 @@ export interface WorkflowDraft {
   step: `${OrderFlowStep}`;
   selectedProducts: workingProduct[];
   upsellingProducts: workingProduct[];
+  isAddNewProducts?: boolean;
   orderDetails: {
     organizationId: string;
     customerId: string;
