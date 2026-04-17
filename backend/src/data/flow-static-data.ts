@@ -13,7 +13,8 @@ export type FlowType =
   | 'product-option-flow'
   | 'single-upselling-flow'
   | 'multi-upselling-flow'
-  | 'order-summary-flow';
+  | 'order-summary-flow'
+  | 'edit-ordered-list-actions';
 
 export interface FlowContent {
   headingText: string;
@@ -31,6 +32,14 @@ export interface GreetingsFlowContent {
 }
 
 export interface AddressListFlowContent {
+  headingText: string;
+  bodyText: string;
+  footerText: string;
+  buttonText: string;
+  menuItems: { id: string; title: string; description: string }[];
+}
+
+export interface EditOrderActionListFlowContent {
   headingText: string;
   bodyText: string;
   footerText: string;
@@ -73,6 +82,7 @@ type FlowContentMap = {
   'single-upselling-flow': SingleUpsellingContent;
   'multi-upselling-flow': FlowContent;
   'order-summary-flow': OrderSummaryContent;
+  'edit-ordered-list-actions': EditOrderActionListFlowContent;
 };
 
 const flowContent: {
@@ -311,7 +321,6 @@ const flowContent: {
       buttonTexts: [
         { id: 'confirm', title: 'Confirm Order' },
         { id: 'edit', title: 'Edit' },
-        // { id: 'add', title: 'Add More Items' },
         { id: 'cancel', title: 'Cancel' },
       ],
     },
@@ -322,8 +331,56 @@ const flowContent: {
       buttonTexts: [
         { id: 'confirm', title: 'تأكيد الطلب' },
         { id: 'edit', title: 'تعديل' },
-        // { id: 'add', title: 'إضافة المزيد من العناصر' },
         { id: 'cancel', title: 'إلغاء' },
+      ],
+    },
+  },
+  'edit-ordered-list-actions': {
+    en: {
+      headingText: 'How would you like to update your order?',
+      bodyText: 'Select an action to continue',
+      footerText: 'Choose an action',
+      buttonText: 'View actions',
+      menuItems: [
+        {
+          id: 'add',
+          title: 'Add more items',
+          description: 'Add more items to your order',
+        },
+        {
+          id: 'remove',
+          title: 'Remove an item',
+          description: 'Remove items from your order',
+        },
+        {
+          id: 'customize',
+          title: 'Customize items',
+          description: 'Modify your items (size, options, etc.)',
+        },
+      ],
+    },
+
+    ar: {
+      headingText: 'كيف ترغب في تعديل طلبك؟',
+      bodyText: 'يرجى اختيار الإجراء للمتابعة',
+      footerText: 'اختر إجراءً',
+      buttonText: 'عرض الخيارات',
+      menuItems: [
+        {
+          id: 'add',
+          title: 'إضافة المزيد من العناصر',
+          description: 'إضافة عناصر جديدة إلى طلبك',
+        },
+        {
+          id: 'remove',
+          title: 'إزالة عنصر',
+          description: 'حذف عناصر من طلبك',
+        },
+        {
+          id: 'customize',
+          title: 'تخصيص العناصر',
+          description: 'تعديل العناصر (الحجم، الإضافات، إلخ)',
+        },
       ],
     },
   },

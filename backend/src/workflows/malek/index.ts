@@ -596,6 +596,52 @@ export class MalekChatService {
     }
   }
 
+  async sendWhatSappEditOrderActionListFlowInteractiveMessage(args: SendWhatSappSavedAddressProps) {
+    const body = {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to: args.recipientPhoneNumber,
+      type: 'interactive',
+      interactive: {
+        type: 'list',
+        body: {
+          text: args.bodyText,
+        },
+        footer: {
+          text: args.footerText,
+        },
+        action: {
+          button: args.buttonText,
+          sections: [
+            {
+              title: 'Menu',
+              rows: args.menuItems,
+            },
+          ],
+        },
+      },
+    };
+
+    try {
+      const url = `https://graph.facebook.com/v20.0/${this.WhatSappBusinessPhoneNumberId}/messages`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.whatsappAccessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(`Error ${res.status}: ${errorData.error.message}`);
+      }
+    } catch (error: any) {
+      console.log('WHATSAPP-MESSAGE', error);
+    }
+  }
+
   async sendWhatSappItemSelectionFlowInteractiveMessage(args: SendWhatSappItemSelectionProps) {
     const body = {
       messaging_product: 'whatsapp',
@@ -817,6 +863,8 @@ export class MalekChatService {
       [OrderFlowStep.ORDER_COMPLETION]: this.handleOrderCompletion,
       [OrderFlowStep.ORDERED_ITEM_COLLECTION]: this.handleOrderedItemsSelection,
       [OrderFlowStep.ORDERED_ITEM_OPTIONS_COLLECTION]: this.handleOrderedItemOptionsSelection,
+      [OrderFlowStep.EDIT_ORDER_ACTION_COLLECTION]: this.handleEditOrderActionSelection,
+      [OrderFlowStep.REMOVE_ORDERED_ITEMS_COLLECTION]: this.handleRemoveOrderedItemSelection,
     };
 
     const handler = handlers[step];
@@ -841,7 +889,7 @@ export class MalekChatService {
     };
   }
 
-  private async sendCustomerServiceMessage(draft: WorkflowDraft) {
+  private async sendCustomerServiceMessage(draft: WorkflowDraft, msg: WhatsAppMessage) {
     const org = await this.getOrganization();
     const enMsg = `Please contact our customer service at ${org.hotline}. If you prefer to speak with a human, you can call the same number`;
     const arMsg = `يرجى التواصل مع خدمة العملاء على الرقم ${org.hotline}. إذا كنت تفضل التحدث مع أحد ممثلي الخدمة، يمكنك الاتصال بنفس الرقم`;
@@ -1359,6 +1407,50 @@ export class MalekChatService {
     };
   }
 
+  private async processAddItemsToExistingOrder(draft: WorkflowDraft, msg: WhatsAppMessage) {
+    const catalog = await this.getCatalogLink();
+    const flowContent = getFlowContent('catalog-flow', draft.lang);
+    const res = await this.sendWhatSappCatalogInteractiveMessage({
+      recipientPhoneNumber: this.userPhoneNumber,
+      ...flowContent,
+      ...catalog,
+    });
+    return {
+      updatedDraft: { ...draft, step: OrderFlowStep.CATALOG_SELECTION, isAddNewProducts: true },
+      response: res,
+    };
+  }
+
+  private async processRemoveOrderedItems(draft: WorkflowDraft, msg: WhatsAppMessage) {
+    const whatsappSettings = await WhatSappSettingsModel.findOne({
+      where: { organizationId: this.organizationId },
+    });
+
+    const flow = whatsappSettings?.whatsappTemplates?.find(
+      (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW
+    );
+    const items = draft.orderDetails.items.map((i) => ({ id: i.productId, title: i.productName }));
+    const flowContent = getFlowContent('select-items-flow', draft.lang);
+    const res = await this.sendWhatSappItemSelectionFlowInteractiveMessage({
+      recipientPhoneNumber: this.userPhoneNumber,
+      flowId: flow?.type === 'flow' && (flow?.data.flowId as any),
+      flowName: flow?.type === 'flow' && (flow?.data.flowName as any),
+      ...flowContent,
+      items,
+    });
+
+    const updatedDraft: WorkflowDraft = {
+      ...draft,
+      step: OrderFlowStep.REMOVE_ORDERED_ITEMS_COLLECTION,
+    };
+    return {
+      updatedDraft: updatedDraft,
+      response: res,
+    };
+  }
+
+  private async processRemoveItemsFromExistOrder(draft: WorkflowDraft, msg: WhatsAppMessage) {}
+
   // -----------------------------
   // STEP HANDLER
   // -----------------------------
@@ -1400,7 +1492,7 @@ export class MalekChatService {
         recipientPhoneNumber: this.userPhoneNumber,
         ...flowContent,
       });
-      await this.sendCustomerServiceMessage(draft);
+      await this.sendCustomerServiceMessage(draft, msg);
       return {
         updatedDraft: null,
         response: res,
@@ -1441,7 +1533,7 @@ export class MalekChatService {
         recipientPhoneNumber: this.userPhoneNumber,
         ...flowContent,
       });
-      await this.sendCustomerServiceMessage(draft);
+      await this.sendCustomerServiceMessage(draft, msg);
       return {
         updatedDraft: null,
         response: res,
@@ -1571,12 +1663,12 @@ export class MalekChatService {
       };
     } else {
       if (draft.orderDetails.serviceType === 'delivery') {
-        await this.sendCustomerServiceMessage(draft);
+        await this.sendCustomerServiceMessage(draft, msg);
         return await this.ProcessDeliveryHandler(draft, msg);
       }
 
       if (draft.orderDetails.serviceType === 'takeaway') {
-        await this.sendCustomerServiceMessage(draft);
+        await this.sendCustomerServiceMessage(draft, msg);
         return await this.ProcessTakeawayHandler(draft, msg);
       }
     }
@@ -1654,7 +1746,7 @@ export class MalekChatService {
     } else {
       const catalog = await this.getCatalogLink();
       const flowContent = getFlowContent('catalog-flow', draft.lang);
-      await this.sendCustomerServiceMessage(draft);
+      await this.sendCustomerServiceMessage(draft, msg);
       const res = await this.sendWhatSappCatalogInteractiveMessage({
         recipientPhoneNumber: this.userPhoneNumber,
         ...flowContent,
@@ -1685,7 +1777,7 @@ export class MalekChatService {
       }
     } else {
       const flowContent = getFlowContent('customize-order-flow', draft.lang);
-      await this.sendCustomerServiceMessage(draft);
+      await this.sendCustomerServiceMessage(draft, msg);
       const res = await this.sendWhatSappCustomizeOrderInteractiveMessage({
         recipientPhoneNumber: this.userPhoneNumber,
         ...flowContent,
@@ -1747,7 +1839,7 @@ export class MalekChatService {
         return await this.orderModificationHandler(updatedDraft, msg);
       } else {
         // send back item flow
-        await this.sendCustomerServiceMessage(draft);
+        await this.sendCustomerServiceMessage(draft, msg);
         return await this.processProductItemSendingHandler(draft, msg);
       }
     } catch (error: any) {
@@ -1806,7 +1898,7 @@ export class MalekChatService {
         return await this.editOrderedItemsModificationHandler(updatedDraft, msg);
       } else {
         // send back item flow
-        await this.sendCustomerServiceMessage(draft);
+        await this.sendCustomerServiceMessage(draft, msg);
         return await this.processProductOrderedItemSendingHandler(draft, msg);
       }
     } catch (error: any) {
@@ -1865,7 +1957,7 @@ export class MalekChatService {
 
       return await this.orderModificationHandler(updatedDraft, msg);
     }
-    await this.sendCustomerServiceMessage(draft);
+    await this.sendCustomerServiceMessage(draft, msg);
     return await this.orderModificationHandler(draft, msg);
   }
 
@@ -1992,7 +2084,7 @@ export class MalekChatService {
         return await this.processOrderSummaryHandler(draft, msg);
       }
     } else {
-      await this.sendCustomerServiceMessage(draft);
+      await this.sendCustomerServiceMessage(draft, msg);
       return await this.upsellingProductOptionsHandler(draft, msg);
     }
   }
@@ -2046,7 +2138,7 @@ export class MalekChatService {
       };
       return await this.upsellingProductOptionsHandler(updatedDraft, msg);
     }
-    await this.sendCustomerServiceMessage(draft);
+    await this.sendCustomerServiceMessage(draft, msg);
     return await this.upsellingProductOptionsHandler(draft, msg);
   }
 
@@ -2074,17 +2166,19 @@ export class MalekChatService {
             response: res,
           };
         } else if (buttonPayload.id === 'edit') {
-          return await this.processProductOrderedItemSendingHandler(draft, msg);
-        } else if (buttonPayload.id === 'add') {
-          const catalog = await this.getCatalogLink();
-          const flowContent = getFlowContent('catalog-flow', draft.lang);
-          const res = await this.sendWhatSappCatalogInteractiveMessage({
+          const flowContent = getFlowContent('edit-ordered-list-actions', draft.lang);
+          const res = await this.sendWhatSappEditOrderActionListFlowInteractiveMessage({
             recipientPhoneNumber: this.userPhoneNumber,
             ...flowContent,
-            ...catalog,
           });
+
+          const updatedDraft: WorkflowDraft = {
+            ...draft,
+            step: OrderFlowStep.EDIT_ORDER_ACTION_COLLECTION,
+          };
+
           return {
-            updatedDraft: { ...draft, step: OrderFlowStep.CATALOG_SELECTION, isAddNewProducts: true },
+            updatedDraft: updatedDraft,
             response: res,
           };
         } else if (buttonPayload.id === 'cancel') {
@@ -2102,12 +2196,62 @@ export class MalekChatService {
         } else throw new Error('Wrong Button id for OrderSummary');
       } else {
         // send order summary
-        await this.sendCustomerServiceMessage(draft);
+        await this.sendCustomerServiceMessage(draft, msg);
         return await this.processOrderSummaryHandler(draft, msg);
       }
     } catch (error: any) {
       console.error('handleOrderCompletion:', error.message);
       throw error;
+    }
+  }
+
+  private async handleEditOrderActionSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
+    console.log('====================================');
+    console.log('handleEditOrderActionSelection');
+    console.log('====================================');
+    try {
+      const listPayload = msg?.interactive?.list_reply as any;
+      if (listPayload?.id === 'add') {
+        return await this.processAddItemsToExistingOrder(draft, msg);
+      } else if (listPayload?.id === 'remove') {
+      } else if (listPayload?.id === 'customize') {
+        return await this.processProductOrderedItemSendingHandler(draft, msg);
+      } else {
+        // send back current step
+      }
+    } catch (error: any) {
+      console.error('handleEditOrderActionSelection:', error.message);
+      throw error;
+    }
+  }
+
+  private async handleRemoveOrderedItemSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
+    console.log('====================================');
+    console.log('handleEditOrderActionSelection');
+    console.log('====================================');
+    try {
+      const payload = JSON.parse(msg.interactive?.nfm_reply.response_json as any);
+      if (payload.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW) {
+        if (payload?.item_id && payload?.item_id?.length > 0) {
+          const ids = payload?.item_id || [];
+          const updateOrderItems = draft.orderDetails.items.filter((i) => !ids.includes(i.productId));
+          const updatedDraft: WorkflowDraft = {
+            ...draft,
+            orderDetails: {
+              ...draft.orderDetails, // preserve other fields
+              items: updateOrderItems,
+            },
+          };
+
+          return this.processOrderSummaryHandler(updatedDraft, msg);
+        } else return this.processOrderSummaryHandler(draft, msg);
+      } else {
+        // send back the same flow
+        await this.sendCustomerServiceMessage(draft, msg);
+        return await this.processRemoveOrderedItems(draft, msg);
+      }
+    } catch (error: any) {
+      console.error('handleRemoveOrderedItemSelection:', error.message);
     }
   }
 }
