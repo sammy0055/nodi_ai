@@ -2242,8 +2242,8 @@ export class MalekChatService {
             });
           }
           const parsedItems = parsePrefixedIds(payload.item_id) || [];
-          const ids = parsedItems.map((i) => i.productId);
-          const updateOrderItems = draft.orderDetails.items.filter((i) => !ids.includes(i.productId));
+          const ids = parsedItems.map((i) => i.uniqueId);
+          const updateOrderItems = draft.orderDetails.items.filter((i) => !ids.includes(i.uniqueId));
           const updatedDraft: WorkflowDraft = {
             ...draft,
             orderDetails: {
