@@ -311,7 +311,7 @@ const flowContent: {
       buttonTexts: [
         { id: 'confirm', title: 'Confirm Order' },
         { id: 'edit', title: 'Edit' },
-        { id: 'add', title: 'Add More Items' },
+        // { id: 'add', title: 'Add More Items' },
         { id: 'cancel', title: 'Cancel' },
       ],
     },
@@ -322,7 +322,7 @@ const flowContent: {
       buttonTexts: [
         { id: 'confirm', title: 'تأكيد الطلب' },
         { id: 'edit', title: 'تعديل' },
-        { id: 'add', title: 'إضافة المزيد من العناصر' },
+        // { id: 'add', title: 'إضافة المزيد من العناصر' },
         { id: 'cancel', title: 'إلغاء' },
       ],
     },
