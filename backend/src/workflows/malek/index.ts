@@ -1553,11 +1553,12 @@ export class MalekChatService {
       }
     } else {
       const flowContent = getFlowContent('choose-lang-flow', 'en');
+      await this.sendCustomerServiceMessage(draft, msg);
       const res = await this.sendWhatSappSChooseLangInteractiveMessage({
         recipientPhoneNumber: this.userPhoneNumber,
         ...flowContent,
       });
-      await this.sendCustomerServiceMessage(draft, msg);
+
       return {
         updatedDraft: null,
         response: res,
@@ -1594,11 +1595,11 @@ export class MalekChatService {
       }
     } else {
       const flowContent = getFlowContent('greeting-flow', draft.lang);
+      await this.sendCustomerServiceMessage(draft, msg);
       const res = await this.sendWhatSappGreetingInteractiveMessage({
         recipientPhoneNumber: this.userPhoneNumber,
         ...flowContent,
       });
-      await this.sendCustomerServiceMessage(draft, msg);
       return {
         updatedDraft: null,
         response: res,
@@ -1861,8 +1862,8 @@ export class MalekChatService {
 
   private async handleProductItemsSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
     try {
-      const payload = JSON.parse(msg.interactive?.nfm_reply.response_json as any);
-      if (payload.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW) {
+      const payload = JSON.parse(msg?.interactive?.nfm_reply?.response_json as any);
+      if (payload?.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW) {
         function parsePrefixedIds(prefixedIds: string[]) {
           return prefixedIds.map((id) => {
             const [productId, uniqueId] = id.split('_');
@@ -1921,7 +1922,7 @@ export class MalekChatService {
   private async handleOrderedItemsSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
     try {
       const payload = JSON.parse(msg.interactive?.nfm_reply.response_json as any);
-      if (payload.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW) {
+      if (payload?.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW) {
         function parsePrefixedIds(prefixedIds: string[]) {
           return prefixedIds.map((id) => {
             const [productId, uniqueId] = id.split('_');
@@ -1982,7 +1983,7 @@ export class MalekChatService {
     console.log('handleOptionItemSelection');
     console.log('====================================');
     const payload = JSON.parse(msg.interactive?.nfm_reply?.response_json as any);
-    if (payload.flowLabel === WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW) {
+    if (payload?.flowLabel === WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW) {
       const optionNames = productOptionsTaxonomy.restaurant.map((i) => i.name);
       const flatIds = Object.keys(payload)
         .filter((key) => optionNames.includes(key))
@@ -2036,7 +2037,7 @@ export class MalekChatService {
     console.log('handleOrderedItemOptionsSelection');
     console.log('====================================');
     const payload = JSON.parse(msg.interactive?.nfm_reply?.response_json as any);
-    if (payload.flowLabel === WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW) {
+    if (payload?.flowLabel === WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW) {
       const optionNames = productOptionsTaxonomy.restaurant.map((i) => i.name);
       const flatIds = Object.keys(payload)
         .filter((key) => optionNames.includes(key))
@@ -2216,7 +2217,7 @@ export class MalekChatService {
     try {
       if (msg?.interactive?.type === 'button_reply') {
         const buttonPayload = msg?.interactive?.button_reply as any;
-        if (buttonPayload.id === 'confirm') {
+        if (buttonPayload?.id === 'confirm') {
           const org = await this.getOrganization();
           const enMessage = `Thank you for your order with Malak Al Tawouk. Your order has been successfully placed and is now being processed.
 
@@ -2241,7 +2242,7 @@ If you have any questions or require assistance, please feel free to contact us 
             updatedDraft: null,
             response: res,
           };
-        } else if (buttonPayload.id === 'edit') {
+        } else if (buttonPayload?.id === 'edit') {
           const flowContent = getFlowContent('edit-ordered-list-actions', draft.lang);
           const res = await this.sendWhatSappEditOrderActionListFlowInteractiveMessage({
             recipientPhoneNumber: this.userPhoneNumber,
@@ -2257,7 +2258,7 @@ If you have any questions or require assistance, please feel free to contact us 
             updatedDraft: updatedDraft,
             response: res,
           };
-        } else if (buttonPayload.id === 'cancel') {
+        } else if (buttonPayload?.id === 'cancel') {
           const enMessage = 'your order has being cancelled succesfully';
           const arMessage = 'تم إلغاء طلبك بنجاح';
           const res = await this.sendWhatSappMessage({
