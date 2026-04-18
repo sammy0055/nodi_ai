@@ -14,7 +14,8 @@ export type FlowType =
   | 'single-upselling-flow'
   | 'multi-upselling-flow'
   | 'order-summary-flow'
-  | 'edit-ordered-list-actions';
+  | 'edit-ordered-list-actions'
+  | 'review-flow';
 
 export interface FlowContent {
   headingText: string;
@@ -83,11 +84,27 @@ type FlowContentMap = {
   'multi-upselling-flow': FlowContent;
   'order-summary-flow': OrderSummaryContent;
   'edit-ordered-list-actions': EditOrderActionListFlowContent;
+  'review-flow': FlowContent;
 };
 
 const flowContent: {
   [K in keyof FlowContentMap]: Record<Language, FlowContentMap[K]>;
 } = {
+  'review-flow': {
+    en: {
+      headingText: 'Review your order',
+      bodyText: 'Please take a moment to review your order details.',
+      footerText: 'Order review',
+      buttonText: 'View order',
+    },
+
+    ar: {
+      headingText: 'مراجعة طلبك',
+      bodyText: 'يرجى تخصيص لحظة لمراجعة تفاصيل طلبك',
+      footerText: 'مراجعة الطلب',
+      buttonText: 'عرض الطلب',
+    },
+  },
   'greeting-flow': {
     en: {
       headingText: 'Choose Service Type',

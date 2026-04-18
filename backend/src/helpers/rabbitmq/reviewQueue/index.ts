@@ -1,5 +1,7 @@
+import { OnboardedOrganizations } from '../../../data/data-types';
 import { processMessages } from '../../../mcp/chat-webhook';
 import { models } from '../../../models';
+import { sendReviewMessageForMalekAI } from '../../../workflows/malek/send-review-message';
 import { initRabbit, RabitQueues } from '../init';
 
 const { WhatSappSettingsModel, OrderModel } = models;
@@ -85,7 +87,9 @@ export const startReviewtWorkerConsumer = async () => {
           return;
         }
 
-        await processMessages(whatsappBusinessId, msg);
+        if (whatsappBusinessId === OnboardedOrganizations.MALEK) {
+          await sendReviewMessageForMalekAI(whatsappBusinessId, msg);
+        } else await processMessages(whatsappBusinessId, msg);
         channel.ack(message);
       } catch (err) {
         channel.nack(message, false, false);

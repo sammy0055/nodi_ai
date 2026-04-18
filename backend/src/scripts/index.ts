@@ -18,6 +18,8 @@ import { getEstimatedTime } from '../utils/getEstimatedTime';
 import { ManageVectorStore } from '../helpers/vector-store';
 import { currencyFormat } from 'simple-currency-format';
 import Redis from 'ioredis';
+import { OrgReviewQuestions } from '../types/organization';
+import { mapToReviewQuestions } from '../utils/common-fn';
 
 const ddd = {
   whatsappBusinessId: '1390720013053482',
@@ -297,10 +299,7 @@ const productOptionsData = [
   },
 ];
 
-const productOptionsObject = productOptionsData.reduce(
-  (acc, item) => ({ ...acc, ...item }),
-  {}
-);
+const productOptionsObject = productOptionsData.reduce((acc, item) => ({ ...acc, ...item }), {});
 const productOptionFlowBody = {
   messaging_product: 'whatsapp',
   to: '2348171727284',
@@ -415,7 +414,45 @@ const reply_btn = {
     },
   },
 };
-
+const reviewFlowBody = {
+  messaging_product: 'whatsapp',
+  to: '2348171727284',
+  type: 'interactive',
+  interactive: {
+    type: 'flow',
+    header: {
+      type: 'text',
+      text: 'Review',
+    },
+    body: {
+      text: 'Tap to take review.',
+    },
+    footer: {
+      text: 'open review',
+    },
+    action: {
+      name: 'flow',
+      parameters: {
+        flow_id: '2824070427943641',
+        flow_message_version: '3',
+        flow_cta: 'Open form',
+        mode: 'published',
+        flow_action: 'navigate',
+        flow_action_payload: {
+          screen: 'DYNAMIC_SURVEY',
+          data: JSON.stringify({
+            status: 'active',
+            q1_id: '323434-234233de3-43',
+            q1_text: 'how was our agent',
+            show_q1: true,
+            show_q2: false,
+            show_q3: false,
+          }),
+        },
+      },
+    },
+  },
+};
 const sendMessage = async () => {
   console.log('running flow send.........');
 
@@ -427,7 +464,7 @@ const sendMessage = async () => {
         Authorization: `Bearer ${process.env.META_BUSINESS_SYSTEM_TOKEN}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(productOptionFlowBody),
+      body: JSON.stringify(reviewFlowBody),
     });
 
     if (!res.ok) {
@@ -692,6 +729,20 @@ const removeRedisMessage = async (key: string) => {
 };
 
 // ttttt()
-console.log('====================================');
-console.log(await removeRedisMessage('2348171727284'));
-console.log('====================================');
+// console.log('====================================');
+// console.log(await removeRedisMessage('2348171727284'));
+// console.log('====================================');
+
+
+// 2 questions
+// const test2: OrgReviewQuestions[] = [
+//   {
+//     id: 'food_quality',
+//     question: 'How was the food?',
+//     answer: null,
+//   },
+// ];
+
+// console.log('====================================');
+// console.log(mapToReviewQuestions(test2));
+// console.log('====================================');
