@@ -38,7 +38,9 @@ export const sendReviewMessageForMalekAI = async (whatsappBusinessId: string, ms
       ...flowContent,
       questions: qs,
     };
-
+    console.log('====running review main function====');
+    console.log(args);
+    console.log('====================================');
     const reviewFlowBody = {
       messaging_product: 'whatsapp',
       to: args.recipientPhoneNumber,
