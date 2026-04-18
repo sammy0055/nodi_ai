@@ -49,7 +49,7 @@ export const handleIncommingMessageForMalek = async (whatsappBusinessId: string,
 
     // review logic ---------
     if (payload?.flowLabel === WhatsappFlowLabel.Review_Order) {
-     return await chat.saveReviewAnswers(msg);
+      return await chat.saveReviewAnswers(msg);
     }
     // review logic ---------
 
@@ -940,6 +940,14 @@ export class MalekChatService {
   }
 
   private async sendCustomerServiceMessage(draft: WorkflowDraft, msg: WhatsAppMessage) {
+    if (msg?.type === 'order') {
+      const enMsg = `You can add more items later. For now, continue with the form flow.`;
+      const arMsg = `يمكنك إضافة المزيد من العناصر لاحقًا. في الوقت الحالي، تابع نموذج الطلب.`;
+      return await this.sendWhatSappMessage({
+        recipientPhoneNumber: this.userPhoneNumber,
+        message: draft.lang === 'en' ? enMsg : arMsg,
+      });
+    }
     const org = await this.getOrganization();
     const enMsg = `Please contact our customer service at ${org.hotline}. If you prefer to speak with a human, you can call the same number`;
     const arMsg = `يرجى التواصل مع خدمة العملاء على الرقم ${org.hotline}. إذا كنت تفضل التحدث مع أحد ممثلي الخدمة، يمكنك الاتصال بنفس الرقم`;
@@ -1419,7 +1427,12 @@ export class MalekChatService {
     const flow = whatsappSettings?.whatsappTemplates?.find(
       (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW
     );
-    const items = draft.selectedProducts.map((i) => ({ id: `${i.id}_${i.uniqueId}`, title: i.name }));
+    const items = draft.selectedProducts
+      .filter((i) => i?.options && i?.options?.length > 0)
+      .map((i) => ({
+        id: `${i.id}_${i.uniqueId}`,
+        title: i.name,
+      }));
     const flowContent = getFlowContent('select-items-flow', draft.lang);
     const res = await this.sendWhatSappItemSelectionFlowInteractiveMessage({
       recipientPhoneNumber: this.userPhoneNumber,
@@ -1786,6 +1799,11 @@ export class MalekChatService {
         },
       };
 
+      const itemsWithOptions = updatedDraft.selectedProducts.filter((i) => i?.options?.length > 0);
+      if (itemsWithOptions?.length === 0) {
+        // no items have options
+        return await this.processOrderSummaryHandler(updatedDraft, msg);
+      }
       const flowContent = getFlowContent('customize-order-flow', draft.lang);
       const res = await this.sendWhatSappCustomizeOrderInteractiveMessage({
         recipientPhoneNumber: this.userPhoneNumber,
@@ -2199,8 +2217,14 @@ export class MalekChatService {
       if (msg?.interactive?.type === 'button_reply') {
         const buttonPayload = msg?.interactive?.button_reply as any;
         if (buttonPayload.id === 'confirm') {
-          const enMessage = 'your order has being placed succesfully';
-          const arMessage = 'تم تقديم طلبك بنجاح';
+          const org = await this.getOrganization();
+          const enMessage = `Thank you for your order with Malak Al Tawouk. Your order has been successfully placed and is now being processed.
+
+If you have any questions or require assistance, please feel free to contact us at ${org.hotline}. We’re happy to help.`;
+          const arMessage = `شكرًا لطلبكم من Malak Al Tawouk. تم استلام طلبكم بنجاح وهو الآن قيد التحضير.
+
+في حال كان لديكم أي استفسار أو تحتاجون إلى مساعدة، يرجى عدم التردد في الاتصال بنا على الرقم ${org.hotline}. نحن بخدمتكم.`;
+
           const customer = await this.getCustomerData();
           draft.orderDetails.organizationId = customer.organizationId;
           draft.orderDetails.customerId = customer.id;
@@ -2280,7 +2304,7 @@ export class MalekChatService {
 
   private async handleRemoveOrderedItemSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
     console.log('====================================');
-    console.log('handleEditOrderActionSelection');
+    console.log('handleRemoveOrderedItemSelection');
     console.log('====================================');
     try {
       const payload = JSON.parse(msg.interactive?.nfm_reply.response_json as any);
