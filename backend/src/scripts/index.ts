@@ -681,7 +681,7 @@ function formatCatalogMessage(items: any[]): any {
 //   { "product_retailer_id": "B", "quantity": 1 }
 // ]));
 // console.log('====================================');
-sendMessage();
+// sendMessage();
 // getConversationHistory();
 // console.log('====================================');
 // console.log(getEstimatedTime("1970-01-01 03:00:00+00" as any));
@@ -738,9 +738,11 @@ const removeRedisMessage = async (key: string) => {
 };
 
 // ttttt()
-// console.log('====================================');
+console.log('====================================');
 // console.log(await removeRedisMessage('2348171727284'));
-// console.log('====================================');
+console.log("+234 81 7172 7284".trim().replace('+', '') .replace(/\s+/g, ''));
+
+console.log('====================================');
 
 // 2 questions
 // const test2: OrgReviewQuestions[] = [

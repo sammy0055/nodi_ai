@@ -80,7 +80,7 @@ export class MalekChatService {
 
   constructor(userPhoneNumber: string, organizationWhatsappId: string) {
     this.organizationWhatsappId = organizationWhatsappId;
-    this.userPhoneNumber = userPhoneNumber;
+    this.userPhoneNumber = userPhoneNumber.trim().replace('+', '').replace(/\s+/g, '');
   }
 
   static async init(userPhoneNumber: string, organizationWhatsappId: string) {
@@ -934,7 +934,9 @@ export class MalekChatService {
     const product = await ProductModel.findOne({ where: { organizationId: this.organizationId } });
 
     return {
-      catalogUrl: `https://wa.me/c/${orgBusinessWhatsappData.whatsappPhoneNumber.trim()}`.replace(/\s+/g, ''),
+      catalogUrl: `https://wa.me/c/${orgBusinessWhatsappData.whatsappPhoneNumber.trim()}`
+        .replace(/\s+/g, '')
+        .replace('+', ''),
       productUrl: product?.imageUrl || '',
     };
   }
