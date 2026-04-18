@@ -414,6 +414,18 @@ const reply_btn = {
     },
   },
 };
+
+const questions = {
+  q1_id: '802eebad-9c2c-8b68-0c1f-5e95e23e269a',
+  q1_text: 'how was our service?',
+  show_q1: true,
+  q2_id: 'eea2d194-1646-2cc8-9fb7-492dd5c3443f',
+  q2_text: 'how was our food?',
+  show_q2: true,
+  q3_id: '',
+  q3_text: '',
+  show_q3: false,
+};
 const reviewFlowBody = {
   messaging_product: 'whatsapp',
   to: '2348171727284',
@@ -442,11 +454,7 @@ const reviewFlowBody = {
           screen: 'DYNAMIC_SURVEY',
           data: JSON.stringify({
             status: 'active',
-            q1_id: '323434-234233de3-43',
-            q1_text: 'how was our agent',
-            show_q1: true,
-            show_q2: false,
-            show_q3: false,
+            ...questions,
           }),
         },
       },
@@ -672,7 +680,7 @@ function formatCatalogMessage(items: any[]): any {
 //   { "product_retailer_id": "B", "quantity": 1 }
 // ]));
 // console.log('====================================');
-// sendMessage();
+sendMessage();
 // getConversationHistory();
 // console.log('====================================');
 // console.log(getEstimatedTime("1970-01-01 03:00:00+00" as any));
@@ -732,7 +740,6 @@ const removeRedisMessage = async (key: string) => {
 // console.log('====================================');
 // console.log(await removeRedisMessage('2348171727284'));
 // console.log('====================================');
-
 
 // 2 questions
 // const test2: OrgReviewQuestions[] = [

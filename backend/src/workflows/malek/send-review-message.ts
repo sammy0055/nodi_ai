@@ -70,7 +70,7 @@ export const sendReviewMessageForMalekAI = async (whatsappBusinessId: string, ms
               data: JSON.stringify({
                 status: 'active',
                 ...args.questions,
-                flowLabel: WhatsappFlowLabel.REVIEW_COLLECTION,
+                // flowLabel: WhatsappFlowLabel.REVIEW_COLLECTION,
               }),
             },
           },
