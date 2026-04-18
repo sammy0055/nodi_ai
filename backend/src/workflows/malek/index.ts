@@ -1862,7 +1862,9 @@ export class MalekChatService {
 
   private async handleProductItemsSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
     try {
-      const payload = JSON.parse(msg?.interactive?.nfm_reply?.response_json as any);
+      const payload = msg.interactive?.nfm_reply?.response_json
+        ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
+        : null;
       if (payload?.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW) {
         function parsePrefixedIds(prefixedIds: string[]) {
           return prefixedIds.map((id) => {
@@ -1921,7 +1923,9 @@ export class MalekChatService {
 
   private async handleOrderedItemsSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
     try {
-      const payload = JSON.parse(msg.interactive?.nfm_reply.response_json as any);
+      const payload = msg.interactive?.nfm_reply?.response_json
+        ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
+        : null;
       if (payload?.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW) {
         function parsePrefixedIds(prefixedIds: string[]) {
           return prefixedIds.map((id) => {
@@ -1982,7 +1986,9 @@ export class MalekChatService {
     console.log('====================================');
     console.log('handleOptionItemSelection');
     console.log('====================================');
-    const payload = JSON.parse(msg.interactive?.nfm_reply?.response_json as any);
+    const payload = msg.interactive?.nfm_reply?.response_json
+      ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
+      : null;
     if (payload?.flowLabel === WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW) {
       const optionNames = productOptionsTaxonomy.restaurant.map((i) => i.name);
       const flatIds = Object.keys(payload)
@@ -2036,7 +2042,9 @@ export class MalekChatService {
     console.log('====================================');
     console.log('handleOrderedItemOptionsSelection');
     console.log('====================================');
-    const payload = JSON.parse(msg.interactive?.nfm_reply?.response_json as any);
+    const payload = msg.interactive?.nfm_reply?.response_json
+      ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
+      : null;
     if (payload?.flowLabel === WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW) {
       const optionNames = productOptionsTaxonomy.restaurant.map((i) => i.name);
       const flatIds = Object.keys(payload)
@@ -2133,7 +2141,9 @@ export class MalekChatService {
     let payload: any = null;
 
     if (msg?.interactive?.nfm_reply?.response_json) {
-      payload = JSON.parse(msg.interactive.nfm_reply.response_json as any);
+      payload = msg.interactive?.nfm_reply?.response_json
+        ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
+        : null;
     }
     if (payload?.flowLabel === WhatsappFlowLabel.UPSELLING_ITEMS_FLOW) {
       // multi upselling
@@ -2164,7 +2174,9 @@ export class MalekChatService {
     console.log('====================================');
     console.log('handleUpsellingItemOptionSelection');
     console.log('====================================');
-    const payload = JSON.parse(msg.interactive?.nfm_reply?.response_json as any);
+    const payload = msg.interactive?.nfm_reply?.response_json
+      ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
+      : null;
     if (payload?.flowLabel === WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW) {
       const optionNames = productOptionsTaxonomy.restaurant.map((i) => i.name);
       const flatIds = Object.keys(payload)
@@ -2308,7 +2320,9 @@ If you have any questions or require assistance, please feel free to contact us 
     console.log('handleRemoveOrderedItemSelection');
     console.log('====================================');
     try {
-      const payload = JSON.parse(msg.interactive?.nfm_reply.response_json as any);
+      const payload = msg.interactive?.nfm_reply?.response_json
+        ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
+        : null;
       if (payload.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW) {
         if (payload?.item_id && payload?.item_id?.length > 0) {
           function parsePrefixedIds(prefixedIds: string[]) {
