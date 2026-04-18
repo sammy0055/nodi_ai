@@ -49,7 +49,7 @@ export const handleIncommingMessageForMalek = async (whatsappBusinessId: string,
 
     // review logic ---------
     if (payload?.flowLabel === WhatsappFlowLabel.Review_Order) {
-      await chat.saveReviewAnswers(msg);
+     return await chat.saveReviewAnswers(msg);
     }
     // review logic ---------
 
