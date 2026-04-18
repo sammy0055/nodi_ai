@@ -62,7 +62,7 @@ export const sendReviewMessageForMalekAI = async (whatsappBusinessId: string, ms
           parameters: {
             flow_id: '2824070427943641',
             flow_message_version: '3',
-            flow_cta: args.bodyText,
+            flow_cta: args.buttonText,
             mode: 'published',
             flow_action: 'navigate',
             flow_action_payload: {
@@ -70,7 +70,7 @@ export const sendReviewMessageForMalekAI = async (whatsappBusinessId: string, ms
               data: JSON.stringify({
                 status: 'active',
                 ...args.questions,
-                // flowLabel: WhatsappFlowLabel.REVIEW_COLLECTION,
+                flowLabel: WhatsappFlowLabel.REVIEW_COLLECTION,
               }),
             },
           },
