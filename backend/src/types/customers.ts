@@ -26,4 +26,5 @@ export interface ICustomer {
   status: 'suspended' | 'active' | 'inactive';
   shouldUpdateChatbotSystemPrompt?: boolean | null;
   savedAddresses?: CustomerSavedAddress[];
+  lang?: "en" | "ar"
 }

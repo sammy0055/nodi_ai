@@ -19,6 +19,7 @@ class CustomerModel
   declare source: 'chatbot' | 'website' | 'mobile_app' | 'api';
   declare status: 'suspended' | 'active' | 'inactive';
   declare savedAddresses: any;
+  declare lang: CreationOptional<'en' | 'ar'>;
 
   static associate(models: DbModels) {
     this.belongsTo(models.OrganizationsModel, {
@@ -53,6 +54,7 @@ CustomerModel.init(
       values: [...Object.values(CustomerSourceTypes)],
       defaultValue: CustomerSourceTypes.CHATBOT,
     },
+    lang: { type: DataTypes.STRING, defaultValue: 'en' },
     preferences: { type: DataTypes.JSONB, allowNull: true },
     savedAddresses: { type: DataTypes.JSONB, defaultValue: [], allowNull: true },
     status: { type: DataTypes.ENUM('suspended', 'active', 'inactive'), defaultValue: 'active' },

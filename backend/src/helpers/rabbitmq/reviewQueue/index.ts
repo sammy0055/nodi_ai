@@ -86,14 +86,12 @@ export const startReviewtWorkerConsumer = async () => {
           channel.ack(message);
           return;
         }
-        console.log('====================================');
-        console.log('running review trigger');
-        console.log('====================================');
+
         if (whatsappBusinessId === OnboardedOrganizations.MALEK) {
-          console.log('====================================');
-          console.log('running malek ai review trigger', whatsappBusinessId);
-          console.log('====================================');
-          await sendReviewMessageForMalekAI(whatsappBusinessId, msg);
+          await sendReviewMessageForMalekAI(whatsappBusinessId, msg, {
+            orderId: order!.id,
+            customerId: order!.customerId,
+          });
         } else await processMessages(whatsappBusinessId, msg);
         channel.ack(message);
       } catch (err) {

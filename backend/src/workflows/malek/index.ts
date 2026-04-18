@@ -35,13 +35,24 @@ const {
   AreaModel,
   ProductOptionChoiceModel,
   ProductOptionModel,
+  ReviewModel,
 } = models;
 
 export const handleIncommingMessageForMalek = async (whatsappBusinessId: string, msg: WhatsAppMessage) => {
   try {
     const userPhoneNumber = msg.from;
+    const payload = msg.interactive?.nfm_reply?.response_json
+      ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
+      : null;
 
     const chat = await MalekChatService.init(userPhoneNumber, whatsappBusinessId);
+
+    // review logic ---------
+    if (payload?.flowLabel === WhatsappFlowLabel.Review_Order) {
+      await chat.saveReviewAnswers(msg);
+    }
+    // review logic ---------
+
     const serviceSchedule = await chat.validateServiceSchedule();
     if (!serviceSchedule?.isOpen) {
       return await chat.sendWhatSappMessage({
@@ -122,6 +133,45 @@ export class MalekChatService {
   async validateServiceSchedule() {
     const planOrg = await this.getOrganization();
     return checkBusinessServiceSchedule(planOrg.serviceSchedule, planOrg.timeZone! || 'UTC');
+  }
+
+  async saveReviewAnswers(msg: WhatsAppMessage) {
+    try {
+      const payload = msg.interactive?.nfm_reply?.response_json
+        ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
+        : null;
+      if (!payload) throw new Error('no response for review');
+      const rating = payload?.overall_rating;
+      const orderId = payload.orderId;
+      const answers = payload?.responses as { question_id: string; answer: string }[];
+
+      const org = await this.getOrganization();
+      const customer = await this.getCustomerData();
+      const questions = org.reviewQuestions;
+
+      const answersMap = new Map(answers.map((a) => [a.question_id, a.answer]));
+
+      const updatedQuestions = questions.map((q) => ({
+        ...q,
+        answer: answersMap.get(q.id) ?? '',
+      }));
+
+      await ReviewModel.create({
+        orderId: orderId,
+        organizationId: org.id,
+        customerId: customer.id,
+        rating: Number(rating || 1),
+        items: updatedQuestions,
+      });
+
+      await this.sendWhatSappMessage({
+        recipientPhoneNumber: this.userPhoneNumber,
+        message: customer.lang === 'en' ? 'thank you for your feedback.' : 'شكراً لك على ملاحظاتك',
+      });
+    } catch (error: any) {
+      console.error('sendReviewMessageForMalekAI:', error.message);
+      throw error;
+    }
   }
 
   async sendWhatSappMessage({ recipientPhoneNumber, message }: SendWhatSappMessageProps) {
@@ -1457,6 +1507,7 @@ export class MalekChatService {
     console.log('handleLanguageSelection');
     console.log('====================================');
     if (msg?.interactive?.type === 'button_reply') {
+      const customer = await this.getCustomerData();
       const listPayload = msg?.interactive?.button_reply as any;
       if (listPayload.id === 'en') {
         console.log('====================================');
@@ -1467,6 +1518,8 @@ export class MalekChatService {
           recipientPhoneNumber: this.userPhoneNumber,
           ...flowContent,
         });
+
+        await CustomerModel.update({ lang: 'en' }, { where: { id: customer.id } });
         return {
           nextStep: OrderFlowStep.SERVICE_SELECTION,
           updatedDraft: { ...draft, lang: 'en', step: OrderFlowStep.SERVICE_SELECTION },
@@ -1478,6 +1531,7 @@ export class MalekChatService {
           recipientPhoneNumber: this.userPhoneNumber,
           ...flowContent,
         });
+        await CustomerModel.update({ lang: 'ar' }, { where: { id: customer.id } });
         return {
           nextStep: OrderFlowStep.SERVICE_SELECTION,
           updatedDraft: { ...draft, lang: 'ar', step: OrderFlowStep.SERVICE_SELECTION },

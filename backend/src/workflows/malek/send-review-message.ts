@@ -20,27 +20,39 @@ export interface ReviewQuestions {
 }
 interface SendWhatSappReviewProps extends FlowContent {
   recipientPhoneNumber: string;
+  flowId: string;
+  flowName: string;
   questions: ReviewQuestions;
 }
 
-const { WhatSappSettingsModel, OrganizationsModel } = models;
-export const sendReviewMessageForMalekAI = async (whatsappBusinessId: string, msg: WhatsAppMessage) => {
+const { WhatSappSettingsModel, OrganizationsModel, CustomerModel } = models;
+export const sendReviewMessageForMalekAI = async (
+  whatsappBusinessId: string,
+  msg: WhatsAppMessage,
+  { orderId, customerId }: { orderId: string; customerId: string }
+) => {
   try {
     const whatsappSettings = await WhatSappSettingsModel.findOne({ where: { whatsappBusinessId } });
     if (!whatsappSettings) throw new Error(`"no whatsapp record for this WABA:" ${whatsappBusinessId}`);
+
+    const flow = whatsappSettings?.whatsappTemplates.find(
+      (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.Review_Order
+    );
+
     const org = await OrganizationsModel.findByPk(whatsappSettings.organizationId!);
     if (!org) throw new Error(`"no whatsapp record for this WABA:" ${whatsappBusinessId}`);
     if (org.reviewQuestions.length < 1) return;
+    const customer = await CustomerModel.findByPk(customerId);
     const qs = mapToReviewQuestions(org.reviewQuestions);
-    const flowContent = getFlowContent('review-flow', 'en');
+    const flowContent = getFlowContent('review-flow', customer?.lang || 'en');
     const args: SendWhatSappReviewProps = {
       recipientPhoneNumber: msg.from,
       ...flowContent,
+      flowId: flow?.type === 'flow' && (flow?.data.flowId as any),
+      flowName: flow?.type === 'flow' && (flow?.data.flowName as any),
       questions: qs,
     };
-    console.log('====running review main function====');
-    console.log(args);
-    console.log('====================================');
+
     const reviewFlowBody = {
       messaging_product: 'whatsapp',
       to: args.recipientPhoneNumber,
@@ -60,7 +72,7 @@ export const sendReviewMessageForMalekAI = async (whatsappBusinessId: string, ms
         action: {
           name: 'flow',
           parameters: {
-            flow_id: '2824070427943641',
+            flow_id: args.flowId,
             flow_message_version: '3',
             flow_cta: args.buttonText,
             mode: 'published',
@@ -70,7 +82,8 @@ export const sendReviewMessageForMalekAI = async (whatsappBusinessId: string, ms
               data: JSON.stringify({
                 status: 'active',
                 ...args.questions,
-                flowLabel: WhatsappFlowLabel.REVIEW_COLLECTION,
+                flowLabel: WhatsappFlowLabel.Review_Order,
+                orderId: orderId,
               }),
             },
           },
@@ -78,7 +91,7 @@ export const sendReviewMessageForMalekAI = async (whatsappBusinessId: string, ms
       },
     };
 
-    const url = `https://graph.facebook.com/v20.0/${whatsappSettings.whatsappPhoneNumber}/messages`;
+    const url = `https://graph.facebook.com/v20.0/${whatsappSettings.whatsappPhoneNumberId}/messages`;
     const res = await fetch(url, {
       method: 'POST',
       headers: {

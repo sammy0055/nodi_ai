@@ -63,7 +63,7 @@ export enum WhatsappFlowLabel {
   PRODUCT_ITEMS_FLOW = 'PRODUCT_ITEMS_FLOW',
   UPSELLING_ITEMS_FLOW = 'UPSELLING_ITEMS_FLOW',
   ADDRESS_LIST_ITEMS_FLOW = 'ADDRESS_LIST_ITEMS_FLOW',
-  REVIEW_COLLECTION = 'REVIEW_COLLECTION',
+  Review_Order = 'Review_Order',
 }
 export interface createWhatsappFlowArgs {
   accessToken: string;

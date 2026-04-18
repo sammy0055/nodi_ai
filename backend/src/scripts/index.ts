@@ -455,7 +455,7 @@ const reviewFlowBody = {
           data: JSON.stringify({
             status: 'active',
             ...questions,
-            flowLabel: WhatsappFlowLabel.REVIEW_COLLECTION,
+            flowLabel: WhatsappFlowLabel.Review_Order,
           }),
         },
       },

@@ -2,6 +2,7 @@ import { DataTypes, Model, CreationOptional } from 'sequelize';
 import { sequelize } from './db';
 import { DbModels } from '.';
 import { ModelNames } from './model-names';
+import { OrgReviewQuestions } from '../types/organization';
 
 export interface IReview {
   id: CreationOptional<string>;
@@ -18,6 +19,7 @@ class ReviewModel extends Model implements IReview {
   public orderId!: string;
   public rating!: number;
   public comment!: string;
+  public items!: OrgReviewQuestions[];
 
   static associate(models: DbModels) {
     this.belongsTo(models.OrganizationsModel, {
