@@ -256,10 +256,10 @@ const flowContent: {
     },
 
     ar: {
-      headingText: 'اختر من عناوين التوصيل المحفوظة',
-      bodyText: 'يرجى اختيار العنوان المفضل',
-      footerText: 'اختر عنوان التوصيل',
-      buttonText: 'عرض العناوين',
+      headingText: 'اختر عنوانك',
+      bodyText: 'يرجى اختيار العنوان ',
+      footerText: 'credobyte.com',
+      buttonText: 'عرض العناوين ',
       menuItems: [],
     },
   },
