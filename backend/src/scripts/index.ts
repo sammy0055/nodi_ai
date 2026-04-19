@@ -338,6 +338,35 @@ const productOptionFlowBody = {
   },
 };
 
+const items = [
+  {
+    id: 'fb4fb99a-30e7-455d-8467-6fada91e9da2',
+    label: 'Test',
+    areaId: 'f3a06449-29a4-4d5e-9089-4ce475f1b077',
+    zoneId: '654e3c49-5c59-4e38-9045-6f3324e97103',
+    address: ' Shiss hdod9d djd9x',
+    areaName: 'Abde',
+    zoneName: 'Minyeh - Doniye',
+  },
+  {
+    id: '369ef385-9d16-49e1-8f29-15b8db56daea',
+    label: 'Test',
+    areaId: 'b80cfbac-394b-4cfd-93a3-5de054946b56',
+    zoneId: '654e3c49-5c59-4e38-9045-6f3324e97103',
+    address: 'Test test 3rd floor',
+    areaName: 'Bhanin',
+    zoneName: 'Minyeh - Doniye',
+  },
+  {
+    id: '1fa99df2-40d4-4fed-afc6-5d9127c348a1',
+    label: 'Star',
+    areaId: 'be149443-479b-4ab1-82b0-896b3c0169cf',
+    zoneId: '654e3c49-5c59-4e38-9045-6f3324e97103',
+    address: 'Gshwusjee eheuekke ',
+    areaName: 'Nabi youchah',
+    zoneName: 'Minyeh - Doniye',
+  },
+].map((ad) => ({ id: ad.id, title: ad.label, description: ad.address }));
 const listInterate = {
   messaging_product: 'whatsapp',
   recipient_type: 'individual',
@@ -356,18 +385,7 @@ const listInterate = {
       sections: [
         {
           title: 'Menu',
-          rows: [
-            {
-              id: 'item_1',
-              title: 'Item 1',
-              description: 'Optional description',
-            },
-            {
-              id: 'item_2',
-              title: 'Item 2',
-              description: 'Optional description',
-            },
-          ],
+          rows: items,
         },
       ],
     },
@@ -473,7 +491,7 @@ const sendMessage = async () => {
         Authorization: `Bearer ${process.env.META_BUSINESS_SYSTEM_TOKEN}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(reviewFlowBody),
+      body: JSON.stringify(listInterate),
     });
 
     if (!res.ok) {
@@ -738,11 +756,11 @@ const removeRedisMessage = async (key: string) => {
 };
 
 // ttttt()
-console.log('====================================');
-// console.log(await removeRedisMessage('2348171727284'));
-console.log("+234 81 7172 7284".trim().replace('+', '') .replace(/\s+/g, ''));
+// console.log('====================================');
+console.log(await removeRedisMessage('2348171727284'));
+// // console.log("+234 81 7172 7284".trim().replace('+', '') .replace(/\s+/g, ''));
 
-console.log('====================================');
+// console.log('====================================');
 
 // 2 questions
 // const test2: OrgReviewQuestions[] = [

@@ -1574,7 +1574,10 @@ export class MalekChatService {
     console.log('====================================');
     if (msg?.interactive?.type === 'list_reply') {
       const listPayload = msg?.interactive?.list_reply as any;
-      if (listPayload.id === 'item_1') {
+      console.log('===================listPayload=================');
+      console.log(listPayload);
+      console.log('====================================');
+      if (listPayload?.id === 'item_1') {
         const updateDraft: WorkflowDraft = {
           ...draft,
           step: OrderFlowStep.ADDRESS_SELECTION,
@@ -1584,7 +1587,7 @@ export class MalekChatService {
           },
         };
         return await this.ProcessTakeawayHandler(updateDraft, msg);
-      } else if (listPayload.id === 'item_2') {
+      } else if (listPayload?.id === 'item_2') {
         const updateDraft: WorkflowDraft = {
           ...draft,
           step: OrderFlowStep.ADDRESS_SELECTION,
