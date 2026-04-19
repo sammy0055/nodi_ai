@@ -259,7 +259,7 @@ const flowContent: {
       headingText: 'اختر من عناوين التوصيل المحفوظة',
       bodyText: 'يرجى اختيار العنوان المفضل',
       footerText: 'اختر عنوان التوصيل',
-      buttonText: 'عرض العناوين المحفوظة',
+      buttonText: 'عرض العناوين',
       menuItems: [],
     },
   },
@@ -403,6 +403,6 @@ const flowContent: {
   },
 };
 
-export function getFlowContent<T extends FlowType>(type: T, lang: Language): FlowContentMap[T] {
+export function getFlowContent<T extends FlowType>(type: T, lang: Language = 'en'): FlowContentMap[T] {
   return flowContent[type][lang];
 }

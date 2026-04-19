@@ -375,13 +375,13 @@ const listInterate = {
   interactive: {
     type: 'list',
     body: {
-      text: 'Please select an item',
+      text: 'يرجى اختيار العنوان المفضل',
     },
     footer: {
-      text: 'Powered by your app',
+      text: 'اختر عنوان التوصيل',
     },
     action: {
-      button: 'View options',
+      button: 'عرض العناوين',
       sections: [
         {
           title: 'Menu',
@@ -757,7 +757,7 @@ const removeRedisMessage = async (key: string) => {
 
 // ttttt()
 // console.log('====================================');
-console.log(await removeRedisMessage('2348171727284'));
+// console.log(await removeRedisMessage('2348171727284'));
 // // console.log("+234 81 7172 7284".trim().replace('+', '') .replace(/\s+/g, ''));
 
 // console.log('====================================');
