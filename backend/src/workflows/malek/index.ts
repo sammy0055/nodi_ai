@@ -1486,6 +1486,24 @@ export class MalekChatService {
     };
   }
 
+  private async processEditOrderedItems(draft: WorkflowDraft, msg: WhatsAppMessage) {
+    const flowContent = getFlowContent('edit-ordered-list-actions', draft.lang);
+    const res = await this.sendWhatSappEditOrderActionListFlowInteractiveMessage({
+      recipientPhoneNumber: this.userPhoneNumber,
+      ...flowContent,
+    });
+
+    const updatedDraft: WorkflowDraft = {
+      ...draft,
+      step: OrderFlowStep.EDIT_ORDER_ACTION_COLLECTION,
+    };
+
+    return {
+      updatedDraft: updatedDraft,
+      response: res,
+    };
+  }
+
   private async processRemoveOrderedItems(draft: WorkflowDraft, msg: WhatsAppMessage) {
     const whatsappSettings = await WhatSappSettingsModel.findOne({
       where: { organizationId: this.organizationId },
@@ -2260,21 +2278,7 @@ If you have any questions or require assistance, please feel free to contact us 
             response: res,
           };
         } else if (buttonPayload?.id === 'edit') {
-          const flowContent = getFlowContent('edit-ordered-list-actions', draft.lang);
-          const res = await this.sendWhatSappEditOrderActionListFlowInteractiveMessage({
-            recipientPhoneNumber: this.userPhoneNumber,
-            ...flowContent,
-          });
-
-          const updatedDraft: WorkflowDraft = {
-            ...draft,
-            step: OrderFlowStep.EDIT_ORDER_ACTION_COLLECTION,
-          };
-
-          return {
-            updatedDraft: updatedDraft,
-            response: res,
-          };
+          return await this.processEditOrderedItems(draft, msg);
         } else if (buttonPayload?.id === 'cancel') {
           const enMessage = 'your order has being cancelled succesfully';
           const arMessage = 'تم إلغاء طلبك بنجاح';
@@ -2313,6 +2317,9 @@ If you have any questions or require assistance, please feel free to contact us 
         return await this.processProductOrderedItemSendingHandler(draft, msg);
       } else {
         // send back current step
+        // send order summary
+        await this.sendCustomerServiceMessage(draft, msg);
+        return await this.processEditOrderedItems(draft, msg);
       }
     } catch (error: any) {
       console.error('handleEditOrderActionSelection:', error.message);
