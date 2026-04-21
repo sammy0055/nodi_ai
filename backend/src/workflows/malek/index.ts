@@ -1132,7 +1132,15 @@ export class MalekChatService {
       return `${i.productName} (${org.currency} ${i.price})${options}`;
     });
     const order = draft.orderDetails;
-    const productTotal = order.items.reduce((total, item) => total + item.price * item.quantity, 0);
+    const productTotal = order.items.reduce((sum, item) => {
+      const base = item.price * item.quantity;
+
+      const optionsTotal =
+        (item.selectedOptions || []).reduce((optSum, opt) => optSum + (Number(opt.priceAdjustment) || 0), 0) *
+        item.quantity;
+
+      return sum + base + optionsTotal;
+    }, 0);
     const total = productTotal + (order.deliveryCharge || 0);
     const generateOrderSummaryText = generateOrderText(draft.lang);
 
