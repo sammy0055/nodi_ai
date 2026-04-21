@@ -2,6 +2,7 @@ type Language = 'en' | 'ar';
 
 export type FlowType =
   | 'greeting-flow'
+  | 'customer-name-flow'
   | 'choose-lang-flow'
   | 'branch-flow'
   | 'area-and-zone-flow'
@@ -72,6 +73,7 @@ export interface CustomizeOrderContent extends ChooseLangeContent {}
 type FlowContentMap = {
   'greeting-flow': GreetingsFlowContent;
   'choose-lang-flow': ChooseLangeContent;
+  'customer-name-flow': FlowContent;
   'catalog-flow': FlowContent;
   'branch-flow': FlowContent;
   'area-and-zone-flow': FlowContent;
@@ -103,6 +105,21 @@ const flowContent: {
       bodyText: 'يرجى تخصيص لحظة لمراجعة تفاصيل طلبك',
       footerText: 'مراجعة الطلب',
       buttonText: 'عرض الطلب',
+    },
+  },
+  'customer-name-flow': {
+    en: {
+      headingText: 'Customer Name',
+      bodyText: 'Enter your first and last name.',
+      footerText: 'credobyte',
+      buttonText: 'Open Form',
+    },
+
+    ar: {
+      headingText: 'اسم العميل',
+      bodyText: 'الرجاء إدخال الاسم الأول واسم العائلة.',
+      footerText: 'credobyte',
+      buttonText: 'فتح النموذج',
     },
   },
   'greeting-flow': {

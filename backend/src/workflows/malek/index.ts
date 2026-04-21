@@ -427,6 +427,62 @@ export class MalekChatService {
     }
   }
 
+  async sendWhatSappCustomerNameFlowInteractiveMessage(args: SendCustomerNameFlowProps) {
+    const body = {
+      messaging_product: 'whatsapp',
+      to: args.recipientPhoneNumber,
+      type: 'interactive',
+      interactive: {
+        type: 'flow',
+        header: {
+          type: 'text',
+          text: args?.headingText || 'Customer Details',
+        },
+        body: {
+          text: args?.bodyText || 'Tap below to enter your name.',
+        },
+        footer: {
+          text: args?.footerText || 'credobyte',
+        },
+        action: {
+          name: 'flow',
+          parameters: {
+            flow_id: args.flowId,
+            flow_message_version: '3',
+            flow_cta: args?.buttonText || 'Open form',
+            mode: 'published',
+            flow_action: 'navigate',
+            flow_action_payload: {
+              screen: 'WELCOME_SCREEN',
+              data: {
+                flowLabel: WhatsappFlowLabel.CUSTOMER_NAME,
+              },
+            },
+          },
+        },
+      },
+    };
+
+    try {
+      const url = `https://graph.facebook.com/v20.0/${this.WhatSappBusinessPhoneNumberId}/messages`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.whatsappAccessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(`Error ${res.status}: ${errorData.error.message}`);
+      }
+    } catch (error: any) {
+      console.log('WHATSAPP-MESSAGE', error);
+    }
+  }
+
   async sendWhatSappAreaAndZoneFlowInteractiveMessage(args: SendWhatSappFlowProps) {
     const body = {
       messaging_product: 'whatsapp',
@@ -902,6 +958,7 @@ export class MalekChatService {
   private getStepHandler(step: OrderFlowStep): StepHandler {
     const handlers: any = {
       [OrderFlowStep.LANGUAGE_SELECTION]: this.handleLanguageSelection,
+      [OrderFlowStep.CUSTOMER_NAME_COLLECTION]: this.handleCustomerNameSelection,
       [OrderFlowStep.SERVICE_SELECTION]: this.handleServiceSelection,
       [OrderFlowStep.CATALOG_SELECTION]: this.handleCatalogSelection,
       [OrderFlowStep.ADDRESS_SELECTION]: this.handleAddressSelection,
@@ -1540,34 +1597,61 @@ export class MalekChatService {
     console.log('handleLanguageSelection');
     console.log('====================================');
     if (msg?.interactive?.type === 'button_reply') {
+      const sendCustomerNameForm = async (lang: 'en' | 'ar') => {
+        const whatsappSettings = await WhatSappSettingsModel.findOne({
+          where: { organizationId: this.organizationId },
+        });
+
+        const flow = whatsappSettings?.whatsappTemplates.find(
+          (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.CUSTOMER_NAME
+        );
+        const flowContent = getFlowContent('customer-name-flow', lang);
+        return await this.sendWhatSappCustomerNameFlowInteractiveMessage({
+          ...flowContent,
+          recipientPhoneNumber: this.userPhoneNumber,
+          flowId: flow?.type === 'flow' && (flow?.data.flowId as any),
+          flowName: flow?.type === 'flow' && (flow?.data.flowName as any),
+        });
+      };
       const customer = await this.getCustomerData();
       const listPayload = msg?.interactive?.button_reply as any;
       if (listPayload.id === 'en') {
-        console.log('====================================');
-        console.log('LANGUAGE_SELECTION', listPayload.id);
-        console.log('====================================');
+        const bodyText = `Hello ${customer?.name ?? ''}, welcome to Malak Al Tawouk, how can I help you today?`;
         const flowContent = getFlowContent('greeting-flow', 'en');
-        const res = await this.sendWhatSappGreetingInteractiveMessage({
-          recipientPhoneNumber: this.userPhoneNumber,
-          ...flowContent,
-        });
+        flowContent.bodyText = bodyText;
+        const res = customer?.name
+          ? await this.sendWhatSappGreetingInteractiveMessage({
+              recipientPhoneNumber: this.userPhoneNumber,
+              ...flowContent,
+            })
+          : await sendCustomerNameForm('en');
 
         await CustomerModel.update({ lang: 'en' }, { where: { id: customer.id } });
         return {
-          nextStep: OrderFlowStep.SERVICE_SELECTION,
-          updatedDraft: { ...draft, lang: 'en', step: OrderFlowStep.SERVICE_SELECTION },
+          updatedDraft: {
+            ...draft,
+            lang: 'en',
+            step: customer?.name ? OrderFlowStep.SERVICE_SELECTION : OrderFlowStep.CUSTOMER_NAME_COLLECTION,
+          },
           response: res,
         };
       } else if (listPayload.id === 'ar') {
+        const bodyText = `مرحباً ${customer?.name ?? ''}، بك في ملك الطاووق، كيف يمكنني مساعدتك اليوم؟`;
         const flowContent = getFlowContent('greeting-flow', 'ar');
-        const res = await this.sendWhatSappGreetingInteractiveMessage({
-          recipientPhoneNumber: this.userPhoneNumber,
-          ...flowContent,
-        });
+        flowContent.bodyText = bodyText;
+        const res = customer?.name
+          ? await this.sendWhatSappGreetingInteractiveMessage({
+              recipientPhoneNumber: this.userPhoneNumber,
+              ...flowContent,
+            })
+          : await sendCustomerNameForm('ar');
         await CustomerModel.update({ lang: 'ar' }, { where: { id: customer.id } });
         return {
-          nextStep: OrderFlowStep.SERVICE_SELECTION,
-          updatedDraft: { ...draft, lang: 'ar', step: OrderFlowStep.SERVICE_SELECTION },
+          updatedDraft: {
+            ...draft,
+            lang: 'ar',
+            step: customer?.name ? OrderFlowStep.SERVICE_SELECTION : OrderFlowStep.CUSTOMER_NAME_COLLECTION,
+          },
           response: res,
         };
       }
@@ -1583,6 +1667,56 @@ export class MalekChatService {
         updatedDraft: null,
         response: res,
       };
+    }
+  }
+
+  private async handleCustomerNameSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
+    console.log('====================================');
+    console.log('handleCustomerNameSelection');
+    console.log('====================================');
+    try {
+      const payload = msg.interactive?.nfm_reply?.response_json
+        ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
+        : null;
+      if (payload?.flowLabel === WhatsappFlowLabel.CUSTOMER_NAME) {
+        const fullName = `${payload?.first_name ?? ''} ${payload?.last_name ?? ''}`.trim();
+        const cus = await this.getCustomerData();
+        await CustomerModel.update({ name: fullName }, { where: { id: cus.id } });
+        const flowContent = getFlowContent('greeting-flow', draft.lang);
+        const res = await this.sendWhatSappGreetingInteractiveMessage({
+          recipientPhoneNumber: this.userPhoneNumber,
+          ...flowContent,
+        });
+
+        return {
+          updatedDraft: { ...draft, step: OrderFlowStep.SERVICE_SELECTION },
+          response: res,
+        };
+      } else {
+        // send previous step
+        await this.sendCustomerServiceMessage(draft, msg);
+        const whatsappSettings = await WhatSappSettingsModel.findOne({
+          where: { organizationId: this.organizationId },
+        });
+
+        const flow = whatsappSettings?.whatsappTemplates.find(
+          (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.CUSTOMER_NAME
+        );
+        const flowContent = getFlowContent('customer-name-flow', draft.lang);
+        const res = await this.sendWhatSappCustomerNameFlowInteractiveMessage({
+          ...flowContent,
+          recipientPhoneNumber: this.userPhoneNumber,
+          flowId: flow?.type === 'flow' && (flow?.data.flowId as any),
+          flowName: flow?.type === 'flow' && (flow?.data.flowName as any),
+        });
+
+        return {
+          updatedDraft: null,
+          response: res,
+        };
+      }
+    } catch (error: any) {
+      console.log('handleCustomerNameSelection:', error.message);
     }
   }
 
@@ -2447,6 +2581,12 @@ interface SendWhatSappBranchFlowProps extends FlowContent {
   flowId: string;
   flowName?: string;
   branches: { id: string; title: string }[];
+}
+
+interface SendCustomerNameFlowProps extends FlowContent {
+  recipientPhoneNumber: string;
+  flowId: string;
+  flowName?: string;
 }
 
 interface SendWhatSappFlowProps extends FlowContent {

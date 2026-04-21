@@ -1,5 +1,6 @@
 node_modules
 dist
+files
 .env
 test_text.txt
 todo.md
