@@ -142,7 +142,7 @@ const run = async () => {
             name: product.name,
             description: product.description,
             price: product.price,
-            currency: 'LBP',
+            currency: 'USD',
             imageUrl: '',
             organizationId: PIZA_NANI,
             metaProductId: 'pending',
