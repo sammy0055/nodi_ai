@@ -51,11 +51,11 @@ export class UserService {
     if (!org) throw new Error('an organization does not exist for this user');
 
     // send invitation email
-    await sendUserInviteMail(data.email, {
-      orgName: org.name,
-      userName: data.name,
-      btnUrl: `${appConfig.frontendUrl}`,
-    });
+    // await sendUserInviteMail(data.email, {
+    //   orgName: org.name,
+    //   userName: data.name,
+    //   btnUrl: `${appConfig.frontendUrl}`,
+    // });
 
     const payload = {
       name: data.name,
