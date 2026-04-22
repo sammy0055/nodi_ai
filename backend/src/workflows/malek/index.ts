@@ -1013,16 +1013,18 @@ export class MalekChatService {
 
   private async sendCustomerServiceMessage(draft: WorkflowDraft, msg: WhatsAppMessage) {
     if (msg?.type === 'order') {
-      const enMsg = `You can add more items later. For now, continue with the form flow.`;
-      const arMsg = `يمكنك إضافة المزيد من العناصر لاحقًا. في الوقت الحالي، تابع نموذج الطلب.`;
+      const enMsg = `I understand that you would like to add items to your current order. Kindly proceed with the existing process, and at the end, you will have the option to add, remove, or customize items as needed.`;
+      const arMsg = `نُدرك أنك ترغب في إضافة عناصر إلى طلبك الحالي. يُرجى متابعة العملية الحالية، وفي النهاية سيكون لديك خيار إضافة أو إزالة أو تعديل العناصر حسب رغبتك.`;
+
       return await this.sendWhatSappMessage({
         recipientPhoneNumber: this.userPhoneNumber,
         message: draft.lang === 'en' ? enMsg : arMsg,
       });
     }
     const org = await this.getOrganization();
-    const enMsg = `Please contact our customer service at ${org.hotline}. If you prefer to speak with a human, you can call the same number`;
-    const arMsg = `يرجى التواصل مع خدمة العملاء على الرقم ${org.hotline}. إذا كنت تفضل التحدث مع أحد ممثلي الخدمة، يمكنك الاتصال بنفس الرقم`;
+    const enMsg = `Should you have any follow-up or feedback, please feel free to contact us at ${org.hotline}.`;
+    const arMsg = `في حال كان لديكم أي متابعة أو ملاحظات، يُرجى عدم التردد في التواصل معنا على الرقم ${org.hotline}.`;
+
     return await this.sendWhatSappMessage({
       recipientPhoneNumber: this.userPhoneNumber,
       message: draft.lang === 'en' ? enMsg : arMsg,
@@ -2409,12 +2411,13 @@ export class MalekChatService {
         const buttonPayload = msg?.interactive?.button_reply as any;
         if (buttonPayload?.id === 'confirm') {
           const org = await this.getOrganization();
-          const enMessage = `Thank you for your order with Malak Al Tawouk. Your order has been successfully placed and is now being processed.
+          const enMessage = `Thank you for ordering from Malak Al Tawouk. Your order has been successfully received and is now being processed.
 
-If you have any questions or require assistance, please feel free to contact us at ${org.hotline}. We’re happy to help.`;
-          const arMessage = `شكرًا لطلبكم من Malak Al Tawouk. تم استلام طلبكم بنجاح وهو الآن قيد التحضير.
+            If you need any assistance or have any questions, please don’t hesitate to contact us at ${org.hotline}. We’re happy to help.`;
 
-في حال كان لديكم أي استفسار أو تحتاجون إلى مساعدة، يرجى عدم التردد في الاتصال بنا على الرقم ${org.hotline}. نحن بخدمتكم.`;
+          const arMessage = `شكرًا لطلبكم من ملك الطاووق. تم استلام طلبكم بنجاح وهو الآن قيد التحضير.
+
+            في حال كان لديكم أي استفسار أو تحتاجون إلى مساعدة، يرجى عدم التردد في التواصل معنا على الرقم ${org.hotline}. نحن بخدمتكم.`;
 
           const customer = await this.getCustomerData();
           draft.orderDetails.organizationId = customer.organizationId;

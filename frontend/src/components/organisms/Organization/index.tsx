@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   FiPlus,
   FiUser,
@@ -86,7 +86,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
   const currentUser = useUserValue();
   const setCurrentUser = useUserSetRecoilState();
   const setOrders = useOrdersSetRecoilState();
-  // State
+
   const [activeTab, setActiveTab] = useState<OrderStatus>('pending');
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -99,15 +99,21 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
   const [_, setAssignToUserId] = useState<string>('');
   const [orderStats, setOrderStats] = useState<OrderStats>();
   const [users, setUsers] = useState<User[]>([]);
+
   const { isUserPermissionsValid } = useValidateUserRolesAndPermissions(currentUser!);
   const processingTime = useProcessingTime(selectedOrder!);
   const { updateOrder, updateOrderStatus, getOrders, getOrderStatsPerAsignedUser } = new OrderService();
+  const { updateUser } = new UserService();
+
+  const notificationAudioRef = useRef<HTMLAudioElement | null>(null);
+  const previousPendingOrderIdsRef = useRef<string[]>([]);
+  const hasInitializedNotificationRef = useRef(false);
 
   const getData = async (data: any) => {
     const stats = await getOrderStatsPerAsignedUser(data.currentUser.id);
     setOrderStats(stats.data);
   };
-  // Tabs configuration
+
   const tabs = [
     {
       id: OrderStatusTypes.PENDING,
@@ -169,7 +175,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
       setUsers(data.users);
       getData(data);
     }
-  }, [data]);
+  }, [data, setOrders, setCurrentUser]);
 
   useGetOrdersOnInterval(data, activeTab, { setPagination, setOrderStats });
 
@@ -177,7 +183,33 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
     handlePagination(pagination?.currentPage || 1);
   }, [activeTab]);
 
-  // Filter orders based on selected tab and filters
+  useEffect(() => {
+    notificationAudioRef.current = new Audio('/sounds/new-order.wav');
+    notificationAudioRef.current.preload = 'auto';
+  }, []);
+
+  useEffect(() => {
+    const pendingOrders = (orders || []).filter((order) => order.status === OrderStatusTypes.PENDING);
+    const pendingOrderIds = pendingOrders.map((order) => order.id);
+
+    if (!hasInitializedNotificationRef.current) {
+      previousPendingOrderIdsRef.current = pendingOrderIds;
+      hasInitializedNotificationRef.current = true;
+      return;
+    }
+
+    const hasNewPendingOrder = pendingOrderIds.some((id) => !previousPendingOrderIdsRef.current.includes(id));
+
+    if (hasNewPendingOrder && notificationAudioRef.current) {
+      notificationAudioRef.current.currentTime = 0;
+      notificationAudioRef.current.play().catch((error) => {
+        console.log('Notification sound blocked until user interacts with the page:', error);
+      });
+    }
+
+    previousPendingOrderIdsRef.current = pendingOrderIds;
+  }, [orders]);
+
   const fetchOrders = async (page: number, resetData = false) => {
     try {
       setLoading(true);
@@ -190,15 +222,18 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
       }
 
       if (selectedTab === 'pending') filters.status = OrderStatusTypes.PENDING;
+
       const response = await getOrders(filters);
 
       const newData = response.data.data;
       const pagination = response.data.pagination;
+
       setOrders((prev) => (resetData ? newData : [...prev, ...newData]));
       setSelectedOrder(response.data.data[0]);
       setPagination(pagination);
       setLoading(false);
     } catch (error: any) {
+      setLoading(false);
       alert('something went wrong');
     }
   };
@@ -207,13 +242,13 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
     fetchOrders(page, page === 1);
   };
 
-  // Load more data
   const loadMore = () => {
     handlePagination((pagination?.currentPage && pagination?.currentPage + 1) || 1);
   };
 
   const formatTime = useCallback((seconds: number) => {
     if (!seconds) return 0;
+
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
@@ -227,7 +262,41 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
     }
   }, []);
 
-  // Handle order selection
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(date));
+  };
+
+  const formatCurrency = (amount: number, currency: string = 'USD') => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: 2,
+    }).format(amount);
+  };
+
+  const getOptionAdjustmentValue = (opt: OrderItemOption) => {
+    const directValue = Number(opt?.priceAdjustment ?? 0);
+    if (!Number.isNaN(directValue) && directValue !== 0) return directValue;
+
+    const choiceValue = Number(opt?.choice?.priceAdjustment ?? 0);
+    if (!Number.isNaN(choiceValue)) return choiceValue;
+
+    return 0;
+  };
+
+  const formatOptionPriceAdjustment = (opt: OrderItemOption, currency: string) => {
+    const adjustment = getOptionAdjustmentValue(opt);
+
+    if (!adjustment) return null;
+
+    return `${adjustment > 0 ? '+' : '-'}${formatCurrency(Math.abs(adjustment), currency)}`;
+  };
+
   const handleSelectOrder = (order: IOrder) => {
     setSelectedOrder(order);
     if (window.innerWidth < 768) {
@@ -235,7 +304,6 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
     }
   };
 
-  const { updateUser } = new UserService();
   const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
     try {
       if (!isUserPermissionsValid(['order.process'])) {
@@ -249,7 +317,9 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
           return;
         }
       }
+
       const orderToUpdate = orders.find((o) => o.id === orderId);
+
       if (orderToUpdate?.status === 'delivered') {
         alert('can not change order status, order is already completed');
         return;
@@ -262,14 +332,17 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
           setAssignToUserId('');
           return;
         }
+
         if (!orderToUpdate) {
           alert('order not found');
           return;
         }
+
         if (selectedOrder?.status === 'pending' || selectedOrder?.status === 'scheduled') {
           alert('Order has not processed yet.');
           return;
         }
+
         const processingTime = getOrderProcessingTime(orderToUpdate);
         const updatedOrder = {
           ...orderToUpdate,
@@ -284,17 +357,21 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
           activeOrderCount: (userToUpdate.activeOrderCount || 1) - 1,
           lastActive: new Date(),
         });
+
         setOrders((prevOrders) => prevOrders.map((order) => (order.id === updatedOrder.id ? updatedOrder : order)));
         setSelectedOrder(updatedOrder);
         setActiveTab('delivered');
       }
 
       await updateOrderStatus({ orderId, status: newStatus });
+
       setOrders((prevOrders) =>
         prevOrders.map((order) => (order.id === orderId ? { ...order, status: newStatus } : order))
       );
+
       setSelectedOrder({ ...selectedOrder, status: newStatus } as any);
       alert('order status updated successfully');
+
       if (newStatus === 'cancelled') {
         setActiveTab('cancelled');
       }
@@ -309,7 +386,9 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
       alert("you don't have permission to asign an order");
       return;
     }
+
     if (!userId) return;
+
     if (order.status === 'delivered') {
       alert('this order is already completed');
       return;
@@ -325,14 +404,16 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
 
     try {
       const status = ['pending', 'scheduled'].includes(order.status) ? OrderStatusTypes.PROCESSING : order.status;
+
       const updatedOrder: IOrder = {
         ...order,
-        status: status,
+        status,
         assignedUserId: userId,
         assignedUserName: user.name,
         assignedAt: new Date(),
         startedAt: new Date(),
       };
+
       const userToUpdate = currentUser;
       if (!userToUpdate) {
         alert('asigned user does not exist');
@@ -340,6 +421,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
       }
 
       const data = await updateOrder(updatedOrder);
+
       setOrders((prevOrders) => prevOrders.map((o) => (o.id === data.data.id ? updatedOrder : o)));
       setSelectedOrder(updatedOrder);
       setAssignToUserId(updatedOrder.assignedUserId || '');
@@ -353,6 +435,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
       setCurrentUser(
         (prev) => ({ ...prev, activeOrderCount: (prev?.activeOrderCount || 0) + 1, lastActive: new Date() }) as any
       );
+
       setActiveTab('processing');
     } catch (error) {
       console.error('Error assigning order:', error);
@@ -365,11 +448,14 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
       alert("you don't have permission to unasign an order");
       return;
     }
+
     if (!order.assignedUserId) return;
+
     if (order.status === 'delivered') {
       alert('this order is already completed');
       return;
     }
+
     try {
       const updatedOrder: any = {
         ...order,
@@ -387,9 +473,11 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
       }
 
       const data = await updateOrder(updatedOrder);
+
       setOrders((prevOrders) => prevOrders.map((o) => (o.id === data.data.id ? updatedOrder : o)));
       setSelectedOrder(updatedOrder);
       setAssignToUserId('');
+
       await updateUser({
         ...userToUpdate,
         activeOrderCount: (userToUpdate.activeOrderCount || 1) - 1,
@@ -408,6 +496,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
       alert('kindly login');
       return;
     }
+
     try {
       await handleAssignOrder(order, currentUser?.id);
     } catch (error: any) {
@@ -416,26 +505,6 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
     }
   };
 
-  // Format date
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(date));
-  };
-
-  // Format currency
-  const formatCurrency = (amount: number, currency: string = 'USD') => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency,
-      minimumFractionDigits: 2,
-    }).format(amount);
-  };
-
-  // Get status color
   const getStatusColor = (status: OrderStatus) => {
     switch (status) {
       case 'pending':
@@ -453,7 +522,6 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
     }
   };
 
-  // Get priority color
   const getPriorityColor = (priority: OrderPriority) => {
     switch (priority) {
       case 'urgent':
@@ -469,7 +537,6 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
     }
   };
 
-  // Get source icon
   const getSourceIcon = (source: OrderSource) => {
     switch (source) {
       case 'website':
@@ -487,7 +554,6 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
     }
   };
 
-  // Mobile back button
   const MobileBackButton = () => (
     <button
       onClick={() => setMobileView('list')}
@@ -499,19 +565,17 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
   );
 
   useEffect(() => {
-    if (!currentUser) return; // wait till user is loaded
+    if (!currentUser) return;
 
     if (!isUserPermissionsValid(['order.view'])) {
-      window.history.back(); // or navigate('/app')
+      window.history.back();
     }
   }, [currentUser]);
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="w-full mx-auto">
-        {/* Tabs as Cards - Full Width */}
         <div className="w-full flex items-center bg-white px-4 py-2 shadow-md">
-          {/* Back button */}
           <button onClick={() => window.history.back()} className="p-2 rounded hover:bg-gray-100 flex items-center">
             <svg
               className="w-5 h-5 text-gray-700"
@@ -524,11 +588,11 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
             </svg>
           </button>
 
-          {/* Tabs */}
           <div className="flex space-x-2 ml-4 overflow-x-auto w-full">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
+
               return (
                 <button
                   key={tab.id}
@@ -549,9 +613,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
           </div>
         </div>
 
-        {/* Two Column Layout - Only Order List has Scrollbar */}
         <div className="flex flex-col lg:flex-row border border-gray-200 rounded-xl bg-white">
-          {/* Left Column - Orders List with Scrollbar */}
           {(mobileView === 'list' || window.innerWidth >= 768) && (
             <div className="lg:w-2/5 flex flex-col border-r border-gray-200">
               <div className="bg-white p-4 border-b border-gray-200">
@@ -566,7 +628,6 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
                 </div>
               </div>
 
-              {/* Scrollable Orders List */}
               <div className="h-[600px] overflow-y-auto">
                 {loading && pagination?.currentPage === 1 ? (
                   <div className="p-8 text-center">
@@ -604,7 +665,6 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
                       >
                         <div className="flex justify-between items-start mb-3">
                           <div>
-                            {/* <h3 className="font-semibold text-gray-900">{order.id}</h3> */}
                             <p className="text-sm text-gray-600 mt-1">{order.customer.name}</p>
                           </div>
                           <div className="flex flex-col items-end">
@@ -652,7 +712,6 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
                 )}
               </div>
 
-              {/* Load More Button */}
               {pagination?.hasNextPage && pagination.totalPages > 0 && (
                 <div className="p-4 border-t border-gray-200 bg-white">
                   <Button onClick={loadMore} variant="outline" className="w-full" disabled={loading}>
@@ -670,10 +729,8 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
             </div>
           )}
 
-          {/* Right Column - Order Details (No Scrollbar) */}
           {(mobileView === 'detail' || window.innerWidth >= 768) && selectedOrder?.status === activeTab && (
             <div className="lg:w-3/5 h-[600px] flex flex-col">
-              {/* Mobile back button */}
               {window.innerWidth < 768 && <MobileBackButton />}
 
               <div className="bg-white p-6 border-b border-gray-200">
@@ -717,6 +774,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
                       </div>
                     </div>
                   )}
+
                   <div className="flex space-x-2 mt-4 lg:mt-0">
                     {!selectedOrder.assignedUserId ? (
                       <div className="flex space-x-1">
@@ -745,9 +803,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
                 </div>
               </div>
 
-              {/* Order Details Content - No Scrollbar */}
               <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
-                {/* Status Update Section */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3">
                     <label className="block text-sm font-medium text-gray-700">Update Order Status</label>
@@ -769,9 +825,7 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
                   </div>
                 </div>
 
-                {/* Information Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                  {/* Customer Information - WITHOUT AVATAR AND EMAIL */}
                   <div className="bg-white rounded-lg p-4 border border-gray-200">
                     <h3 className="font-medium text-gray-900 mb-3 flex items-center">
                       <FiUser className="mr-2" />
@@ -795,7 +849,6 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
                     </div>
                   </div>
 
-                  {/* Order Information */}
                   <div className="bg-white rounded-lg p-4 border border-gray-200">
                     <h3 className="font-medium text-gray-900 mb-3 flex items-center">
                       <FiShoppingBag className="mr-2" />
@@ -828,7 +881,6 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
                     </div>
                   </div>
 
-                  {/* {Scheduled Order} */}
                   {selectedOrder.scheduleDetails?.date && (
                     <div className="bg-white rounded-lg p-4 border border-gray-200">
                       <h4 className="font-medium text-gray-900 mb-3 flex items-center">
@@ -854,7 +906,6 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
                     </div>
                   )}
 
-                  {/* Branch Information */}
                   <div className="bg-white rounded-lg p-4 border border-gray-200">
                     <h3 className="font-medium text-gray-900 mb-3 flex items-center">
                       <FiMapPin className="mr-2" />
@@ -883,7 +934,6 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
                     </div>
                   </div>
 
-                  {/* Delivery Information */}
                   <div className="bg-white rounded-lg p-4 border border-gray-200">
                     <h3 className="font-medium text-gray-900 mb-3 flex items-center">
                       <FiTruck className="mr-2" />
@@ -914,12 +964,12 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
                   </div>
                 </div>
 
-                {/* Order Items */}
                 <div className="mb-6">
                   <h3 className="font-medium text-gray-900 mb-4 flex items-center">
                     <FiPackage className="mr-2" />
                     Order Items ({selectedOrder.items.length})
                   </h3>
+
                   <div className="bg-white rounded-lg overflow-hidden border border-gray-200">
                     <div className="divide-y divide-gray-200">
                       {selectedOrder.items.map((item, index) => (
@@ -927,15 +977,35 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
                           <div className="flex justify-between items-start">
                             <div>
                               <div className="font-medium text-gray-900">{item.product.name}</div>
+
                               <div className="text-sm text-gray-600 mt-1">
                                 Unit Price: {formatCurrency(item.product.price, selectedOrder.currency)}
                               </div>
+
                               {item?.product?.options?.length > 0 && (
-                                <div className="text-xs text-neutral-500 mt-1">
-                                  {item?.product?.options?.map((opt) => `${opt?.name}: ${opt.choice.label}`).join(', ')}
-                                </div>
+                                <ul className="mt-2 space-y-1">
+                                  {item.product.options.map((opt, optIndex) => {
+                                    const adjustmentText = formatOptionPriceAdjustment(opt, selectedOrder.currency);
+
+                                    return (
+                                      <li
+                                        key={opt.id || `${opt.name}-${optIndex}`}
+                                        className="text-xs text-neutral-600 flex flex-wrap items-center gap-2"
+                                      >
+                                        <span className="font-medium text-neutral-700">{opt.name}:</span>
+                                        <span>{opt.choice.label}</span>
+                                        {adjustmentText && (
+                                          <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-700">
+                                            {adjustmentText}
+                                          </span>
+                                        )}
+                                      </li>
+                                    );
+                                  })}
+                                </ul>
                               )}
                             </div>
+
                             <div className="text-right">
                               <div className="flex items-center space-x-4">
                                 <div className="text-right">
@@ -953,7 +1023,6 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
                   </div>
                 </div>
 
-                {/* Order Summary */}
                 <div className="bg-white rounded-lg p-4 border border-gray-200 mb-6">
                   <h3 className="font-medium text-gray-900 mb-4 flex items-center">Order Summary</h3>
                   <div className="space-y-2">
@@ -978,7 +1047,6 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
                   </div>
                 </div>
 
-                {/* Notes */}
                 {(selectedOrder.notes || selectedOrder.customerNotes) && (
                   <div>
                     <h3 className="font-medium text-gray-900 mb-4">Notes</h3>
@@ -1002,7 +1070,6 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
             </div>
           )}
 
-          {/* Mobile empty state */}
           {mobileView === 'list' && window.innerWidth < 768 && !selectedOrder && (
             <div className="lg:hidden p-8 text-center bg-white border border-gray-200 rounded-xl">
               <FiBox className="mx-auto text-gray-400" size={48} />
@@ -1014,13 +1081,5 @@ const StaffOrderPage: React.FC<OrderPageProps> = (data) => {
     </div>
   );
 };
-
-// const StaffOrderPage:React.FC<OrderPageProps> = () => {
-//   return (
-//     <div>
-//       <h1>hello</h1>
-//     </div>
-//   );
-// };
 
 export { StaffOrderPage };
