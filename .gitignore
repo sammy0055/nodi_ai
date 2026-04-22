@@ -1,7 +1,8 @@
 node_modules
 dist
-files/images/*
-!files/images/.gitkeep
 .env
 test_text.txt
 todo.md
+
+backend/files/images/*
+!backend/files/images/.gitkeep
