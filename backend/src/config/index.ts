@@ -4,6 +4,7 @@ import { getEnv } from '../utils/getEnv';
 export enum EnvList {
   LOCAL_DATABASE_URL = 'LOCAL_DATABASE_URL',
   PROD_DATABASE_URL = 'PROD_DATABASE_URL',
+  STAGING_DATABASE_URL = 'STAGING_DATABASE_URL',
   PORT = 'PORT',
   NODE_ENV = 'NODE_ENV',
   ENCRYPTION_SECRET = 'ENCRYPTION_SECRET',
@@ -24,6 +25,7 @@ export enum EnvList {
   OPENAI_API_KEY = 'OPENAI_API_KEY',
   LOCAL_QDRANT = 'LOCAL_QDRANT',
   PROD_QDRANT = 'PROD_QDRANT',
+  STAGING_QDRANT = 'STAGING_QDRANT',
   LOCAL_FRONTEND_URL = 'LOCAL_FRONTEND_URL',
   PROD_FRONTEND_URL = 'PROD_FRONTEND_URL',
   LOCAL_BACKEND_URL = 'LOCAL_BACKEND_URL',
@@ -35,8 +37,9 @@ export enum EnvList {
   MINIO_PUBLIC_BUCKET = 'MINIO_PUBLIC_BUCKET',
   MINIO_ROOT_USER = 'MINIO_ROOT_USER',
   MINIO_ROOT_PASSWORD = 'MINIO_ROOT_PASSWORD',
-  LOCAL_REDIS_ENDPOINT = "LOCAL_REDIS_ENDPOINT",
-  PROD_REDIS_ENDPOINT = "PROD_REDIS_ENDPOINT"
+  LOCAL_REDIS_ENDPOINT = 'LOCAL_REDIS_ENDPOINT',
+  PROD_REDIS_ENDPOINT = 'PROD_REDIS_ENDPOINT',
+  STAGING_MINIO_ENDPOINT = 'STAGING_MINIO_ENDPOINT',
 }
 
 const env = getEnv(EnvList.NODE_ENV);
@@ -49,8 +52,18 @@ export const appConfig = {
   frontendUrl: env === 'dev' ? getEnv('LOCAL_FRONTEND_URL') : getEnv('PROD_FRONTEND_URL'),
   backendUrl: env === 'dev' ? getEnv('LOCAL_BACKEND_URL') : getEnv('PROD_BACKEND_URL'),
   db: {
-    url: env === 'dev' ? getEnv(EnvList.LOCAL_DATABASE_URL) : getEnv(EnvList.PROD_DATABASE_URL),
-    qdrant: env === 'dev' ? getEnv(EnvList.LOCAL_QDRANT) : getEnv(EnvList.PROD_QDRANT),
+    url:
+      env === 'dev'
+        ? getEnv(EnvList.LOCAL_DATABASE_URL)
+        : env === 'staging'
+          ? getEnv(EnvList.STAGING_DATABASE_URL)
+          : getEnv(EnvList.PROD_DATABASE_URL),
+    qdrant:
+      env === 'dev'
+        ? getEnv(EnvList.LOCAL_QDRANT)
+        : env === 'staging'
+          ? getEnv(EnvList.STAGING_QDRANT)
+          : getEnv(EnvList.PROD_QDRANT),
   },
   rabbitmq: env === 'dev' ? getEnv(EnvList.LOCAL_RABBITMQ) : getEnv(EnvList.PROD_RABBITMQ),
   redis: env === 'dev' ? getEnv(EnvList.LOCAL_REDIS_ENDPOINT) : getEnv(EnvList.PROD_REDIS_ENDPOINT),
@@ -74,7 +87,12 @@ export const appConfig = {
     callbackUrl: getEnv('META_APP_REDIRECT_URL'),
   },
   s3: {
-    minioEndpoint: env === 'dev' ? getEnv('LOCAL_MINIO_ENDPOINT') : getEnv('PROD_MINIO_ENDPOINT'),
+    minioEndpoint:
+      env === 'dev'
+        ? getEnv('LOCAL_MINIO_ENDPOINT')
+        : env === 'staging'
+          ? getEnv('STAGING_MINIO_ENDPOINT')
+          : getEnv('PROD_MINIO_ENDPOINT'),
     minioRootUser: getEnv('MINIO_ROOT_USER'),
     minioRootPassword: getEnv('MINIO_ROOT_PASSWORD'),
     bucketName: getEnv('MINIO_PUBLIC_BUCKET'),
