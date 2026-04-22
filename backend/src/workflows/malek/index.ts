@@ -53,13 +53,14 @@ export const handleIncommingMessageForMalek = async (whatsappBusinessId: string,
     }
     // review logic ---------
 
-    const serviceSchedule = await chat.validateServiceSchedule();
-    if (!serviceSchedule?.isOpen) {
+    const message = await chat.organizationValidator();
+    if (message) {
       return await chat.sendWhatSappMessage({
         recipientPhoneNumber: userPhoneNumber,
-        message: serviceSchedule.message.en,
+        message: message,
       });
     }
+
     await chat.proceswWorkflow(msg);
   } catch (error: any) {
     // await deleteMessageFromRedis(msg.from);
@@ -130,9 +131,21 @@ export class MalekChatService {
     return customer.get({ plain: true });
   }
 
-  async validateServiceSchedule() {
+  async organizationValidator() {
     const planOrg = await this.getOrganization();
-    return checkBusinessServiceSchedule(planOrg.serviceSchedule, planOrg.timeZone! || 'UTC');
+    const customer = await this.getCustomerData();
+    const serviceSchedule = checkBusinessServiceSchedule(planOrg.serviceSchedule, planOrg.timeZone! || 'UTC');
+    if (!serviceSchedule?.isOpen) {
+      return customer?.lang === 'en' ? serviceSchedule.message.en : serviceSchedule.message.ar;
+    }
+
+    if (planOrg?.status !== 'active') {
+      return `${planOrg.name} is currently not active at the moment`;
+    }
+
+    if (customer?.status !== 'active') {
+      return `you have been blocked from sending message to ${planOrg.name}`;
+    }
   }
 
   async saveReviewAnswers(msg: WhatsAppMessage) {
