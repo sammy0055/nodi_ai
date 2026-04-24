@@ -165,6 +165,9 @@ export class MalekChatService {
       token?: number;
     }
   ) {
+    console.log('=================conversationId===================');
+    console.log(conversationId);
+    console.log('====================================');
     const maxIndex =
       ((await ChatMessage.max('message_index', {
         where: { conversation_id: conversationId },
