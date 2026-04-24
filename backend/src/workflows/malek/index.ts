@@ -21,9 +21,12 @@ import { generateOrderText } from '../utils';
 import { productOptionsTaxonomy } from '../../data/taxonomy';
 import { getEstimatedTime } from '../../utils/getEstimatedTime';
 import { OrderModel } from '../../models/order.module';
-import { randomUUID } from 'crypto';
+import { randomBytes, randomUUID } from 'crypto';
 import { checkBusinessServiceSchedule } from '../../utils/organization';
 import { CustomerSavedAddress } from '../../types/customers';
+import { Conversation } from '../../models/conversation.model';
+import { ChatMessage } from '../../models/chat-messages.model';
+import { OpenAIRole } from '../../types/chat';
 
 const {
   CustomerModel,
@@ -61,6 +64,9 @@ export const handleIncommingMessageForMalek = async (whatsappBusinessId: string,
       });
     }
 
+    // save input
+    const conv = await chat.getAndCreateConversationIfNotExist();
+    await chat.addMessage({ conversationId: conv.id }, { role: 'user', content: JSON.stringify(msg) });
     await chat.proceswWorkflow(msg);
   } catch (error: any) {
     // await deleteMessageFromRedis(msg.from);
@@ -129,6 +135,55 @@ export class MalekChatService {
     }
 
     return customer.get({ plain: true });
+  }
+
+  async getAndCreateConversationIfNotExist() {
+    const customer = await this.getCustomerData();
+    const conv = await Conversation.findOne({
+      where: { customerId: customer.id, organizationId: customer.organizationId },
+      order: [['created_at', 'DESC']],
+    });
+    if (conv?.id) {
+      return conv.get({ plain: true });
+    } else {
+      const conversation = await Conversation.create({
+        id: randomUUID(),
+        title: 'Flow Chat',
+        customerId: customer!.id,
+        organizationId: customer!.organizationId,
+        systemMessageId: '',
+      });
+      return conversation.get({ plain: true });
+    }
+  }
+
+  async addMessage(
+    { conversationId }: { conversationId: string },
+    message: {
+      role: OpenAIRole;
+      content: string | null;
+      token?: number;
+    }
+  ) {
+    const maxIndex =
+      ((await ChatMessage.max('message_index', {
+        where: { conversation_id: conversationId },
+      })) as number) || -1;
+
+    const messageIndex = maxIndex + 1;
+
+    await ChatMessage.create({
+      conversation_id: conversationId,
+      role: message.role,
+      content: message.content,
+      token: message?.token || 0,
+      message_index: messageIndex,
+    });
+  }
+
+  protected async saveBotResponse(msg: { step: string; content: string }) {
+    const conv = await this.getAndCreateConversationIfNotExist();
+    await this.addMessage({ conversationId: conv.id }, { role: 'assistant', content: JSON.stringify(msg) });
   }
 
   async organizationValidator() {
@@ -1025,6 +1080,7 @@ export class MalekChatService {
     const enMsg = `Should you have any follow-up or feedback, please feel free to contact us at ${org.hotline}.`;
     const arMsg = `في حال كان لديكم أي متابعة أو ملاحظات، يُرجى عدم التردد في التواصل معنا على الرقم ${org.hotline}.`;
 
+    await this.saveBotResponse({ step: draft.step, content: draft.lang === 'en' ? enMsg : arMsg });
     return await this.sendWhatSappMessage({
       recipientPhoneNumber: this.userPhoneNumber,
       message: draft.lang === 'en' ? enMsg : arMsg,
@@ -1057,6 +1113,10 @@ export class MalekChatService {
         menuItems: items,
       });
 
+      await this.saveBotResponse({
+        step: OrderFlowStep.SERVICE_SELECTION,
+        content: JSON.stringify(flowContent),
+      });
       return {
         updatedDraft: { ...draft },
         response: res,
@@ -1093,6 +1153,8 @@ export class MalekChatService {
       flowName: areaAndZone.flowName as string,
       zones: areaAndZone.zones,
     });
+
+    await this.saveBotResponse({ step: OrderFlowStep.ADDRESS_SELECTION, content: JSON.stringify(flowContent) });
     return {
       updatedDraft: { ...draft },
       response: res,
@@ -1128,6 +1190,11 @@ export class MalekChatService {
       flowId: branchesFlowData.flowId as string,
       flowName: branchesFlowData.flowName as string,
       branches: branchesFlowData.branches,
+    });
+
+    await this.saveBotResponse({
+      step: OrderFlowStep.SERVICE_SELECTION,
+      content: JSON.stringify(flowContent),
     });
     return {
       updatedDraft: { ...draft },
@@ -1232,6 +1299,10 @@ export class MalekChatService {
         upsellingProducts: plainUpsellingProducts as any,
       };
 
+      await this.saveBotResponse({
+        step: draft.step,
+        content: JSON.stringify(flowContent),
+      });
       return {
         updatedDraft: updatedDraft,
         response: res,
@@ -1261,11 +1332,19 @@ export class MalekChatService {
         upsellingProducts: plainUpsellingProducts as any,
       };
 
+      await this.saveBotResponse({
+        step: draft.step,
+        content: JSON.stringify(flowContent),
+      });
       return {
         updatedDraft: updatedDraft,
         response: res,
       };
     } else {
+      await this.saveBotResponse({
+        step: draft.step,
+        content: 'processOrderSummaryHandler',
+      });
       return await this.processOrderSummaryHandler(draft, msg);
     }
   }
@@ -1333,6 +1412,7 @@ export class MalekChatService {
           uniqueId: product.uniqueId,
         });
 
+        await this.saveBotResponse({ step: draft.step, content: JSON.stringify(flowContent) });
         return {
           updatedDraft: updatedDraft,
           response: res,
@@ -1340,6 +1420,7 @@ export class MalekChatService {
       }
       if (!product) {
         if (draft?.isAddNewProducts) {
+          await this.saveBotResponse({ step: draft.step, content: 'processOrderSummaryHandler' });
           return await this.processOrderSummaryHandler(draft, msg);
         }
 
@@ -1414,12 +1495,14 @@ export class MalekChatService {
           uniqueId: product.uniqueId,
         });
 
+        await this.saveBotResponse({ step: draft.step, content: JSON.stringify(flowContent) });
         return {
           updatedDraft: updatedDraft,
           response: res,
         };
       }
       if (!product) {
+        await this.saveBotResponse({ step: draft.step, content: 'processOrderSummaryHandler' });
         return await this.processOrderSummaryHandler(draft, msg);
       }
     } catch (error: any) {
@@ -1490,6 +1573,7 @@ export class MalekChatService {
         uniqueId: upSellingProduct.uniqueId,
       });
 
+      await this.saveBotResponse({ step: draft.step, content: JSON.stringify(flowContent) });
       return {
         updatedDraft: updatedDraft,
         response: res,
@@ -1497,6 +1581,7 @@ export class MalekChatService {
     }
     if (!upSellingProduct) {
       // send order summary
+      await this.saveBotResponse({ step: draft.step, content: 'processOrderSummaryHandler' });
       return await this.processOrderSummaryHandler(draft, msg);
     }
   }
@@ -1523,6 +1608,8 @@ export class MalekChatService {
       flowName: flow?.type === 'flow' && (flow?.data.flowName as any),
       items,
     });
+
+    await this.saveBotResponse({ step: draft.step, content: JSON.stringify(flowContent) });
     return {
       updatedDraft: { ...draft, step: OrderFlowStep.PRODUCT_ITEMS_SELECTION },
       response: res,
@@ -1546,6 +1633,8 @@ export class MalekChatService {
       flowName: flow?.type === 'flow' && (flow?.data.flowName as any),
       items,
     });
+
+    await this.saveBotResponse({ step: draft.step, content: JSON.stringify(flowContent) });
     return {
       updatedDraft: { ...draft, step: OrderFlowStep.ORDERED_ITEM_COLLECTION },
       response: res,
@@ -1560,6 +1649,8 @@ export class MalekChatService {
       ...flowContent,
       ...catalog,
     });
+
+    await this.saveBotResponse({ step: draft.step, content: JSON.stringify(flowContent) });
     return {
       updatedDraft: { ...draft, step: OrderFlowStep.CATALOG_SELECTION, isAddNewProducts: true },
       response: res,
@@ -1578,6 +1669,7 @@ export class MalekChatService {
       step: OrderFlowStep.EDIT_ORDER_ACTION_COLLECTION,
     };
 
+    await this.saveBotResponse({ step: draft.step, content: JSON.stringify(flowContent) });
     return {
       updatedDraft: updatedDraft,
       response: res,
@@ -1607,6 +1699,8 @@ export class MalekChatService {
       ...draft,
       step: OrderFlowStep.REMOVE_ORDERED_ITEMS_COLLECTION,
     };
+
+    await this.saveBotResponse({ step: draft.step, content: JSON.stringify(flowContent) });
     return {
       updatedDraft: updatedDraft,
       response: res,
@@ -1629,6 +1723,7 @@ export class MalekChatService {
           (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.CUSTOMER_NAME
         );
         const flowContent = getFlowContent('customer-name-flow', lang);
+        await this.saveBotResponse({ step: OrderFlowStep.LANGUAGE_SELECTION, content: JSON.stringify(flowContent) });
         return await this.sendWhatSappCustomerNameFlowInteractiveMessage({
           ...flowContent,
           recipientPhoneNumber: this.userPhoneNumber,
@@ -1650,6 +1745,7 @@ export class MalekChatService {
           : await sendCustomerNameForm('en');
 
         await CustomerModel.update({ lang: 'en' }, { where: { id: customer.id } });
+        await this.saveBotResponse({ step: OrderFlowStep.LANGUAGE_SELECTION, content: JSON.stringify(flowContent) });
         return {
           updatedDraft: {
             ...draft,
@@ -1669,6 +1765,8 @@ export class MalekChatService {
             })
           : await sendCustomerNameForm('ar');
         await CustomerModel.update({ lang: 'ar' }, { where: { id: customer.id } });
+
+        await this.saveBotResponse({ step: OrderFlowStep.LANGUAGE_SELECTION, content: JSON.stringify(flowContent) });
         return {
           updatedDraft: {
             ...draft,
@@ -1686,6 +1784,7 @@ export class MalekChatService {
         ...flowContent,
       });
 
+      await this.saveBotResponse({ step: OrderFlowStep.LANGUAGE_SELECTION, content: JSON.stringify(flowContent) });
       return {
         updatedDraft: null,
         response: res,
@@ -1711,6 +1810,10 @@ export class MalekChatService {
           ...flowContent,
         });
 
+        await this.saveBotResponse({
+          step: OrderFlowStep.CUSTOMER_NAME_COLLECTION,
+          content: JSON.stringify(flowContent),
+        });
         return {
           updatedDraft: { ...draft, step: OrderFlowStep.SERVICE_SELECTION },
           response: res,
@@ -1733,6 +1836,10 @@ export class MalekChatService {
           flowName: flow?.type === 'flow' && (flow?.data.flowName as any),
         });
 
+        await this.saveBotResponse({
+          step: OrderFlowStep.CUSTOMER_NAME_COLLECTION,
+          content: JSON.stringify(flowContent),
+        });
         return {
           updatedDraft: null,
           response: res,
@@ -1780,6 +1887,8 @@ export class MalekChatService {
         recipientPhoneNumber: this.userPhoneNumber,
         ...flowContent,
       });
+
+      await this.saveBotResponse({ step: OrderFlowStep.SERVICE_SELECTION, content: JSON.stringify(flowContent) });
       return {
         updatedDraft: null,
         response: res,
@@ -1843,6 +1952,8 @@ export class MalekChatService {
         ...flowContent,
         ...catalog,
       });
+
+      await this.saveBotResponse({ step: OrderFlowStep.ADDRESS_SELECTION, content: JSON.stringify(flowContent) });
       return {
         updatedDraft: { ...updatedDraft, step: OrderFlowStep.CATALOG_SELECTION },
         response: res,
@@ -1867,6 +1978,8 @@ export class MalekChatService {
         ...flowContent,
         ...catalog,
       });
+
+      await this.saveBotResponse({ step: OrderFlowStep.ADDRESS_SELECTION, content: JSON.stringify(flowContent) });
       return {
         updatedDraft: { ...updatedDraft, step: OrderFlowStep.CATALOG_SELECTION },
         response: res,
@@ -1983,6 +2096,7 @@ export class MalekChatService {
       const itemsWithOptions = updatedDraft.selectedProducts.filter((i) => i?.options?.length > 0);
       if (itemsWithOptions?.length === 0) {
         // no items have options
+        await this.saveBotResponse({ step: OrderFlowStep.CATALOG_SELECTION, content: 'processOrderSummaryHandler' });
         return await this.processOrderSummaryHandler(updatedDraft, msg);
       }
       const flowContent = getFlowContent('customize-order-flow', draft.lang);
@@ -1990,6 +2104,8 @@ export class MalekChatService {
         recipientPhoneNumber: this.userPhoneNumber,
         ...flowContent,
       });
+
+      await this.saveBotResponse({ step: OrderFlowStep.CATALOG_SELECTION, content: JSON.stringify(flowContent) });
       return {
         updatedDraft: updatedDraft,
         response: res,
@@ -2004,6 +2120,7 @@ export class MalekChatService {
         ...catalog,
       });
 
+      await this.saveBotResponse({ step: OrderFlowStep.CATALOG_SELECTION, content: JSON.stringify(flowContent) });
       return {
         updatedDraft: null,
         response: res,
@@ -2022,6 +2139,11 @@ export class MalekChatService {
       }
       if (buttonPayload.id === 'no') {
         if (draft?.isAddNewProducts) {
+          await this.saveBotResponse({
+            step: OrderFlowStep.CUSTOMIZE_ORDER_SELECTION,
+            content: 'processOrderSummaryHandler',
+          });
+
           return await this.processOrderSummaryHandler(draft, msg);
         }
         return await this.processUpsellingHandler(draft, msg);
@@ -2033,6 +2155,8 @@ export class MalekChatService {
         recipientPhoneNumber: this.userPhoneNumber,
         ...flowContent,
       });
+
+      await this.saveBotResponse({ step: draft.step, content: JSON.stringify(flowContent) });
       return {
         updatedDraft: null,
         response: res,
@@ -2089,6 +2213,7 @@ export class MalekChatService {
           ...draft,
           selectedProducts: finalSelectedProducts as any,
         };
+
         return await this.orderModificationHandler(updatedDraft, msg);
       } else {
         // send back item flow
@@ -2342,6 +2467,7 @@ export class MalekChatService {
       }
       if (buttonPayload.id === 'no') {
         // send order summary
+        await this.saveBotResponse({ step: draft.step, content: 'processOrderSummaryHandler' });
         return await this.processOrderSummaryHandler(draft, msg);
       }
     } else {
@@ -2431,6 +2557,8 @@ export class MalekChatService {
             message: draft.lang === 'en' ? enMessage : arMessage,
           });
           await deleteMessageFromRedis(this.userPhoneNumber);
+
+          await this.saveBotResponse({ step: draft.step, content: draft.lang === 'en' ? enMessage : arMessage });
           return {
             updatedDraft: null,
             response: res,
@@ -2445,6 +2573,8 @@ export class MalekChatService {
             message: draft.lang === 'en' ? enMessage : arMessage,
           });
           await deleteMessageFromRedis(this.userPhoneNumber);
+
+          await this.saveBotResponse({ step: draft.step, content: draft.lang === 'en' ? enMessage : arMessage });
           return {
             updatedDraft: null,
             response: res,
@@ -2453,6 +2583,7 @@ export class MalekChatService {
       } else {
         // send order summary
         await this.sendCustomerServiceMessage(draft, msg);
+        await this.saveBotResponse({ step: draft.step, content: 'processOrderSummaryHandler' });
         return await this.processOrderSummaryHandler(draft, msg);
       }
     } catch (error: any) {
@@ -2512,6 +2643,7 @@ export class MalekChatService {
             },
           };
 
+          await this.saveBotResponse({ step: draft.step, content: 'processOrderSummaryHandler' });
           return this.processOrderSummaryHandler(updatedDraft, msg);
         } else return this.processOrderSummaryHandler(draft, msg);
       } else {
@@ -2534,6 +2666,7 @@ interface workingProduct extends IProduct {
 export interface WorkflowDraft {
   phoneNumber: string;
   customerId: string;
+  conversationId?: string;
   lang: 'en' | 'ar';
   step: `${OrderFlowStep}`;
   selectedProducts: workingProduct[];
