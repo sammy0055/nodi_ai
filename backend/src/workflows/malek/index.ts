@@ -1035,6 +1035,7 @@ export class MalekChatService {
 
     const flowContent = getFlowContent('choose-lang-flow', payload.lang || 'en');
 
+    flowContent.bodyText = `Hello ${customer?.name || ''} Please select your preferred language`;
     return await this.sendWhatSappSChooseLangInteractiveMessage({
       recipientPhoneNumber: this.userPhoneNumber,
       ...flowContent,
@@ -1223,8 +1224,8 @@ export class MalekChatService {
     const products = draft.orderDetails.items.map((i) => {
       const options =
         i.selectedOptions && i.selectedOptions.length > 0
-          ? `\nOptions:\n${i.selectedOptions
-              .map((op) => `- ${op.choiceLabel} (${org.currency} ${op.priceAdjustment})`)
+          ? `\n${i.selectedOptions
+              .map((op) => `-${op.optionName}: ${op.choiceLabel} (${org.currency} ${op.priceAdjustment})`)
               .join('\n')}`
           : '';
 
@@ -2655,13 +2656,18 @@ export class MalekChatService {
             recipientPhoneNumber: this.userPhoneNumber,
             message: draft.lang === 'en' ? enMessage : arMessage,
           });
+
+          await this.addMessage(
+            { conversationId: draft.conversationId },
+            { role: 'assistant', content: draft.lang === 'en' ? enMessage : arMessage }
+          );
           await deleteMessageFromRedis(this.userPhoneNumber);
 
           return {
             updatedDraft: null as any,
             response: res,
-            currentStep: draft.step as any,
-            flowContent: draft.lang === 'en' ? enMessage : arMessage,
+            currentStep: draft?.step as any,
+            flowContent: '',
           };
         } else if (buttonPayload?.id === 'edit') {
           return await this.processEditOrderedItems(draft, msg);
