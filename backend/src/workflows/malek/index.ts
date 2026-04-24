@@ -144,6 +144,11 @@ export class MalekChatService {
       order: [['created_at', 'DESC']],
     });
     if (conv?.id) {
+      const draft = await getMessageFromRedis(this.userPhoneNumber);
+      await setMessageInRedis(this.userPhoneNumber, {
+        ...(draft ?? {}),
+        conversationId: conv.id,
+      } as any);
       return conv.get({ plain: true });
     } else {
       const conversation = await Conversation.create({
@@ -153,6 +158,11 @@ export class MalekChatService {
         organizationId: customer!.organizationId,
         systemMessageId: '',
       });
+      const draft = await getMessageFromRedis(this.userPhoneNumber);
+      await setMessageInRedis(this.userPhoneNumber, {
+        ...(draft ?? {}),
+        conversationId: conversation.id,
+      } as any);
       return conversation.get({ plain: true });
     }
   }
@@ -184,10 +194,10 @@ export class MalekChatService {
     });
   }
 
-  protected async saveBotResponse(msg: { step: string; content: string }) {
-    const conv = await this.getAndCreateConversationIfNotExist();
-    await this.addMessage({ conversationId: conv.id }, { role: 'assistant', content: JSON.stringify(msg) });
-  }
+  // protected async saveBotResponse(msg: { step: string; content: string }) {
+  //   const conv = await this.getAndCreateConversationIfNotExist();
+  //   await this.addMessage({ conversationId: conv.id }, { role: 'assistant', content: JSON.stringify(msg) });
+  // }
 
   async organizationValidator() {
     const planOrg = await this.getOrganization();
@@ -997,6 +1007,14 @@ export class MalekChatService {
       } as any);
     }
 
+    // save response
+    if (result?.flowContent && result?.updatedDraft) {
+      await this.addMessage(
+        { conversationId: result?.updatedDraft?.conversationId as any },
+        { role: 'assistant', content: result.flowContent }
+      );
+    }
+
     return await result?.response;
   }
 
@@ -1083,7 +1101,6 @@ export class MalekChatService {
     const enMsg = `Should you have any follow-up or feedback, please feel free to contact us at ${org.hotline}.`;
     const arMsg = `في حال كان لديكم أي متابعة أو ملاحظات، يُرجى عدم التردد في التواصل معنا على الرقم ${org.hotline}.`;
 
-    await this.saveBotResponse({ step: draft.step, content: draft.lang === 'en' ? enMsg : arMsg });
     return await this.sendWhatSappMessage({
       recipientPhoneNumber: this.userPhoneNumber,
       message: draft.lang === 'en' ? enMsg : arMsg,
@@ -1092,7 +1109,7 @@ export class MalekChatService {
   // -----------------------------
   // STEP HANDLER dynamic functions
   // -----------------------------
-  private async ProcessDeliveryHandler(draft: WorkflowDraft, msg: WhatsAppMessage) {
+  private async ProcessDeliveryHandler(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     const customer = await this.getCustomerData();
     const savedAddresses: CustomerSavedAddress[] = customer?.savedAddresses || [];
     if (savedAddresses?.length > 0) {
@@ -1116,13 +1133,11 @@ export class MalekChatService {
         menuItems: items,
       });
 
-      await this.saveBotResponse({
-        step: OrderFlowStep.SERVICE_SELECTION,
-        content: JSON.stringify(flowContent),
-      });
       return {
         updatedDraft: { ...draft },
         response: res,
+        currentStep: draft.step as any,
+        flowContent: JSON.stringify(flowContent),
       };
     } else {
       // send delivery flow
@@ -1130,7 +1145,7 @@ export class MalekChatService {
     }
   }
 
-  private async sendAreaAndZoneForm(draft: WorkflowDraft, msg: WhatsAppMessage) {
+  private async sendAreaAndZoneForm(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     const zones = await ZoneModel.findAll({
       where: { organizationId: this.organizationId },
     });
@@ -1157,19 +1172,19 @@ export class MalekChatService {
       zones: areaAndZone.zones,
     });
 
-    await this.saveBotResponse({ step: OrderFlowStep.ADDRESS_SELECTION, content: JSON.stringify(flowContent) });
     return {
       updatedDraft: { ...draft },
       response: res,
+      currentStep: draft.step as any,
+      flowContent: JSON.stringify(flowContent),
     };
   }
-  private async ProcessTakeawayHandler(draft: WorkflowDraft, msg: WhatsAppMessage) {
+
+  private async ProcessTakeawayHandler(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     const branches = await BranchesModel.findAll({ where: { organizationId: this.organizationId } });
 
     if (branches?.length === 0) {
-      return {
-        content: [{ type: 'text', text: 'No branch was found for this organization' }],
-      };
+      throw new Error('no branch was found');
     }
 
     const filteredBranches = branches.map((z) => ({ id: z.id, title: z.name }));
@@ -1195,16 +1210,15 @@ export class MalekChatService {
       branches: branchesFlowData.branches,
     });
 
-    await this.saveBotResponse({
-      step: OrderFlowStep.SERVICE_SELECTION,
-      content: JSON.stringify(flowContent),
-    });
     return {
       updatedDraft: { ...draft },
       response: res,
+      currentStep: draft.step as any,
+      flowContent: JSON.stringify(flowContent),
     };
   }
-  private async processOrderSummaryHandler(draft: WorkflowDraft, msg: WhatsAppMessage) {
+
+  private async processOrderSummaryHandler(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     const org = await this.getOrganization();
     const products = draft.orderDetails.items.map((i) => {
       const options =
@@ -1268,9 +1282,12 @@ export class MalekChatService {
     return {
       updatedDraft: updatedDraft,
       response: res,
+      currentStep: draft.step as any,
+      flowContent: JSON.stringify(flowContent),
     };
   }
-  private async processUpsellingHandler(draft: WorkflowDraft, msg: WhatsAppMessage) {
+
+  private async processUpsellingHandler(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     const upsellingProducts = await ProductModel.findAll({
       where: { organizationId: this.organizationId, isUpSelling: true },
       include: [
@@ -1302,13 +1319,11 @@ export class MalekChatService {
         upsellingProducts: plainUpsellingProducts as any,
       };
 
-      await this.saveBotResponse({
-        step: draft.step,
-        content: JSON.stringify(flowContent),
-      });
       return {
         updatedDraft: updatedDraft,
         response: res,
+        currentStep: draft.step as any,
+        flowContent: JSON.stringify(flowContent),
       };
     } else if (items.length > 1) {
       // multi upselling
@@ -1335,23 +1350,18 @@ export class MalekChatService {
         upsellingProducts: plainUpsellingProducts as any,
       };
 
-      await this.saveBotResponse({
-        step: draft.step,
-        content: JSON.stringify(flowContent),
-      });
       return {
         updatedDraft: updatedDraft,
         response: res,
+        currentStep: draft.step as any,
+        flowContent: JSON.stringify(flowContent),
       };
     } else {
-      await this.saveBotResponse({
-        step: draft.step,
-        content: 'processOrderSummaryHandler',
-      });
       return await this.processOrderSummaryHandler(draft, msg);
     }
   }
-  private async orderModificationHandler(draft: WorkflowDraft, msg: WhatsAppMessage) {
+
+  private async orderModificationHandler(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     try {
       const product = draft.selectedProducts.find((i) => !i.isOptionAdded && i?.options?.length > 0);
       if (product) {
@@ -1415,26 +1425,37 @@ export class MalekChatService {
           uniqueId: product.uniqueId,
         });
 
-        await this.saveBotResponse({ step: draft.step, content: JSON.stringify(flowContent) });
         return {
           updatedDraft: updatedDraft,
           response: res,
+          currentStep: draft.step as any,
+          flowContent: JSON.stringify(flowContent),
         };
       }
       if (!product) {
         if (draft?.isAddNewProducts) {
-          await this.saveBotResponse({ step: draft.step, content: 'processOrderSummaryHandler' });
           return await this.processOrderSummaryHandler(draft, msg);
         }
 
         return await this.processUpsellingHandler(draft, msg);
       }
+
+      return {
+        currentStep: draft.step as any,
+        updatedDraft: draft,
+        response: null,
+        flowContent: '',
+      };
     } catch (error: any) {
       console.error('orderModificationHandler:', error.message);
       throw error;
     }
   }
-  private async editOrderedItemsModificationHandler(draft: WorkflowDraft, msg: WhatsAppMessage) {
+
+  private async editOrderedItemsModificationHandler(
+    draft: WorkflowDraft,
+    msg: WhatsAppMessage
+  ): Promise<StepHandlerResult> {
     try {
       const product = draft.selectedProducts.find((i) => !i.isOptionAdded && i?.options?.length > 0);
       if (product) {
@@ -1498,22 +1519,30 @@ export class MalekChatService {
           uniqueId: product.uniqueId,
         });
 
-        await this.saveBotResponse({ step: draft.step, content: JSON.stringify(flowContent) });
         return {
           updatedDraft: updatedDraft,
           response: res,
+          currentStep: draft.step as any,
+          flowContent: JSON.stringify(flowContent),
         };
       }
       if (!product) {
-        await this.saveBotResponse({ step: draft.step, content: 'processOrderSummaryHandler' });
         return await this.processOrderSummaryHandler(draft, msg);
       }
+
+      return {
+        currentStep: draft.step as any,
+        updatedDraft: draft,
+        response: null,
+        flowContent: '',
+      };
     } catch (error: any) {
       console.error('editOrderedItemsModificationHandler:', error.message);
       throw error;
     }
   }
-  private async upsellingProductOptionsHandler(draft: WorkflowDraft, msg: WhatsAppMessage) {
+
+  private async upsellingProductOptionsHandler(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     const upSellingProduct = draft.upsellingProducts.find((i) => !i.isOptionAdded && i?.options?.length > 0);
     if (upSellingProduct) {
       const org = await this.getOrganization();
@@ -1576,20 +1605,30 @@ export class MalekChatService {
         uniqueId: upSellingProduct.uniqueId,
       });
 
-      await this.saveBotResponse({ step: draft.step, content: JSON.stringify(flowContent) });
       return {
         updatedDraft: updatedDraft,
         response: res,
+        currentStep: draft.step as any,
+        flowContent: JSON.stringify(flowContent),
       };
     }
     if (!upSellingProduct) {
       // send order summary
-      await this.saveBotResponse({ step: draft.step, content: 'processOrderSummaryHandler' });
       return await this.processOrderSummaryHandler(draft, msg);
     }
+
+    return {
+      updatedDraft: draft,
+      response: null,
+      currentStep: draft.step as any,
+      flowContent: '',
+    };
   }
 
-  private async processProductItemSendingHandler(draft: WorkflowDraft, msg: WhatsAppMessage) {
+  private async processProductItemSendingHandler(
+    draft: WorkflowDraft,
+    msg: WhatsAppMessage
+  ): Promise<StepHandlerResult> {
     const whatsappSettings = await WhatSappSettingsModel.findOne({
       where: { organizationId: this.organizationId },
     });
@@ -1612,14 +1651,18 @@ export class MalekChatService {
       items,
     });
 
-    await this.saveBotResponse({ step: draft.step, content: JSON.stringify(flowContent) });
     return {
       updatedDraft: { ...draft, step: OrderFlowStep.PRODUCT_ITEMS_SELECTION },
       response: res,
+      currentStep: draft.step as any,
+      flowContent: JSON.stringify(flowContent),
     };
   }
 
-  private async processProductOrderedItemSendingHandler(draft: WorkflowDraft, msg: WhatsAppMessage) {
+  private async processProductOrderedItemSendingHandler(
+    draft: WorkflowDraft,
+    msg: WhatsAppMessage
+  ): Promise<StepHandlerResult> {
     const whatsappSettings = await WhatSappSettingsModel.findOne({
       where: { organizationId: this.organizationId },
     });
@@ -1637,14 +1680,15 @@ export class MalekChatService {
       items,
     });
 
-    await this.saveBotResponse({ step: draft.step, content: JSON.stringify(flowContent) });
     return {
       updatedDraft: { ...draft, step: OrderFlowStep.ORDERED_ITEM_COLLECTION },
       response: res,
+      currentStep: draft.step as any,
+      flowContent: JSON.stringify(flowContent),
     };
   }
 
-  private async processAddItemsToExistingOrder(draft: WorkflowDraft, msg: WhatsAppMessage) {
+  private async processAddItemsToExistingOrder(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     const catalog = await this.getCatalogLink();
     const flowContent = getFlowContent('catalog-flow', draft.lang);
     const res = await this.sendWhatSappCatalogInteractiveMessage({
@@ -1653,14 +1697,15 @@ export class MalekChatService {
       ...catalog,
     });
 
-    await this.saveBotResponse({ step: draft.step, content: JSON.stringify(flowContent) });
     return {
       updatedDraft: { ...draft, step: OrderFlowStep.CATALOG_SELECTION, isAddNewProducts: true },
       response: res,
+      currentStep: draft.step as any,
+      flowContent: JSON.stringify(flowContent),
     };
   }
 
-  private async processEditOrderedItems(draft: WorkflowDraft, msg: WhatsAppMessage) {
+  private async processEditOrderedItems(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     const flowContent = getFlowContent('edit-ordered-list-actions', draft.lang);
     const res = await this.sendWhatSappEditOrderActionListFlowInteractiveMessage({
       recipientPhoneNumber: this.userPhoneNumber,
@@ -1672,14 +1717,15 @@ export class MalekChatService {
       step: OrderFlowStep.EDIT_ORDER_ACTION_COLLECTION,
     };
 
-    await this.saveBotResponse({ step: draft.step, content: JSON.stringify(flowContent) });
     return {
       updatedDraft: updatedDraft,
       response: res,
+      currentStep: draft.step as any,
+      flowContent: JSON.stringify(flowContent),
     };
   }
 
-  private async processRemoveOrderedItems(draft: WorkflowDraft, msg: WhatsAppMessage) {
+  private async processRemoveOrderedItems(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     const whatsappSettings = await WhatSappSettingsModel.findOne({
       where: { organizationId: this.organizationId },
     });
@@ -1703,16 +1749,17 @@ export class MalekChatService {
       step: OrderFlowStep.REMOVE_ORDERED_ITEMS_COLLECTION,
     };
 
-    await this.saveBotResponse({ step: draft.step, content: JSON.stringify(flowContent) });
     return {
       updatedDraft: updatedDraft,
       response: res,
+      currentStep: draft.step as any,
+      flowContent: JSON.stringify(flowContent),
     };
   }
   // -----------------------------
   // STEP HANDLER
   // -----------------------------
-  private async handleLanguageSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
+  private async handleLanguageSelection(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     console.log('====================================');
     console.log('handleLanguageSelection');
     console.log('====================================');
@@ -1726,7 +1773,7 @@ export class MalekChatService {
           (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.CUSTOMER_NAME
         );
         const flowContent = getFlowContent('customer-name-flow', lang);
-        await this.saveBotResponse({ step: OrderFlowStep.LANGUAGE_SELECTION, content: JSON.stringify(flowContent) });
+
         return await this.sendWhatSappCustomerNameFlowInteractiveMessage({
           ...flowContent,
           recipientPhoneNumber: this.userPhoneNumber,
@@ -1748,13 +1795,16 @@ export class MalekChatService {
           : await sendCustomerNameForm('en');
 
         await CustomerModel.update({ lang: 'en' }, { where: { id: customer.id } });
-        await this.saveBotResponse({ step: OrderFlowStep.LANGUAGE_SELECTION, content: JSON.stringify(flowContent) });
+
         return {
           updatedDraft: {
             ...draft,
             lang: 'en',
             step: customer?.name ? OrderFlowStep.SERVICE_SELECTION : OrderFlowStep.CUSTOMER_NAME_COLLECTION,
           },
+
+          flowContent: JSON.stringify(flowContent),
+          currentStep: draft.step as any,
           response: res,
         };
       } else if (listPayload.id === 'ar') {
@@ -1769,7 +1819,6 @@ export class MalekChatService {
           : await sendCustomerNameForm('ar');
         await CustomerModel.update({ lang: 'ar' }, { where: { id: customer.id } });
 
-        await this.saveBotResponse({ step: OrderFlowStep.LANGUAGE_SELECTION, content: JSON.stringify(flowContent) });
         return {
           updatedDraft: {
             ...draft,
@@ -1777,6 +1826,8 @@ export class MalekChatService {
             step: customer?.name ? OrderFlowStep.SERVICE_SELECTION : OrderFlowStep.CUSTOMER_NAME_COLLECTION,
           },
           response: res,
+          flowContent: JSON.stringify(flowContent),
+          currentStep: draft.step as any,
         };
       }
     } else {
@@ -1787,15 +1838,23 @@ export class MalekChatService {
         ...flowContent,
       });
 
-      await this.saveBotResponse({ step: OrderFlowStep.LANGUAGE_SELECTION, content: JSON.stringify(flowContent) });
       return {
-        updatedDraft: null,
+        updatedDraft: null as any,
         response: res,
+        flowContent: JSON.stringify(flowContent),
+        currentStep: draft.step as any,
       };
     }
+
+    return {
+      updatedDraft: null as any,
+      currentStep: draft.step as any,
+      response: null as any,
+      flowContent: null as any,
+    };
   }
 
-  private async handleCustomerNameSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
+  private async handleCustomerNameSelection(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     console.log('====================================');
     console.log('handleCustomerNameSelection');
     console.log('====================================');
@@ -1813,13 +1872,11 @@ export class MalekChatService {
           ...flowContent,
         });
 
-        await this.saveBotResponse({
-          step: OrderFlowStep.CUSTOMER_NAME_COLLECTION,
-          content: JSON.stringify(flowContent),
-        });
         return {
           updatedDraft: { ...draft, step: OrderFlowStep.SERVICE_SELECTION },
           response: res,
+          currentStep: draft.step as any,
+          flowContent: JSON.stringify(flowContent),
         };
       } else {
         // send previous step
@@ -1839,29 +1896,31 @@ export class MalekChatService {
           flowName: flow?.type === 'flow' && (flow?.data.flowName as any),
         });
 
-        await this.saveBotResponse({
-          step: OrderFlowStep.CUSTOMER_NAME_COLLECTION,
-          content: JSON.stringify(flowContent),
-        });
         return {
-          updatedDraft: null,
+          updatedDraft: null as any,
           response: res,
+          currentStep: draft.step as any,
+          flowContent: JSON.stringify(flowContent),
         };
       }
     } catch (error: any) {
       console.log('handleCustomerNameSelection:', error.message);
     }
+
+    return {
+      updatedDraft: null as any,
+      response: null,
+      currentStep: draft.step as any,
+      flowContent: '',
+    };
   }
 
-  private async handleServiceSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
+  private async handleServiceSelection(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     console.log('====================================');
     console.log('handleServiceSelection');
     console.log('====================================');
     if (msg?.interactive?.type === 'list_reply') {
       const listPayload = msg?.interactive?.list_reply as any;
-      console.log('===================listPayload=================');
-      console.log(listPayload);
-      console.log('====================================');
       if (listPayload?.id === 'item_1') {
         const updateDraft: WorkflowDraft = {
           ...draft,
@@ -1891,15 +1950,23 @@ export class MalekChatService {
         ...flowContent,
       });
 
-      await this.saveBotResponse({ step: OrderFlowStep.SERVICE_SELECTION, content: JSON.stringify(flowContent) });
       return {
-        updatedDraft: null,
+        updatedDraft: null as any,
         response: res,
+        currentStep: draft.step as any,
+        flowContent: JSON.stringify(flowContent),
       };
     }
+    // dommy res
+    return {
+      updatedDraft: null as any,
+      response: null,
+      currentStep: draft.step as any,
+      flowContent: '',
+    };
   }
 
-  private async handleAddressSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
+  private async handleAddressSelection(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     console.log('====================================');
     console.log('handleAddressSelection');
     console.log('====================================');
@@ -1956,10 +2023,11 @@ export class MalekChatService {
         ...catalog,
       });
 
-      await this.saveBotResponse({ step: OrderFlowStep.ADDRESS_SELECTION, content: JSON.stringify(flowContent) });
       return {
         updatedDraft: { ...updatedDraft, step: OrderFlowStep.CATALOG_SELECTION },
         response: res,
+        currentStep: draft.step as any,
+        flowContent: JSON.stringify(flowContent),
       };
     } else if (payload?.branch_id) {
       const branch = await BranchesModel.findByPk(payload.branch_id);
@@ -1982,10 +2050,11 @@ export class MalekChatService {
         ...catalog,
       });
 
-      await this.saveBotResponse({ step: OrderFlowStep.ADDRESS_SELECTION, content: JSON.stringify(flowContent) });
       return {
         updatedDraft: { ...updatedDraft, step: OrderFlowStep.CATALOG_SELECTION },
         response: res,
+        currentStep: draft.step as any,
+        flowContent: JSON.stringify(flowContent),
       };
     } else if (listPayload?.id) {
       if (listPayload?.id === 'new') {
@@ -2022,6 +2091,8 @@ export class MalekChatService {
       return {
         updatedDraft: { ...updatedDraft, step: OrderFlowStep.CATALOG_SELECTION },
         response: res,
+        currentStep: draft.step as any,
+        flowContent: JSON.stringify(flowContent),
       };
     } else {
       if (draft.orderDetails.serviceType === 'delivery') {
@@ -2034,9 +2105,17 @@ export class MalekChatService {
         return await this.ProcessTakeawayHandler(draft, msg);
       }
     }
+
+    // dommy res
+    return {
+      updatedDraft: null as any,
+      response: null,
+      currentStep: draft.step as any,
+      flowContent: '',
+    };
   }
 
-  private async handleCatalogSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
+  private async handleCatalogSelection(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     console.log('====================================');
     console.log('handleCatalogSelection');
     console.log('====================================');
@@ -2099,7 +2178,6 @@ export class MalekChatService {
       const itemsWithOptions = updatedDraft.selectedProducts.filter((i) => i?.options?.length > 0);
       if (itemsWithOptions?.length === 0) {
         // no items have options
-        await this.saveBotResponse({ step: OrderFlowStep.CATALOG_SELECTION, content: 'processOrderSummaryHandler' });
         return await this.processOrderSummaryHandler(updatedDraft, msg);
       }
       const flowContent = getFlowContent('customize-order-flow', draft.lang);
@@ -2108,10 +2186,11 @@ export class MalekChatService {
         ...flowContent,
       });
 
-      await this.saveBotResponse({ step: OrderFlowStep.CATALOG_SELECTION, content: JSON.stringify(flowContent) });
       return {
         updatedDraft: updatedDraft,
         response: res,
+        currentStep: draft.step as any,
+        flowContent: JSON.stringify(flowContent),
       };
     } else {
       const catalog = await this.getCatalogLink();
@@ -2123,15 +2202,16 @@ export class MalekChatService {
         ...catalog,
       });
 
-      await this.saveBotResponse({ step: OrderFlowStep.CATALOG_SELECTION, content: JSON.stringify(flowContent) });
       return {
-        updatedDraft: null,
+        updatedDraft: null as any,
         response: res,
+        currentStep: draft.step as any,
+        flowContent: JSON.stringify(flowContent),
       };
     }
   }
 
-  private async handleCustomizeOrderSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
+  private async handleCustomizeOrderSelection(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     console.log('====================================');
     console.log('handleCustomizeOrderSelection');
     console.log('====================================');
@@ -2142,11 +2222,6 @@ export class MalekChatService {
       }
       if (buttonPayload.id === 'no') {
         if (draft?.isAddNewProducts) {
-          await this.saveBotResponse({
-            step: OrderFlowStep.CUSTOMIZE_ORDER_SELECTION,
-            content: 'processOrderSummaryHandler',
-          });
-
           return await this.processOrderSummaryHandler(draft, msg);
         }
         return await this.processUpsellingHandler(draft, msg);
@@ -2159,15 +2234,23 @@ export class MalekChatService {
         ...flowContent,
       });
 
-      await this.saveBotResponse({ step: draft.step, content: JSON.stringify(flowContent) });
       return {
-        updatedDraft: null,
+        updatedDraft: null as any,
         response: res,
+        currentStep: draft.step as any,
+        flowContent: JSON.stringify(flowContent),
       };
     }
+
+    return {
+      updatedDraft: null as any,
+      response: null,
+      currentStep: draft.step as any,
+      flowContent: '',
+    };
   }
 
-  private async handleProductItemsSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
+  private async handleProductItemsSelection(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     try {
       const payload = msg.interactive?.nfm_reply?.response_json
         ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
@@ -2229,7 +2312,7 @@ export class MalekChatService {
     }
   }
 
-  private async handleOrderedItemsSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
+  private async handleOrderedItemsSelection(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     try {
       const payload = msg.interactive?.nfm_reply?.response_json
         ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
@@ -2290,7 +2373,7 @@ export class MalekChatService {
     }
   }
 
-  private async handleOptionItemSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
+  private async handleOptionItemSelection(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     console.log('====================================');
     console.log('handleOptionItemSelection');
     console.log('====================================');
@@ -2346,7 +2429,10 @@ export class MalekChatService {
     return await this.orderModificationHandler(draft, msg);
   }
 
-  private async handleOrderedItemOptionsSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
+  private async handleOrderedItemOptionsSelection(
+    draft: WorkflowDraft,
+    msg: WhatsAppMessage
+  ): Promise<StepHandlerResult> {
     console.log('====================================');
     console.log('handleOrderedItemOptionsSelection');
     console.log('====================================');
@@ -2401,7 +2487,7 @@ export class MalekChatService {
     return await this.editOrderedItemsModificationHandler(draft, msg);
   }
 
-  private async handleUpsellingSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
+  private async handleUpsellingSelection(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     console.log('====================================');
     console.log('handleUpsellingSelection');
     console.log('====================================');
@@ -2470,16 +2556,26 @@ export class MalekChatService {
       }
       if (buttonPayload.id === 'no') {
         // send order summary
-        await this.saveBotResponse({ step: draft.step, content: 'processOrderSummaryHandler' });
+
         return await this.processOrderSummaryHandler(draft, msg);
       }
     } else {
       await this.sendCustomerServiceMessage(draft, msg);
       return await this.upsellingProductOptionsHandler(draft, msg);
     }
+
+    return {
+      updatedDraft: null as any,
+      response: null,
+      currentStep: draft.step as any,
+      flowContent: '',
+    };
   }
 
-  private async handleUpsellingItemOptionSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
+  private async handleUpsellingItemOptionSelection(
+    draft: WorkflowDraft,
+    msg: WhatsAppMessage
+  ): Promise<StepHandlerResult> {
     console.log('====================================');
     console.log('handleUpsellingItemOptionSelection');
     console.log('====================================');
@@ -2534,7 +2630,7 @@ export class MalekChatService {
     return await this.upsellingProductOptionsHandler(draft, msg);
   }
 
-  private async handleOrderCompletion(draft: WorkflowDraft, msg: WhatsAppMessage) {
+  private async handleOrderCompletion(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     try {
       if (msg?.interactive?.type === 'button_reply') {
         const buttonPayload = msg?.interactive?.button_reply as any;
@@ -2561,10 +2657,11 @@ export class MalekChatService {
           });
           await deleteMessageFromRedis(this.userPhoneNumber);
 
-          await this.saveBotResponse({ step: draft.step, content: draft.lang === 'en' ? enMessage : arMessage });
           return {
-            updatedDraft: null,
+            updatedDraft: null as any,
             response: res,
+            currentStep: draft.step as any,
+            flowContent: draft.lang === 'en' ? enMessage : arMessage,
           };
         } else if (buttonPayload?.id === 'edit') {
           return await this.processEditOrderedItems(draft, msg);
@@ -2577,16 +2674,16 @@ export class MalekChatService {
           });
           await deleteMessageFromRedis(this.userPhoneNumber);
 
-          await this.saveBotResponse({ step: draft.step, content: draft.lang === 'en' ? enMessage : arMessage });
           return {
-            updatedDraft: null,
+            updatedDraft: null as any,
             response: res,
+            currentStep: draft.step as any,
+            flowContent: draft.lang === 'en' ? enMessage : arMessage,
           };
         } else throw new Error('Wrong Button id for OrderSummary');
       } else {
         // send order summary
         await this.sendCustomerServiceMessage(draft, msg);
-        await this.saveBotResponse({ step: draft.step, content: 'processOrderSummaryHandler' });
         return await this.processOrderSummaryHandler(draft, msg);
       }
     } catch (error: any) {
@@ -2595,7 +2692,7 @@ export class MalekChatService {
     }
   }
 
-  private async handleEditOrderActionSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
+  private async handleEditOrderActionSelection(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     console.log('====================================');
     console.log('handleEditOrderActionSelection');
     console.log('====================================');
@@ -2619,7 +2716,10 @@ export class MalekChatService {
     }
   }
 
-  private async handleRemoveOrderedItemSelection(draft: WorkflowDraft, msg: WhatsAppMessage) {
+  private async handleRemoveOrderedItemSelection(
+    draft: WorkflowDraft,
+    msg: WhatsAppMessage
+  ): Promise<StepHandlerResult> {
     console.log('====================================');
     console.log('handleRemoveOrderedItemSelection');
     console.log('====================================');
@@ -2646,7 +2746,6 @@ export class MalekChatService {
             },
           };
 
-          await this.saveBotResponse({ step: draft.step, content: 'processOrderSummaryHandler' });
           return this.processOrderSummaryHandler(updatedDraft, msg);
         } else return this.processOrderSummaryHandler(draft, msg);
       } else {
@@ -2657,6 +2756,13 @@ export class MalekChatService {
     } catch (error: any) {
       console.error('handleRemoveOrderedItemSelection:', error.message);
     }
+
+    return {
+      updatedDraft: null as any,
+      response: null,
+      currentStep: draft?.step as any,
+      flowContent: '',
+    };
   }
 }
 
@@ -2669,7 +2775,7 @@ interface workingProduct extends IProduct {
 export interface WorkflowDraft {
   phoneNumber: string;
   customerId: string;
-  conversationId?: string;
+  conversationId: string;
   lang: 'en' | 'ar';
   step: `${OrderFlowStep}`;
   selectedProducts: workingProduct[];
@@ -2707,7 +2813,8 @@ export interface WorkflowDraft {
 }
 
 type StepHandlerResult = {
-  nextStep: OrderFlowStep;
+  currentStep: OrderFlowStep;
+  flowContent: string;
   updatedDraft: Partial<WorkflowDraft>;
   response: any;
 };
