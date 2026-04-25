@@ -757,7 +757,7 @@ const removeRedisMessage = async (key: string) => {
 
 // ttttt()
 // console.log('====================================');
-// console.log(await removeRedisMessage('2348171727284'));
+console.log(await removeRedisMessage('2348171727284'));
 // // console.log("+234 81 7172 7284".trim().replace('+', '') .replace(/\s+/g, ''));
 
 // console.log('====================================');

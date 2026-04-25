@@ -21,7 +21,7 @@ import { generateOrderText } from '../utils';
 import { productOptionsTaxonomy } from '../../data/taxonomy';
 import { getEstimatedTime } from '../../utils/getEstimatedTime';
 import { OrderModel } from '../../models/order.module';
-import {  randomUUID } from 'crypto';
+import { randomUUID } from 'crypto';
 import { checkBusinessServiceSchedule } from '../../utils/organization';
 import { CustomerSavedAddress } from '../../types/customers';
 import { Conversation } from '../../models/conversation.model';
@@ -144,11 +144,6 @@ export class MalekChatService {
       order: [['created_at', 'DESC']],
     });
     if (conv?.id) {
-      const draft = await getMessageFromRedis(this.userPhoneNumber);
-      await setMessageInRedis(this.userPhoneNumber, {
-        ...(draft ?? {}),
-        conversationId: conv.id,
-      } as any);
       return conv.get({ plain: true });
     } else {
       const conversation = await Conversation.create({
@@ -158,11 +153,7 @@ export class MalekChatService {
         organizationId: customer!.organizationId,
         systemMessageId: '',
       });
-      const draft = await getMessageFromRedis(this.userPhoneNumber);
-      await setMessageInRedis(this.userPhoneNumber, {
-        ...(draft ?? {}),
-        conversationId: conversation.id,
-      } as any);
+    
       return conversation.get({ plain: true });
     }
   }
@@ -193,11 +184,6 @@ export class MalekChatService {
       message_index: messageIndex,
     });
   }
-
-  // protected async saveBotResponse(msg: { step: string; content: string }) {
-  //   const conv = await this.getAndCreateConversationIfNotExist();
-  //   await this.addMessage({ conversationId: conv.id }, { role: 'assistant', content: JSON.stringify(msg) });
-  // }
 
   async organizationValidator() {
     const planOrg = await this.getOrganization();
@@ -1009,10 +995,8 @@ export class MalekChatService {
 
     // save response
     if (result?.flowContent && result?.updatedDraft) {
-      await this.addMessage(
-        { conversationId: result?.updatedDraft?.conversationId as any },
-        { role: 'assistant', content: result.flowContent }
-      );
+      const conv = await this.getAndCreateConversationIfNotExist();
+      await this.addMessage({ conversationId: conv.id }, { role: 'assistant', content: result.flowContent });
     }
 
     return await result?.response;
@@ -1023,7 +1007,7 @@ export class MalekChatService {
   // -----------------------------
   private async startWorkflow() {
     console.log('==================startWorkflow==================');
-    console.log("start workflow");
+    console.log('start workflow');
     console.log('====================================');
     const customer = await this.getCustomerData();
 
