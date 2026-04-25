@@ -21,7 +21,7 @@ import { generateOrderText } from '../utils';
 import { productOptionsTaxonomy } from '../../data/taxonomy';
 import { getEstimatedTime } from '../../utils/getEstimatedTime';
 import { OrderModel } from '../../models/order.module';
-import { randomBytes, randomUUID } from 'crypto';
+import {  randomUUID } from 'crypto';
 import { checkBusinessServiceSchedule } from '../../utils/organization';
 import { CustomerSavedAddress } from '../../types/customers';
 import { Conversation } from '../../models/conversation.model';
@@ -1022,6 +1022,9 @@ export class MalekChatService {
   // START FLOW
   // -----------------------------
   private async startWorkflow() {
+    console.log('==================startWorkflow==================');
+    console.log("start workflow");
+    console.log('====================================');
     const customer = await this.getCustomerData();
 
     const payload: Partial<WorkflowDraft> = {
@@ -1035,7 +1038,7 @@ export class MalekChatService {
 
     const flowContent = getFlowContent('choose-lang-flow', payload.lang || 'en');
 
-    flowContent.bodyText = `Hello ${customer?.name || ''} Please select your preferred language`;
+    // flowContent.bodyText = `Hello ${customer?.name || ''} Please select your preferred language`;
     return await this.sendWhatSappSChooseLangInteractiveMessage({
       recipientPhoneNumber: this.userPhoneNumber,
       ...flowContent,
