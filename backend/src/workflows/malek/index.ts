@@ -153,7 +153,7 @@ export class MalekChatService {
         organizationId: customer!.organizationId,
         systemMessageId: '',
       });
-    
+
       return conversation.get({ plain: true });
     }
   }
@@ -1209,12 +1209,18 @@ export class MalekChatService {
   private async processOrderSummaryHandler(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     const org = await this.getOrganization();
     const products = draft.orderDetails.items.map((i) => {
-      const options =
-        i.selectedOptions && i.selectedOptions.length > 0
-          ? `\n${i.selectedOptions
-              .map((op) => `-${op.optionName}: ${op.choiceLabel} (${org.currency} ${op.priceAdjustment})`)
-              .join('\n')}`
-          : '';
+      const options = i.selectedOptions?.length
+        ? '\n' +
+          i.selectedOptions
+            .map((op) => {
+              const choices = Array.isArray(op.choiceLabel) ? op.choiceLabel.join(', ') : op.choiceLabel;
+
+              const price = Number(op.priceAdjustment) > 0 ? ` (+${org.currency} ${op.priceAdjustment})` : '';
+
+              return `  - ${op.optionName}: ${choices}${price}`;
+            })
+            .join('\n')
+        : '';
 
       return `${i.productName} (${org.currency} ${i.price})${options}`;
     });
@@ -2644,8 +2650,9 @@ export class MalekChatService {
             message: draft.lang === 'en' ? enMessage : arMessage,
           });
 
+          const conv = await this.getAndCreateConversationIfNotExist();
           await this.addMessage(
-            { conversationId: draft.conversationId },
+            { conversationId: conv.id },
             { role: 'assistant', content: draft.lang === 'en' ? enMessage : arMessage }
           );
           await deleteMessageFromRedis(this.userPhoneNumber);
@@ -2768,7 +2775,6 @@ interface workingProduct extends IProduct {
 export interface WorkflowDraft {
   phoneNumber: string;
   customerId: string;
-  conversationId: string;
   lang: 'en' | 'ar';
   step: `${OrderFlowStep}`;
   selectedProducts: workingProduct[];
