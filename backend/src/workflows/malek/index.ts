@@ -996,7 +996,10 @@ export class MalekChatService {
     // save response
     if (result?.flowContent && result?.updatedDraft) {
       const conv = await this.getAndCreateConversationIfNotExist();
-      await this.addMessage({ conversationId: conv.id }, { role: 'assistant', content: result.flowContent });
+      await this.addMessage(
+        { conversationId: conv.id },
+        { role: 'assistant', content: JSON.stringify({ step: result?.currentStep || null, content: result.flowContent }) }
+      );
     }
 
     return await result?.response;
