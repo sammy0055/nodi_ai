@@ -994,9 +994,9 @@ export class MalekChatService {
     }
 
     // route to step handler
-    const handler = this.getStepHandler(workflowDraft.step as any);
+    const handler = this.getStepHandler(workflowDraft?.step as any);
 
-    if (!handler) throw new Error(`No handler for step: ${workflowDraft.step}`);
+    if (!handler) throw new Error(`No handler for step: ${workflowDraft?.step}`);
 
     const result = await handler.call(this, workflowDraft, userMessage);
 
@@ -1137,7 +1137,7 @@ export class MalekChatService {
       return {
         updatedDraft: { ...draft },
         response: res,
-        currentStep: draft.step as any,
+        currentStep: draft?.step as any,
         flowContent: JSON.stringify(flowContent),
       };
     } else {
@@ -1176,7 +1176,7 @@ export class MalekChatService {
     return {
       updatedDraft: { ...draft },
       response: res,
-      currentStep: draft.step as any,
+      currentStep: draft?.step as any,
       flowContent: JSON.stringify(flowContent),
     };
   }
@@ -1214,7 +1214,7 @@ export class MalekChatService {
     return {
       updatedDraft: { ...draft },
       response: res,
-      currentStep: draft.step as any,
+      currentStep: draft?.step as any,
       flowContent: JSON.stringify(flowContent),
     };
   }
@@ -1283,7 +1283,7 @@ export class MalekChatService {
     return {
       updatedDraft: updatedDraft,
       response: res,
-      currentStep: draft.step as any,
+      currentStep: draft?.step as any,
       flowContent: JSON.stringify(flowContent),
     };
   }
@@ -1323,7 +1323,7 @@ export class MalekChatService {
       return {
         updatedDraft: updatedDraft,
         response: res,
-        currentStep: draft.step as any,
+        currentStep: draft?.step as any,
         flowContent: JSON.stringify(flowContent),
       };
     } else if (items.length > 1) {
@@ -1354,7 +1354,7 @@ export class MalekChatService {
       return {
         updatedDraft: updatedDraft,
         response: res,
-        currentStep: draft.step as any,
+        currentStep: draft?.step as any,
         flowContent: JSON.stringify(flowContent),
       };
     } else {
@@ -1429,7 +1429,7 @@ export class MalekChatService {
         return {
           updatedDraft: updatedDraft,
           response: res,
-          currentStep: draft.step as any,
+          currentStep: draft?.step as any,
           flowContent: JSON.stringify(flowContent),
         };
       }
@@ -1442,7 +1442,7 @@ export class MalekChatService {
       }
 
       return {
-        currentStep: draft.step as any,
+        currentStep: draft?.step as any,
         updatedDraft: draft,
         response: null,
         flowContent: '',
@@ -1523,7 +1523,7 @@ export class MalekChatService {
         return {
           updatedDraft: updatedDraft,
           response: res,
-          currentStep: draft.step as any,
+          currentStep: draft?.step as any,
           flowContent: JSON.stringify(flowContent),
         };
       }
@@ -1532,7 +1532,7 @@ export class MalekChatService {
       }
 
       return {
-        currentStep: draft.step as any,
+        currentStep: draft?.step as any,
         updatedDraft: draft,
         response: null,
         flowContent: '',
@@ -1609,7 +1609,7 @@ export class MalekChatService {
       return {
         updatedDraft: updatedDraft,
         response: res,
-        currentStep: draft.step as any,
+        currentStep: draft?.step as any,
         flowContent: JSON.stringify(flowContent),
       };
     }
@@ -1621,7 +1621,7 @@ export class MalekChatService {
     return {
       updatedDraft: draft,
       response: null,
-      currentStep: draft.step as any,
+      currentStep: draft?.step as any,
       flowContent: '',
     };
   }
@@ -1655,7 +1655,7 @@ export class MalekChatService {
     return {
       updatedDraft: { ...draft, step: OrderFlowStep.PRODUCT_ITEMS_SELECTION },
       response: res,
-      currentStep: draft.step as any,
+      currentStep: draft?.step as any,
       flowContent: JSON.stringify(flowContent),
     };
   }
@@ -1684,7 +1684,7 @@ export class MalekChatService {
     return {
       updatedDraft: { ...draft, step: OrderFlowStep.ORDERED_ITEM_COLLECTION },
       response: res,
-      currentStep: draft.step as any,
+      currentStep: draft?.step as any,
       flowContent: JSON.stringify(flowContent),
     };
   }
@@ -1701,7 +1701,7 @@ export class MalekChatService {
     return {
       updatedDraft: { ...draft, step: OrderFlowStep.CATALOG_SELECTION, isAddNewProducts: true },
       response: res,
-      currentStep: draft.step as any,
+      currentStep: draft?.step as any,
       flowContent: JSON.stringify(flowContent),
     };
   }
@@ -1721,7 +1721,7 @@ export class MalekChatService {
     return {
       updatedDraft: updatedDraft,
       response: res,
-      currentStep: draft.step as any,
+      currentStep: draft?.step as any,
       flowContent: JSON.stringify(flowContent),
     };
   }
@@ -1753,7 +1753,7 @@ export class MalekChatService {
     return {
       updatedDraft: updatedDraft,
       response: res,
-      currentStep: draft.step as any,
+      currentStep: draft?.step as any,
       flowContent: JSON.stringify(flowContent),
     };
   }
@@ -1805,7 +1805,7 @@ export class MalekChatService {
           },
 
           flowContent: JSON.stringify(flowContent),
-          currentStep: draft.step as any,
+          currentStep: draft?.step as any,
           response: res,
         };
       } else if (listPayload.id === 'ar') {
@@ -1828,7 +1828,7 @@ export class MalekChatService {
           },
           response: res,
           flowContent: JSON.stringify(flowContent),
-          currentStep: draft.step as any,
+          currentStep: draft?.step as any,
         };
       }
     } else {
@@ -1843,13 +1843,13 @@ export class MalekChatService {
         updatedDraft: null as any,
         response: res,
         flowContent: JSON.stringify(flowContent),
-        currentStep: draft.step as any,
+        currentStep: draft?.step as any,
       };
     }
 
     return {
       updatedDraft: null as any,
-      currentStep: draft.step as any,
+      currentStep: draft?.step as any,
       response: null as any,
       flowContent: null as any,
     };
@@ -1876,7 +1876,7 @@ export class MalekChatService {
         return {
           updatedDraft: { ...draft, step: OrderFlowStep.SERVICE_SELECTION },
           response: res,
-          currentStep: draft.step as any,
+          currentStep: draft?.step as any,
           flowContent: JSON.stringify(flowContent),
         };
       } else {
@@ -1900,7 +1900,7 @@ export class MalekChatService {
         return {
           updatedDraft: null as any,
           response: res,
-          currentStep: draft.step as any,
+          currentStep: draft?.step as any,
           flowContent: JSON.stringify(flowContent),
         };
       }
@@ -1911,7 +1911,7 @@ export class MalekChatService {
     return {
       updatedDraft: null as any,
       response: null,
-      currentStep: draft.step as any,
+      currentStep: draft?.step as any,
       flowContent: '',
     };
   }
@@ -1954,7 +1954,7 @@ export class MalekChatService {
       return {
         updatedDraft: null as any,
         response: res,
-        currentStep: draft.step as any,
+        currentStep: draft?.step as any,
         flowContent: JSON.stringify(flowContent),
       };
     }
@@ -1962,7 +1962,7 @@ export class MalekChatService {
     return {
       updatedDraft: null as any,
       response: null,
-      currentStep: draft.step as any,
+      currentStep: draft?.step as any,
       flowContent: '',
     };
   }
@@ -2027,7 +2027,7 @@ export class MalekChatService {
       return {
         updatedDraft: { ...updatedDraft, step: OrderFlowStep.CATALOG_SELECTION },
         response: res,
-        currentStep: draft.step as any,
+        currentStep: draft?.step as any,
         flowContent: JSON.stringify(flowContent),
       };
     } else if (payload?.branch_id) {
@@ -2054,7 +2054,7 @@ export class MalekChatService {
       return {
         updatedDraft: { ...updatedDraft, step: OrderFlowStep.CATALOG_SELECTION },
         response: res,
-        currentStep: draft.step as any,
+        currentStep: draft?.step as any,
         flowContent: JSON.stringify(flowContent),
       };
     } else if (listPayload?.id) {
@@ -2092,7 +2092,7 @@ export class MalekChatService {
       return {
         updatedDraft: { ...updatedDraft, step: OrderFlowStep.CATALOG_SELECTION },
         response: res,
-        currentStep: draft.step as any,
+        currentStep: draft?.step as any,
         flowContent: JSON.stringify(flowContent),
       };
     } else {
@@ -2111,7 +2111,7 @@ export class MalekChatService {
     return {
       updatedDraft: null as any,
       response: null,
-      currentStep: draft.step as any,
+      currentStep: draft?.step as any,
       flowContent: '',
     };
   }
@@ -2190,7 +2190,7 @@ export class MalekChatService {
       return {
         updatedDraft: updatedDraft,
         response: res,
-        currentStep: draft.step as any,
+        currentStep: draft?.step as any,
         flowContent: JSON.stringify(flowContent),
       };
     } else {
@@ -2206,7 +2206,7 @@ export class MalekChatService {
       return {
         updatedDraft: null as any,
         response: res,
-        currentStep: draft.step as any,
+        currentStep: draft?.step as any,
         flowContent: JSON.stringify(flowContent),
       };
     }
@@ -2238,7 +2238,7 @@ export class MalekChatService {
       return {
         updatedDraft: null as any,
         response: res,
-        currentStep: draft.step as any,
+        currentStep: draft?.step as any,
         flowContent: JSON.stringify(flowContent),
       };
     }
@@ -2246,7 +2246,7 @@ export class MalekChatService {
     return {
       updatedDraft: null as any,
       response: null,
-      currentStep: draft.step as any,
+      currentStep: draft?.step as any,
       flowContent: '',
     };
   }
@@ -2568,7 +2568,7 @@ export class MalekChatService {
     return {
       updatedDraft: null as any,
       response: null,
-      currentStep: draft.step as any,
+      currentStep: draft?.step as any,
       flowContent: '',
     };
   }
@@ -2683,7 +2683,7 @@ export class MalekChatService {
           return {
             updatedDraft: null as any,
             response: res,
-            currentStep: draft.step as any,
+            currentStep: draft?.step as any,
             flowContent: draft.lang === 'en' ? enMessage : arMessage,
           };
         } else throw new Error('Wrong Button id for OrderSummary');
