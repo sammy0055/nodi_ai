@@ -1022,7 +1022,7 @@ export class MalekChatService {
 
     const flowContent = getFlowContent('choose-lang-flow', payload.lang || 'en');
 
-    // flowContent.bodyText = `Hello ${customer?.name || ''} Please select your preferred language`;
+    flowContent.bodyText = `Hello ${customer?.name || ''} Please select your preferred language`;
     return await this.sendWhatSappSChooseLangInteractiveMessage({
       recipientPhoneNumber: this.userPhoneNumber,
       ...flowContent,
