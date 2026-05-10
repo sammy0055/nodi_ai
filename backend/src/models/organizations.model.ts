@@ -3,7 +3,7 @@ import { sequelize } from './db';
 import { DbModels } from '.';
 import { BusinessType, supportedBusinessTypes } from '../data/data-types';
 import { ModelNames } from './model-names';
-import { IOrganization, OrgReviewQuestions, ServiceSchedule } from '../types/organization';
+import { IOrganization, OrgReviewQuestions, ResponseMessageInFlow, ServiceSchedule } from '../types/organization';
 import { CurrencyCode } from '../types/product';
 
 class OrganizationsModel extends Model<InferAttributes<OrganizationsModel>, InferCreationAttributes<OrganizationsModel>> implements IOrganization {
@@ -24,9 +24,9 @@ class OrganizationsModel extends Model<InferAttributes<OrganizationsModel>, Infe
   declare reviewTimer: number | null;
   declare timeZone: string | null;
   declare hotline?: string | undefined;
-  declare invalidInputInResponseMessageInWorkflow?: string | undefined;
-  declare invalidCatalogInputResponseMessageInWorkflow?: string | undefined;
-  declare successfullOrderMessageInWorkflow?: string | undefined;
+  invalidInputInResponseMessageInWorkflow?: ResponseMessageInFlow | undefined;
+  declare invalidCatalogInputResponseMessageInWorkflow?: ResponseMessageInFlow | undefined;
+  declare successfullOrderMessageInWorkflow?: ResponseMessageInFlow | undefined;
   static associate(models: DbModels) {
     //hasMany The foreign key is on the other model (the one being linked).
     this.hasMany(models.BranchesModel, { foreignKey: 'organizationId' });
@@ -105,9 +105,9 @@ OrganizationsModel.init(
     reviewTimer: { type: DataTypes.INTEGER, allowNull: true },
     timeZone: { type: DataTypes.STRING, allowNull: true },
     hotline: { type: DataTypes.STRING, allowNull: true },
-    invalidInputInResponseMessageInWorkflow: { type: DataTypes.STRING, allowNull: true },
-    invalidCatalogInputResponseMessageInWorkflow: { type: DataTypes.STRING, allowNull: true },
-    successfullOrderMessageInWorkflow: { type: DataTypes.STRING, allowNull: true },
+    invalidInputInResponseMessageInWorkflow: { type: DataTypes.JSONB, allowNull: true },
+    invalidCatalogInputResponseMessageInWorkflow: { type: DataTypes.JSONB, allowNull: true },
+    successfullOrderMessageInWorkflow: { type: DataTypes.JSONB, allowNull: true },
   },
   {
     sequelize,

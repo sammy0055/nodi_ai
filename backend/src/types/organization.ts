@@ -22,6 +22,10 @@ export interface ServiceSchedule {
   hours: { open: string; close: string }[];
 }
 
+export interface ResponseMessageInFlow {
+  enMsg: string;
+  arMsg: string;
+}
 export interface IOrganization {
   id: string; // uuid
   name: string;
@@ -36,9 +40,9 @@ export interface IOrganization {
   currency: CurrencyCode;
   reviewQuestions: OrgReviewQuestions[];
   serviceSchedule: ServiceSchedule[];
-  timeZone:string | null
-  hotline?:string
-  invalidInputInResponseMessageInWorkflow?: string;
-  invalidCatalogInputResponseMessageInWorkflow?: string;
-  successfullOrderMessageInWorkflow?:string
+  timeZone: string | null;
+  hotline?: string;
+  invalidInputInResponseMessageInWorkflow?: ResponseMessageInFlow;
+  invalidCatalogInputResponseMessageInWorkflow?: ResponseMessageInFlow;
+  successfullOrderMessageInWorkflow?: ResponseMessageInFlow;
 }
