@@ -1073,18 +1073,18 @@ export class RestaurantOrganizationChatService {
   }
 
   private async sendCustomerServiceMessage(draft: WorkflowDraft, msg: WhatsAppMessage) {
+    const org = await this.getOrganization();
     if (msg?.type === 'order') {
-      const enMsg = `I understand that you would like to add items to your current order. Kindly proceed with the existing process, and at the end, you will have the option to add, remove, or customize items as needed.`;
-      const arMsg = `نُدرك أنك ترغب في إضافة عناصر إلى طلبك الحالي. يُرجى متابعة العملية الحالية، وفي النهاية سيكون لديك خيار إضافة أو إزالة أو تعديل العناصر حسب رغبتك.`;
-
+      const enMsg = org.invalidCatalogInputResponseMessageInWorkflow?.enMsg || '';
+      const arMsg = org.invalidCatalogInputResponseMessageInWorkflow?.arMsg || '';
       return await this.sendWhatSappMessage({
         recipientPhoneNumber: this.userPhoneNumber,
         message: draft.lang === 'en' ? enMsg : arMsg,
       });
     }
-    const org = await this.getOrganization();
-    const enMsg = `Should you have any follow-up or feedback, please feel free to contact us at ${org.hotline}.`;
-    const arMsg = `في حال كان لديكم أي متابعة أو ملاحظات، يُرجى عدم التردد في التواصل معنا على الرقم ${org.hotline}.`;
+
+    const enMsg = org.invalidInputInResponseMessageInWorkflow?.enMsg || '';
+    const arMsg = org.invalidInputInResponseMessageInWorkflow?.arMsg || '';
 
     return await this.sendWhatSappMessage({
       recipientPhoneNumber: this.userPhoneNumber,
@@ -2566,13 +2566,8 @@ export class RestaurantOrganizationChatService {
         const buttonPayload = msg?.interactive?.button_reply as any;
         if (buttonPayload?.id === 'confirm') {
           const org = await this.getOrganization();
-          const enMessage = `Thank you for ordering from Malak Al Tawouk. Your order has been successfully received and is now being processed.
-
-            If you need any assistance or have any questions, please don’t hesitate to contact us at ${org.hotline}. We’re happy to help.`;
-
-          const arMessage = `شكرًا لطلبكم من ملك الطاووق. تم استلام طلبكم بنجاح وهو الآن قيد التحضير.
-
-            في حال كان لديكم أي استفسار أو تحتاجون إلى مساعدة، يرجى عدم التردد في التواصل معنا على الرقم ${org.hotline}. نحن بخدمتكم.`;
+          const enMessage = org.successfullOrderMessageInWorkflow?.enMsg || '';
+          const arMessage = org.successfullOrderMessageInWorkflow?.arMsg || '';
 
           const customer = await this.getCustomerData();
           draft.orderDetails.organizationId = customer.organizationId;
