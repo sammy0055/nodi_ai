@@ -29,7 +29,6 @@ export const setupPendingOrderQueueReminder = async () => {
 interface PendingOrderQueuePayload {
   orderId: string;
   organizationId: string;
-  orgContactNumber: number;
 }
 
 export const pendingOrderQueueProducer = async (payload: PendingOrderQueuePayload) => {

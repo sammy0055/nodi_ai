@@ -27,6 +27,7 @@ import { CustomerSavedAddress } from '../../types/customers';
 import { Conversation } from '../../models/conversation.model';
 import { ChatMessage } from '../../models/chat-messages.model';
 import { OpenAIRole } from '../../types/chat';
+import { pendingOrderQueueProducer } from '../../helpers/rabbitmq/pendingOrderQueue';
 
 const {
   CustomerModel,
@@ -2576,7 +2577,7 @@ export class RestaurantOrganizationChatService {
           console.log('================orderDetails====================');
           console.log(JSON.stringify(draft.orderDetails));
           console.log('====================================');
-          await OrderModel.create(draft.orderDetails as any);
+          const createdOrder = await OrderModel.create(draft.orderDetails as any);
           const res = await this.sendWhatSappMessage({
             recipientPhoneNumber: this.userPhoneNumber,
             message: draft.lang === 'en' ? enMessage : arMessage,
@@ -2585,6 +2586,7 @@ export class RestaurantOrganizationChatService {
           const conv = await this.getAndCreateConversationIfNotExist();
           await this.addMessage({ conversationId: conv.id }, { role: 'assistant', content: draft.lang === 'en' ? enMessage : arMessage });
           await deleteMessageFromRedis(this.userPhoneNumber);
+          await pendingOrderQueueProducer({ orderId: createdOrder.id, organizationId: org.id });
 
           return {
             updatedDraft: null as any,
