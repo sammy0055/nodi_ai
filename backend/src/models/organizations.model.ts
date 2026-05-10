@@ -27,6 +27,7 @@ class OrganizationsModel extends Model<InferAttributes<OrganizationsModel>, Infe
   invalidInputInResponseMessageInWorkflow?: ResponseMessageInFlow | undefined;
   declare invalidCatalogInputResponseMessageInWorkflow?: ResponseMessageInFlow | undefined;
   declare successfullOrderMessageInWorkflow?: ResponseMessageInFlow | undefined;
+  declare contactPhoneNumbers?: string[] | undefined;
   static associate(models: DbModels) {
     //hasMany The foreign key is on the other model (the one being linked).
     this.hasMany(models.BranchesModel, { foreignKey: 'organizationId' });
@@ -108,6 +109,7 @@ OrganizationsModel.init(
     invalidInputInResponseMessageInWorkflow: { type: DataTypes.JSONB, allowNull: true },
     invalidCatalogInputResponseMessageInWorkflow: { type: DataTypes.JSONB, allowNull: true },
     successfullOrderMessageInWorkflow: { type: DataTypes.JSONB, allowNull: true },
+    contactPhoneNumbers: { type: DataTypes.ARRAY(DataTypes.STRING), defaultValue: [] },
   },
   {
     sequelize,

@@ -186,6 +186,21 @@ const SettingsPage: React.FC = () => {
     setOrgData((prev) => ({ ...prev, languageProtectedTerms: updatedFeatures }));
   };
 
+      const handleContactPhoneNumbersTermChange = (index: number, value: string) => {
+    const updatedFeatures = [...(orgData.contactPhoneNumbers || [])];
+    updatedFeatures[index] = value;
+    setOrgData((prev) => ({ ...prev, contactPhoneNumbers: updatedFeatures }));
+  };
+
+   const addFeatureFieldForContactPhoneNumbers = () => {
+    setOrgData((prev) => ({ ...prev, contactPhoneNumbers: [...(prev.contactPhoneNumbers || []), ''] }));
+  };
+
+    const removeFeatureFieldForContactPhoneNumbers = (index: number) => {
+    const updatedFeatures = orgData.contactPhoneNumbers?.filter((_, i) => i !== index) || [];
+    setOrgData((prev) => ({ ...prev, contactPhoneNumbers: updatedFeatures }));
+  };
+
   const handleCatalogCreation = async () => {
     setIsLoading(true);
     try {
@@ -579,43 +594,77 @@ const SettingsPage: React.FC = () => {
               </>
             )}
 
-            {/* languageProtectedTerms */}
-            <div>
-              {orgData?.businessType !== 'restaurant' && (
-                <>
-                  <label className="text-sm font-medium text-neutral-700 mb-2 block">languageProtectedTerms *</label>
-                  <div className="space-y-2">
-                    {orgData?.languageProtectedTerms?.map((feature, index) => (
-                      <div key={index} className="flex space-x-2">
-                        <input
-                          type="text"
-                          value={feature}
+            {/* contact phoneNumbers */}
+                <div>
+                <label className="text-sm font-medium text-neutral-700 mb-2 block">WhatsApp Contact Phone Numbers *</label>
+                <div className="space-y-2">
+                  {orgData?.contactPhoneNumbers?.map((feature, index) => (
+                    <div key={index} className="flex space-x-2">
+                      <input
+                        type="tel"
+                        value={feature}
+                        disabled={!isEditing}
+                        onChange={(e) => handleContactPhoneNumbersTermChange(index, e.target.value)}
+                        placeholder="Add a whatsapp phone number (e.g., +961 81...)"
+                        className="flex-1 px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                      {orgData.contactPhoneNumbers && orgData.contactPhoneNumbers.length > 1 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
                           disabled={!isEditing}
-                          onChange={(e) => handleLanguageTermChange(index, e.target.value)}
-                          placeholder="Add a feature (e.g., 20M AI tokens)"
-                          className="flex-1 px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        />
-                        {orgData.languageProtectedTerms && orgData.languageProtectedTerms.length > 1 && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={!isEditing}
-                            onClick={() => removeFeatureField(index)}
-                            className="text-red-600 hover:bg-red-50"
-                          >
-                            <FiX />
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-              <Button variant="outline" onClick={addFeatureField} className="mt-3" disabled={!isEditing}>
-                <FiPlus className="mr-2" />
-                Add Feature
-              </Button>
-            </div>
+                          onClick={() => removeFeatureFieldForContactPhoneNumbers(index)}
+                          className="text-red-600 hover:bg-red-50"
+                        >
+                          <FiX />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <Button variant="outline" onClick={addFeatureFieldForContactPhoneNumbers} className="mt-3" disabled={!isEditing}>
+                  <FiPlus className="mr-2" />
+                  Add Phone Number
+                </Button>
+              </div>
+
+            {/* languageProtectedTerms */}
+            {orgData?.businessType !== 'restaurant' && (
+              <div>
+                <label className="text-sm font-medium text-neutral-700 mb-2 block">languageProtectedTerms *</label>
+                <div className="space-y-2">
+                  {orgData?.languageProtectedTerms?.map((feature, index) => (
+                    <div key={index} className="flex space-x-2">
+                      <input
+                        type="text"
+                        value={feature}
+                        disabled={!isEditing}
+                        onChange={(e) => handleLanguageTermChange(index, e.target.value)}
+                        placeholder="Add a feature (e.g., 20M AI tokens)"
+                        className="flex-1 px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                      {orgData.languageProtectedTerms && orgData.languageProtectedTerms.length > 1 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={!isEditing}
+                          onClick={() => removeFeatureField(index)}
+                          className="text-red-600 hover:bg-red-50"
+                        >
+                          <FiX />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <Button variant="outline" onClick={addFeatureField} className="mt-3" disabled={!isEditing}>
+                  <FiPlus className="mr-2" />
+                  Add Feature
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 

@@ -8,8 +8,10 @@ export enum RabitQueues {
   WHATSAPP_MESSAGES = 'whatsapp.messages',
   DELAY_REVIEW_QUEUE = 'review.delay.queue',
   REVIEW_QUEUE = 'review.queue',
-  FOLLOW_UP_QUEUE = "followup.queue",
+  FOLLOW_UP_QUEUE = 'followup.queue',
   FOLLOW_UP_DELAY_QUEUE = 'followup.delay.queue',
+  PENDING_ORDER_QUEUE = 'pending-order.queue',
+  PENDING_ORDER_DELAY_QUEUE = 'pending-order.delay.queue',
 }
 
 async function initRabbit() {

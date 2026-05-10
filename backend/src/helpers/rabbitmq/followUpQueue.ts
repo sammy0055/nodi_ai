@@ -28,7 +28,7 @@ export const setupFollowUPQueueProducer = async () => {
   await channel.assertQueue(RabitQueues.FOLLOW_UP_QUEUE, { durable: true });
   await channel.bindQueue(RabitQueues.FOLLOW_UP_QUEUE, 'followup.exchange', 'followup');
 
-  console.log(`${RabitQueues.DELAY_REVIEW_QUEUE} queue ready`);
+  console.log(`${RabitQueues.FOLLOW_UP_DELAY_QUEUE} queue ready`);
 };
 
 export const scheduleFollowup = async (data: {

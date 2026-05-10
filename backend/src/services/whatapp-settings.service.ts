@@ -11,6 +11,7 @@ import {
   WhatSappAuthPayload,
   WhatsAppPhoneNumberInfo,
 } from '../types/whatsapp-settings';
+import { OrganizationsModel } from '../models/organizations.model';
 
 export class WhatSappSettingsService {
   private static readonly MFAPIN = '886677';
@@ -31,12 +32,7 @@ export class WhatSappSettingsService {
       authUrl: `https://www.facebook.com/v18.0/dialog/oauth?${urlParams.toString()}`,
     };
   }
-  static async exchangeWhatSappCodeForAccessTokens({
-    code,
-    whatsappBusinessId,
-    whatsappPhoneNumberId,
-    user,
-  }: WhatSappAuthPayload) {
+  static async exchangeWhatSappCodeForAccessTokens({ code, whatsappBusinessId, whatsappPhoneNumberId, user }: WhatSappAuthPayload) {
     const params = {
       client_id: this.meta_app_id,
       client_secret: this.meta_app_secret,
@@ -91,14 +87,14 @@ export class WhatSappSettingsService {
 
     console.log(`✅------------registeredNumber successful:${JSON.stringify(registeredNumber, null, 2)}`);
 
+    const organization = await OrganizationsModel.findByPk(user.organizationId!);
+    if (organization?.businessType !== 'restaurant') throw new Error('we currently only have support for restaurant organization type');
     const uploadedPublicKeyToPhoneNumber = await this.uploadPublicKeyToPhoneNumber({
       whatsappPhoneNumberId,
       whatsappBusinessId,
       accessToken: data.access_token,
     });
-    console.log(
-      `✅------------uploadedPublicKeyToPhoneNumber successfully:${JSON.stringify(uploadedPublicKeyToPhoneNumber, null, 2)}`
-    );
+    console.log(`✅------------uploadedPublicKeyToPhoneNumber successfully:${JSON.stringify(uploadedPublicKeyToPhoneNumber, null, 2)}`);
 
     const areaAndZoneFlow = await this.createWhsappFlow({
       whatsappBusinessId,
@@ -117,8 +113,44 @@ export class WhatSappSettingsService {
       flowJson: JSON.stringify(templates.whatsappFlow.branchesFlow),
     });
 
+    const productOptionFlow = await this.createWhsappFlow({
+      whatsappBusinessId,
+      accessToken: data.access_token,
+      flowLabel: 'PRODUCT_OPTIONS_FLOW',
+      flowName: randomUUID(),
+      flowJson: JSON.stringify(templates.whatsappFlow.productOptionFlow),
+    });
+
+    const itemsListFlow = await this.createWhsappFlow({
+      whatsappBusinessId,
+      accessToken: data.access_token,
+      flowLabel: 'PRODUCT_ITEMS_FLOW',
+      flowName: randomUUID(),
+      flowJson: JSON.stringify(templates.whatsappFlow.itemListFlow),
+    });
+
+    const orderReviewFlow = await this.createWhsappFlow({
+      whatsappBusinessId,
+      accessToken: data.access_token,
+      flowLabel: 'Review_Order',
+      flowName: randomUUID(),
+      flowJson: JSON.stringify(templates.whatsappFlow.orderReviewFlow),
+    });
+
+    const customerNameFlow = await this.createWhsappFlow({
+      whatsappBusinessId,
+      accessToken: data.access_token,
+      flowLabel: 'CUSTOMER_NAME',
+      flowName: randomUUID(),
+      flowJson: JSON.stringify(templates.whatsappFlow.customerNameFlow),
+    });
+
     console.log(`✅------------create AreaAndZoneFlow Draft successfully:${JSON.stringify(areaAndZoneFlow, null, 2)}`);
     console.log(`✅------------create branchesFlow Draft successfully:${JSON.stringify(branchesFlow, null, 2)}`);
+    console.log(`✅------------create productOptionFlow Draft successfully:${JSON.stringify(productOptionFlow, null, 2)}`);
+    console.log(`✅------------create itemsListFlow Draft successfully:${JSON.stringify(itemsListFlow, null, 2)}`);
+    console.log(`✅------------create orderReviewFlow Draft successfully:${JSON.stringify(orderReviewFlow, null, 2)}`);
+    console.log(`✅------------create customerNameFlow Draft successfully:${JSON.stringify(customerNameFlow, null, 2)}`);
 
     if (!user.organizationId) throw new Error('you need to have an organization first');
     const payload: IWhatSappSettings = {
@@ -147,6 +179,42 @@ export class WhatSappSettingsService {
             flowId: branchesFlow.flowID,
             flowName: branchesFlow.flowName,
             flowLabel: branchesFlow.flowLabel,
+          },
+        },
+        {
+          type: 'flow',
+          isPublished: false,
+          data: {
+            flowId: productOptionFlow.flowID,
+            flowName: productOptionFlow.flowName,
+            flowLabel: productOptionFlow.flowLabel,
+          },
+        },
+        {
+          type: 'flow',
+          isPublished: false,
+          data: {
+            flowId: itemsListFlow.flowID,
+            flowName: itemsListFlow.flowName,
+            flowLabel: itemsListFlow.flowLabel,
+          },
+        },
+        {
+          type: 'flow',
+          isPublished: false,
+          data: {
+            flowId: orderReviewFlow.flowID,
+            flowName: orderReviewFlow.flowName,
+            flowLabel: orderReviewFlow.flowLabel,
+          },
+        },
+        {
+          type: 'flow',
+          isPublished: false,
+          data: {
+            flowId: customerNameFlow.flowID,
+            flowName: customerNameFlow.flowName,
+            flowLabel: customerNameFlow.flowLabel,
           },
         },
       ],
@@ -262,14 +330,7 @@ export class WhatSappSettingsService {
     return data;
   }
 
-  static async createWhsappFlow({
-    whatsappBusinessId,
-    accessToken,
-    flowName,
-    flowLabel,
-    flowJson: _flowJson,
-    flowEndpoint,
-  }: createWhatsappFlowArgs) {
+  static async createWhsappFlow({ whatsappBusinessId, accessToken, flowName, flowLabel, flowJson: _flowJson, flowEndpoint }: createWhatsappFlowArgs) {
     const flowJson = {
       name: flowName,
       categories: ['OTHER'],

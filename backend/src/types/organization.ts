@@ -45,4 +45,5 @@ export interface IOrganization {
   invalidInputInResponseMessageInWorkflow?: ResponseMessageInFlow;
   invalidCatalogInputResponseMessageInWorkflow?: ResponseMessageInFlow;
   successfullOrderMessageInWorkflow?: ResponseMessageInFlow;
+  contactPhoneNumbers?:string[]
 }

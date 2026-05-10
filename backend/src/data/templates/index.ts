@@ -147,6 +147,64 @@ const prebuiltBranchesFlowJson = {
   ],
 };
 
+const prebuiltItemListFlowJson = {
+  version: '7.2',
+  screens: [
+    {
+      id: 'ITEMS_SELECTION',
+      title: 'Items Selection',
+      terminal: true,
+      success: true,
+      data: {
+        flowLabel: { type: 'string', __example__: '' },
+        items: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              title: { type: 'string' },
+            },
+          },
+          __example__: [
+            { id: '1', title: 'branche a' },
+            { id: '2', title: 'branche b' },
+          ],
+        },
+      },
+      layout: {
+        type: 'SingleColumnLayout',
+        children: [
+          {
+            type: 'Form',
+            name: 'address_form',
+            children: [
+              {
+                type: 'CheckboxGroup',
+                name: 'item_id',
+                label: 'Items',
+                required: true,
+                'data-source': '${data.items}',
+              },
+              {
+                type: 'Footer',
+                label: 'Complete',
+                'on-click-action': {
+                  name: 'complete',
+                  payload: {
+                    item_id: '${form.item_id}',
+                    flowLabel: '${data.flowLabel}',
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+};
+
 const prebuiltOptionsFlowJson = {
   version: '7.3',
   screens: [
@@ -156,9 +214,18 @@ const prebuiltOptionsFlowJson = {
       terminal: true,
       success: true,
       data: {
-        flowLabel: { type: 'string', __example__: '' },
-        productName:{ type: 'string', __example__: '' },
-        // add ingredent 1
+        flowLabel: {
+          type: 'string',
+          __example__: '',
+        },
+        uniqueId: {
+          type: 'string',
+          __example__: '',
+        },
+        productName: {
+          type: 'string',
+          __example__: 'Cheeseburger',
+        },
         Add_Ingredient: {
           type: 'object',
           properties: {
@@ -181,14 +248,9 @@ const prebuiltOptionsFlowJson = {
             visible: false,
             required: false,
             label: 'Add Ingredient',
-            description: 'Add an extra ingredient to the product. Example: add cheese, add bacon, add olives.',
-            // options: [
-            //   { id: '12', title: 'add ingredent one' },
-            //   { id: '123', title: '3 add ingredent one' },
-            // ],
+            description: 'Add an extra ingredient. Example: cheese, bacon, olives.',
           },
         },
-        // Remove Ingredient 2
         Remove_Ingredient: {
           type: 'object',
           properties: {
@@ -211,14 +273,9 @@ const prebuiltOptionsFlowJson = {
             visible: false,
             required: false,
             label: 'Remove Ingredient',
-            description: 'Remove an existing ingredient from the product. Example: no onions, no pickles.',
-            // options: [
-            //   { id: '12', title: 'add ingredent one' },
-            //   { id: '123', title: '3 add ingredent one' },
-            // ],
+            description: 'Remove an ingredient. Example: no onions, no pickles.',
           },
         },
-        // Add Side 3
         Add_Side: {
           type: 'object',
           properties: {
@@ -241,14 +298,9 @@ const prebuiltOptionsFlowJson = {
             visible: false,
             required: false,
             label: 'Add Side',
-            description: 'Add a side item to the order. Example: add imported fries, add coleslaw.',
-            // options: [
-            //   { id: '12', title: 'add ingredent one' },
-            //   { id: '123', title: '3 add ingredent one' },
-            // ],
+            description: 'Add a side item. Example: fries, coleslaw.',
           },
         },
-        // Add Drink 4
         Add_Drink: {
           type: 'object',
           properties: {
@@ -271,14 +323,9 @@ const prebuiltOptionsFlowJson = {
             visible: false,
             required: false,
             label: 'Add Drink',
-            description: 'Add a beverage to the order. Example: add Pepsi, add Coke, add water.',
-            // options: [
-            //   { id: '12', title: 'add ingredent one' },
-            //   { id: '123', title: '3 add ingredent one' },
-            // ],
+            description: 'Add a beverage. Example: Pepsi, Coke, water.',
           },
         },
-        // Spice Level 5
         Spice_Level: {
           type: 'object',
           properties: {
@@ -301,14 +348,9 @@ const prebuiltOptionsFlowJson = {
             visible: false,
             required: false,
             label: 'Spice Level',
-            description: 'Adjust how spicy the food should be. Example: mild, medium, extra spicy.',
-            // options: [
-            //   { id: '12', title: 'add ingredent one' },
-            //   { id: '123', title: '3 add ingredent one' },
-            // ],
+            description: 'Adjust heat. Example: mild, medium, extra spicy.',
           },
         },
-        // Cooking Preference 6
         Cooking_Preference: {
           type: 'object',
           properties: {
@@ -331,14 +373,9 @@ const prebuiltOptionsFlowJson = {
             visible: false,
             required: false,
             label: 'Cooking Preference',
-            description: 'Specify how the food should be cooked. Example: well done, medium rare.',
-            // options: [
-            //   { id: '12', title: 'add ingredent one' },
-            //   { id: '123', title: '3 add ingredent one' },
-            // ],
+            description: 'Specify doneness. Example: well done, medium rare.',
           },
         },
-        // Size 7
         Size: {
           type: 'object',
           properties: {
@@ -361,14 +398,9 @@ const prebuiltOptionsFlowJson = {
             visible: false,
             required: false,
             label: 'Size',
-            description: 'Select size. Example: regular, large, family size.',
-            // options: [
-            //   { id: '12', title: 'add ingredent one' },
-            //   { id: '123', title: '3 add ingredent one' },
-            // ],
+            description: 'Select size. Example: regular, large, family.',
           },
         },
-        // Add Sauce 8
         Add_Sauce: {
           type: 'object',
           properties: {
@@ -391,14 +423,9 @@ const prebuiltOptionsFlowJson = {
             visible: false,
             required: false,
             label: 'Add Sauce',
-            description: 'Add extra sauce. Example: extra garlic sauce, extra ketchup.',
-            // options: [
-            //   { id: '12', title: 'add ingredent one' },
-            //   { id: '123', title: '3 add ingredent one' },
-            // ],
+            description: 'Add extra sauce. Example: garlic, ketchup.',
           },
         },
-        // Remove Sauce 9
         Remove_Sauce: {
           type: 'object',
           properties: {
@@ -421,14 +448,9 @@ const prebuiltOptionsFlowJson = {
             visible: false,
             required: false,
             label: 'Remove Sauce',
-            description: 'Remove a sauce from the product. Example: no mayo, no BBQ sauce.',
-            // options: [
-            //   { id: '12', title: 'add ingredent one' },
-            //   { id: '123', title: '3 add ingredent one' },
-            // ],
+            description: 'Remove a sauce. Example: no mayo, no BBQ.',
           },
         },
-        // Extra_Protein 10
         Extra_Protein: {
           type: 'object',
           properties: {
@@ -451,14 +473,9 @@ const prebuiltOptionsFlowJson = {
             visible: false,
             required: false,
             label: 'Extra Protein',
-            description: 'Increase protein quantity. Example: double chicken, extra beef.',
-            // options: [
-            //   { id: '12', title: 'add ingredent one' },
-            //   { id: '123', title: '3 add ingredent one' },
-            // ],
+            description: 'Double the protein. Example: double chicken, extra beef.',
           },
         },
-        // Special_Instructions 11
         Special_Instructions: {
           type: 'object',
           properties: {
@@ -481,11 +498,7 @@ const prebuiltOptionsFlowJson = {
             visible: false,
             required: false,
             label: 'Special Instructions',
-            description: 'Free-text instructions from customer. Example: cut in half, pack separately.',
-            // options: [
-            //   { id: '12', title: 'add ingredent one' },
-            //   { id: '123', title: '3 add ingredent one' },
-            // ],
+            description: 'Extra requests. Example: cut in half, pack separately.',
           },
         },
       },
@@ -496,7 +509,6 @@ const prebuiltOptionsFlowJson = {
             type: 'TextHeading',
             text: '${data.productName}',
           },
-          // option_1 : Add_Ingredient
           {
             type: 'CheckboxGroup',
             name: 'Add_Ingredient',
@@ -506,7 +518,6 @@ const prebuiltOptionsFlowJson = {
             required: '${data.Add_Ingredient.required}',
             'data-source': '${data.Add_Ingredient.options}',
           },
-          // option_2: Remove_Ingredient
           {
             type: 'CheckboxGroup',
             name: 'Remove_Ingredient',
@@ -516,7 +527,6 @@ const prebuiltOptionsFlowJson = {
             required: '${data.Remove_Ingredient.required}',
             'data-source': '${data.Remove_Ingredient.options}',
           },
-          // option_3: Add_Side
           {
             type: 'CheckboxGroup',
             name: 'Add_Side',
@@ -526,7 +536,6 @@ const prebuiltOptionsFlowJson = {
             required: '${data.Add_Side.required}',
             'data-source': '${data.Add_Side.options}',
           },
-          // option_4: Add_Drink
           {
             type: 'CheckboxGroup',
             name: 'Add_Drink',
@@ -536,7 +545,6 @@ const prebuiltOptionsFlowJson = {
             required: '${data.Add_Drink.required}',
             'data-source': '${data.Add_Drink.options}',
           },
-          // option_5: Spice_Level
           {
             type: 'RadioButtonsGroup',
             name: 'Spice_Level',
@@ -545,7 +553,6 @@ const prebuiltOptionsFlowJson = {
             required: '${data.Spice_Level.required}',
             'data-source': '${data.Spice_Level.options}',
           },
-          // option_6: Cooking_Preference
           {
             type: 'RadioButtonsGroup',
             name: 'Cooking_Preference',
@@ -555,7 +562,6 @@ const prebuiltOptionsFlowJson = {
             required: '${data.Cooking_Preference.required}',
             'data-source': '${data.Cooking_Preference.options}',
           },
-          // option_7: Size
           {
             type: 'RadioButtonsGroup',
             name: 'Size',
@@ -565,7 +571,6 @@ const prebuiltOptionsFlowJson = {
             required: '${data.Size.required}',
             'data-source': '${data.Size.options}',
           },
-          // option_8: Add_Sauce
           {
             type: 'CheckboxGroup',
             name: 'Add_Sauce',
@@ -575,7 +580,6 @@ const prebuiltOptionsFlowJson = {
             required: '${data.Add_Sauce.required}',
             'data-source': '${data.Add_Sauce.options}',
           },
-          // option_9: Remove_Sauce
           {
             type: 'CheckboxGroup',
             name: 'Remove_Sauce',
@@ -585,7 +589,6 @@ const prebuiltOptionsFlowJson = {
             required: '${data.Remove_Sauce.required}',
             'data-source': '${data.Remove_Sauce.options}',
           },
-          // option_10: Extra_Protein
           {
             type: 'CheckboxGroup',
             name: 'Extra_Protein',
@@ -595,7 +598,6 @@ const prebuiltOptionsFlowJson = {
             required: '${data.Extra_Protein.required}',
             'data-source': '${data.Extra_Protein.options}',
           },
-          // option_11: Special_Instructions
           {
             type: 'CheckboxGroup',
             name: 'Special_Instructions',
@@ -612,6 +614,7 @@ const prebuiltOptionsFlowJson = {
               name: 'complete',
               payload: {
                 flowLabel: '${data.flowLabel}',
+                uniqueId: '${data.uniqueId}',
                 Add_Ingredient: '${form.Add_Ingredient}',
                 Remove_Ingredient: '${form.Remove_Ingredient}',
                 Add_Side: '${form.Add_Side}',
@@ -632,11 +635,183 @@ const prebuiltOptionsFlowJson = {
   ],
 };
 
+const prebuiltOrderReviewFlowJson = {
+  version: '7.2',
+  screens: [
+    {
+      id: 'DYNAMIC_SURVEY',
+      title: 'Feedback Form',
+      terminal: true,
+      success: true,
+      data: {
+        flowLabel: {
+          type: 'string',
+          __example__: '',
+        },
+        orderId: {
+          type: 'string',
+          __example__: '',
+        },
+        q1_id: { type: 'string', __example__: 'food_quality' },
+        q1_text: { type: 'string', __example__: 'How was the food?' },
+        q2_id: { type: 'string', __example__: 'service_speed' },
+        q2_text: { type: 'string', __example__: 'How was the service?' },
+        q3_id: { type: 'string', __example__: 'cleanliness' },
+        q3_text: { type: 'string', __example__: '' },
+        show_q1: { type: 'boolean', __example__: true },
+        show_q2: { type: 'boolean', __example__: true },
+        show_q3: { type: 'boolean', __example__: false },
+      },
+      layout: {
+        type: 'SingleColumnLayout',
+        children: [
+          {
+            type: 'Form',
+            name: 'survey_form',
+            children: [
+              {
+                type: 'Dropdown',
+                label: 'Order experience',
+                name: 'order_experience',
+                required: true,
+                'data-source': [
+                  { id: '5', title: '★★★★★ • Excellent (5/5)' },
+                  { id: '4', title: '★★★★☆ • Good (4/5)' },
+                  { id: '3', title: '★★★☆☆ • Average (3/5)' },
+                  { id: '2', title: '★★☆☆☆ • Poor (2/5)' },
+                  { id: '1', title: '★☆☆☆☆ • Very Poor (1/5)' },
+                ],
+              },
+              {
+                type: 'TextSubheading',
+                text: '${data.q1_text}',
+                visible: '${data.show_q1}',
+              },
+              {
+                type: 'TextArea',
+                label: 'Answer',
+                name: 'answer_1',
+                visible: '${data.show_q1}',
+              },
+              {
+                type: 'TextSubheading',
+                text: '${data.q2_text}',
+                visible: '${data.show_q2}',
+              },
+              {
+                type: 'TextArea',
+                label: 'Answer',
+                name: 'answer_2',
+                visible: '${data.show_q2}',
+              },
+              {
+                type: 'TextSubheading',
+                text: '${data.q3_text}',
+                visible: '${data.show_q3}',
+              },
+              {
+                type: 'TextArea',
+                label: 'Answer',
+                name: 'answer_3',
+                visible: '${data.show_q3}',
+              },
+              {
+                type: 'Footer',
+                label: 'Submit',
+                'on-click-action': {
+                  name: 'complete',
+                  payload: {
+                    flowLabel: '${data.flowLabel}',
+                    orderId: '${data.orderId}',
+                    overall_rating: '${form.order_experience}',
+                    responses: [
+                      {
+                        question_id: '${data.q1_id}',
+                        answer: '${form.answer_1}',
+                      },
+                      {
+                        question_id: '${data.q2_id}',
+                        answer: '${form.answer_2}',
+                      },
+                      {
+                        question_id: '${data.q3_id}',
+                        answer: '${form.answer_3}',
+                      },
+                    ],
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+};
+
+const prebuiltCustomerNameFlowJson = {
+  version: '7.3',
+  screens: [
+    {
+      id: 'WELCOME_SCREEN',
+      title: 'Welcome',
+      terminal: true,
+      success: true,
+      data: {
+        flowLabel: {
+          type: 'string',
+          __example__: '',
+        },
+      },
+      layout: {
+        type: 'SingleColumnLayout',
+        children: [
+          {
+            type: 'TextSubheading',
+            text: 'First Name',
+          },
+          {
+            type: 'TextInput',
+            label: 'First Name',
+            required: true,
+            name: 'first_name',
+          },
+          {
+            type: 'TextSubheading',
+            text: 'Last Name',
+          },
+          {
+            type: 'TextInput',
+            label: 'Last Name',
+            required: true,
+            name: 'last_name',
+          },
+          {
+            type: 'Footer',
+            label: 'Complete',
+            'on-click-action': {
+              name: 'complete',
+              payload: {
+                flowLabel: '${data.flowLabel}',
+                first_name: '${form.first_name}',
+                last_name: '${form.last_name}',
+              },
+            },
+          },
+        ],
+      },
+    },
+  ],
+};
+
 export const templates = Object.freeze({
   whatsappFlow: {
     zoneAndAreaFlow: prebuiltFlowJson,
     branchesFlow: prebuiltBranchesFlowJson,
-    productOptionFlow: prebuiltOptionsFlowJson
+    productOptionFlow: prebuiltOptionsFlowJson,
+    itemListFlow: prebuiltItemListFlowJson,
+    orderReviewFlow: prebuiltOrderReviewFlowJson,
+    customerNameFlow: prebuiltCustomerNameFlowJson,
   },
 });
 

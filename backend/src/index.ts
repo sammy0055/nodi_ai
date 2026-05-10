@@ -36,6 +36,7 @@ import { setupReviewQueues, startReviewtWorkerConsumer } from './helpers/rabbitm
 import { bot } from './bot.js';
 import { followUPQueueConsumer, setupFollowUPQueueProducer } from './helpers/rabbitmq/followUpQueue.js';
 import { startExpiryListener } from './helpers/redis/index.js';
+import { pendingOrderQueueConsumer, setupPendingOrderQueueReminder } from './helpers/rabbitmq/pendingOrderQueue.js';
 
 const app = express();
 
@@ -97,12 +98,15 @@ const vectorStore = new ManageVectorStore();
 const PORT = appConfig.port;
 app.listen(PORT, async () => {
   await connectDB();
+    await queueConsumer();
   await setupReviewQueues();
+    await startReviewtWorkerConsumer();
   // await setupFollowUPQueueProducer()
-  await queueConsumer();
-  // await followUPQueueConsumer();
-  await startReviewtWorkerConsumer();
+   // await followUPQueueConsumer();
+
+  await setupPendingOrderQueueReminder()
+  await pendingOrderQueueConsumer();
   await vectorStore.initCollection();
-  await startExpiryListener()
+  await startExpiryListener();
   await bot.connectToMcpServer();
 });

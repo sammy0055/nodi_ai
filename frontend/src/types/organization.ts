@@ -41,7 +41,8 @@ export interface IOrganization {
   hotline?: string;
   invalidInputInResponseMessageInWorkflow?: ResponseMessageInFlow;
   invalidCatalogInputResponseMessageInWorkflow?: ResponseMessageInFlow;
-  successfullOrderMessageInWorkflow?:ResponseMessageInFlow
+  successfullOrderMessageInWorkflow?: ResponseMessageInFlow;
+  contactPhoneNumbers?: string[];
 }
 
 export interface OrganizationPayload extends IOrganization {
