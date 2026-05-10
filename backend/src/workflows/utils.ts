@@ -13,7 +13,7 @@ interface GenerateTextArgs {
 }
 
 // helper: format numbers per locale
-const formatAmount =
+export const formatAmount =
   (locale: 'en' | 'ar', currency = 'NGN') =>
   (value: number) =>
     new Intl.NumberFormat(locale === 'ar' ? 'ar-EG' : 'en-US', {

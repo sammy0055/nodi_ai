@@ -1,4 +1,5 @@
 import { models } from '../../models';
+import { formatAmount } from '../../workflows/utils';
 import { initRabbit, RabitQueues } from './init';
 
 const { OrderModel, CustomerModel, OrganizationsModel } = models;
@@ -57,7 +58,8 @@ export const pendingOrderQueueConsumer = async () => {
       }
       const customer = await CustomerModel.findByPk(order.customerId);
       const org = await OrganizationsModel.findByPk(job.organizationId);
-      const text = `Hello, you have an order from ${customer?.name ?? ''} in the portal that needs your attention. \n Order Total: ${order.currency}${order.totalAmount}`;
+      const format = formatAmount('en', order.currency);
+      const text = `Hello, you have an order from ${customer?.name ?? ''} in the portal that needs your attention. \n\n Order Total: ${order.currency} ${format(order.totalAmount)}`;
       if (org?.contactPhoneNumbers?.length === 0) throw new Error('No contact phone number for this organization');
       await sendMessage(org!.contactPhoneNumbers!, text);
       channel.ack(msg);
