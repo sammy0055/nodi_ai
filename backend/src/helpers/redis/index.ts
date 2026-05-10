@@ -2,7 +2,7 @@ import { Redis } from 'ioredis';
 import { queueProducer } from '../rabbitmq';
 import { WhatsAppMessage } from '../../types/whatsapp-webhook';
 import { appConfig } from '../../config';
-import { WorkflowDraft } from '../../workflows/malek';
+import { WorkflowDraft } from '../../workflows/restaurantOrgType';
 
 const redis = new Redis(appConfig.redis);
 

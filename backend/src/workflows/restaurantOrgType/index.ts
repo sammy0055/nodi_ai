@@ -41,14 +41,12 @@ const {
   ReviewModel,
 } = models;
 
-export const handleIncommingMessageForMalek = async (whatsappBusinessId: string, msg: WhatsAppMessage) => {
+export const handleIncommingMessageForRestaurantOrg = async (whatsappBusinessId: string, msg: WhatsAppMessage) => {
   try {
     const userPhoneNumber = msg.from;
-    const payload = msg.interactive?.nfm_reply?.response_json
-      ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
-      : null;
+    const payload = msg.interactive?.nfm_reply?.response_json ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any) : null;
 
-    const chat = await MalekChatService.init(userPhoneNumber, whatsappBusinessId);
+    const chat = await RestaurantOrganizationChatService.init(userPhoneNumber, whatsappBusinessId);
 
     // review logic ---------
     if (payload?.flowLabel === WhatsappFlowLabel.Review_Order) {
@@ -76,7 +74,7 @@ export const handleIncommingMessageForMalek = async (whatsappBusinessId: string,
   }
 };
 
-export class MalekChatService {
+export class RestaurantOrganizationChatService {
   protected organizationId: string = '';
   protected conversationId: string = '';
   protected userPhoneNumber: string;
@@ -91,7 +89,7 @@ export class MalekChatService {
   }
 
   static async init(userPhoneNumber: string, organizationWhatsappId: string) {
-    const instance = new MalekChatService(userPhoneNumber, organizationWhatsappId);
+    const instance = new RestaurantOrganizationChatService(userPhoneNumber, organizationWhatsappId);
 
     const data = await WhatSappSettingsModel.findOne({
       where: { whatsappBusinessId: instance.organizationWhatsappId },
@@ -204,9 +202,7 @@ export class MalekChatService {
 
   async saveReviewAnswers(msg: WhatsAppMessage) {
     try {
-      const payload = msg.interactive?.nfm_reply?.response_json
-        ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
-        : null;
+      const payload = msg.interactive?.nfm_reply?.response_json ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any) : null;
       if (!payload) throw new Error('no response for review');
       const rating = payload?.overall_rating;
       const orderId = payload.orderId;
@@ -1071,9 +1067,7 @@ export class MalekChatService {
     const product = await ProductModel.findOne({ where: { organizationId: this.organizationId } });
 
     return {
-      catalogUrl: `https://wa.me/c/${orgBusinessWhatsappData.whatsappPhoneNumber.trim()}`
-        .replace(/\s+/g, '')
-        .replace('+', ''),
+      catalogUrl: `https://wa.me/c/${orgBusinessWhatsappData.whatsappPhoneNumber.trim()}`.replace(/\s+/g, '').replace('+', ''),
       productUrl: product?.imageUrl || '',
     };
   }
@@ -1146,9 +1140,7 @@ export class MalekChatService {
       where: { organizationId: this.organizationId },
     });
 
-    const flow = whatsappSettings?.whatsappTemplates.find(
-      (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.ZONE_AND_AREAS_FLOW
-    );
+    const flow = whatsappSettings?.whatsappTemplates.find((w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.ZONE_AND_AREAS_FLOW);
     const areaAndZone = {
       zones: filteredZones,
       flowId: flow?.type === 'flow' && flow?.data.flowId,
@@ -1183,9 +1175,7 @@ export class MalekChatService {
       where: { organizationId: this.organizationId },
     });
 
-    const flow = whatsappSettings?.whatsappTemplates?.find(
-      (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.BRANCHES_FLOW
-    );
+    const flow = whatsappSettings?.whatsappTemplates?.find((w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.BRANCHES_FLOW);
 
     const branchesFlowData = {
       branches: filteredBranches,
@@ -1231,9 +1221,7 @@ export class MalekChatService {
     const productTotal = order.items.reduce((sum, item) => {
       const base = item.price * item.quantity;
 
-      const optionsTotal =
-        (item.selectedOptions || []).reduce((optSum, opt) => optSum + (Number(opt.priceAdjustment) || 0), 0) *
-        item.quantity;
+      const optionsTotal = (item.selectedOptions || []).reduce((optSum, opt) => optSum + (Number(opt.priceAdjustment) || 0), 0) * item.quantity;
 
       return sum + base + optionsTotal;
     }, 0);
@@ -1328,9 +1316,7 @@ export class MalekChatService {
         where: { organizationId: this.organizationId },
       });
 
-      const flow = whatsappSettings?.whatsappTemplates?.find(
-        (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW
-      );
+      const flow = whatsappSettings?.whatsappTemplates?.find((w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW);
 
       const flowContent = getFlowContent('multi-upselling-flow', draft.lang);
       const res = await this.sendWhatSappMultiUPsellingItemsFlowInteractiveMessage({
@@ -1449,10 +1435,7 @@ export class MalekChatService {
     }
   }
 
-  private async editOrderedItemsModificationHandler(
-    draft: WorkflowDraft,
-    msg: WhatsAppMessage
-  ): Promise<StepHandlerResult> {
+  private async editOrderedItemsModificationHandler(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     try {
       const product = draft.selectedProducts.find((i) => !i.isOptionAdded && i?.options?.length > 0);
       if (product) {
@@ -1622,17 +1605,12 @@ export class MalekChatService {
     };
   }
 
-  private async processProductItemSendingHandler(
-    draft: WorkflowDraft,
-    msg: WhatsAppMessage
-  ): Promise<StepHandlerResult> {
+  private async processProductItemSendingHandler(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     const whatsappSettings = await WhatSappSettingsModel.findOne({
       where: { organizationId: this.organizationId },
     });
 
-    const flow = whatsappSettings?.whatsappTemplates?.find(
-      (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW
-    );
+    const flow = whatsappSettings?.whatsappTemplates?.find((w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW);
     const items = draft.selectedProducts
       .filter((i) => i?.options && i?.options?.length > 0)
       .map((i) => ({
@@ -1656,17 +1634,12 @@ export class MalekChatService {
     };
   }
 
-  private async processProductOrderedItemSendingHandler(
-    draft: WorkflowDraft,
-    msg: WhatsAppMessage
-  ): Promise<StepHandlerResult> {
+  private async processProductOrderedItemSendingHandler(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     const whatsappSettings = await WhatSappSettingsModel.findOne({
       where: { organizationId: this.organizationId },
     });
 
-    const flow = whatsappSettings?.whatsappTemplates?.find(
-      (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW
-    );
+    const flow = whatsappSettings?.whatsappTemplates?.find((w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW);
     const items = draft.orderDetails.items.map((i) => ({ id: `${i.productId}_${i.uniqueId}`, title: i.productName }));
     const flowContent = getFlowContent('select-items-flow', draft.lang);
     const res = await this.sendWhatSappItemSelectionFlowInteractiveMessage({
@@ -1727,9 +1700,7 @@ export class MalekChatService {
       where: { organizationId: this.organizationId },
     });
 
-    const flow = whatsappSettings?.whatsappTemplates?.find(
-      (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW
-    );
+    const flow = whatsappSettings?.whatsappTemplates?.find((w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW);
 
     const items = draft.orderDetails.items.map((i) => ({ id: `${i.productId}_${i.uniqueId}`, title: i.productName }));
     const flowContent = getFlowContent('select-items-flow', draft.lang);
@@ -1766,9 +1737,7 @@ export class MalekChatService {
           where: { organizationId: this.organizationId },
         });
 
-        const flow = whatsappSettings?.whatsappTemplates.find(
-          (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.CUSTOMER_NAME
-        );
+        const flow = whatsappSettings?.whatsappTemplates.find((w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.CUSTOMER_NAME);
         const flowContent = getFlowContent('customer-name-flow', lang);
 
         return await this.sendWhatSappCustomerNameFlowInteractiveMessage({
@@ -1856,9 +1825,7 @@ export class MalekChatService {
     console.log('handleCustomerNameSelection');
     console.log('====================================');
     try {
-      const payload = msg.interactive?.nfm_reply?.response_json
-        ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
-        : null;
+      const payload = msg.interactive?.nfm_reply?.response_json ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any) : null;
       if (payload?.flowLabel === WhatsappFlowLabel.CUSTOMER_NAME) {
         const fullName = `${payload?.first_name ?? ''} ${payload?.last_name ?? ''}`.trim();
         const cus = await this.getCustomerData();
@@ -1882,9 +1849,7 @@ export class MalekChatService {
           where: { organizationId: this.organizationId },
         });
 
-        const flow = whatsappSettings?.whatsappTemplates.find(
-          (w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.CUSTOMER_NAME
-        );
+        const flow = whatsappSettings?.whatsappTemplates.find((w) => w.type === 'flow' && w.data?.flowLabel === WhatsappFlowLabel.CUSTOMER_NAME);
         const flowContent = getFlowContent('customer-name-flow', draft.lang);
         const res = await this.sendWhatSappCustomerNameFlowInteractiveMessage({
           ...flowContent,
@@ -1967,9 +1932,7 @@ export class MalekChatService {
     console.log('====================================');
     console.log('handleAddressSelection');
     console.log('====================================');
-    const payload = msg.interactive?.nfm_reply?.response_json
-      ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
-      : null;
+    const payload = msg.interactive?.nfm_reply?.response_json ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any) : null;
 
     const listPayload = msg?.interactive?.list_reply as any;
 
@@ -2133,9 +2096,7 @@ export class MalekChatService {
           },
           organizationId: this.organizationId,
         },
-        include: [
-          { model: ProductOptionModel, as: 'options', include: [{ model: ProductOptionChoiceModel, as: 'choices' }] },
-        ],
+        include: [{ model: ProductOptionModel, as: 'options', include: [{ model: ProductOptionChoiceModel, as: 'choices' }] }],
       });
 
       // create lookup map
@@ -2249,9 +2210,7 @@ export class MalekChatService {
 
   private async handleProductItemsSelection(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     try {
-      const payload = msg.interactive?.nfm_reply?.response_json
-        ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
-        : null;
+      const payload = msg.interactive?.nfm_reply?.response_json ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any) : null;
       if (payload?.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW) {
         function parsePrefixedIds(prefixedIds: string[]) {
           return prefixedIds.map((id) => {
@@ -2269,9 +2228,7 @@ export class MalekChatService {
             },
             organizationId: this.organizationId,
           },
-          include: [
-            { model: ProductOptionModel, as: 'options', include: [{ model: ProductOptionChoiceModel, as: 'choices' }] },
-          ],
+          include: [{ model: ProductOptionModel, as: 'options', include: [{ model: ProductOptionChoiceModel, as: 'choices' }] }],
         });
 
         // create lookup map
@@ -2311,9 +2268,7 @@ export class MalekChatService {
 
   private async handleOrderedItemsSelection(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     try {
-      const payload = msg.interactive?.nfm_reply?.response_json
-        ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
-        : null;
+      const payload = msg.interactive?.nfm_reply?.response_json ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any) : null;
       if (payload?.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW) {
         function parsePrefixedIds(prefixedIds: string[]) {
           return prefixedIds.map((id) => {
@@ -2331,9 +2286,7 @@ export class MalekChatService {
             },
             organizationId: this.organizationId,
           },
-          include: [
-            { model: ProductOptionModel, as: 'options', include: [{ model: ProductOptionChoiceModel, as: 'choices' }] },
-          ],
+          include: [{ model: ProductOptionModel, as: 'options', include: [{ model: ProductOptionChoiceModel, as: 'choices' }] }],
         });
 
         // create lookup map
@@ -2374,9 +2327,7 @@ export class MalekChatService {
     console.log('====================================');
     console.log('handleOptionItemSelection');
     console.log('====================================');
-    const payload = msg.interactive?.nfm_reply?.response_json
-      ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
-      : null;
+    const payload = msg.interactive?.nfm_reply?.response_json ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any) : null;
     if (payload?.flowLabel === WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW) {
       const optionNames = productOptionsTaxonomy.restaurant.map((i) => i.name);
       const flatIds = Object.keys(payload)
@@ -2396,9 +2347,7 @@ export class MalekChatService {
 
       if (selectedProductOptionChoices.length > 0) {
         const productIds = draft.orderDetails.items.map((i) => i.productId);
-        const optionChoices = selectedProductOptionChoices.filter((op: any) =>
-          productIds.includes(op.productOption.productId)
-        ) as any;
+        const optionChoices = selectedProductOptionChoices.filter((op: any) => productIds.includes(op.productOption.productId)) as any;
 
         const selectedOption = optionChoices?.map((ch: any) => ({
           optionId: ch.productOption.id,
@@ -2426,16 +2375,11 @@ export class MalekChatService {
     return await this.orderModificationHandler(draft, msg);
   }
 
-  private async handleOrderedItemOptionsSelection(
-    draft: WorkflowDraft,
-    msg: WhatsAppMessage
-  ): Promise<StepHandlerResult> {
+  private async handleOrderedItemOptionsSelection(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     console.log('====================================');
     console.log('handleOrderedItemOptionsSelection');
     console.log('====================================');
-    const payload = msg.interactive?.nfm_reply?.response_json
-      ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
-      : null;
+    const payload = msg.interactive?.nfm_reply?.response_json ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any) : null;
     if (payload?.flowLabel === WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW) {
       const optionNames = productOptionsTaxonomy.restaurant.map((i) => i.name);
       const flatIds = Object.keys(payload)
@@ -2455,9 +2399,7 @@ export class MalekChatService {
 
       if (selectedProductOptionChoices.length > 0) {
         const productIds = draft.orderDetails.items.map((i) => i.productId);
-        const optionChoices = selectedProductOptionChoices.filter((op: any) =>
-          productIds.includes(op.productOption.productId)
-        ) as any;
+        const optionChoices = selectedProductOptionChoices.filter((op: any) => productIds.includes(op.productOption.productId)) as any;
 
         const selectedOption = optionChoices?.map((ch: any) => ({
           optionId: ch.productOption.id,
@@ -2532,9 +2474,7 @@ export class MalekChatService {
     let payload: any = null;
 
     if (msg?.interactive?.nfm_reply?.response_json) {
-      payload = msg.interactive?.nfm_reply?.response_json
-        ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
-        : null;
+      payload = msg.interactive?.nfm_reply?.response_json ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any) : null;
     }
     if (payload?.flowLabel === WhatsappFlowLabel.UPSELLING_ITEMS_FLOW) {
       // multi upselling
@@ -2569,16 +2509,11 @@ export class MalekChatService {
     };
   }
 
-  private async handleUpsellingItemOptionSelection(
-    draft: WorkflowDraft,
-    msg: WhatsAppMessage
-  ): Promise<StepHandlerResult> {
+  private async handleUpsellingItemOptionSelection(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     console.log('====================================');
     console.log('handleUpsellingItemOptionSelection');
     console.log('====================================');
-    const payload = msg.interactive?.nfm_reply?.response_json
-      ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
-      : null;
+    const payload = msg.interactive?.nfm_reply?.response_json ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any) : null;
     if (payload?.flowLabel === WhatsappFlowLabel.PRODUCT_OPTIONS_FLOW) {
       const optionNames = productOptionsTaxonomy.restaurant.map((i) => i.name);
       const flatIds = Object.keys(payload)
@@ -2598,9 +2533,7 @@ export class MalekChatService {
 
       if (selectedProductOptionChoices.length > 0) {
         const productIds = draft.orderDetails.items.map((i) => i.productId);
-        const optionChoices = selectedProductOptionChoices.filter((op: any) =>
-          productIds.includes(op?.productOption?.productId)
-        ) as any;
+        const optionChoices = selectedProductOptionChoices.filter((op: any) => productIds.includes(op?.productOption?.productId)) as any;
 
         const selectedOption = optionChoices?.map((ch: any) => ({
           optionId: ch.productOption.id,
@@ -2654,10 +2587,7 @@ export class MalekChatService {
           });
 
           const conv = await this.getAndCreateConversationIfNotExist();
-          await this.addMessage(
-            { conversationId: conv.id },
-            { role: 'assistant', content: draft.lang === 'en' ? enMessage : arMessage }
-          );
+          await this.addMessage({ conversationId: conv.id }, { role: 'assistant', content: draft.lang === 'en' ? enMessage : arMessage });
           await deleteMessageFromRedis(this.userPhoneNumber);
 
           return {
@@ -2719,17 +2649,12 @@ export class MalekChatService {
     }
   }
 
-  private async handleRemoveOrderedItemSelection(
-    draft: WorkflowDraft,
-    msg: WhatsAppMessage
-  ): Promise<StepHandlerResult> {
+  private async handleRemoveOrderedItemSelection(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     console.log('====================================');
     console.log('handleRemoveOrderedItemSelection');
     console.log('====================================');
     try {
-      const payload = msg.interactive?.nfm_reply?.response_json
-        ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any)
-        : null;
+      const payload = msg.interactive?.nfm_reply?.response_json ? JSON.parse(msg.interactive?.nfm_reply?.response_json as any) : null;
       if (payload.flowLabel === WhatsappFlowLabel.PRODUCT_ITEMS_FLOW) {
         if (payload?.item_id && payload?.item_id?.length > 0) {
           function parsePrefixedIds(prefixedIds: string[]) {

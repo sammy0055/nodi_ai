@@ -38,4 +38,7 @@ export interface IOrganization {
   serviceSchedule: ServiceSchedule[];
   timeZone:string | null
   hotline?:string
+  invalidInputInResponseMessageInWorkflow?: string;
+  invalidCatalogInputResponseMessageInWorkflow?: string;
+  successfullOrderMessageInWorkflow?:string
 }

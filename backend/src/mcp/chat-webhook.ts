@@ -12,7 +12,8 @@ import { models } from '../models';
 import { productOptionsTaxonomy } from '../data/taxonomy';
 import { ProductModel } from '../models/products.model';
 import { handleMessage } from '../helpers/redis';
-import { handleIncommingMessageForMalek } from '../workflows/malek';
+import { handleIncommingMessageForRestaurantOrg } from '../workflows/restaurantOrgType';
+import { getOrganizationBusinessType } from '../utils/organization';
 export const chatRoute = express.Router();
 
 const { BranchesModel, ProductOptionChoiceModel, ProductOptionModel } = models;
@@ -63,12 +64,13 @@ chatRoute.post('/chat-webhook', async (req, res) => {
         console.log(JSON.stringify(msg));
         console.log('====================================');
 
-        // malek organization handler
-        if (entry.id === OnboardedOrganizations.MALEK) {
+        const orgBusinessType = await getOrganizationBusinessType(entry.id);
+        // restaurant organization type handler
+        if (orgBusinessType === 'restaurant') {
           console.log('================malek====================');
-          console.log('running malek handler');
+          console.log('running restaurant handler');
           console.log('====================================');
-          return await handleIncommingMessageForMalek(entry.id, msg);
+          return await handleIncommingMessageForRestaurantOrg(entry.id, msg);
         }
         if (msg.type === 'order') {
           const orderMessage = formatCatalogMessage(msg.order?.product_items!);

@@ -1,8 +1,9 @@
 import { Op } from 'sequelize';
 import { UsersModel } from '../../models/users.model';
 import { sendNotificationAlert } from '../send-email';
-import { UserTypes } from '../../data/data-types';
+import { BusinessType, UserTypes } from '../../data/data-types';
 import { ServiceSchedule } from '../../types/organization';
+import { models } from '../../models';
 
 export const sendEmailNotificationToOrganizationAdmins = async (
   orgId: string,
@@ -184,3 +185,21 @@ export function checkBusinessServiceSchedule(
 function capitalize(text: string) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
+
+const { WhatSappSettingsModel, OrganizationsModel } = models;
+export const getOrganizationBusinessType = async (orgWhatsAppBusinessId: string) => {
+  const data = await WhatSappSettingsModel.findOne({
+    where: { whatsappBusinessId: orgWhatsAppBusinessId },
+  });
+
+  if (!data) {
+    throw new Error('organization is not registered for this phone number');
+  }
+
+  const org = await OrganizationsModel.findByPk(data.organizationId as any);
+  if (!org) {
+    throw new Error('organization does not exist for this whatsApp business' + orgWhatsAppBusinessId);
+  }
+
+  return org.businessType as `${BusinessType}`;
+};
