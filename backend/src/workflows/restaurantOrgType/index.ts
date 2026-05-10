@@ -1748,9 +1748,10 @@ export class RestaurantOrganizationChatService {
         });
       };
       const customer = await this.getCustomerData();
+      const org = await this.getOrganization();
       const listPayload = msg?.interactive?.button_reply as any;
       if (listPayload.id === 'en') {
-        const bodyText = `Hello ${customer?.name ?? ''}, welcome to Malak Al Tawouk, how can I help you today?`;
+        const bodyText = `Hello ${customer?.name ?? ''}, welcome to ${org?.name ?? ''}, how can I help you today?`;
         const flowContent = getFlowContent('greeting-flow', 'en');
         flowContent.bodyText = bodyText;
         const res = customer?.name
@@ -1774,7 +1775,7 @@ export class RestaurantOrganizationChatService {
           response: res,
         };
       } else if (listPayload.id === 'ar') {
-        const bodyText = `مرحباً ${customer?.name ?? ''}، بك في ملك الطاووق، كيف يمكنني مساعدتك اليوم؟`;
+        const bodyText = `مرحبًا ${customer?.name ?? ''}، أهلاً بك في ${org?.name ?? ''}، كيف يمكنني مساعدتك اليوم؟`;
         const flowContent = getFlowContent('greeting-flow', 'ar');
         flowContent.bodyText = bodyText;
         const res = customer?.name

@@ -19,13 +19,7 @@ import {
 } from 'react-icons/fi';
 import Button from '../../components/atoms/Button/Button';
 import Input from '../../components/atoms/Input/Input';
-import {
-  useOrgSetRecoilState,
-  useOrgValue,
-  useUserValue,
-  useWhatsappSetRecoilState,
-  useWhatsappValue,
-} from '../../store/authAtoms';
+import { useOrgSetRecoilState, useOrgValue, useUserValue, useWhatsappSetRecoilState, useWhatsappValue } from '../../store/authAtoms';
 import { OrganizationService } from '../../services/organizationService';
 import { useWhatsAppSignup } from '../../hooks/whatsapp';
 import type { BaseRequestAttributes } from '../../types/request';
@@ -45,10 +39,7 @@ const SettingsPage: React.FC = () => {
   const setWhatsappData = useWhatsappSetRecoilState();
   const WABA_AUTH_CONFIG = import.meta.env.VITE_META_WABA_CONFIG_AUTH_ID;
   const WABA_REDIRECT_URL = import.meta.env.VITE_META_REDIRECT_URL;
-  const { status, sdkResponse, sessionInfo, launchWhatsAppSignup } = useWhatsAppSignup(
-    WABA_AUTH_CONFIG,
-    WABA_REDIRECT_URL
-  );
+  const { status, sdkResponse, sessionInfo, launchWhatsAppSignup } = useWhatsAppSignup(WABA_AUTH_CONFIG, WABA_REDIRECT_URL);
 
   const data = useLoaderData() as {
     users: User[];
@@ -107,6 +98,20 @@ const SettingsPage: React.FC = () => {
   } = new OrganizationService();
   const handleOrgChange = (field: string, value: string) => {
     setOrgData((prev) => ({ ...prev!, [field]: value }));
+  };
+
+  const handleOrgInvalidResponseMessages = (
+    field: 'invalidInputInResponseMessageInWorkflow' | 'invalidCatalogInputResponseMessageInWorkflow' | 'successfullOrderMessageInWorkflow',
+    lang: 'enMsg' | 'arMsg',
+    value: string
+  ) => {
+    setOrgData((prev) => ({
+      ...prev!,
+      [field]: {
+        ...(prev?.[field] || {}),
+        [lang]: value,
+      },
+    }));
   };
 
   const handleSave = async () => {
@@ -526,34 +531,86 @@ const SettingsPage: React.FC = () => {
               placeholder="Enter the Hotline"
             />
 
+            {orgData?.businessType === 'restaurant' && (
+              <>
+                <Input
+                  label="English Invalid Input Response Message In Workflow"
+                  value={orgData.invalidInputInResponseMessageInWorkflow?.enMsg || ''}
+                  onChange={(e) => handleOrgInvalidResponseMessages('invalidInputInResponseMessageInWorkflow', 'enMsg', e.target.value)}
+                  disabled={!isEditing}
+                  placeholder="Enter the Message"
+                />
+
+                <Input
+                  label="Arabic Invalid Input Response Message In Workflow"
+                  value={orgData.invalidInputInResponseMessageInWorkflow?.arMsg || ''}
+                  onChange={(e) => handleOrgInvalidResponseMessages('invalidInputInResponseMessageInWorkflow', 'arMsg', e.target.value)}
+                  disabled={!isEditing}
+                  placeholder="Enter the Message"
+                />
+                <Input
+                  label="English Invalid Catalog Input Response Message In Workflow"
+                  value={orgData.invalidCatalogInputResponseMessageInWorkflow?.enMsg || ''}
+                  onChange={(e) => handleOrgInvalidResponseMessages('invalidCatalogInputResponseMessageInWorkflow', 'enMsg', e.target.value)}
+                  disabled={!isEditing}
+                  placeholder="Enter the Message"
+                />
+                <Input
+                  label="Arabic Invalid Catalog Input Response Message In Workflow"
+                  value={orgData.invalidCatalogInputResponseMessageInWorkflow?.arMsg || ''}
+                  onChange={(e) => handleOrgInvalidResponseMessages('invalidCatalogInputResponseMessageInWorkflow', 'arMsg', e.target.value)}
+                  disabled={!isEditing}
+                  placeholder="Enter the Message"
+                />
+                <Input
+                  label="English Post Successfull Order Message"
+                  value={orgData.successfullOrderMessageInWorkflow?.enMsg}
+                  onChange={(e) => handleOrgInvalidResponseMessages('successfullOrderMessageInWorkflow', 'enMsg', e.target.value)}
+                  disabled={!isEditing}
+                  placeholder="Enter the Message"
+                />
+                <Input
+                  label="Arabic Post Successfull Order Message"
+                  value={orgData.successfullOrderMessageInWorkflow?.arMsg}
+                  onChange={(e) => handleOrgInvalidResponseMessages('successfullOrderMessageInWorkflow', 'arMsg', e.target.value)}
+                  disabled={!isEditing}
+                  placeholder="Enter the Message"
+                />
+              </>
+            )}
+
             {/* languageProtectedTerms */}
             <div>
-              <label className="text-sm font-medium text-neutral-700 mb-2 block">languageProtectedTerms *</label>
-              <div className="space-y-2">
-                {orgData?.languageProtectedTerms?.map((feature, index) => (
-                  <div key={index} className="flex space-x-2">
-                    <input
-                      type="text"
-                      value={feature}
-                      disabled={!isEditing}
-                      onChange={(e) => handleLanguageTermChange(index, e.target.value)}
-                      placeholder="Add a feature (e.g., 20M AI tokens)"
-                      className="flex-1 px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    />
-                    {orgData.languageProtectedTerms && orgData.languageProtectedTerms.length > 1 && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={!isEditing}
-                        onClick={() => removeFeatureField(index)}
-                        className="text-red-600 hover:bg-red-50"
-                      >
-                        <FiX />
-                      </Button>
-                    )}
+              {orgData?.businessType !== 'restaurant' && (
+                <>
+                  <label className="text-sm font-medium text-neutral-700 mb-2 block">languageProtectedTerms *</label>
+                  <div className="space-y-2">
+                    {orgData?.languageProtectedTerms?.map((feature, index) => (
+                      <div key={index} className="flex space-x-2">
+                        <input
+                          type="text"
+                          value={feature}
+                          disabled={!isEditing}
+                          onChange={(e) => handleLanguageTermChange(index, e.target.value)}
+                          placeholder="Add a feature (e.g., 20M AI tokens)"
+                          className="flex-1 px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                        {orgData.languageProtectedTerms && orgData.languageProtectedTerms.length > 1 && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={!isEditing}
+                            onClick={() => removeFeatureField(index)}
+                            className="text-red-600 hover:bg-red-50"
+                          >
+                            <FiX />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </>
+              )}
               <Button variant="outline" onClick={addFeatureField} className="mt-3" disabled={!isEditing}>
                 <FiPlus className="mr-2" />
                 Add Feature
@@ -624,8 +681,7 @@ const SettingsPage: React.FC = () => {
                     <span className="font-medium">Phone Number ID:</span> {whatsappData?.whatsappPhoneNumberId}
                   </p>
                   <p className="text-sm text-neutral-600">
-                    <span className="font-medium">Webhook Subscription:</span>{' '}
-                    {whatsappData.isSubscribedToWebhook ? 'Active' : 'Inactive'}
+                    <span className="font-medium">Webhook Subscription:</span> {whatsappData.isSubscribedToWebhook ? 'Active' : 'Inactive'}
                   </p>
                   <p className="text-sm text-neutral-600">
                     <span className="font-medium">Templates:</span> {whatsappData.whatsappTemplates.length} approved
@@ -662,8 +718,7 @@ const SettingsPage: React.FC = () => {
                     Catalog Active
                   </div>
                   <p className="text-sm text-neutral-600 mb-3">
-                    Your product catalog is connected to WhatsApp. Customers can browse your products directly in
-                    WhatsApp.
+                    Your product catalog is connected to WhatsApp. Customers can browse your products directly in WhatsApp.
                   </p>
                   {/* REJECTED */}
                   {catalogRequest?.status === 'rejected' && (
@@ -677,9 +732,7 @@ const SettingsPage: React.FC = () => {
 
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                         <h5 className="font-medium text-blue-800 text-sm mb-2">Request Details:</h5>
-                        <pre className="text-xs text-blue-700 overflow-x-auto">
-                          {JSON.stringify(catalogRequest || {}, null, 2)}
-                        </pre>
+                        <pre className="text-xs text-blue-700 overflow-x-auto">{JSON.stringify(catalogRequest || {}, null, 2)}</pre>
                       </div>
                     </div>
                   )}
@@ -709,14 +762,10 @@ const SettingsPage: React.FC = () => {
                     No Catalog
                   </div>
                   <p className="text-sm text-neutral-600 mb-3">
-                    Create a product catalog to showcase your products on WhatsApp. This allows customers to browse and
-                    purchase directly through WhatsApp.
+                    Create a product catalog to showcase your products on WhatsApp. This allows customers to browse and purchase directly through
+                    WhatsApp.
                   </p>
-                  <Button
-                    onClick={handleCatalogCreation}
-                    isLoading={isLoading}
-                    disabled={whatsappData?.connectionStatus !== 'connected'}
-                  >
+                  <Button onClick={handleCatalogCreation} isLoading={isLoading} disabled={whatsappData?.connectionStatus !== 'connected'}>
                     <FiShoppingBag className="mr-2" />
                     Create Product Catalog
                   </Button>
@@ -729,14 +778,12 @@ const SettingsPage: React.FC = () => {
                     Request Being Processed
                   </div>
                   <p className="text-sm text-neutral-600 mb-3">
-                    Your product catalog request is currently being processed. This usually takes a few minutes. You'll
-                    be notified once your catalog is ready.
+                    Your product catalog request is currently being processed. This usually takes a few minutes. You'll be notified once your catalog
+                    is ready.
                   </p>
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                     <h5 className="font-medium text-blue-800 text-sm mb-2">Request Details:</h5>
-                    <pre className="text-xs text-blue-700 overflow-x-auto">
-                      {JSON.stringify(catalogRequest || {}, null, 2)}
-                    </pre>
+                    <pre className="text-xs text-blue-700 overflow-x-auto">{JSON.stringify(catalogRequest || {}, null, 2)}</pre>
                   </div>
                   <Button variant="outline" className="mt-3" disabled>
                     <FiClock className="mr-2" />
@@ -754,9 +801,7 @@ const SettingsPage: React.FC = () => {
                   <p className="text-sm text-neutral-600 mb-3">Your product catalog request has being rejected.</p>
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                     <h5 className="font-medium text-blue-800 text-sm mb-2">Request Details:</h5>
-                    <pre className="text-xs text-blue-700 overflow-x-auto">
-                      {JSON.stringify(catalogRequest || {}, null, 2)}
-                    </pre>
+                    <pre className="text-xs text-blue-700 overflow-x-auto">{JSON.stringify(catalogRequest || {}, null, 2)}</pre>
                   </div>
                   <Button variant="outline" className="mt-3">
                     <FiClock className="mr-2" />
@@ -776,8 +821,7 @@ const SettingsPage: React.FC = () => {
           Need Help?
         </h3>
         <p className="text-neutral-600 mb-4">
-          If you need assistance with WhatsApp Business setup or have questions about your organization settings, our
-          support team is here to help.
+          If you need assistance with WhatsApp Business setup or have questions about your organization settings, our support team is here to help.
         </p>
         <div className="flex space-x-3">
           <Button variant="outline">View Documentation</Button>
@@ -857,18 +901,10 @@ const SettingsPage: React.FC = () => {
           <table className="min-w-full divide-y divide-neutral-200">
             <thead>
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                  Name
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                  Email
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                  Role
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Name</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Email</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Role</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-200">
@@ -901,9 +937,7 @@ const SettingsPage: React.FC = () => {
                       <input
                         type="password"
                         value={editUserData?.password || ''}
-                        onChange={(e) =>
-                          setEditUserData((prev) => (prev ? { ...prev, password: e.target.value } : null))
-                        }
+                        onChange={(e) => setEditUserData((prev) => (prev ? { ...prev, password: e.target.value } : null))}
                         className="border border-neutral-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       />
                     ) : (
@@ -952,12 +986,7 @@ const SettingsPage: React.FC = () => {
                           <FiEdit className="mr-1" />
                           Edit
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDeleteUser(user.id)}
-                          className="text-red-600 hover:bg-red-50"
-                        >
+                        <Button size="sm" variant="outline" onClick={() => handleDeleteUser(user.id)} className="text-red-600 hover:bg-red-50">
                           <FiTrash2 className="mr-1" />
                           Delete
                         </Button>
@@ -1013,8 +1042,7 @@ const SettingsPage: React.FC = () => {
           {selectedRoleId && (
             <div className="mt-4">
               <p className="text-sm text-neutral-600">
-                <span className="font-medium">Description:</span>{' '}
-                {roles.find((r) => r.id === selectedRoleId)?.description}
+                <span className="font-medium">Description:</span> {roles.find((r) => r.id === selectedRoleId)?.description}
               </p>
             </div>
           )}
@@ -1038,10 +1066,7 @@ const SettingsPage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {permissions.map((permission) => (
-              <div
-                key={permission.id}
-                className="flex items-center p-3 border border-neutral-200 rounded-lg hover:bg-neutral-50"
-              >
+              <div key={permission.id} className="flex items-center p-3 border border-neutral-200 rounded-lg hover:bg-neutral-50">
                 <input
                   type="checkbox"
                   id={`permission-${permission.id}`}
@@ -1074,16 +1099,12 @@ const SettingsPage: React.FC = () => {
           {roles.map((role) => (
             <div
               key={role.id}
-              className={`p-4 border rounded-lg ${
-                selectedRoleId === role.id ? 'border-primary-500 bg-primary-50' : 'border-neutral-200'
-              }`}
+              className={`p-4 border rounded-lg ${selectedRoleId === role.id ? 'border-primary-500 bg-primary-50' : 'border-neutral-200'}`}
             >
               <h4 className="font-medium text-neutral-900">{role.name}</h4>
               <p className="text-sm text-neutral-600 mt-1">{role.description}</p>
               <div className="mt-2 flex justify-between items-center">
-                <span className="text-xs text-neutral-500">
-                  {users.filter((u) => u.roles.some((r) => r.id === role.id)).length} users
-                </span>
+                <span className="text-xs text-neutral-500">{users.filter((u) => u.roles.some((r) => r.id === role.id)).length} users</span>
                 <Button
                   size="sm"
                   variant="outline"
@@ -1125,9 +1146,7 @@ const SettingsPage: React.FC = () => {
             <button
               onClick={() => setActiveTab('general')}
               className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
-                activeTab === 'general'
-                  ? 'text-primary-600 border-b-2 border-primary-600 font-semibold'
-                  : 'text-neutral-600 hover:text-neutral-900'
+                activeTab === 'general' ? 'text-primary-600 border-b-2 border-primary-600 font-semibold' : 'text-neutral-600 hover:text-neutral-900'
               }`}
             >
               <FiShoppingBag className="mr-2" />
@@ -1153,9 +1172,7 @@ const SettingsPage: React.FC = () => {
             <button
               onClick={() => setActiveTab('users')}
               className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
-                activeTab === 'users'
-                  ? 'text-primary-600 border-b-2 border-primary-600 font-semibold'
-                  : 'text-neutral-600 hover:text-neutral-900'
+                activeTab === 'users' ? 'text-primary-600 border-b-2 border-primary-600 font-semibold' : 'text-neutral-600 hover:text-neutral-900'
               }`}
             >
               <FiUsers className="mr-2" />
@@ -1167,9 +1184,7 @@ const SettingsPage: React.FC = () => {
             <button
               onClick={() => setActiveTab('roles')}
               className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
-                activeTab === 'roles'
-                  ? 'text-primary-600 border-b-2 border-primary-600 font-semibold'
-                  : 'text-neutral-600 hover:text-neutral-900'
+                activeTab === 'roles' ? 'text-primary-600 border-b-2 border-primary-600 font-semibold' : 'text-neutral-600 hover:text-neutral-900'
               }`}
             >
               <FiKey className="mr-2" />
@@ -1181,9 +1196,7 @@ const SettingsPage: React.FC = () => {
             <button
               onClick={() => setActiveTab('fqa')}
               className={`px-6 py-3 font-medium text-sm md:text-base flex items-center ${
-                activeTab === 'fqa'
-                  ? 'text-primary-600 border-b-2 border-primary-600 font-semibold'
-                  : 'text-neutral-600 hover:text-neutral-900'
+                activeTab === 'fqa' ? 'text-primary-600 border-b-2 border-primary-600 font-semibold' : 'text-neutral-600 hover:text-neutral-900'
               }`}
             >
               <FiKey className="mr-2" />

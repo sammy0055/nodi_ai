@@ -20,6 +20,10 @@ export interface ServiceSchedule {
   hours: { open: string; close: string }[];
 }
 
+export interface ResponseMessageInFlow {
+  enMsg: string;
+  arMsg: string;
+}
 export interface IOrganization {
   id: string; // uuid
   name: string;
@@ -33,8 +37,11 @@ export interface IOrganization {
   frequentlyAskedQuestions: FAQItem[];
   serviceSchedule: ServiceSchedule[];
   reviewTimer: number | null;
-  timeZone?:string
-  hotline?:string
+  timeZone?: string;
+  hotline?: string;
+  invalidInputInResponseMessageInWorkflow?: ResponseMessageInFlow;
+  invalidCatalogInputResponseMessageInWorkflow?: ResponseMessageInFlow;
+  successfullOrderMessageInWorkflow?:ResponseMessageInFlow
 }
 
 export interface OrganizationPayload extends IOrganization {
