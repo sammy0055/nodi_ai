@@ -37,7 +37,7 @@ export class ImageUploadHelper {
   // }
 
   async uploadImageTos3(file: any, data: { orgainationId: string; productId: string }) {
-    const key = `${uuidv4()}.png`;
+    const key = `orgs/${data.orgainationId}/prod/${data.productId}/${uuidv4()}.png`;
     const command = new PutObjectCommand({
       Bucket: this.bucketName,
       Key: key,
@@ -87,7 +87,7 @@ export class ImageUploadHelper {
   isValidImageUrlFromMyDomain(url: string) {
     try {
       const parsed = new URL(url);
-      return parsed.origin === appConfig.backendUrl
+      return parsed.origin === appConfig.backendUrl;
     } catch {
       return false;
     }

@@ -96,14 +96,14 @@ ProductModel.init(
     ],
     hooks: {
       beforeCreate: async (product: ProductModel) => {
-        const vectorStore = new ManageVectorStore();
-        await vectorStore.insertProductEmbedding(product);
+        // const vectorStore = new ManageVectorStore();
+        // await vectorStore.insertProductEmbedding(product);
       },
       beforeUpdate: async (product: ProductModel) => {
-        if (product.changed('name') || product.changed('description') || product.changed('price')) {
-          const vectorStore = new ManageVectorStore();
-          await vectorStore.insertProductEmbedding(product);
-        }
+        // if (product.changed('name') || product.changed('description') || product.changed('price')) {
+        //   const vectorStore = new ManageVectorStore();
+        //   await vectorStore.insertProductEmbedding(product);
+        // }
       },
     },
   }

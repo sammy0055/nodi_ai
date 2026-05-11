@@ -64,7 +64,7 @@ export class WhatsappCatalogHelper {
             description,
             price: priceToMetaFormat(price, currency),
             image_link: imageUrl || 'https://example.com/placeholder.png',
-            link: 'https://cot.credobyte.ai/',
+            link: 'https://credobyte.ai',
             availability: 'in stock',
             condition: 'new',
           },
