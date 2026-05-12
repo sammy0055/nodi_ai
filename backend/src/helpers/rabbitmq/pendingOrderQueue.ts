@@ -74,7 +74,7 @@ const sendMessage = async (recipientPhoneNumbers: string[], message: string) => 
   console.log('running send pending order reminder.........');
 
   try {
-    const url = `https://graph.facebook.com/v20.0/264566581679272/messages`;
+    const url = `https://graph.facebook.com/v20.0/721528764372914/messages`;
 
     for (const phoneNumber of recipientPhoneNumbers) {
       const res = await fetch(url, {
@@ -85,10 +85,26 @@ const sendMessage = async (recipientPhoneNumbers: string[], message: string) => 
         },
         body: JSON.stringify({
           messaging_product: 'whatsapp',
+          recipient_type: 'individual',
           to: phoneNumber.trim(),
-          type: 'text',
-          text: {
-            body: message,
+          type: 'template',
+          template: {
+            name: 'order_reminder',
+            language: {
+              code: 'en',
+            },
+            components: [
+              {
+                type: 'body',
+                parameters: [
+                  {
+                    type: 'text',
+                    parameter_name: 'order_details',
+                    text: message,
+                  },
+                ],
+              },
+            ],
           },
         }),
       });

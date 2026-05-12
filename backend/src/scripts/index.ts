@@ -482,16 +482,40 @@ const reviewFlowBody = {
 };
 const sendMessage = async () => {
   console.log('running flow send.........');
+  const testBody = {
+    messaging_product: 'whatsapp',
+    recipient_type: 'individual',
+    to: '2348171727284',
+    type: 'template',
+    template: {
+      name: 'order_reminder',
+      language: {
+        code: 'en',
+      },
+      components: [
+        {
+          type: 'body',
+          parameters: [
+            {
+              type: 'text',
+              parameter_name: 'order_details',
+              text: 'test 123 its working as it should you mother fucker',
+            },
+          ],
+        },
+      ],
+    },
+  };
 
   try {
-    const url = `https://graph.facebook.com/v20.0/${982830794903993}/messages`;
+    const url = `https://graph.facebook.com/v20.0/${721528764372914}/messages`;
     const res = await fetch(url, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${process.env.META_BUSINESS_SYSTEM_TOKEN}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(listInterate),
+      body: JSON.stringify(testBody),
     });
 
     if (!res.ok) {
@@ -503,7 +527,6 @@ const sendMessage = async () => {
     console.log(error);
     console.log('====================================');
   }
-  // const data = await res.
 };
 
 const createWhsappFlow = async () => {
@@ -547,8 +570,7 @@ const p = {
   description: 'hot jelof rice for the christma season',
   price: 100,
   currency: 'USD',
-  imageUrl:
-    'https://amfqqtpfqniuzvzdowzq.supabase.co/storage/v1/object/public/nodi_product_images/1a9328d8-3aec-4706-b09f-1dc1685538b7.png',
+  imageUrl: 'https://amfqqtpfqniuzvzdowzq.supabase.co/storage/v1/object/public/nodi_product_images/1a9328d8-3aec-4706-b09f-1dc1685538b7.png',
 };
 
 const catalogMag = async (product: Partial<any>) => {
@@ -713,7 +735,7 @@ function formatCatalogMessage(items: any[]): any {
 // testMcp('hello');
 // run();
 // createWhsappFlow();
-// sendMessage()
+// sendMessage();
 // createCatalogItem();
 // queueProducer({ data: { hel: { d: '', dfsaf: ['dwee'] } } });
 // listCatalogItems();
@@ -757,7 +779,7 @@ const removeRedisMessage = async (key: string) => {
 
 // ttttt()
 // console.log('====================================');
-console.log(await removeRedisMessage('2348171727284'));
+// console.log(await removeRedisMessage('2348171727284'));
 // // console.log("+234 81 7172 7284".trim().replace('+', '') .replace(/\s+/g, ''));
 
 // console.log('====================================');
