@@ -11,7 +11,7 @@ import { WhatSappSettingsModel } from '../../models/whatsapp-settings.model';
 import { ProductModel } from '../../models/products.model';
 import { ProductOptionModel } from '../../models/product-option.model';
 import { productOptionsTaxonomy } from '../../data/taxonomy';
-
+import mime from 'mime-types';
 const PIZA_NANI = '8e853d10-8bc4-4308-8eaa-6c0169fa2604';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -23,7 +23,8 @@ const uploadImage = async (imageName: string, productId: string) => {
   const manageImageFile = new ImageUploadHelper();
   const imagePath = path.resolve(__dirname, `../../../files/images/${imageName}`);
 
-  const file = await readFile(imagePath);
+  const file: any = await readFile(imagePath);
+  file.mimetype = mime.lookup(imagePath);
 
   const { imgUrl, path: uploadedPath } = await manageImageFile.uploadImageTos3(file, {
     orgainationId: PIZA_NANI,
@@ -188,7 +189,7 @@ const run = async () => {
             name: createdProduct.name,
             description: createdProduct.description,
             price: createdProduct.price,
-            currency: 'LBP',
+            currency: 'USD',
             imageUrl: imgUrl,
           },
           whatsappData
