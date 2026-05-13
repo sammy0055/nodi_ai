@@ -34,7 +34,7 @@ interface PendingOrderQueuePayload {
 
 export const pendingOrderQueueProducer = async (payload: PendingOrderQueuePayload) => {
   const toMs = (mins: number) => mins * 60 * 1000;
-  const delayMs = toMs(5);
+  const delayMs = toMs(2);
 
   const { channel } = await initRabbit();
   channel.sendToQueue(RabitQueues.PENDING_ORDER_DELAY_QUEUE, Buffer.from(JSON.stringify(payload)), {
