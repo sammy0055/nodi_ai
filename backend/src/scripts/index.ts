@@ -20,6 +20,7 @@ import { currencyFormat } from 'simple-currency-format';
 import Redis from 'ioredis';
 import { OrgReviewQuestions } from '../types/organization';
 import { mapToReviewQuestions } from '../utils/common-fn';
+import { formatAmount } from '../workflows/utils';
 
 const ddd = {
   whatsappBusinessId: '1390720013053482',
@@ -481,7 +482,10 @@ const reviewFlowBody = {
   },
 };
 const sendMessage = async () => {
+  const customer = { name: 'Alex Micheal' };
+  const format = formatAmount('en', 'LBP');
   console.log('running flow send.........');
+  const text = `Hello, you have an order from ${customer?.name ?? ''} in the portal that needs your attention. Order Total: ${'LBP'} ${format(30000)}`;
   const testBody = {
     messaging_product: 'whatsapp',
     recipient_type: 'individual',
@@ -499,7 +503,7 @@ const sendMessage = async () => {
             {
               type: 'text',
               parameter_name: 'order_details',
-              text: 'test 123 its working as it should you mother fucker',
+              text: text,
             },
           ],
         },
