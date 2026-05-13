@@ -59,7 +59,7 @@ export const pendingOrderQueueConsumer = async () => {
       const customer = await CustomerModel.findByPk(order.customerId);
       const org = await OrganizationsModel.findByPk(job.organizationId);
       const format = formatAmount('en', order.currency);
-      const text = `Hello, you have an order from ${customer?.name ?? ''} in the portal that needs your attention. Order Total: ${order.currency} ${format(order.totalAmount)}`;
+      const text = `Hello, you have an order from ${customer?.name ?? ''} in the portal that needs your attention. Order Total: ${format(order.totalAmount)}`;
       if (org?.contactPhoneNumbers?.length === 0) throw new Error('No contact phone number for this organization');
       await sendMessage(org!.contactPhoneNumbers!, text);
       channel.ack(msg);
