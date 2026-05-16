@@ -2853,7 +2853,7 @@ export class RestaurantOrganizationChatService {
 
   private async handleProductInventoryCheckSelection(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     const buttonPayload = msg?.interactive?.button_reply as any;
-    if (buttonPayload.id === 'continue') {
+    if (buttonPayload?.id === 'continue') {
       const updatedDraft: WorkflowDraft = {
         ...draft,
         step: OrderFlowStep.CUSTOMIZE_ORDER_SELECTION,
@@ -2876,7 +2876,7 @@ export class RestaurantOrganizationChatService {
         currentStep: draft?.step as any,
         flowContent: JSON.stringify(flowContent),
       };
-    } else if (buttonPayload.id === 'add-more') {
+    } else if (buttonPayload?.id === 'add-more') {
       const catalog = await this.getCatalogLink();
       const flowContent = getFlowContent('catalog-flow', draft.lang);
       const res = await this.sendWhatSappCatalogInteractiveMessage({
