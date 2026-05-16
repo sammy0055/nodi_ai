@@ -190,9 +190,9 @@ export class RestaurantOrganizationChatService {
     const planOrg = await this.getOrganization();
     const customer = await this.getCustomerData();
     const serviceSchedule = checkBusinessServiceSchedule(planOrg.serviceSchedule, planOrg.timeZone! || 'UTC');
-    // if (!serviceSchedule?.isOpen) {
-    //   return customer?.lang === 'en' ? serviceSchedule.message.en : serviceSchedule.message.ar;
-    // }
+    if (!serviceSchedule?.isOpen) {
+      return customer?.lang === 'en' ? serviceSchedule.message.en : serviceSchedule.message.ar;
+    }
 
     if (planOrg?.status !== 'active') {
       return `${planOrg.name} is currently not active at the moment`;
