@@ -79,13 +79,13 @@ export class WhatSappSettingsService {
     //   console.log(`✅------------deregisted Number successful:${JSON.stringify(deregisterPayload, null, 2)}`);
     // }
 
-    // const registeredNumber = await this.registerPhoneNumber({
-    //   whatsappBusinessId: whatsappBusinessId,
-    //   accessToken: data.access_token,
-    //   whatsappPhoneNumberId,
-    // });
+    const registeredNumber = await this.registerPhoneNumber({
+      whatsappBusinessId: whatsappBusinessId,
+      accessToken: data.access_token,
+      whatsappPhoneNumberId,
+    });
 
-    // console.log(`✅------------registeredNumber successful:${JSON.stringify(registeredNumber, null, 2)}`);
+    console.log(`✅------------registeredNumber successful:${JSON.stringify(registeredNumber, null, 2)}`);
 
     const organization = await OrganizationsModel.findByPk(user.organizationId!);
     if (organization?.businessType !== 'restaurant') throw new Error('we currently only have support for restaurant organization type');
