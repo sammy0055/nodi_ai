@@ -16,7 +16,8 @@ export type FlowType =
   | 'multi-upselling-flow'
   | 'order-summary-flow'
   | 'edit-ordered-list-actions'
-  | 'review-flow';
+  | 'review-flow'
+  | 'product-availability';
 
 export interface FlowContent {
   headingText: string;
@@ -70,6 +71,13 @@ export interface OrderSummaryContent {
 
 export interface CustomizeOrderContent extends ChooseLangeContent {}
 
+export interface ReplyButton {
+  headingText: string;
+  bodyText: string;
+  footerText: string;
+  buttonTexts: { id: string; title: string }[];
+}
+
 type FlowContentMap = {
   'greeting-flow': GreetingsFlowContent;
   'choose-lang-flow': ChooseLangeContent;
@@ -87,6 +95,7 @@ type FlowContentMap = {
   'order-summary-flow': OrderSummaryContent;
   'edit-ordered-list-actions': EditOrderActionListFlowContent;
   'review-flow': FlowContent;
+  'product-availability': ReplyButton;
 };
 
 const flowContent: {
@@ -415,6 +424,27 @@ const flowContent: {
           title: 'تخصيص العناصر',
           description: 'تعديل العناصر (الحجم، الإضافات، إلخ)',
         },
+      ],
+    },
+  },
+  'product-availability': {
+    en: {
+      headingText: 'Some products are not available',
+      bodyText: '',
+      footerText: 'You can continue with the available items or add more products.',
+      buttonTexts: [
+        { id: 'continue', title: 'Continue with available items' },
+        { id: 'add-more', title: 'Add more items' },
+      ],
+    },
+
+    ar: {
+      headingText: 'بعض المنتجات غير متوفرة',
+      bodyText: '',
+      footerText: 'يمكنك المتابعة بالمنتجات المتوفرة أو إضافة منتجات أخرى.',
+      buttonTexts: [
+        { id: 'continue', title: 'المتابعة بالمنتجات المتوفرة' },
+        { id: 'add-more', title: 'إضافة منتجات أخرى' },
       ],
     },
   },

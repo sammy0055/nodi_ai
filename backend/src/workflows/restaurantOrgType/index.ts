@@ -8,6 +8,7 @@ import {
   getFlowContent,
   GreetingsFlowContent,
   OrderSummaryContent,
+  ReplyButton,
   SingleUpsellingContent,
 } from '../../data/flow-static-data';
 import { deleteMessageFromRedis, getMessageFromRedis, setMessageInRedis } from '../../helpers/redis';
@@ -40,6 +41,7 @@ const {
   ProductOptionChoiceModel,
   ProductOptionModel,
   ReviewModel,
+  BranchInventoryModel,
 } = models;
 
 export const handleIncommingMessageForRestaurantOrg = async (whatsappBusinessId: string, msg: WhatsAppMessage) => {
@@ -962,6 +964,53 @@ export class RestaurantOrganizationChatService {
     }
   }
 
+  async sendWhatsAppUnavailableProductCheck(args: SendUnvailableProudctMessageProps) {
+    const body = {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to: args.recipientPhoneNumber,
+      type: 'interactive',
+      interactive: {
+        type: 'button',
+        body: {
+          text: args.bodyText,
+        },
+        footer: {
+          text: args.footerText,
+        },
+        action: {
+          buttons: args.buttonTexts.map((btn) => ({
+            type: 'reply',
+            reply: {
+              id: btn.id,
+              title: btn.title,
+            },
+          })),
+        },
+      },
+    };
+
+    try {
+      const url = `https://graph.facebook.com/v20.0/${this.WhatSappBusinessPhoneNumberId}/messages`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.whatsappAccessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(`Error ${res.status}: ${errorData.error.message}`);
+      }
+    } catch (error: any) {
+      console.log('WHATSAPP-MESSAGE', error);
+      throw error;
+    }
+  }
+
   // -----------------------------
   // STEP ROUTER (NEW CORE LOGIC)
   // -----------------------------
@@ -1049,6 +1098,7 @@ export class RestaurantOrganizationChatService {
       [OrderFlowStep.ORDERED_ITEM_OPTIONS_COLLECTION]: this.handleOrderedItemOptionsSelection,
       [OrderFlowStep.EDIT_ORDER_ACTION_COLLECTION]: this.handleEditOrderActionSelection,
       [OrderFlowStep.REMOVE_ORDERED_ITEMS_COLLECTION]: this.handleRemoveOrderedItemSelection,
+      [OrderFlowStep.PRODUCT_INVENTORY_CHECK_SELECTION]: this.handleProductInventoryCheckSelection,
     };
 
     const handler = handlers[step];
@@ -1725,6 +1775,27 @@ export class RestaurantOrganizationChatService {
       flowContent: JSON.stringify(flowContent),
     };
   }
+
+  private async processProductAvailabilityCheck(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
+    const text = `
+        The following products are currently unavailable: \n
+        ${draft.unavailableItems}\n
+        Would you like to continue with the available items or add more products?`;
+
+    const flowContent = getFlowContent('product-availability', draft.lang);
+    flowContent.bodyText = text;
+    const res = await this.sendWhatsAppUnavailableProductCheck({
+      recipientPhoneNumber: this.userPhoneNumber,
+      ...flowContent,
+    });
+
+    return {
+      updatedDraft: null as any,
+      response: res,
+      currentStep: draft?.step as any,
+      flowContent: JSON.stringify(flowContent),
+    };
+  }
   // -----------------------------
   // STEP HANDLER
   // -----------------------------
@@ -2124,6 +2195,94 @@ export class RestaurantOrganizationChatService {
         price: i.price,
         quantity: 1,
       }));
+
+      // check product in inventory start---------------------------------------
+      const inventoryCheck = await BranchInventoryModel.findAll({
+        where: {
+          organizationId: this.organizationId,
+          branchId: draft.orderDetails.branchId,
+          productId: {
+            [Op.in]: product_ids.filter(Boolean),
+          },
+          isActive: true,
+        },
+      });
+
+      const availableProducts = [];
+      const unavailableProducts = [];
+
+      // count requested quantities
+      const requestedQuantities: Record<string, number> = {};
+
+      for (const product of productsWithDuplicates) {
+        if (!requestedQuantities[product!.id]) {
+          requestedQuantities[product!.id] = 0;
+        }
+
+        requestedQuantities[product!.id] += 1;
+      }
+
+      for (const product of productsWithDuplicates) {
+        const inventory = inventoryCheck.find((i) => i.productId === product!.id);
+
+        if (!inventory) {
+          unavailableProducts.push(product);
+          continue;
+        }
+
+        const availableQty = (inventory.quantityOnHand || 0) - (inventory.quantityReserved || 0);
+
+        const requestedQty = requestedQuantities[product!.id] || 0;
+
+        if (availableQty >= requestedQty) {
+          availableProducts.push(product);
+        } else {
+          unavailableProducts.push(product);
+        }
+      }
+
+      if (unavailableProducts.length !== 0) {
+        const unavailableItems = unavailableProducts.map((item, index) => `${index + 1}. ${item?.name}`).join('\n');
+
+        const text = `
+        The following products are currently unavailable: \n
+        ${unavailableItems}\n
+        Would you like to continue with the available items or add more products?`;
+
+        const flowContent = getFlowContent('product-availability', draft.lang);
+        flowContent.bodyText = text;
+        const res = await this.sendWhatsAppUnavailableProductCheck({
+          recipientPhoneNumber: this.userPhoneNumber,
+          ...flowContent,
+        });
+
+        const availableProductItems = availableProducts?.map((i: any) => ({
+          productId: i.id,
+          uniqueId: i.uniqueId,
+          productName: i.name,
+          price: i.price,
+          quantity: 1,
+        }));
+
+        const updatedDraft: WorkflowDraft = {
+          ...draft,
+          step: OrderFlowStep.PRODUCT_INVENTORY_CHECK_SELECTION,
+          unavailableItems,
+          selectedProducts: productsWithDuplicates as any,
+          orderDetails: {
+            ...draft.orderDetails,
+            items: [...(draft?.orderDetails?.items || []), ...availableProductItems] as any,
+          },
+        };
+        return {
+          updatedDraft: updatedDraft,
+          response: res,
+          currentStep: draft?.step as any,
+          flowContent: JSON.stringify(flowContent),
+        };
+      }
+
+      // check product inventory end ---------------------------------------
 
       const updatedDraft: WorkflowDraft = {
         ...draft,
@@ -2690,6 +2849,52 @@ export class RestaurantOrganizationChatService {
       flowContent: '',
     };
   }
+
+  private async handleProductInventoryCheckSelection(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
+    const buttonPayload = msg?.interactive?.button_reply as any;
+    if (buttonPayload.id === 'continue') {
+      const updatedDraft: WorkflowDraft = {
+        ...draft,
+        step: OrderFlowStep.CUSTOMIZE_ORDER_SELECTION,
+      };
+
+      const itemsWithOptions = updatedDraft.selectedProducts.filter((i) => i?.options?.length > 0);
+      if (itemsWithOptions?.length === 0) {
+        // no items have options
+        return await this.processOrderSummaryHandler(updatedDraft, msg);
+      }
+      const flowContent = getFlowContent('customize-order-flow', draft.lang);
+      const res = await this.sendWhatSappCustomizeOrderInteractiveMessage({
+        recipientPhoneNumber: this.userPhoneNumber,
+        ...flowContent,
+      });
+
+      return {
+        updatedDraft: updatedDraft,
+        response: res,
+        currentStep: draft?.step as any,
+        flowContent: JSON.stringify(flowContent),
+      };
+    } else if (buttonPayload.id === 'add-more') {
+      const catalog = await this.getCatalogLink();
+      const flowContent = getFlowContent('catalog-flow', draft.lang);
+      const res = await this.sendWhatSappCatalogInteractiveMessage({
+        recipientPhoneNumber: this.userPhoneNumber,
+        ...flowContent,
+        ...catalog,
+      });
+
+      return {
+        updatedDraft: { ...draft, step: OrderFlowStep.CATALOG_SELECTION },
+        response: res,
+        currentStep: draft?.step as any,
+        flowContent: JSON.stringify(flowContent),
+      };
+    } else {
+      // send back flow
+      return await this.processProductAvailabilityCheck(draft, msg);
+    }
+  }
 }
 
 interface workingProduct extends IProduct {
@@ -2706,6 +2911,7 @@ export interface WorkflowDraft {
   selectedProducts: workingProduct[];
   upsellingProducts: workingProduct[];
   isAddNewProducts?: boolean;
+  unavailableItems?: string;
   orderDetails: {
     organizationId: string;
     customerId: string;
@@ -2816,5 +3022,9 @@ interface SendWhatSappSingleUpsellingProps extends SingleUpsellingContent {
 }
 
 interface SendWhatSappOrderSummaryProps extends OrderSummaryContent {
+  recipientPhoneNumber: string;
+}
+
+interface SendUnvailableProudctMessageProps extends ReplyButton {
   recipientPhoneNumber: string;
 }
