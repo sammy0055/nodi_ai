@@ -431,7 +431,7 @@ const flowContent: {
     en: {
       headingText: 'Some products are not available',
       bodyText: '',
-       footerText: "Powered By credobyte.ai",
+      footerText: 'Powered by credobyte.ai',
       buttonTexts: [
         { id: 'continue', title: 'Continue' },
         { id: 'add-more', title: 'Add more items' },
@@ -441,10 +441,10 @@ const flowContent: {
     ar: {
       headingText: 'بعض المنتجات غير متوفرة',
       bodyText: '',
-      footerText: "Powered By credobyte.ai",
+      footerText: 'مشغل بواسطة credobyte.ai',
       buttonTexts: [
-        { id: 'continue', title: 'االمتوفرة' },
-        { id: 'add-more', title: 'إضافة منتجات أخرى' },
+        { id: 'continue', title: 'متابعة' },
+        { id: 'add-more', title: 'إضافة المزيد من المنتجات' },
       ],
     },
   },

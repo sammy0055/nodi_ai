@@ -1778,8 +1778,8 @@ export class RestaurantOrganizationChatService {
 
   private async processProductAvailabilityCheck(draft: WorkflowDraft, msg: WhatsAppMessage): Promise<StepHandlerResult> {
     const text = `
-        The following products are currently unavailable: 
-        ${draft.unavailableItems}
+        The following products are currently unavailable:\n
+        ${draft.unavailableItems}\n
         Would you like to continue with the available items or add more products?`;
 
     const flowContent = getFlowContent('product-availability', draft.lang);
@@ -2245,15 +2245,13 @@ export class RestaurantOrganizationChatService {
         const unavailableItems = unavailableProducts.map((item, index) => `${index + 1}. ${item?.name}`).join('\n');
 
         const text = `
-        The following products are currently unavailable: 
-        ${unavailableItems}
+        The following products are currently unavailable: \n
+        ${unavailableItems} \n
         Would you like to continue with the available items or add more products?`;
 
         const flowContent = getFlowContent('product-availability', draft.lang);
-        flowContent.bodyText = "The following products are currently unavailable";
-        console.log('=====================catalog selection===============');
-        console.log(flowContent);
-        console.log('====================================');
+        flowContent.bodyText = text;
+
         const res = await this.sendWhatsAppUnavailableProductCheck({
           recipientPhoneNumber: this.userPhoneNumber,
           ...flowContent,
