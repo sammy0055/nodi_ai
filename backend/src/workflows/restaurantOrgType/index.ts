@@ -2241,6 +2241,24 @@ export class RestaurantOrganizationChatService {
         }
       }
 
+      if (unavailableProducts?.length === productsWithDuplicates?.length) {
+        const catalog = await this.getCatalogLink();
+        const flowContent = getFlowContent('catalog-flow', draft.lang);
+        flowContent.bodyText = 'all selected items are not available, kindly choose new items';
+        const res = await this.sendWhatSappCatalogInteractiveMessage({
+          recipientPhoneNumber: this.userPhoneNumber,
+          ...flowContent,
+          ...catalog,
+        });
+
+        return {
+          updatedDraft: { ...draft, step: OrderFlowStep.CATALOG_SELECTION },
+          response: res,
+          currentStep: draft?.step as any,
+          flowContent: JSON.stringify(flowContent),
+        };
+      }
+
       if (unavailableProducts.length !== 0) {
         const unavailableItems = unavailableProducts.map((item, index) => `${index + 1}. ${item?.name}`).join('\n');
 
