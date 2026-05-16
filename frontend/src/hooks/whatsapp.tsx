@@ -80,7 +80,11 @@ export function useWhatsAppSignup(configId: string, redirectUri: string) {
       config_id: configId,
       response_type: 'code',
       override_default_response_type: true,
-      extras: { version: 'v3' },
+      extras: {
+        version: 'v3',
+        featureType: 'whatsapp_business_app_onboarding', // set to 'whatsapp_business_app_onboarding'
+        sessionInfoVersion: '3',
+      },
     });
   }, [configId, redirectUri, fbLoginCallback]);
 
