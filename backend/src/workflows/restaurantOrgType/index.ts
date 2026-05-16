@@ -2250,8 +2250,8 @@ export class RestaurantOrganizationChatService {
         Would you like to continue with the available items or add more products?`;
 
         const flowContent = getFlowContent('product-availability', draft.lang);
-        flowContent.bodyText = text;
-        console.log('====================================');
+        flowContent.bodyText = "The following products are currently unavailable";
+        console.log('=====================catalog selection===============');
         console.log("catalog selection for unavailable products", text);
         console.log('====================================');
         const res = await this.sendWhatsAppUnavailableProductCheck({
