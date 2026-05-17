@@ -2756,6 +2756,19 @@ export class RestaurantOrganizationChatService {
           console.log(JSON.stringify(draft.orderDetails));
           console.log('====================================');
           const createdOrder = await OrderModel.create(draft.orderDetails as any);
+          for (const item of draft.orderDetails.items) {
+            await BranchInventoryModel.decrement(
+              {
+                quantityOnHand: item?.quantity || 1,
+              },
+              {
+                where: {
+                  branchId: draft.orderDetails.branchId,
+                  productId: item.productId,
+                },
+              }
+            );
+          }
           const res = await this.sendWhatSappMessage({
             recipientPhoneNumber: this.userPhoneNumber,
             message: draft.lang === 'en' ? enMessage : arMessage,
